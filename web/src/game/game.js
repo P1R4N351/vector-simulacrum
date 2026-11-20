@@ -62,22 +62,24 @@ async function sha256Hex(text) {
 }
 
 // The model the page compiles must be the one model.json describes.
-async function checkModel(xml, model) {
+async function checkModel(xml, expectedHash) {
   if (!globalThis.crypto?.subtle) return "SKIPPED (not a secure origin)";
   const hash = await sha256Hex(xml);
-  if (hash !== model.source.xml_sha256) throw new Error("vector.xml does not match the hash in model.json; run tools/export_model.py");
+  if (hash !== expectedHash) throw new Error("vector.xml does not match the hash in model.json; run tools/export_model.py");
   return "OK";
 }
 
 async function loadEverything() {
+  const trial = new URLSearchParams(location.search).get("contact") === "42";
   const [{ default: loadMujoco }, xml, modelText] = await Promise.all([
     traced("PHYSICS RUNTIME", import("@mujoco/mujoco")),
-    traced("ROBOT MODEL", fetchText("./robot/vector.xml")),
+    traced(trial ? "ROBOT MODEL · 42 MM CONTACT" : "ROBOT MODEL",
+      fetchText(trial ? "./robot/vector-contact42.xml" : "./robot/vector.xml")),
     traced("PARAMETER TABLE", fetchText("./robot/model.json")),
   ]);
   const model = JSON.parse(modelText);
   const doneCheck = bootLine("MODEL CHECKSUM");
-  doneCheck(await checkModel(xml, model));
+  doneCheck(await checkModel(xml, trial ? model.source.trial_xml_sha256 : model.source.xml_sha256));
   const mujoco = await traced("WEBASSEMBLY", loadMujoco({ locateFile: (p) => (p.endsWith(".wasm") ? mujocoWasmUrl : p) }));
   const doneCompile = bootLine("COMPILE AND SETTLE");
   const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1 });
@@ -97,7 +99,7 @@ function makeRenderer(canvas) {
   scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment()).texture;
   scene.environmentIntensity = 0.55;
   const camera = new THREE.PerspectiveCamera(38, 1, 0.005, 20);
-  camera.position.set(0.3, 0.2, 0.3);
+  camera.position.set(0.19, 0.125, 0.19);
   camera.layers.enable(HIDDEN_FROM_ROBOT); // the main view sees the drawing aids the robot's camera does not
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
@@ -292,12 +294,13 @@ function startLoop(ctx) {
 // The SDK's robot model if it has been fetched and is usable; otherwise null (the robot is drawn as shapes).
 async function loadRobotLook(values) {
   const done = bootLine("SDK ROBOT MODEL");
-  if (new URLSearchParams(window.location.search).get("look") === "shapes") {
+  const options = new URLSearchParams(window.location.search);
+  if (options.get("look") === "shapes") {
     done("SKIPPED: ?look=shapes");
     return null;
   }
   try {
-    const sdk = await loadSdkModel(values);
+    const sdk = await loadSdkModel(values, { faceplate: options.get("faceplate") !== "off", shellVersion: options.get("shell") === "2" ? 2 : 1 });
     done(sdk === null ? "NOT FETCHED: DRAWING SHAPES" : "OK");
     return sdk;
   } catch (err) {

@@ -350,7 +350,10 @@ class VectorSim:
         head_step, lift_step = v["head_rad_per_encoder_count"], v["lift_rad_per_encoder_count"]
         assert head_step > 0.0 and lift_step > 0.0, "encoder steps must be positive"
         head = round(self.head_angle_rad() / head_step) * head_step
-        lift_angle = round(float(self.data.qpos[self._q["lift"]]) / lift_step) * lift_step
+        # The firmware resets the lift encoder at its calibrated low position.
+        low = self.d["lift_angle_min"]
+        counts = round((float(self.data.qpos[self._q["lift"]]) - low) / lift_step)
+        lift_angle = low + counts * lift_step
         return head, mjcf.lift_height_of_angle(v, lift_angle)
 
     def _publish_state(self) -> None:

@@ -45,7 +45,7 @@ SCENE_OBSTACLES = ((190.0, 60.0, 22.0, 44.0, 44.0, 44.0),)
 FIXTURE_SEED = 20261118
 ROBOT_MODEL = "vector_1"
 # The head camera looks 4 degrees below the head's forward axis in the engine the robot runs.
-# The parameter table has no entry for it yet, so the figure and its source live here until it does.
+# Fallback for --simulacrum pointing to the older, level-camera MJCF generator.
 CAMERA_PITCH_DOWN_DEG = 4.0
 CAMERA_PITCH_DOWN_SOURCE = ("the robot's engine, engine/fullRobotPose.cpp in kercre123/victor, branch snowboy "
                             "(sha256 2c7df61741fd0751d0cc835c7558edec24c26974ccdcdfcdfbcfb7aa04d9ac3d): "
@@ -382,6 +382,8 @@ def main(argv: Sequence[str]) -> int:
     sys.path.insert(0, str(root))
     from simulacrum import drive, hazards, mjcf, params, prox  # noqa: E402  (path set above)
 
+    from contact_trial import contact_model
+
     table_bytes = (root / "parameters.json").read_bytes()
     # The base table, which the simulacrum calls vector_1. The recorded robot is a Vector 1.0
     # (the table's REC and REC2 sources, on the operator's word).
@@ -389,7 +391,9 @@ def main(argv: Sequence[str]) -> int:
     d = mjcf.derive(v)
     xml = mjcf.build_mjcf(v, SCENE_OBSTACLES)
     assert all(math.isfinite(x) for x in d["chassis_inertia"]), "derived inertia is not finite"
-    model = {"source": {"table_sha256": hashlib.sha256(table_bytes).hexdigest(),
+    trial_xml = contact_model(xml, v)
+    model = {"source": {"trial_xml_sha256": hashlib.sha256(trial_xml.encode()).hexdigest(),
+                        "table_sha256": hashlib.sha256(table_bytes).hexdigest(),
                         "xml_sha256": hashlib.sha256(xml.encode("utf-8")).hexdigest()},
              "robot_model": ROBOT_MODEL,
              "values": _jsonable(v), "derived": _jsonable(d), "cliff_names": list(mjcf.CLIFF_NAMES),
@@ -397,6 +401,7 @@ def main(argv: Sequence[str]) -> int:
              "obstacles": _jsonable(SCENE_OBSTACLES)}
     outputs = {
         "public/robot/vector.xml": xml,
+        "public/robot/vector-contact42.xml": trial_xml,
         "public/robot/model.json": json.dumps(model, indent=1, sort_keys=True) + "\n",
         "test/fixtures/drive.json": json.dumps(drive_fixture(v, drive)) + "\n",
         "test/fixtures/hazards.json": json.dumps(hazards_fixture(v, hazards)) + "\n",

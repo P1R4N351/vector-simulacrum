@@ -172,6 +172,8 @@ def _head_xml(v: Dict[str, Any]) -> str:
     assert len(cam) == 3 and len(imu) == 3 and len(res) == 2, "bad head vectors"
     # The IMU's frame is pitched against the head (positive is nose up, like the head joint, whose axis is -y).
     half = 0.5 * math.radians(v["imu_pitch_offset_deg"])
+    pitch = math.radians(v["head_camera_pitch_down_deg"])
+    camera_up = vec((math.sin(pitch), 0, math.cos(pitch)))
     imu_quat = (math.cos(half), 0.0, -math.sin(half), 0.0)
     assert abs(half) < 0.5, "IMU pitch offset is not a small angle"
     return (
@@ -181,7 +183,7 @@ def _head_xml(v: Dict[str, Any]) -> str:
         f'      <geom name="head_geom" type="box" size="{vec((bx, by, bz))}" '
         f'mass="{num(v["head_mass_g"] * GRAM)}" rgba="0.25 0.25 0.3 1" group="{ROBOT_GEOM_GROUP}" '
         f'{_contact_attrs(v, v["chassis_friction"])}/>\n'
-        f'      <camera name="head_cam" pos="{vec([c * MM for c in cam])}" xyaxes="0 -1 0 0 0 1" '
+        f'      <camera name="head_cam" pos="{vec([c * MM for c in cam])}" xyaxes="0 -1 0 {camera_up}" '
         f'fovy="{num(v["camera_fov_vertical_deg"])}" resolution="{int(res[0])} {int(res[1])}"/>\n'
         f'      <site name="imu" pos="{vec([c * MM for c in imu])}" quat="{vec(imu_quat)}" size="0.001"/>\n'
         f'    </body>\n'
@@ -197,6 +199,15 @@ def _lift_xml(v: Dict[str, Any], d: Dict[str, Any]) -> str:
     arm = v["servo_armature_gcm2"] * 1e-7
     assert d["lift_angle_min"] < d["lift_angle_max"], "lift range is empty"
     assert arm_len > 0.0 and half_w > 0.0, "lift must have size"
+    # Side plates contact objects above the crossbar; leave the opening clear.
+    # The existing mass term already represents the entire fork assembly.
+    x, y, z = v["lift_fork_side_center_mm"]
+    size = vec([0.5 * n * MM for n in v["lift_fork_side_size_mm"]])
+    sides = "".join(
+        f'        <geom name="fork_side_{name}" type="box" pos="{vec((x * MM, sign * y * MM, z * MM))}" '
+        f'size="{size}" mass="0" {_contact_attrs(v, v["chassis_friction"])}/>\n'
+        for name, sign in (("left", 1), ("right", -1))
+    )
     return (
         f'    <body name="lift_arm" pos="{vec([c * MM for c in v["lift_base_position_mm"]])}">\n'
         f'      <joint name="lift_joint" type="hinge" axis="0 -1 0" '
@@ -209,7 +220,7 @@ def _lift_xml(v: Dict[str, Any], d: Dict[str, Any]) -> str:
         f'        <geom name="lift_fork_geom" type="box" pos="{vec((fx * MM, 0, fz * MM))}" '
         f'size="{vec((half_x, half_w, half_z))}" mass="{num(d["masses_g"]["fork"] * GRAM)}" '
         f'rgba="0.3 0.3 0.3 1" group="{ROBOT_GEOM_GROUP}" {_contact_attrs(v, v["chassis_friction"])}/>\n'
-        f'      </body>\n'
+        f'{sides}      </body>\n'
         f'    </body>\n'
     )
 

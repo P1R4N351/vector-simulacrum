@@ -22,6 +22,11 @@
       "url": "https://raw.githubusercontent.com/kercre123/victor/snowboy/robot/include/anki/cozmo/shared/cozmoConfig.h",
       "sha256": "50a02ad3004b5d6c3b51cf2e22b3b38ffe7b1e4b5628769bc6db30823e0bc1b3"
     },
+    "POSECPP": {
+      "what": "engine/fullRobotPose.cpp, camera mount",
+      "url": "https://raw.githubusercontent.com/kercre123/victor/snowboy/engine/fullRobotPose.cpp",
+      "sha256": "2c7df61741fd0751d0cc835c7558edec24c26974ccdcdfcdfbcfb7aa04d9ac3d"
+    },
     "WEBOTS": {
       "what": "simulator/protos/CozmoBot2.proto, Anki's Webots model of the robot",
       "url": "https://raw.githubusercontent.com/digital-dream-labs/vector/main/simulator/protos/CozmoBot2.proto",
@@ -201,6 +206,7 @@
     "head_angle_min_deg": {"value": -22.0, "unit": "deg", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "FW:35 MIN_HEAD_ANGLE; SLAM:48 MIN_HEAD_DEG; WEBOTS:11", "kind": "robot"},
     "head_angle_max_deg": {"value": 45.0, "unit": "deg", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "FW:36 MAX_HEAD_ANGLE; SLAM:49 MAX_HEAD_DEG; WEBOTS:12", "kind": "robot"},
     "neck_joint_position_mm": {"value": [-13.0, 0.0, 49.0], "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "FW:117 NECK_JOINT_POSITION = {-13, 0, 34.5 + WHEEL_RAD_TO_MM}", "low": [-15.0, 0.0, 47.0], "high": [-11.0, 0.0, 51.0], "kind": "robot"},
+    "head_camera_pitch_down_deg": {"value": 4.0, "unit": "deg", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "POSECPP kDefaultHeadCamRotation, 4-degree look down", "kind": "robot"},
     "head_camera_position_mm": {"value": [18.84, 0.0, -7.96], "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "FW:120 HEAD_CAM_POSITION, relative to the neck joint", "kind": "robot"},
     "imu_position_mm": {"value": [5.8, 0.0, -13.5], "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "FW:126 IMU_POSITION, relative to the neck joint", "kind": "robot", "note": "The IMU is in the head (TRM 63.2.2, trm.txt:12037; IMUCPP:876 subtracts the head angle to get pitch). REC confirms its axes turn with the head: gyro x over gyro z follows tan(head angle) with slope 0.9985 over 369 turning samples (recording.gyro_frame). See imu_pitch_offset_deg."},
     "imu_pitch_offset_deg": {"value": -0.66, "unit": "deg", "provenance": "fitted", "source": "REC table-run1.jsonl, simulacrum/imu_fit.py, the same fit as accel_bias_mg: with the reported head angle at 0 on a level surface the accelerometer's frame is pitched -0.66 deg (nose down), standard error 0.17 deg; leaving out each cluster of head angle gives -0.64 to -0.81. An independent signal agrees in sign and size: recording.gyro_frame fits gyro x over gyro z against tan(head angle) over 369 turning samples and finds slope 0.9985 and an offset of -1.06 deg. The range spans both.", "low": -1.2, "high": -0.2, "kind": "robot", "note": "The sum of the body's stance on its treads, the mounting of the part and any zero error of the head angle; the recording cannot separate them. The model applies it to the IMU's frame."},
@@ -221,6 +227,8 @@
     "lift_base_position_mm": {"value": [-41.0, 0.0, 45.0], "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "FW:123 LIFT_BASE_POSITION = {-41, 0, 30.5 + WHEEL_RAD_TO_MM}", "kind": "robot", "note": "Shoulder joint."},
     "lift_arm_length_mm": {"value": 66.0, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "FW:84 LIFT_ARM_LENGTH", "kind": "robot"},
     "lift_height_above_prox_mm": {"value": 59.0, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "FW:81 LIFT_HEIGHT_ABOVE_PROX (\"Just above prox sensor\")", "kind": "robot"},
+    "lift_fork_side_center_mm": {"value": [2, 22, -10], "unit": "mm", "provenance": "assumed", "low": [1, 21, -11], "high": [3, 23, -9], "source": "Symmetric wrist-relative contact proxies inside the outer side plates of Dauler forks7.stl, Thingiverse 3731746; stock fork outline cross-checked in iFixit guide 123280", "kind": "robot"},
+    "lift_fork_side_size_mm": {"value": [3, 3, 21], "unit": "mm", "provenance": "assumed", "low": [2, 2, 19], "high": [4, 4, 23], "source": "Conservative solid portion of the two printable fork side plates, excluding clips and the curved bottom corners. Original hardware contact dimensions unmeasured.", "kind": "robot"},
     "lift_xbar_width_mm": {"value": 30.0, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "FW:99 LIFT_XBAR_WIDTH (approximate)", "kind": "robot"},
     "lift_xbar_height_mm": {"value": 8.5, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "FW:97 LIFT_XBAR_HEIGHT (\"measured manually\")", "kind": "robot"},
     "lift_xbar_top_wrt_wrist_mm": {"value": -20.0, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "FW:95 LIFT_XBAR_HEIGHT_WRT_WRIST_JOINT", "kind": "robot"},

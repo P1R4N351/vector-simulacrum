@@ -151,7 +151,7 @@ making the picture look tidy.
 | Optics | fx 361.16, fy 356.24 px; optical centre 310.66, 183.83 px; 640 x 360 | One real Vector's factory calibration, as the robot reports it through the SDK (`camera_calibration.json`) | |
 | Field of view | 83.1° x 53.6° | Follows from that calibration | Manual: 90° x 50°. Anki's simulator: 94° wide. The simulacrum's MJCF: 50° tall, which makes 79.3° wide |
 | Position | 18.84 mm ahead of and 7.96 mm below the neck joint | The firmware header (`head_camera_position_mm` in the table); read each frame from the physics model's camera, so it moves with the head | Same in Anki's simulator |
-| Tilt | 4° below the head's forward axis | The engine the robot runs (`engine/fullRobotPose.cpp`, `kDefaultHeadCamRotation`; works out to 4.002°) | Same in Anki's simulator. The MJCF's camera has no tilt; the page adds it and will stop when the table carries it |
+| Tilt | 4° below the head's forward axis | The engine the robot runs (`engine/fullRobotPose.cpp`, `kDefaultHeadCamRotation`; works out to 4.002°) | Same in Anki's simulator. The MJCF and browser both use the engine mounting angle |
 
 The optical centre is not the middle of the image, so the view reaches 40.7°
 left and 42.4° right, 27.3° up and 26.3° down. `npm test` checks the position
@@ -215,7 +215,23 @@ still come from the SDK viewer because the robot's numbers do not cover them:
 the angle the arm is drawn at in the file, and where the lower arm of the
 linkage pivots. Parts of the model can therefore sit a millimetre or so off
 each other; that is the model not matching the robot, shown and not hidden.
-The wheel colour, the spokes and the cleats are added by this page.
+The local demo loads Dauler’s stock-pattern outer wheels and replacement lift
+fork from the original Thingiverse archives. Each STL retains its millimetre
+scale. The front wheels measure 26.0 mm across and the rear wheels 18.5 mm.
+Their outside faces sit on the SDK wheel faces, with the clips pointing inward.
+Two collision boxes on the wrist approximate the outer fork plates above the physical crossbar. The opening between the plates is clear. The 48.0 mm wide fork stays level on the wrist. Its centre crossbar is aligned
+using the firmware offsets and 8.5 mm bar height. These sizes describe printable
+replacement parts. Fit to a specific physical robot has not been measured.
+
+The SDK view supports `?faceplate=off` to inspect the LCD carrier, fasteners and camera bracket. The head cover has ten slits. The four microphone ports sit in the outer notches of the U-shaped gold touch plate. A convex indicator lens rises above the floor of its channel. Their profiles use the owner's three close-up photographs. See the [visual and physics checks](../evidence/stock-shell-physics-20261118.md) for the matched stock views and remaining hardware discrepancies.
+
+The shell and ear profiles are visual estimates
+from the [iFixit teardown photographs](https://www.ifixit.com/Guide/Anki+Vector+Capacitive+Touch+Sensor+Replacement/123280).
+The lens uses the camera mount from the parameter table. The robot uses its SDK
+wheel or fork wherever a print part is unavailable. To refresh the local print
+meshes, run `python3 tools/fetch_print_parts.py`. The download includes the
+creator’s attribution and noncommercial licence alongside each set. For a local
+Docker build add both `--build-arg WITH_SDK_MODEL=1` and `--build-arg WITH_PRINT_PARTS=1`.
 
 A built bundle (`dist/`) or a container image that includes the model carries
 that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.

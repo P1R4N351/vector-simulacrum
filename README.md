@@ -5,6 +5,8 @@ description: A MuJoCo model of the Anki/DDL Vector robot for training policies t
 
 # vector-simulacrum
 
+[Physics overlay gallery](evidence/physics-plots/README.md) · [Held-out encoder/gyro timing test](evidence/hw-rec-20261119/unit2-ccw100.md#encoder-to-gyro-timing-test)
+
 Authored-by: CPCS. Fifth version, 2026-11-16. Runs in CT 930 `mujoco-cauldron`.
 
 This is the physics model that `skills/vector-sim` (the Go gRPC simulator,
@@ -16,8 +18,8 @@ part of it.** One robot, one run of 162 s, one surface, one battery charge
 (4.10 V falling to 3.96 V), wheel speeds up to 100 mm/s. Nothing here says
 anything about another robot, another surface, or faster driving.
 
-Of 160 parameters: 10 are measured on the recordings, 18 are fitted to them, 17
-come from the manual, 85 from vendor or household software, 23 are still
+Of 163 parameters: 10 are measured on the recordings, 18 are fitted to them, 17
+come from the manual, 86 from vendor or household software, 25 are still
 assumed about the robot, and 7 are settings of the scene and the solver that
 have no real value to find. On the segments the fit never saw, the model's
 wheel speed and gyro error fell from 0.33 of each segment's scale (the
@@ -296,6 +298,14 @@ with the ramp in, gives 1.24 rad/s. That scores 0.026 on the fitted moves,
 but 0.065 and 0.081 on the two held-out sets, so it was not adopted. Run A
 on its own would choose a delay of 110 to 125 ms: the delay is a round trip
 through the wire-pod host and may differ from day to day.
+
+The [stock replay findings and plots](evidence/stock-shell-physics-20261118.md#stock-and-simulator-overlays) compare the 100 mm/s CCW turn and unloaded lift against archived hardware traces. The lift readout uses the calibrated low-dock encoder origin. A faster lift ramp improved the first full raise but increased the mean height error on the separate Nov 18 moving lifts.
+
+Aligning the [unloaded lift traces at first motion](evidence/stock-shell-physics-20261118.md#first-motion-alignment-of-the-unloaded-lift) shows a difference in the recorded raise profiles as well as variation in onset. Matching the first raise’s onset by increasing delay worsened the independent six-move mean error from 2.24 to 3.68 mm. Run `python diagnose_lift_timing.py` for the individual moves.
+
+The [head first-motion overlays](evidence/stock-shell-physics-20261118.md#head-timing-on-the-command-and-first-motion-clocks) compare the closest raises and lowers in those sessions. The Nov 18 head lower also occurs later through mid-stroke. The comparable head raise admits an earlier or zero shift. Increasing the servo delay worsens mean error on all eight independent head moves taken together. Reproduce with `python diagnose_lift_timing.py --joint head`.
+
+The [pitch-gyro speed versus head angle](evidence/stock-shell-physics-20261118.md#head-angular-speed-versus-posture) comparison tests onset timing and posture-dependent load against independent moves. The [acoustic ranging feasibility study](evidence/vector-acoustic-ranging.md) checks Vector’s audio paths, Susurrus timing, and a synthetic four-channel wall-echo detector.
 
 ### The spins of 2026-11-18: the centre of mass, again
 

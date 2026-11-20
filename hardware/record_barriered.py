@@ -172,12 +172,13 @@ def hazard(robot):
 
 
 def stop(robot, why):
+    issued_t = round(time.monotonic() - T0, 4)
     try:
         robot.motors.stop_all_motors()
     except Exception as exc:  # best effort; the reason is still recorded
         emit("c", name="stop_failed", why=why, error=type(exc).__name__)
         return
-    emit("c", name="stop", why=why)
+    emit("c", name="stop", why=why, issued_t=issued_t)
 
 
 def clear_to_move(robot, label):

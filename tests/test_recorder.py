@@ -508,6 +508,17 @@ class Rows(unittest.TestCase):
         self.assertEqual(set(row), set(first) | {"img_ts"})
         self.assertEqual((row["wl"], row["wr"], row["gyro"], row["img_ts"]), (4.0, 5.0, [1.0, 2.0, 3.0], 123456))
 
+    def test_stop_request_and_acknowledgment_have_separate_times(self) -> None:
+        def slow_call(robot, name, *args):
+            if name == "stop":
+                robot.clock.sleep(0.04)
+        with mock.patch.object(FakeRobot, "_call", slow_call):
+            commands = [r for r in dry_run({"PHASES": "spins"})["rows"] if r["k"] == "c"]
+        stop = next(r for r in commands if r["name"] == "stop")
+        self.assertAlmostEqual(stop["t"] - stop["issued_t"], 0.04)
+        self.assertEqual(recording._wheel_segments(commands)[0].t_stop, stop.pop("issued_t"))
+        self.assertEqual(recording._wheel_segments(commands)[0].t_stop, stop["t"])
+
     def test_plain_wheel_segments_load_with_the_first_recordings_reader(self) -> None:
         commands = [row for row in dry_run({"PHASES": "spins,straights"})["rows"] if row["k"] == "c"]
         segments = recording._wheel_segments(commands)

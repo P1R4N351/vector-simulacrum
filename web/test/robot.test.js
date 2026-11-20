@@ -264,3 +264,25 @@ test("lift height and angle convert both ways, and rounding is Python's", () => 
   assert.ok(Math.abs(liftAngleOfHeight(v, v.lift_height_min_mm) - model.derived.lift_angle_min) < 1e-12);
   assert.deepEqual([0.5, 1.5, 2.5, -0.5, -1.5, 2.4999, 2.5001].map(pyRound), [0, 2, 2, 0, -2, 2, 3]);
 });
+
+test("42 mm contact trial keeps both stock axle pairs in place", async () => {
+  const runtime = await mujoco();
+  const trial = readText("public/robot/vector-contact42.xml");
+  assert.equal(sha256(trial), model.source.trial_xml_sha256);
+  const compiled = runtime.MjModel.from_xml_string(trial);
+  try {
+    const x = (name) => {
+      const id = runtime.mj_name2id(compiled, runtime.mjtObj.mjOBJ_BODY.value, name);
+      assert.ok(id >= 0, name);
+      return 1000 * compiled.body_pos[3 * id];
+    };
+    for (const side of ["l", "r"]) {
+      assert.equal(x("wheel_f" + side), 0);
+      assert.equal(x("wheel_r" + side), -model.values.wheel_base_mm);
+      assert.equal(x("patch_f" + side), -3);
+      assert.equal(x("patch_r" + side), -45);
+    }
+  } finally {
+    compiled.delete();
+  }
+});

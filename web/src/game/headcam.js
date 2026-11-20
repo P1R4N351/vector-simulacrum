@@ -4,9 +4,8 @@
 //
 // Position: the physics model's camera (head_camera_position_mm from the
 // firmware, relative to the neck), read each frame from the solver, so it
-// moves with the head. Direction: the model's camera looks straight along the
-// head; the engine the robot runs tilts it down (pitch_down_deg), and that
-// tilt is added here unless the model already has it. Optics: a pinhole from
+// moves with the head. Direction: the current MJCF includes the engine's
+// downward mounting angle. Older level-camera exports receive it here. Optics: a pinhole from
 // the calibrated focal lengths and optical centre (../sim/optics.js). No lens
 // distortion, no exposure, no noise.
 

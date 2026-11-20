@@ -26,20 +26,20 @@
 // lift_angle_in_default_pose), and where the lower arm of the linkage pivots.
 // So parts of the model can sit a millimetre or so off each other; that is
 // the model not matching the robot, shown rather than hidden.
-// The wheel colour, the spokes and the cleats are added here.
+// Replacement print geometry and shell trim are visual children of this rig.
 
 import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
-import { makeCleats, makeSpokes } from "./tracks.js";
+import { liftLink } from "./liftlinks.js";
+import { addShellTrim } from "./shell.js";
+import { loadPrintParts, outerWheel, printFork } from "./printparts.js";
+import { beltGeometry, makeCleats, makeSpokes } from "./tracks.js";
 
 const DIR = "./robot/sdk";
 const CM = 0.1; // model units (cm) per mm
 const PARTS = {
-  body: ["body_geo", "trackBase_L_geo", "tracks_L_geo", "trackBase_R_geo", "tracks_R_geo"],
-  head: ["head_geo", "backScreen_mat", "screenEdge_geo", "overscan_1_geo", "eye_L_geo", "eye_R_geo",
-    "eyeLid_R_top_geo", "eyeLid_L_top_geo", "eyeLid_L_btm_geo", "eyeLid_R_btm_geo", "front_Screen_geo"],
-  upperArm: ["uprArm_L_geo", "uprArm_geo"],
-  lowerArm: ["lwrArm_L_geo", "lwrArm_R_geo"],
+  body: ["body_geo", "trackBase_L_geo", "trackBase_R_geo"],
+  head: ["head_geo", "eye_L_geo", "eye_R_geo", "front_Screen_geo"],
   fork: ["fork_geo"],
 };
 // Front left, front right, rear left, rear right: the order of VectorSim.wheelAnglesRad().
@@ -72,10 +72,13 @@ function makeMaterials(colours) {
   const made = new Map();
   for (const [name, rgb] of colours) {
     const colour = new THREE.Color(rgb[0], rgb[1], rgb[2]);
+    if (name === "blinn2SG") colour.setHex(0x57585b); // head and lift arms
+    if (name === "blinn3SG") colour.setHex(0x19191b); // rubber
+    if (name === "blinn4SG") colour.setHex(0x292a2c); // chassis
     if (name === EYE_MATERIAL) made.set(name, new THREE.MeshBasicMaterial({ color: colour, toneMapped: false }));
     else if (GLASS_MATERIALS.has(name)) {
-      made.set(name, new THREE.MeshStandardMaterial({ color: colour, roughness: 0.1, transparent: true, opacity: 0.25, depthWrite: false }));
-    } else made.set(name, new THREE.MeshStandardMaterial({ color: colour, roughness: 0.42, metalness: 0.25 }));
+      made.set(name, new THREE.MeshPhysicalMaterial({ color: 0x575762, roughness: 0.12, metalness: 0.2, clearcoat: 1, envMapIntensity: 2.5, transparent: true, opacity: 0.32, depthWrite: false }));
+    } else made.set(name, new THREE.MeshStandardMaterial({ color: colour, roughness: 0.37, metalness: 0.04 }));
   }
   return made;
 }
@@ -98,8 +101,8 @@ function pivotGroup(pivot, meshes) {
 
 // Each wheel moved onto the robot's axle for it, with spokes on its outer face.
 // toFile: robot millimetres (x, z) -> the file's coordinates.
-function mountWheels(holder, wheelMeshes, v, toFile) {
-  const material = new THREE.MeshStandardMaterial({ color: 0x8a9099, roughness: 0.4, metalness: 0.45 });
+function mountWheels(holder, wheelMeshes, v, toFile, parts) {
+  const material = new THREE.MeshStandardMaterial({ color: 0x76787b, roughness: 0.4, metalness: 0.45 });
   const axles = [
     [0, v.wheel_front_radius_mm], [0, v.wheel_front_radius_mm],
     [-v.wheel_base_mm, v.wheel_rear_radius_mm], [-v.wheel_base_mm, v.wheel_rear_radius_mm],
@@ -113,27 +116,45 @@ function mountWheels(holder, wheelMeshes, v, toFile) {
     const group = pivotGroup(drawnAxle, [mesh]);
     const real = toFile(axles[i]);
     group.position.set(real[0], 0, real[1]);
-    group.add(makeSpokes(0.9 * radius, outer + Math.sign(outer) * 0.012, "y", 0.02));
+    const print = parts[i < 2 ? 0 : 1];
+    if (print) {
+      // Keep the inner wheel behind the openings in the removable face.
+      mesh.scale.y = 0.35;
+      const inner = outer > 0 ? box.min.y : box.max.y;
+      mesh.position.y = inner * (1 - mesh.scale.y);
+      mesh.material = new THREE.MeshStandardMaterial({ color: 0x252528, roughness: 0.65 });
+      group.add(outerWheel(print, outer, material));
+    } else group.add(makeSpokes(0.9 * radius, outer + Math.sign(outer) * 0.012, "y", 0.02));
     holder.add(group);
-    return { group, y: 0.5 * (box.min.y + box.max.y), width: box.max.y - box.min.y };
+    return group;
   });
 }
 
 // Cleats round the robot's track: its wheel radii at its axles.
-function mountCleats(holder, wheels, v, toFile) {
+function mountCleats(holder, v, toFile) {
   const front = toFile([0, v.wheel_front_radius_mm]);
   const rear = toFile([-v.wheel_base_mm, v.wheel_rear_radius_mm]);
-  const proud = 0.05;
+  const halfSpacing = v.tread_spacing_mm * CM / 2;
+  const sideY = [halfSpacing, -halfSpacing];
+  const proud = 0.055;
   const cleats = makeCleats({
     front: { x: front[0], z: front[1], r: v.wheel_front_radius_mm * CM - proud },
     rear: { x: rear[0], z: rear[1], r: v.wheel_rear_radius_mm * CM - proud },
-    sideY: [wheels[0].y, wheels[1].y], width: 0.92 * wheels[0].width, pitch: 0.42, along: 0.14, proud,
+    sideY, width: v.tread_width_mm * CM, pitch: 0.35, along: 0.19, proud,
   });
+  const band = beltGeometry(cleats.path, v.tread_width_mm * CM, 0.105);
+  const rubber = new THREE.MeshStandardMaterial({ color: 0x222224, roughness: 0.86 });
+  for (const y of sideY) {
+    const belt = new THREE.Mesh(band, rubber);
+    belt.position.y = y;
+    belt.castShadow = true;
+    holder.add(belt);
+  }
   holder.add(cleats.mesh);
   return cleats;
 }
 
-function assemble(meshes, pose, v) {
+function assemble(meshes, pose, v, parts, shellVersion) {
   const take = (names) => names.map((name) => {
     const mesh = meshes.get(name);
     if (!mesh) throw new Error(`the SDK model has no part named ${name}`);
@@ -142,6 +163,7 @@ function assemble(meshes, pose, v) {
   // Shift the file so its front axle is on the robot's origin; `holder` then holds the file's coordinates.
   const frontBox = boundsOf(take([WHEELS[0]])[0]);
   const frontAxleX = 0.5 * (frontBox.min.x + frontBox.max.x);
+  addShellTrim(meshes, v, frontAxleX, shellVersion);
   const toFile = ([xMm, zMm]) => [xMm * CM + frontAxleX, zMm * CM];
   const root = new THREE.Group();
   root.name = "sdk_robot";
@@ -157,23 +179,32 @@ function assemble(meshes, pose, v) {
   const arm = v.lift_arm_length_mm * CM;
   const wrist = [shoulder[0] + arm * Math.cos(drawnAngle), shoulder[1] + arm * Math.sin(drawnAngle)];
   const head = pivotGroup(neck, take(PARTS.head));
-  const upper = pivotGroup(shoulder, take(PARTS.upperArm));
-  const lower = pivotGroup(pose.lower_arm_pivot, take(PARTS.lowerArm));
+  const lowerPivot = pose.lower_arm_pivot;
+  // The parallelogram keeps both front pins at the spacing of the rear pins.
+  const lowerWrist = wrist.map((n, i) => n + lowerPivot[i] - shoulder[i]);
+  const links = (pivot, end, lower) => [-1, 1].map(side => liftLink(side, pivot, end, lower));
+  const upper = pivotGroup(shoulder, links(shoulder, wrist, false));
+  const lower = pivotGroup(lowerPivot, links(lowerPivot, lowerWrist, true));
   // The fork swings with the arm about the shoulder, then turns back about the wrist so it stays level.
   const forkSwing = new THREE.Group();
   forkSwing.position.set(shoulder[0], 0, shoulder[1]);
   const forkLevel = pivotGroup(wrist, take(PARTS.fork));
   forkLevel.position.set(wrist[0] - shoulder[0], 0, wrist[1] - shoulder[1]);
+  if (parts[2]) {
+    const stock = forkLevel.children[0];
+    forkLevel.remove(stock);
+    forkLevel.add(printFork(parts[2], v, new THREE.MeshStandardMaterial({ color: 0x242426, roughness: 0.52 })));
+  }
   forkSwing.add(forkLevel);
   holder.add(head, upper, lower, forkSwing);
-  const wheels = mountWheels(holder, take(WHEELS), v, toFile);
-  const cleats = mountCleats(holder, wheels, v, toFile);
+  const wheels = mountWheels(holder, take(WHEELS), v, toFile, parts);
+  const cleats = mountCleats(holder, v, toFile);
   return { root, head, upper, lower, forkSwing, forkLevel, wheels, cleats, drawnAngle, frontAxleShiftMm: frontAxleX / CM };
 }
 
 // values: the parameter table's values (model.json). Returns null when the model
 // has not been fetched; throws when it is present but unusable.
-export async function loadSdkModel(values) {
+export async function loadSdkModel(values, { faceplate = true, shellVersion = 1 } = {}) {
   const manifest = await fetchIfPresent(`${DIR}/manifest.json`, "json");
   if (manifest === null) return null;
   const [objText, mtlText] = await Promise.all([fetchIfPresent(`${DIR}/vector.obj`, "text"), fetchIfPresent(`${DIR}/vector.mtl`, "text")]);
@@ -191,9 +222,10 @@ export async function loadSdkModel(values) {
     node.castShadow = true;
     meshes.set(node.name, node);
   });
-  const rig = assemble(meshes, manifest.viewer_pose, values);
+  const rig = assemble(meshes, manifest.viewer_pose, values, await loadPrintParts(), shellVersion);
+  meshes.get("front_Screen_geo").visible = faceplate;
   const eye = materials.get(EYE_MATERIAL);
-  const eyeBase = eye.color.getHex();
+  const eyeBase = 0x40fc65; // stock Vector green
   const frontR = values.wheel_front_radius_mm * CM;
   return {
     root: rig.root,
@@ -209,7 +241,7 @@ export async function loadSdkModel(values) {
       rig.lower.rotation.y = lift;
       rig.forkSwing.rotation.y = lift;
       rig.forkLevel.rotation.y = -lift;
-      for (let i = 0; i < 4; i++) rig.wheels[i].group.rotation.y = wheelAngles[i];
+      for (let i = 0; i < 4; i++) rig.wheels[i].rotation.y = wheelAngles[i];
       rig.cleats.update(wheelAngles[0] * frontR, wheelAngles[1] * frontR);
       eye.color.setHex(EYE_TINT[mood] ?? eyeBase);
     },

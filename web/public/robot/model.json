@@ -27,8 +27,8 @@
   "optics_limits": "One robot; calibration varies from unit to unit. Lens distortion coefficients are in the robot's logs, not in the SDK message, and are not here: the view is drawn as an undistorted pinhole.",
   "optics_source": "Factory camera calibration of one production Vector, as the robot itself reports it through the SDK (CameraConfig) for its 640 x 360 image. Read live from the robot by a household session and recorded on or before 2026-11-13 (vector-slam-maze README, v0.2.0 passive verification). A re-read was tried on 2026-11-18 and the robot was off the network.",
   "pitch_down_deg": 4.0,
-  "pitch_down_in_model": false,
-  "pitch_down_source": "the robot's engine, engine/fullRobotPose.cpp in kercre123/victor, branch snowboy (sha256 2c7df61741fd0751d0cc835c7558edec24c26974ccdcdfcdfbcfb7aa04d9ac3d): kDefaultHeadCamRotation, '4-degree look down'; its optical axis works out to 4.002 degrees below the head's forward axis. Not measured on a robot.",
+  "pitch_down_in_model": true,
+  "pitch_down_source": "parameter table",
   "position_from_neck_mm": [
    18.84,
    0.0,
@@ -77,17 +77,18 @@
   ]
  ],
  "provenance_counts": {
-  "assumed": 23,
+  "assumed": 25,
   "chosen": 7,
   "fitted": 18,
   "manual": 17,
   "measured": 10,
-  "sdk": 85
+  "sdk": 86
  },
  "robot_model": "vector_1",
  "source": {
-  "table_sha256": "48187888c6208a08f8a39f3910ca1f7f710d935b6e17f89cc58d3e2e971a0862",
-  "xml_sha256": "f7c1f2f3b7cace98d7fdb7b8fb282926d9dd409a1404ec062f90c80f0582d874"
+  "table_sha256": "098f26b24cd4ee5c099979d527d0c718df5f07ca86fb5326154ba9be0be49e8f",
+  "trial_xml_sha256": "708ad7cb5d309155ee310d875bcc74fcde3c1462c69fb063f2db473b78bd4126",
+  "xml_sha256": "c35c189c3d9496f2e80072cc02bce76c8f96312aac943bdcc378175010bf0e15"
  },
  "values": {
   "accel_bias_mg": [
@@ -168,6 +169,7 @@
    40.0,
    34.0
   ],
+  "head_camera_pitch_down_deg": 4.0,
   "head_camera_position_mm": [
    18.84,
    0.0,
@@ -201,6 +203,16 @@
    -41.0,
    0.0,
    45.0
+  ],
+  "lift_fork_side_center_mm": [
+   2,
+   22,
+   -10
+  ],
+  "lift_fork_side_size_mm": [
+   3,
+   3,
+   21
   ],
   "lift_front_wrt_wrist_mm": 4.0,
   "lift_height_above_prox_mm": 59.0,

@@ -15,11 +15,11 @@ const model = readJson("public/robot/model.json");
 const xml = readText("public/robot/vector.xml");
 const DEG = Math.PI / 180;
 
-async function rig(headDeg) {
+async function rig(headDeg, sceneXml = xml, spec = model.camera) {
   const mj = await mujoco();
-  const sim = new VectorSim(mj, { xml, values: model.values, derived: model.derived, headDeg });
+  const sim = new VectorSim(mj, { xml: sceneXml, values: model.values, derived: model.derived, headDeg });
   const parent = new THREE.Group(); // physics coordinates, unrotated
-  const head = makeHeadCamera(mj, sim, model.camera, parent);
+  const head = makeHeadCamera(mj, sim, spec, parent);
   head.update(sim.data);
   parent.updateMatrixWorld(true);
   return { sim, camera: head.camera };
@@ -60,5 +60,14 @@ test("the tilt is what moves the horizon: a far point at camera height lands abo
   const rise = model.camera.fy_px * Math.tan(model.camera.pitch_down_deg * DEG);
   assert.ok(Math.abs(model.camera.cy_px - pixel[1] - rise) < 1.5, `horizon ${model.camera.cy_px - pixel[1]} px above centre, expected ${rise}`);
   assert.ok(Math.abs(pixel[0] - model.camera.cx_px) < 1, "and stays on the optical centre's column");
+  sim.dispose();
+});
+
+
+test("older level-camera models receive exactly one mount tilt", async () => {
+  const levelXml = xml.replace(/(<camera name="head_cam"[^>]*xyaxes=")[^"]+/, (_, prefix) => prefix + "0 -1 0 0 0 1");
+  const { sim, camera } = await rig(0, levelXml, { ...model.camera, pitch_down_in_model: false });
+  const pitch = Math.asin(-camera.matrixWorld.elements[10]) / DEG;
+  assert.ok(Math.abs(pitch - (sim.headAngleRad() / DEG - model.camera.pitch_down_deg)) < 0.1);
   sim.dispose();
 });
