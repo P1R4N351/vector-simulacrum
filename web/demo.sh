@@ -68,7 +68,12 @@ main() {
   npm ci --no-audit --no-fund >/dev/null || { say "npm ci failed"; exit 5; }
   say "checking the exported model against the simulacrum's parameter table"
   python3 tools/export_model.py --check || { say "the exported model is out of date"; exit 7; }
-  if [[ "$SDK_MODEL" -eq 1 ]]; then fetch_sdk_model; fi
+  if [[ "$SDK_MODEL" -eq 1 ]]; then
+    fetch_sdk_model
+    if [[ -f "$HERE/public/robot/sdk/manifest.json" ]]; then
+      python3 tools/fetch_print_parts.py || say "print assets unavailable online; using local parts or SDK geometry"
+    fi
+  fi
   say "running the tests against the Python simulacrum's recorded runs"
   npm test >/dev/null || { say "tests failed: run npm test to see which"; exit 7; }
   say "building"

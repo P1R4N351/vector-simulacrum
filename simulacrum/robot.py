@@ -128,7 +128,9 @@ class VectorSim:
         self.d = mjcf.derive(self.v)
         self.control_level = control_level
         self.dt = self.v["control_period_ms"] * 0.001
-        self.model = mujoco.MjModel.from_xml_string(mjcf.build_mjcf(self.v, obstacles, cube))
+        # Existing replay builders accept the original two-argument scene interface.
+        xml = mjcf.build_mjcf(self.v, obstacles) if cube is None else mjcf.build_mjcf(self.v, obstacles, cube)
+        self.model = mujoco.MjModel.from_xml_string(xml)
         self.data = mujoco.MjData(self.model)
         self._index_model()
         self._init_commands()
@@ -393,7 +395,10 @@ class VectorSim:
         head_step, lift_step = v["head_rad_per_encoder_count"], v["lift_rad_per_encoder_count"]
         assert head_step > 0.0 and lift_step > 0.0, "encoder steps must be positive"
         head = round(self.head_angle_rad() / head_step) * head_step
-        lift_angle = round(float(self.data.qpos[self._q["lift"]]) / lift_step) * lift_step
+        # The firmware resets the lift encoder at its calibrated low position.
+        low = self.d["lift_angle_min"]
+        counts = round((float(self.data.qpos[self._q["lift"]]) - low) / lift_step)
+        lift_angle = low + counts * lift_step
         return head, mjcf.lift_height_of_angle(v, lift_angle)
 
     def _publish_state(self) -> None:

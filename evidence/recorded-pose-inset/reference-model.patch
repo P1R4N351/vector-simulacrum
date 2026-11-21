@@ -1,0 +1,86 @@
+--- a/simulacrum/robot.py
++++ b/simulacrum/robot.py
+@@ -310,12 +310,12 @@
+         return self._prox_sensor.read(self._cast_tof(), lift_mm, self._pitch())
+ 
+     def _sample_imu(self) -> None:
+-        """Read gyro and accelerometer once, add this robot's bias and noise, clip to the part's range."""
++        """Read gyro and accelerometer once, apply this robot's scale, bias and noise, clip to the part's range."""
+         v, sd, gauss = self.v, self.data.sensordata, self._noise.gauss
+         mg = 0.001 * v["gravity_mmps2"]
+         a_max = v["accel_range_g"] * v["gravity_mmps2"]
+         g_max = math.radians(v["gyro_range_dps"])
+-        accel = tuple(_clamp(float(sd[self._accel_adr + i]) / mjcf.MM + mg * v["accel_bias_mg"][i]
++        accel = tuple(_clamp(float(sd[self._accel_adr + i]) / mjcf.MM * v["accel_scale"][i] + mg * v["accel_bias_mg"][i]
+                              + gauss(0.0, mg * v["accel_noise_rms_mg"]), -a_max, a_max) for i in range(3))
+         gyro = tuple(_clamp(float(sd[self._gyro_adr + i]) + math.radians(v["gyro_bias_dps"][i])
+                             + gauss(0.0, math.radians(v["gyro_noise_rms_dps"])), -g_max, g_max) for i in range(3))
+@@ -350,10 +350,7 @@
+         head_step, lift_step = v["head_rad_per_encoder_count"], v["lift_rad_per_encoder_count"]
+         assert head_step > 0.0 and lift_step > 0.0, "encoder steps must be positive"
+         head = round(self.head_angle_rad() / head_step) * head_step
+-        # The firmware resets the lift encoder at its calibrated low position.
+-        low = self.d["lift_angle_min"]
+-        counts = round((float(self.data.qpos[self._q["lift"]]) - low) / lift_step)
+-        lift_angle = low + counts * lift_step
++        lift_angle = round(float(self.data.qpos[self._q["lift"]]) / lift_step) * lift_step
+         return head, mjcf.lift_height_of_angle(v, lift_angle)
+ 
+     def _publish_state(self) -> None:
+--- a/simulacrum/mjcf.py
++++ b/simulacrum/mjcf.py
+@@ -172,8 +172,6 @@
+     assert len(cam) == 3 and len(imu) == 3 and len(res) == 2, "bad head vectors"
+     # The IMU's frame is pitched against the head (positive is nose up, like the head joint, whose axis is -y).
+     half = 0.5 * math.radians(v["imu_pitch_offset_deg"])
+-    pitch = math.radians(v["head_camera_pitch_down_deg"])
+-    camera_up = vec((math.sin(pitch), 0, math.cos(pitch)))
+     imu_quat = (math.cos(half), 0.0, -math.sin(half), 0.0)
+     assert abs(half) < 0.5, "IMU pitch offset is not a small angle"
+     return (
+@@ -183,7 +181,7 @@
+         f'      <geom name="head_geom" type="box" size="{vec((bx, by, bz))}" '
+         f'mass="{num(v["head_mass_g"] * GRAM)}" rgba="0.25 0.25 0.3 1" group="{ROBOT_GEOM_GROUP}" '
+         f'{_contact_attrs(v, v["chassis_friction"])}/>\n'
+-        f'      <camera name="head_cam" pos="{vec([c * MM for c in cam])}" xyaxes="0 -1 0 {camera_up}" '
++        f'      <camera name="head_cam" pos="{vec([c * MM for c in cam])}" xyaxes="0 -1 0 0 0 1" '
+         f'fovy="{num(v["camera_fov_vertical_deg"])}" resolution="{int(res[0])} {int(res[1])}"/>\n'
+         f'      <site name="imu" pos="{vec([c * MM for c in imu])}" quat="{vec(imu_quat)}" size="0.001"/>\n'
+         f'    </body>\n'
+@@ -199,15 +197,6 @@
+     arm = v["servo_armature_gcm2"] * 1e-7
+     assert d["lift_angle_min"] < d["lift_angle_max"], "lift range is empty"
+     assert arm_len > 0.0 and half_w > 0.0, "lift must have size"
+-    # Side plates contact objects above the crossbar; leave the opening clear.
+-    # The existing mass term already represents the entire fork assembly.
+-    x, y, z = v["lift_fork_side_center_mm"]
+-    size = vec([0.5 * n * MM for n in v["lift_fork_side_size_mm"]])
+-    sides = "".join(
+-        f'        <geom name="fork_side_{name}" type="box" pos="{vec((x * MM, sign * y * MM, z * MM))}" '
+-        f'size="{size}" mass="0" {_contact_attrs(v, v["chassis_friction"])}/>\n'
+-        for name, sign in (("left", 1), ("right", -1))
+-    )
+     return (
+         f'    <body name="lift_arm" pos="{vec([c * MM for c in v["lift_base_position_mm"]])}">\n'
+         f'      <joint name="lift_joint" type="hinge" axis="0 -1 0" '
+@@ -220,7 +209,7 @@
+         f'        <geom name="lift_fork_geom" type="box" pos="{vec((fx * MM, 0, fz * MM))}" '
+         f'size="{vec((half_x, half_w, half_z))}" mass="{num(d["masses_g"]["fork"] * GRAM)}" '
+         f'rgba="0.3 0.3 0.3 1" group="{ROBOT_GEOM_GROUP}" {_contact_attrs(v, v["chassis_friction"])}/>\n'
+-        f'{sides}      </body>\n'
++        f'      </body>\n'
+         f'    </body>\n'
+     )
+ 
+--- a/simulacrum/recording.py
++++ b/simulacrum/recording.py
+@@ -77,8 +77,7 @@
+     for index, row in enumerate(commands):
+         if row["name"] != "wheels":
+             continue
+-        # Earlier recorder versions only stamped the successful RPC return.
+-        stops = [later.get("issued_t", later["t"]) for later in commands[index + 1:] if later["name"] == "stop"]
++        stops = [later["t"] for later in commands[index + 1:] if later["name"] == "stop"]
+         assert stops, f"no stop after {row['label']}"
+         out.append(Segment(row["label"], "wheels", row["t"], stops[0], float(row["left"]), float(row["right"])))
+     return out

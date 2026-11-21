@@ -61,6 +61,20 @@ class ModelLoads(unittest.TestCase):
         self.assertEqual(sim.model.nq, 7 + 4 + 3)
         self.assertEqual(sim.model.ncam, 1)
 
+    def test_fork_side_plates_contact_a_probe_and_the_opening_passes_it(self) -> None:
+        v = params.values(params.load())
+        # Neutral shoulder: wrist at (25, 0, 45) mm. The probe is above the
+        # crossbar, where the original crossbar-only collider missed both sides.
+        for y, plate in [(22, "fork_side_left"), (-22, "fork_side_right"), (0, None)]:
+            model = mujoco.MjModel.from_xml_string(mjcf.build_mjcf(v, [(27, y, 35, 1, 1, 1)]))
+            data = mujoco.MjData(model)
+            mujoco.mj_forward(model, data)
+            contacts = [{model.geom(int(g)).name for g in pair} for pair in data.contact.geom]
+            probe = [pair for pair in contacts if "obstacle_0" in pair]
+            self.assertEqual(bool(probe), plate is not None)
+            if plate:
+                self.assertTrue(all(plate in pair for pair in probe))
+
     def test_compiled_mass_and_centre_of_mass_match_the_table(self) -> None:
         v = params.values(params.load())
         model = mujoco.MjModel.from_xml_string(mjcf.build_mjcf(v))
@@ -271,6 +285,14 @@ class Servos(unittest.TestCase):
         self.assertAlmostEqual(math.degrees(sim.state.head_angle_rad), sim.v["head_angle_min_deg"], delta=tol)
         counts = sim.state.head_angle_rad / sim.v["head_rad_per_encoder_count"]
         self.assertAlmostEqual(counts, round(counts), places=6, msg="head angle is reported in whole encoder counts")
+
+    def test_lift_encoder_counts_begin_at_calibrated_low_angle(self) -> None:
+        sim = VectorSim()
+        low, step = sim.d["lift_angle_min"], sim.v["lift_rad_per_encoder_count"]
+        for offset, counts in ((0, 0), (0.45, 0), (6.55, 7), (-1.1, -1)):
+            sim.data.qpos[sim._q["lift"]] = low + offset * step
+            expected = sim.v["lift_base_position_mm"][2] + sim.v["lift_arm_length_mm"] * math.sin(low + counts * step)
+            self.assertAlmostEqual(sim.reported_now()["lift_mm"], expected)
 
     def test_lift_reaches_its_limits_and_is_clamped(self) -> None:
         sim = VectorSim()

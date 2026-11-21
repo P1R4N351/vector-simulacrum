@@ -12,6 +12,7 @@
 // makeBeltPath has no three.js in it and is tested in test/tracks.test.js.
 
 import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(`assertion failed: ${message}`);
@@ -56,6 +57,27 @@ export function makeBeltPath(front, rear) {
   return { length, straight, frontArc, rearArc, pointAt };
 }
 
+// Sweep a closed rubber belt around the exact tangent path used by the ribs.
+// Four corners at each station give the outside, inside and both sidewalls.
+export function beltGeometry(path, width, thickness) {
+  const positions = [], indices = [];
+  const stations = 160;
+  for (let i = 0; i < stations; i++) {
+    const p = path.pointAt(i * path.length / stations);
+    const ring = i * 4, next = ((i + 1) % stations) * 4;
+    for (const [j, [y, depth]] of [[-1, 0], [1, 0], [1, thickness], [-1, thickness]].entries()) {
+      positions.push(p.x - depth * p.nx, y * width / 2, p.z - depth * p.nz);
+      const k = (j + 1) % 4;
+      indices.push(ring + j, next + j, ring + k, next + j, next + k, ring + k);
+    }
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geom.setIndex(indices);
+  geom.computeVertexNormals();
+  return geom;
+}
+
 // Cleats for both tracks as one instanced mesh.
 // spec: { front, rear, sideY: [left, right], width, pitch, along, proud } in the parent's units.
 // update(leftTravel, rightTravel): how far each belt has run, in the same units.
@@ -63,8 +85,8 @@ export function makeCleats(spec) {
   const path = makeBeltPath(spec.front, spec.rear);
   const perSide = Math.max(8, Math.round(path.length / spec.pitch));
   const spacing = path.length / perSide;
-  const geometry = new THREE.BoxGeometry(spec.along, spec.width, spec.proud);
-  const material = new THREE.MeshStandardMaterial({ color: 0x4a4e55, roughness: 0.8 });
+  const geometry = new RoundedBoxGeometry(spec.along, spec.width, spec.proud, 1, spec.proud * 0.4);
+  const material = new THREE.MeshStandardMaterial({ color: 0x343436, roughness: 0.8 });
   const mesh = new THREE.InstancedMesh(geometry, material, 2 * perSide);
   mesh.name = "track_cleats";
   mesh.castShadow = true;

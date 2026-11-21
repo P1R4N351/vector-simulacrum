@@ -18,3 +18,10 @@ tools/fetch_sdk_model.py copies it from the Vector Python SDK
 and 3D Model License Agreement, version 1.1; the copy carries that licence
 text beside it. The part grouping and pivots used to pose it are taken from
 anki_vector/opengl/opengl_vector.py (Apache-2.0).
+
+Local demo replacement parts by Dauler (CC NonCommercial as marked in each
+original archive). "Anki Vector Wheels v2" https://www.thingiverse.com/thing:3764077
+and "Anki Vector Lifting Forks" https://www.thingiverse.com/thing:3731746.
+tools/fetch_print_parts.py fetches the originals from Internet Archive. These
+STLs are distributed separately from this repository's code and are placed
+in public/robot/sdk/print with the original attribution and licence wording.

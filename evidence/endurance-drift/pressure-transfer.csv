@@ -1,0 +1,31 @@
+session,turn,model,window,samples,gyro_rmse_dps,final_vector_error_mm
+unit2-ccw100.jsonl,spin_ccw_100,Current,steady,9,6.23723166328763,6.2457570368613045
+unit2-ccw100.jsonl,spin_ccw_100,Current,stop,6,23.05450285618571,6.2457570368613045
+unit2-ccw100.jsonl,spin_ccw_100,Round 0.25 ms,steady,9,10.498937079466296,4.0310971106177
+unit2-ccw100.jsonl,spin_ccw_100,Round 0.25 ms,stop,6,23.3440095650944,4.0310971106177
+unit2-ccw100.jsonl,spin_ccw_100,Round 0.125 ms,steady,9,9.024341434489035,3.5422184673888504
+unit2-ccw100.jsonl,spin_ccw_100,Round 0.125 ms,stop,6,23.26721620520414,3.5422184673888504
+unit2-repeat-stops.jsonl,ccw_1,Current,steady,5,12.140478603155225,
+unit2-repeat-stops.jsonl,ccw_1,Current,stop,0,,
+unit2-repeat-stops.jsonl,ccw_1,Round 0.25 ms,steady,5,7.4703445418384495,
+unit2-repeat-stops.jsonl,ccw_1,Round 0.25 ms,stop,0,,
+unit2-repeat-stops.jsonl,ccw_1,Round 0.125 ms,steady,5,8.162791911627957,
+unit2-repeat-stops.jsonl,ccw_1,Round 0.125 ms,stop,0,,
+unit2-repeat-stops.jsonl,cw_1,Current,steady,9,7.5676258018409674,2.108393861448459
+unit2-repeat-stops.jsonl,cw_1,Current,stop,6,20.7372471693362,2.108393861448459
+unit2-repeat-stops.jsonl,cw_1,Round 0.25 ms,steady,9,8.742184286212911,4.136252097305392
+unit2-repeat-stops.jsonl,cw_1,Round 0.25 ms,stop,6,18.001330652351747,4.136252097305392
+unit2-repeat-stops.jsonl,cw_1,Round 0.125 ms,steady,9,9.325157826046611,3.527043344409368
+unit2-repeat-stops.jsonl,cw_1,Round 0.125 ms,stop,6,21.7565434942174,3.527043344409368
+unit2-repeat-stops.jsonl,ccw_2,Current,steady,10,13.026518128674269,6.132132926155185
+unit2-repeat-stops.jsonl,ccw_2,Current,stop,6,10.745640968011257,6.132132926155185
+unit2-repeat-stops.jsonl,ccw_2,Round 0.25 ms,steady,10,9.412347894984489,3.2284862219533212
+unit2-repeat-stops.jsonl,ccw_2,Round 0.25 ms,stop,6,21.169474177483654,3.2284862219533212
+unit2-repeat-stops.jsonl,ccw_2,Round 0.125 ms,steady,10,14.263848834531304,3.0730597500923973
+unit2-repeat-stops.jsonl,ccw_2,Round 0.125 ms,stop,6,15.190235211896196,3.0730597500923973
+unit2-repeat-stops.jsonl,cw_2,Current,steady,9,9.959888600983778,3.119108405529193
+unit2-repeat-stops.jsonl,cw_2,Current,stop,6,17.746699903757747,3.119108405529193
+unit2-repeat-stops.jsonl,cw_2,Round 0.25 ms,steady,9,11.718217372765197,3.5472055026774845
+unit2-repeat-stops.jsonl,cw_2,Round 0.25 ms,stop,6,15.573651867801859,3.5472055026774845
+unit2-repeat-stops.jsonl,cw_2,Round 0.125 ms,steady,9,8.433092083119146,3.2961534179961767
+unit2-repeat-stops.jsonl,cw_2,Round 0.125 ms,stop,6,19.837842833769482,3.2961534179961767

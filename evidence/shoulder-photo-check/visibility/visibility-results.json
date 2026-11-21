@@ -1,0 +1,1676 @@
+{
+  "flip105": {
+    "samples": [
+      {
+        "row": 3320.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3328.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3336.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3344.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3352.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3360.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3368.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3376.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3384.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3392.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3400.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3408.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3416.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3424.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3432.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3440.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3448.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3456.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3464.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3472.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3480.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3488.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3496.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3504.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3512.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3520.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3528.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3536.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3544.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3552.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3560.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3568.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3576.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3584.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3592.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3600.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3608.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3616.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3624.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3632.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3640.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3648.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3656.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3664.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0196078431372549
+      },
+      {
+        "row": 3672.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3680.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3688.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3696.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3704.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3712.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3720.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.023529411764705882
+      },
+      {
+        "row": 3728.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0196078431372549
+      },
+      {
+        "row": 3736.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3744.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      }
+    ],
+    "scale": 1,
+    "visible": 54
+  },
+  "flip180": {
+    "samples": [
+      {
+        "row": 3320.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3328.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3336.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3344.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3352.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3360.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3368.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3376.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3384.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3392.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3400.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3408.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3416.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3424.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3432.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3440.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3448.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3456.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3464.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3472.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3480.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3488.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3496.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3504.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3512.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3520.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3528.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3536.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3544.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3552.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3560.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3568.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3576.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3584.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3592.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3600.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3608.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3616.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3624.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3632.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3640.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3648.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3656.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3664.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3672.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3680.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3688.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3696.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3704.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3712.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3720.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3728.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3736.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3744.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      }
+    ],
+    "scale": 1,
+    "visible": 54
+  },
+  "see30": {
+    "samples": [
+      {
+        "row": 398.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.25,
+        "vertex_displacement_on_visible_edge_mm": 0.3058823529411765
+      },
+      {
+        "row": 399.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.25,
+        "vertex_displacement_on_visible_edge_mm": 0.3176470588235294
+      },
+      {
+        "row": 400.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.25,
+        "vertex_displacement_on_visible_edge_mm": 0.3333333333333333
+      },
+      {
+        "row": 401.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.2784313725490196
+      },
+      {
+        "row": 402.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.2784313725490196
+      },
+      {
+        "row": 403.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.2823529411764706
+      },
+      {
+        "row": 404.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.2901960784313726
+      },
+      {
+        "row": 405.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.29411764705882354
+      },
+      {
+        "row": 406.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.3137254901960784
+      },
+      {
+        "row": 407.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.2549019607843137
+      },
+      {
+        "row": 408.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.25882352941176473
+      },
+      {
+        "row": 409.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.26666666666666666
+      },
+      {
+        "row": 410.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.25,
+        "vertex_displacement_on_visible_edge_mm": 0.27450980392156865
+      },
+      {
+        "row": 411.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.23137254901960785
+      },
+      {
+        "row": 412.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.23529411764705882
+      },
+      {
+        "row": 413.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.25,
+        "vertex_displacement_on_visible_edge_mm": 0.24313725490196078
+      },
+      {
+        "row": 414.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.25,
+        "vertex_displacement_on_visible_edge_mm": 0.26666666666666666
+      },
+      {
+        "row": 415.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.25,
+        "vertex_displacement_on_visible_edge_mm": 0.21176470588235294
+      },
+      {
+        "row": 416.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.25,
+        "vertex_displacement_on_visible_edge_mm": 0.2235294117647059
+      },
+      {
+        "row": 417.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.1666666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.24705882352941178
+      },
+      {
+        "row": 418.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.25,
+        "vertex_displacement_on_visible_edge_mm": 0.19607843137254902
+      },
+      {
+        "row": 419.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.1666666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.21568627450980393
+      },
+      {
+        "row": 420.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.1666666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.17647058823529413
+      },
+      {
+        "row": 421.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.1666666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.19215686274509805
+      },
+      {
+        "row": 422.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.1666666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.16470588235294117
+      },
+      {
+        "row": 423.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.0833333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.1803921568627451
+      },
+      {
+        "row": 424.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.0833333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.15294117647058825
+      },
+      {
+        "row": 425.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.0,
+        "vertex_displacement_on_visible_edge_mm": 0.17254901960784313
+      }
+    ],
+    "scale": 12,
+    "visible": 28
+  },
+  "see150": {
+    "samples": [
+      {
+        "row": 426.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.09411764705882353
+      },
+      {
+        "row": 427.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.10588235294117647
+      },
+      {
+        "row": 428.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.4166666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 429.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.4166666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.11372549019607843
+      },
+      {
+        "row": 430.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.4166666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.11372549019607843
+      },
+      {
+        "row": 431.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.5,
+        "vertex_displacement_on_visible_edge_mm": 0.13333333333333333
+      },
+      {
+        "row": 432.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.5,
+        "vertex_displacement_on_visible_edge_mm": 0.13725490196078433
+      },
+      {
+        "row": 433.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.5,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 434.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.5,
+        "vertex_displacement_on_visible_edge_mm": 0.15294117647058825
+      },
+      {
+        "row": 435.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.4166666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.12941176470588237
+      },
+      {
+        "row": 436.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.4166666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.027450980392156862
+      },
+      {
+        "row": 437.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.027450980392156862
+      },
+      {
+        "row": 438.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.023529411764705882
+      },
+      {
+        "row": 439.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.4166666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.13725490196078433
+      },
+      {
+        "row": 440.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.4166666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.13725490196078433
+      },
+      {
+        "row": 441.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.4166666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.13333333333333333
+      },
+      {
+        "row": 442.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.4166666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.12941176470588237
+      },
+      {
+        "row": 443.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.4166666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 444.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.4166666666666667,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 445.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.03529411764705882
+      },
+      {
+        "row": 446.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.10196078431372549
+      },
+      {
+        "row": 447.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.3333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.10196078431372549
+      },
+      {
+        "row": 448.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.25,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 449.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.25,
+        "vertex_displacement_on_visible_edge_mm": 0.08627450980392157
+      },
+      {
+        "row": 450.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.25,
+        "vertex_displacement_on_visible_edge_mm": 0.08627450980392157
+      },
+      {
+        "row": 451.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.16666666666666666,
+        "vertex_displacement_on_visible_edge_mm": 0.0392156862745098
+      },
+      {
+        "row": 452.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.16666666666666666,
+        "vertex_displacement_on_visible_edge_mm": 0.07058823529411765
+      },
+      {
+        "row": 453.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.08333333333333333,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 454.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -0.16666666666666666,
+        "vertex_displacement_on_visible_edge_mm": 0.03137254901960784
+      }
+    ],
+    "scale": 12,
+    "visible": 29
+  },
+  "flip60": {
+    "samples": [
+      {
+        "row": 3320.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3328.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3336.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3344.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3352.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0196078431372549
+      },
+      {
+        "row": 3360.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3368.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3376.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3384.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3392.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3400.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3408.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3416.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3424.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3432.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3440.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3448.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3456.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3464.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0196078431372549
+      },
+      {
+        "row": 3472.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3480.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3488.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3496.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3504.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3512.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3520.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3528.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 1.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0196078431372549
+      },
+      {
+        "row": 3536.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3544.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0196078431372549
+      },
+      {
+        "row": 3552.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3560.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3568.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3576.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3584.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3592.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3600.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3608.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3616.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3624.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3632.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3640.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3648.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3656.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3664.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3672.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3680.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3688.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3696.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3704.0,
+        "shell_visible_in_both": false,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3712.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3720.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3728.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3736.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0196078431372549
+      },
+      {
+        "row": 3744.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      }
+    ],
+    "scale": 1,
+    "visible": 33
+  },
+  "flip195": {
+    "samples": [
+      {
+        "row": 3320.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -1.0,
+        "vertex_displacement_on_visible_edge_mm": 0.023529411764705882
+      },
+      {
+        "row": 3328.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0196078431372549
+      },
+      {
+        "row": 3336.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00784313725490196
+      },
+      {
+        "row": 3344.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3352.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -1.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0196078431372549
+      },
+      {
+        "row": 3360.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -1.0,
+        "vertex_displacement_on_visible_edge_mm": 0.023529411764705882
+      },
+      {
+        "row": 3368.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -1.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0196078431372549
+      },
+      {
+        "row": 3376.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.011764705882352941
+      },
+      {
+        "row": 3384.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3392.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3400.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3408.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3416.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3424.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0
+      },
+      {
+        "row": 3432.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3440.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.00392156862745098
+      },
+      {
+        "row": 3448.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.0196078431372549
+      },
+      {
+        "row": 3456.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": 0.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3464.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -1.0,
+        "vertex_displacement_on_visible_edge_mm": 0.01568627450980392
+      },
+      {
+        "row": 3472.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -2.0,
+        "vertex_displacement_on_visible_edge_mm": 0.027450980392156862
+      },
+      {
+        "row": 3480.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -3.0,
+        "vertex_displacement_on_visible_edge_mm": 0.09019607843137255
+      },
+      {
+        "row": 3488.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -3.0,
+        "vertex_displacement_on_visible_edge_mm": 0.08235294117647059
+      },
+      {
+        "row": 3496.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -4.0,
+        "vertex_displacement_on_visible_edge_mm": 0.11372549019607843
+      },
+      {
+        "row": 3504.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -4.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12941176470588237
+      },
+      {
+        "row": 3512.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -5.0,
+        "vertex_displacement_on_visible_edge_mm": 0.11764705882352941
+      },
+      {
+        "row": 3520.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -7.0,
+        "vertex_displacement_on_visible_edge_mm": 0.14901960784313725
+      },
+      {
+        "row": 3528.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -8.0,
+        "vertex_displacement_on_visible_edge_mm": 0.14901960784313725
+      },
+      {
+        "row": 3536.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -9.0,
+        "vertex_displacement_on_visible_edge_mm": 0.15294117647058825
+      },
+      {
+        "row": 3544.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -10.0,
+        "vertex_displacement_on_visible_edge_mm": 0.1607843137254902
+      },
+      {
+        "row": 3552.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -10.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12941176470588237
+      },
+      {
+        "row": 3560.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -11.0,
+        "vertex_displacement_on_visible_edge_mm": 0.14901960784313725
+      },
+      {
+        "row": 3568.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -11.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12549019607843137
+      },
+      {
+        "row": 3576.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -12.0,
+        "vertex_displacement_on_visible_edge_mm": 0.1568627450980392
+      },
+      {
+        "row": 3584.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -12.0,
+        "vertex_displacement_on_visible_edge_mm": 0.1450980392156863
+      },
+      {
+        "row": 3592.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -11.0,
+        "vertex_displacement_on_visible_edge_mm": 0.13333333333333333
+      },
+      {
+        "row": 3600.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -11.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12941176470588237
+      },
+      {
+        "row": 3608.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -12.0,
+        "vertex_displacement_on_visible_edge_mm": 0.17254901960784313
+      },
+      {
+        "row": 3616.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -12.0,
+        "vertex_displacement_on_visible_edge_mm": 0.16862745098039217
+      },
+      {
+        "row": 3624.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -12.0,
+        "vertex_displacement_on_visible_edge_mm": 0.16470588235294117
+      },
+      {
+        "row": 3632.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -12.0,
+        "vertex_displacement_on_visible_edge_mm": 0.16470588235294117
+      },
+      {
+        "row": 3640.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -12.0,
+        "vertex_displacement_on_visible_edge_mm": 0.1568627450980392
+      },
+      {
+        "row": 3648.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -12.0,
+        "vertex_displacement_on_visible_edge_mm": 0.14901960784313725
+      },
+      {
+        "row": 3656.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -12.0,
+        "vertex_displacement_on_visible_edge_mm": 0.1450980392156863
+      },
+      {
+        "row": 3664.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -12.0,
+        "vertex_displacement_on_visible_edge_mm": 0.13725490196078433
+      },
+      {
+        "row": 3672.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -12.0,
+        "vertex_displacement_on_visible_edge_mm": 0.13333333333333333
+      },
+      {
+        "row": 3680.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -11.0,
+        "vertex_displacement_on_visible_edge_mm": 0.13333333333333333
+      },
+      {
+        "row": 3688.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -11.0,
+        "vertex_displacement_on_visible_edge_mm": 0.12941176470588237
+      },
+      {
+        "row": 3696.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -11.0,
+        "vertex_displacement_on_visible_edge_mm": 0.13333333333333333
+      },
+      {
+        "row": 3704.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -11.0,
+        "vertex_displacement_on_visible_edge_mm": 0.13725490196078433
+      },
+      {
+        "row": 3712.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -11.0,
+        "vertex_displacement_on_visible_edge_mm": 0.1411764705882353
+      },
+      {
+        "row": 3720.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -9.0,
+        "vertex_displacement_on_visible_edge_mm": 0.09411764705882353
+      },
+      {
+        "row": 3728.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -9.0,
+        "vertex_displacement_on_visible_edge_mm": 0.10196078431372549
+      },
+      {
+        "row": 3736.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -9.0,
+        "vertex_displacement_on_visible_edge_mm": 0.10588235294117647
+      },
+      {
+        "row": 3744.0,
+        "shell_visible_in_both": true,
+        "exterior_shift_x_px": -8.0,
+        "vertex_displacement_on_visible_edge_mm": 0.11372549019607843
+      }
+    ],
+    "scale": 1,
+    "visible": 54
+  }
+}

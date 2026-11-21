@@ -1,0 +1,6 @@
+interval,primary_camera_mm,eye_midpoint_check_mm,sensitivity_p05_mm,sensitivity_p95_mm
+1,8.612,9.738,5.494,11.627
+2,4.08,6.628,1.905,7.668
+3,8.185,12.965,5.116,11.849
+4,3.204,5.969,1.18,7.232
+net,23.637,20.882,20.648,27.046

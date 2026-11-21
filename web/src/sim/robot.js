@@ -393,7 +393,9 @@ export class VectorSim {
     const liftStep = v.lift_rad_per_encoder_count;
     assert(headStep > 0 && liftStep > 0, "encoder steps must be positive");
     const head = pyRound(this.headAngleRad() / headStep) * headStep;
-    const liftAngle = pyRound(this.data.qpos[this._q.lift] / liftStep) * liftStep;
+    const low = this.d.lift_angle_min;
+    const counts = pyRound((this.data.qpos[this._q.lift] - low) / liftStep);
+    const liftAngle = low + counts * liftStep;
     return [head, liftHeightOfAngle(v, liftAngle)];
   }
 

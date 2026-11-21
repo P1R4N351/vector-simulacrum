@@ -1,0 +1,7 @@
+### Independent checks at A
+
+The two hub centers at A were triangulated freely from the held-out photos. No axle-spacing or height constraint entered this test. The first-pass picks come from the original survey. The repeat picks were read independently from both Flip views and the rectified See3CAM crop before the new camera matrices were available. The purple cap centers are estimates from the visible faces. Under oblique projection a fitted ellipse center can be offset slightly from the projected axle center.
+
+The fixed background provides a separate check on camera stability. We matched eight B reference patches per available lens (the four glyph corners and four rear-wall screws) within ±11 working pixels at A. For normalized correlation above 0.90, the largest shift was 0.05 px in the first-pass ultrawide and See3CAM views after rounding up. In the repeat, the largest shift was 0.27 px across those two cameras. The four accepted main-camera matches had median displacement of −2.42 px horizontally and −0.30 px vertically, with a maximum displacement of 4.05 px. The repeat used a separate capture pass, and its robot heading differed by about 11°. These images supply an independent repeat in the same shelf area.
+
+[Wheel center picks](wheel-picks.json) · [Free wheel triangulation](wheel-holdout.py) · [Fixed background patch correlations and displacements](fixed-reference.json)

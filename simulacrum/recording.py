@@ -77,7 +77,8 @@ def _wheel_segments(commands: Sequence[Dict[str, Any]]) -> List[Segment]:
     for index, row in enumerate(commands):
         if row["name"] != "wheels":
             continue
-        stops = [later["t"] for later in commands[index + 1:] if later["name"] == "stop"]
+        # Earlier recorder versions only stamped the successful RPC return.
+        stops = [later.get("issued_t", later["t"]) for later in commands[index + 1:] if later["name"] == "stop"]
         assert stops, f"no stop after {row['label']}"
         out.append(Segment(row["label"], "wheels", row["t"], stops[0], float(row["left"]), float(row["right"])))
     return out

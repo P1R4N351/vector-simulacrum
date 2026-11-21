@@ -1,0 +1,32 @@
+[
+  {
+    "calibration": "cameras",
+    "rim_rms": 10.661246898066414,
+    "median_residual": [
+      92.97205943542701,
+      97.06574687372745
+    ],
+    "median_registration_shift": 85.5279686311585,
+    "max_signal": 5.603128929645323
+  },
+  {
+    "calibration": "omit-ring180",
+    "rim_rms": 12.972623548272605,
+    "median_residual": [
+      80.61628047959115,
+      84.70126587349507
+    ],
+    "median_registration_shift": 97.89933094217628,
+    "max_signal": 5.605639369656807
+  },
+  {
+    "calibration": "face-land",
+    "rim_rms": 13.249879521561615,
+    "median_residual": [
+      39.360574936193814,
+      42.52961713803479
+    ],
+    "median_registration_shift": 139.31978076720048,
+    "max_signal": 5.512714428803852
+  }
+]

@@ -124,7 +124,7 @@ function About({ model, robotLook }) {
       </p>
       <p>
         {robotLook === "sdk"
-          ? "The robot drawn is the 3D model from the Vector Python SDK's viewer. The physics underneath is boxes and cylinders (press B to see them). Each wheel turns by the physics model's angle for it: the front wheels are the motor-driven ones and the rear wheels are turned by the track. The spokes and the moving cleats are added so that shows."
+          ? "The robot drawn is the 3D model from the Vector Python SDK's viewer. The physics underneath is boxes and cylinders (press B to see them). Each wheel turns by the physics model's angle for it: the front wheels are the motor-driven ones and the rear wheels are turned by the track. The tread cleats follow the belt. When installed, the three replacement-part STLs supply the outer wheels and lift fork."
           : "The robot is drawn as the physics model's own boxes and cylinders. The tread bands and the face are added for the eye."}
         {" "}The pose shown is the simulator's true pose.
       </p>
