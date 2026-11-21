@@ -50,3 +50,11 @@ The pitch-rate and fore–aft acceleration comparison keeps trial 3's improper e
 For the improperly engaged carry, the nominal loaded replay's pitch-rate RMSE was 2.15°/s against 2.13°/s for a constant baseline. Head X acceleration RMSE was 511 versus 453 mm/s². On trial 4, the same replay gave 0.53 versus 0.54°/s and 144 versus 161 mm/s². A usable grip model must also explain the cube's motion relative to the fork. Head IMU alone cannot measure it. These short traces have SDK receipt-time and sampling uncertainty.
 
 [Reversal IMU overlays](reversal-imu.png) · [Errors and constant-baseline controls](reversal-imu.csv) · [Replay](replay_reversals.py)
+
+### Optical check of the two physical carries
+
+The onboard feed has a gap during trial 3's reversals. The overhead camera captured four frames during the four commands. Separate similarity transforms track the printed cube glyph and exposed lift features against a pre-motion frame. The plot evaluates their difference at the cube glyph center. The largest projected offset during commands was 6.6 px on trial 3 and 2.2 px on trial 4. The largest offset across the two or three pre-command frames was under 0.2 px in each case. The cubes present different faces to the camera. Viewing angle, perspective and extrapolating the arm transform to the cube all contribute. These pixel differences do not establish slip distance or its cause. The shaded interval ends with the fourth command.
+
+[Image regions and tracks](optical-reversals.png) · [Frame times and inlier counts](optical-reversals.csv) · [Original-resolution overhead crops](reversal-frames)
+
+**Cube accelerometer coverage.** The verified rotation archive contains robot_state and robot_observed_object events only. The accelerometer fields plotted above come from the robot's head. No cube XYZ packets or cube motion events were recorded for this improper carry, so its cube-frame acceleration cannot be reconstructed from this dataset.
