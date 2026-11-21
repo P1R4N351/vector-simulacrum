@@ -48,6 +48,8 @@ CS, TCS = "simulacrum/camera_spins.py", "test_camera_spins.TurnCentres."
 LP, TLP, TLR = "simulacrum/imu_filter.py", "test_imu_filter.Filter.", "test_imu_filter.InTheRobot."
 RL, TRL = "hardware/record_listen.py", "test_record_listen.ListenOnly."
 HC, THC = "hardware/hold_cube.py", "test_hold_cube.HoldCube."
+CPS, TCPS = "hardware/capture_peers.py", "test_capture_peers.Capture."
+SVC, TSVC = "hardware/save_capture.py", "test_capture_peers.Saver."
 CA, TCP, TCC = "hardware/cube_accel.py", "test_cube_accel.Protocol.", "test_cube_accel.Collector."
 CM, TCA, TCT, TCR = "simulacrum/cube.py", "test_cube_model.ChipAndApp.", "test_cube_model.Taps.", "test_cube_model.TurnCentre."
 TCK, TCB = "test_cube_model.CarriedCube.", "test_cube_model.SpinWithTheCube."
@@ -582,6 +584,44 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
     ("plan lets a wheelie run before other phases", MS,
      'if "wheelie" in phases and (phases[-1] != "wheelie" or "repeat" in phases):', "if False:",
      (TMC + "Plan.test_bad_phase_lists_and_output_names_are_refused",), False),
+    ("peer capture asks for no control", CPS, "behavior_control_level=ControlPriorityLevel.DEFAULT_PRIORITY",
+     "behavior_control_level=None", (TCPS + "test_it_holds_default_control_commands_nothing_and_streams_one_new_frame_per_tick",),
+     False),
+    ("peer capture runs without the control grant", CPS, "            if not wait_for_control(robot):", "            if False:",
+     (TCPS + "test_control_never_granted_ends_without_lifting_quiet_or_starting_the_camera",), False),
+    ("peer capture never puts quiet mode back", CPS, '        if restore:\n            quiet("POST", enable=True)\n',
+     "        pass\n", (TCPS + "test_quiet_mode_on_is_lifted_only_while_control_is_held_and_put_back_before_release",
+                       TCPS + "test_lost_control_stops_the_capture_and_quiet_mode_still_goes_back"), False),
+    ("peer capture lifts quiet mode when told not to", CPS, '    if QUIET_LIFT == "1":', "    if True:",
+     (TCPS + "test_quiet_lift_off_never_asks_about_quiet_mode",), False),
+    ("peer capture ignores Cryosleep", CPS, "        if not cryosleep_clear():", "        if False:",
+     (TCPS + "test_cryosleep_on_means_no_connection_and_no_quiet_change",), False),
+    ("peer capture takes an unreachable pod as clear of Cryosleep", CPS,
+     '        emit("c", name="cryo_check", error=("%s: %s" % (type(exc).__name__, exc))[:160])\n        return False',
+     '        emit("c", name="cryo_check", error=("%s: %s" % (type(exc).__name__, exc))[:160])\n        return True',
+     (TCPS + "test_cryosleep_unknown_means_no_connection_but_a_pod_without_the_endpoint_goes_ahead",), False),
+    ("peer capture refuses a pod with no cryo endpoint", CPS, "        return exc.code == 404", "        return False",
+     (TCPS + "test_cryosleep_unknown_means_no_connection_but_a_pod_without_the_endpoint_goes_ahead",), False),
+    ("peer capture keeps going on a stalled camera", CPS, "        elif time.monotonic() - last_new >= STALL_S:",
+     "        elif False:", (TCPS + "test_a_camera_that_stops_producing_new_frames_stops_the_capture",), False),
+    ("peer capture keeps going after control is lost", CPS,
+     '        if not has_control(robot):\n            return "control_lost", frames',
+     '        if False:\n            return "control_lost", frames',
+     (TCPS + "test_lost_control_stops_the_capture_and_quiet_mode_still_goes_back",), False),
+    ("peer capture sends a frame it already sent", CPS, "image_id != last_id", "True",
+     (TCPS + "test_a_camera_that_stops_producing_new_frames_stops_the_capture",), False),
+    ("peer capture ignores a stop signal", CPS, '        if STATE["stop"]:\n            return "signal:" + STATE["stop"], frames',
+     '        if False:\n            return "signal:" + STATE["stop"], frames', (TCPS + "test_a_stop_signal_stops_the_capture",),
+     False),
+    ("peer capture takes any IN_VIEW", CPS, 'assert IN_VIEW == ("none",) or (IN_VIEW and', "assert True or (IN_VIEW and",
+     (TCPS + "test_settings_out_of_range_are_refused_before_anything_happens",), False),
+    ("saver skips the hash check", SVC, 'if hashlib.sha256(data).hexdigest() != row.get("sha256") or data[:2]',
+     "if data[:2]", (TSVC + "test_a_frame_whose_bytes_do_not_match_its_hash_stops_the_save",), False),
+    ("saver writes into a folder that holds files", SVC,
+     "    if os.path.exists(out) and (not os.path.isdir(out) or os.listdir(out)):", "    if False:",
+     (TSVC + "test_it_refuses_an_output_folder_that_already_holds_anything",), False),
+    ("saver accepts a repeated image id", SVC, ' or row.get("id") in ids:', ":",
+     (TSVC + "test_frames_before_begin_or_a_repeated_image_id_stop_the_save",), False),
 )
 NEUTRAL = ("docstring reworded", R, '"""A simulated Vector on a table. One instance is one robot and one scene."""',
            '"""A simulated Vector on a table: one instance is one robot and one scene."""')

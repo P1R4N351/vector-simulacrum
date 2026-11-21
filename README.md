@@ -1564,8 +1564,19 @@ matters for deployment: same observation, same action.
 
 ## Tests
 
-`tests/run_all.py`, 332 tests in twenty-four files. Results after the cube
-app, 2026-11-21:
+`tests/run_all.py`, 348 tests in twenty-five files. Results after the
+peer-capture tool, 2026-11-21 (`evidence/peer-capture-20261121/`):
+
+- In CT 930, with `--require-mujoco`: declared 348, ran 348, passed 340,
+  failed 0, skipped 8, all of them optional inputs; exit 0.
+- On the Mac, without Anki's cube file and key: passed 235, skipped 113,
+  because MuJoCo is absent.
+- The mutation check on the Mac: 143 of 143 arms caught, 0 survived, 0 set-up
+  errors. That includes the 15 new arms for `capture_peers.py` and
+  `save_capture.py`. The 71 arms that need MuJoCo were not run there.
+
+Results after the cube app, 2026-11-21, when the suite was 332 tests in
+twenty-four files:
 
 - In CT 930: declared 332, ran 332, passed 324, failed 0, skipped 8
   (`evidence/cube-firmware-20261121/ct930-run_all.txt`).
@@ -2184,6 +2195,72 @@ unit 3 keeps the new app on the cube. The mount does not survive a reboot:
 after one, the engine caches the stock version again and reflashes stock at
 the next connection. To undo it now: `umount` the path and take the cube's
 cell out for a moment.
+
+### Teaching the robots to see each other (2026-11-21)
+
+**Anki never built it.** Read in Anki's engine source (`kercre123/victor`,
+branch `snowboy`):
+
+- The engine runs one robot: `engine/robotManager.h:73` holds a single
+  `std::unique_ptr<Robot>`. A note in `engine/cozmoEngine.h`, dated 12/23/2014,
+  says host/client support was "removed until we know more about
+  multi-robot requirements", and it never came back.
+- There is no robot object type in `objectTypes.clad`, and no robot vision
+  mode in `visionModes.clad`.
+- No salient-point class covers a robot, and no loaded network is trained
+  on one: `vision_config.json` loads a person detector and a hand detector
+  on the robot, and a person detector off it.
+- Anki's support page says only that Vector "will initially not
+  communicate with other Vectors".
+
+**The one outside attempt, and what its numbers are worth.** Amitabha
+Banerjee trained YOLOv5 in 2020 and ran it off the robot, on recorded
+video. His Drive dataset (`VectorGrandDataset.v2.yolov5pytorch.zip`,
+4,394,426 bytes, CC BY 4.0) was measured here:
+
+- It holds 206 images at 416×416, one class, and exactly one box each.
+- They come from 96 distinct photos, numbered 1 to 99: 67 photos for
+  training (about 2.6 rotated copies each), 19 for validation, 10 for
+  testing. None shows no Vector.
+- Every validation and test photo is 1 or 2 numbers from a training photo.
+  On a 16×16 average hash, 12 of the 19 validation photos are 0 bits from a
+  training photo and no test photo is more than 5, against a median of 22
+  bits between unrelated training photos.
+- So the published mAP@50 of 99.5% measures recall of near-identical scenes,
+  not detection of a Vector somewhere new.
+
+**The decision.** First collect and label images of the household's own
+Vectors, with and without one in view, and only then choose a model. The
+options set aside for now were torchvision SSDlite (code BSD-3; weights 14,069,355 bytes),
+Banerjee's YOLOv5 (code AGPL-3.0; `yolov5s.pt` 14,808,437 bytes), or both.
+
+**The capture tool.** `hardware/capture_peers.py` runs on the wire-pod
+host, like the other recorders:
+
+1. It holds DEFAULT behaviour control, so the observing robot's own
+   behaviours stay off and it stays on its charger. It commands nothing.
+2. It streams camera frames as base64 JPEG in JSON lines, at most one new
+   frame per tick.
+3. Quiet mode gives no frames, so it lifts quiet mode only while control is
+   held, and puts it back before letting go.
+4. It refuses to connect (exit 6) unless the pod reads Cryosleep's mute off.
+   Cryosleep is the household's overnight sleep, and it withholds the camera
+   on purpose. A pod with no `cryo_mute` endpoint cannot run Cryosleep, so
+   there it goes ahead.
+5. It stops on its time limit, a stop signal, lost control, or STALL_S
+   without a new frame.
+
+Run A of 2026-11-18 shows frames flow under SDK control: the robot's image
+timestamp advanced 82,996 ms in 83.0 s, with 1,006 distinct values.
+
+`hardware/save_capture.py` writes the frames to files and checks each one
+against the hash the robot side computed. `IN_VIEW` records what the
+operator placed in view: `none` for a negative scene, or the units in
+front of the camera. Boxes come later, from labelling.
+
+**Not yet run on a robot.** Cryosleep was on when the tool was finished.
+The sessions need two or three robots together in good light; a scene with
+no Vector also counts.
 
 ### What hands can settle, in order
 
