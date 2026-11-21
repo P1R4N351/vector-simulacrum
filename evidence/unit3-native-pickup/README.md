@@ -12,7 +12,7 @@ Unit 3 is a Vector 2.0 with a printed lift. After a baseline stock pickup, three
 
 The first pulse took the lift from 91.79 to 87.20 mm. The minimum came about 0.66 s after the command, after the all-motors stop returned. The lift recovered to 90.31 mm. The empty comparison used a lowered fork. Load, posture and the stop command therefore remain confounded.
 
-**Trial 3 (left-first) is a successful lift with improper engagement**, identified by the operator in the linked footage. The cube rides askew during the loaded portion. Treat it as a separate grip condition. The exact fork contact points are obscured. Trial 4 is visually confirmed as carried; its seating has not been independently established.
+**Trial 3 (left-first) is a successful lift with improper engagement**, identified by an operator in the linked footage. The cube rides askew during the loaded portion. Treat it as a separate grip condition. The exact fork contact points are obscured. Trial 4 is visually confirmed as carried; its seating has not been independently established.
 
 ![Trial 3 overhead frames during the carry and after release](trial3-engagement.jpg)
 

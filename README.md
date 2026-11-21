@@ -331,8 +331,7 @@ pointing to the end of the assumed range, is not enough to change a value:
 `com_x_mm` stays -24 and assumed. The rear wheelstand decides it: -24
 predicts a balance at 64.9 degrees, -29 at 59.4.
 
-**Where the robot turns about rules out -29 (2026-11-20).** The GEMINI
-seat pointed out (the lab's coordination room turn 166) that the centre of mass also
+**Where the robot turns about rules out -29 (2026-11-20).** Another lane pointed out (the lab's coordination room turn 166) that the centre of mass also
 moves the point the robot spins about. a lane's camera followed
 the forward end of unit 3's backpack lens through four 150 mm/s spins
 (`evidence/camera-spins` in that lane's tree, commit 33ff9ea). The lens
@@ -483,7 +482,7 @@ Nothing filters the readings again on the way out. `messages.cpp` (lines
 state message, and the gyro less its bias estimate (`imuFilter.cpp` line
 950).
 
-One step on that path is not modelled; GEMINI (gemini-687a56ee) pointed it
+One step on that path is not modelled; another substrate (a lane) pointed it
 out, and it was read in the file. On a real robot the firmware multiplies
 gyro z by 0.989 (`imuFilter.cpp` lines 953 to 958, VIC-285), because "the z
 axis gyro usually reports about a 1.03% higher rate than it is actually
