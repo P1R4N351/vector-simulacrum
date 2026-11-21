@@ -28,7 +28,7 @@ observed = np.genfromtxt(
 yaws = np.genfromtxt(here / "overhead-yaw.csv", names=True, delimiter=",")
 
 
-def run(key, observer=None, *, extra_reach_mm=0, wrist_pitch_deg=0, wrist_roll_deg=0, observer_stride=5):
+def run(key, observer=None, *, extra_reach_mm=0, wrist_pitch_deg=0, wrist_roll_deg=0, observer_stride=5, rails=False):
     trial, geometry, heading, drive, depth, lateral, height = key[:7]
     xml = ET.parse(
         base / "fixture.xml" if geometry == "boxes" else Path(sys.argv[2]).resolve()
@@ -58,6 +58,10 @@ def run(key, observer=None, *, extra_reach_mm=0, wrist_pitch_deg=0, wrist_roll_d
         ET.SubElement(world, "body", name="target", mocap="true")
         equality = ET.SubElement(xml.getroot(), "equality")
         ET.SubElement(equality, "weld", body1="fork", body2="target", solref=".002 1")
+    if rails:
+        sys.path.insert(0,str(repo))
+        from replay_links import add_links, rail_paths
+        add_links(xml,repo)
     m = mj.MjModel.from_xml_string(ET.tostring(xml.getroot(), encoding="unicode"))
     d = mj.MjData(m)
     pick = next(p for p in picks if p["trial"] == trial and p["camera"] == "on")
@@ -89,10 +93,16 @@ def run(key, observer=None, *, extra_reach_mm=0, wrist_pitch_deg=0, wrist_roll_d
                          cy*sp*cr + sy*cp*sr, sy*cp*cr - cy*sp*sr))
     if drive == "weld":
         d.joint("wrist_motion").qpos[:] = [*path[0], *q[0]]
+    if rails:
+        rail_xyz,rail_q=rail_paths(repo,x,y,h,l)
+        ids=[m.body(f"rail{i}").mocapid[0] for i in range(2)]
     trace = []
     for j, pos in enumerate(path):
         d.mocap_pos[0] = pos
         d.mocap_quat[0] = q[j]
+        if rails:
+            d.mocap_pos[ids]=rail_xyz[j]
+            d.mocap_quat[ids]=rail_q[j]
         mj.mj_step(m, d)
         if observer is not None and j % observer_stride == 0:
             observer(m, d, t[j] - 1.5, l[j])

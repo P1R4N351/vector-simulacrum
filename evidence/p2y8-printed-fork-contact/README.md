@@ -169,3 +169,20 @@ The overhead camera also sees a white border on the vertical face away from the 
 The free calibrated pose transfers across cube faces within a few overhead pixels in both exposures. Forcing the bounding box onto the initial shelf plane worsens the second-face prediction, especially during lowering. This evidence favors the free pose for interpreting these overhead frames. It cannot independently establish world height or isolate the onboard camera mount error. The opposing camera sees a different face, at a different scale and exposure time.
 
 [Image overlays](front-edge/adjacent-face.png) · [Per-frame results](front-edge/adjacent-face.csv). Run `python adjacent_face.py ../.. /tmp/p2y8-fork.xml`.
+
+### Can the lift links catch the tilted cube?
+
+We added all four moving rails to the printed-fork replay. They follow the photo-derived web link surfaces, split into 14 convex sections per rail, with separate upper and lower rear pivots driving the parallelogram. The bearing caps at the rear are omitted. Odometry, lift telemetry, starting pose, cube and fork properties are identical in paired runs. An independent collision check deliberately puts the cube into the lower rail and verifies MuJoCo registers contact.
+
+Across five free-cube trials, the added rails made zero cube contacts at the 1 ms simulation step. Trial 1 still produced 0.40 mm rightward travel and 2.29° peak tilt. The hardware endpoint was 26.72 mm right. The other four simulated endpoints also reproduced the fork-only values.
+
+Placing the cube at its independently reconstructed trial 1 pose reveals a different situation. Positive values below mean clearance and negative values mean overlap. Units are millimetres.
+
+| Exposure | Lower link, free optical pose | Lower link, shelf-constrained pose | Upper link, free optical pose |
+|---|---:|---:|---:|
+| 5.498 s, raised | −0.21 | +2.97 | +6.16 |
+| 5.998 s, lowering | −1.21 | +7.25 | −0.13 |
+
+In the free reconstruction, the forward tip of the lower right rail lies at the right rubber corner while raised and at the shell during lowering. The modeled head, chassis and treads are each at least 10 mm clear in both exposures and both pose fits. The earlier same-exposure second-face check favors the free pose but does not establish absolute height precisely. The lower link is a candidate for supporting an already tilted cube. The observed-pose check imposes that tilt, and the free replay still misses its onset.
+
+[Observed-pose gaps](body-clearance.png) · [All distances and closest pieces](body-clearance.csv) · [Simulated and recorded endpoints](link-contact.png) · [All five paired runs](link-contact.csv). After installing the web SDK assets and Node dependencies, run body_clearance.py and link_contact.py with the same arguments as evaluate.py.
