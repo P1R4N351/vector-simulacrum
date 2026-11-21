@@ -14,6 +14,7 @@ repo=here.parents[1]
 sys.path[:0]=[str(repo),str(here.parent/"unit3-printed-fork-contact")]
 from replay_links import add_links,rail_paths
 from simulacrum import params
+import pickup_patch
 from decode import decode
 from pickup_support import contact_load, save as save_support
 
@@ -40,6 +41,7 @@ def main():
     rails,railq=rail_paths(repo,x,y,yaw,lift)
     f=m.body('fork').mocapid[0]
     ids=[m.body(f'rail{i}').mocapid[0] for i in range(2)]
+    patch=[]
     support=[]
     headings=[]
     output=[]
@@ -77,6 +79,8 @@ def main():
             d.mocap_quat[ids]=link_rot[i]
             mj.mj_step(m,d)
             if 1.99 <= clock <= 3.61:
+                if label.endswith("+ pitch") and not smooth_receipt:
+                    pickup_patch.collect(m,d,cube,m.body("fork").id,clock,m.opt.timestep,patch)
                 window.append(contact_load(m,d,cube,floor,m.body('fork').id)/weight)
                 if len(window)==10:
                     support.append([label,round(clock,4),round(lift[i],3),*np.mean(window,axis=0).round(5)])
@@ -103,6 +107,7 @@ def main():
     if smooth_receipt:
         save_support(here,support,stem='pickup-support-smoothed')
         return
+    pickup_patch.save(here,patch)
     save_support(here,support)
     with (here/'shelf-yaw-sim.csv').open('w') as fobj:
         w=csv.writer(fobj,lineterminator='\n')

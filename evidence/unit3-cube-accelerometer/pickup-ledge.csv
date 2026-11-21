@@ -1,0 +1,22 @@
+profile,initialization,slide_2p86_mm,max_center_mm,held_floor_fraction
+original,Before command,30.528,22.686,1.0
+original,Last sighting,30.421,22.613,1.0
+original,Last sighting + pitch,30.654,22.356,1.0
+ledge,Before command,30.528,22.686,1.0
+ledge,Last sighting,30.336,22.697,1.0
+ledge,Last sighting + pitch,30.654,22.356,1.0
+feet,Before command,30.528,22.686,1.0
+feet,Last sighting,30.421,22.613,1.0
+feet,Last sighting + pitch,30.654,22.356,1.0
+panel,Before command,30.528,22.686,1.0
+panel,Last sighting,30.421,22.613,1.0
+panel,Last sighting + pitch,30.654,22.356,1.0
+all,Before command,30.528,22.686,1.0
+all,Last sighting,30.336,22.697,1.0
+all,Last sighting + pitch,30.654,22.356,1.0
+shallow,Before command,30.528,22.686,1.0
+shallow,Last sighting,30.336,22.697,1.0
+shallow,Last sighting + pitch,30.654,22.356,1.0
+deep,Before command,30.528,22.686,1.0
+deep,Last sighting,30.336,22.697,1.0
+deep,Last sighting + pitch,30.654,22.356,1.0

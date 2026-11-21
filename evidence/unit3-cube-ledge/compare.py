@@ -28,7 +28,7 @@ def subtract(box, obstacle):
 
 def number(v):return ' '.join(f'{x*.001:.9g}' for x in v)
 
-def make(source,label):
+def make(source,label,directory=here):
     tree=ET.parse(source)
     cube=tree.find(".//body[@name='cube']")
     bounds=[]; shells=[]
@@ -59,7 +59,7 @@ def make(source,label):
                 for lo,hi in additions:
                     ET.SubElement(cube,'geom',dict(ref,name=f'cube_shell_lip_{len(bounds)}',pos=number((hi+lo)/2),size=number((hi-lo)/2)))
                     bounds.append((lo,hi))
-    dest=here/f'{label}.xml';tree.write(dest);return dest
+    dest=directory/f'{label}.xml';tree.write(dest);return dest
 
 def job(args):
     trial,label,path=args
