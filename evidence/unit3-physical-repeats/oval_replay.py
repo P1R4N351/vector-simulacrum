@@ -21,6 +21,7 @@ v=params.values(params.load(model='vector_2'))
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--printed-fixture',type=Path,help='XML from unit3-printed-fork-contact/build_fixture.py')
 parser.add_argument('--export-force',type=Path,help='Save the nominal pre-filter cube acceleration for a sensor-only replay')
+parser.add_argument('--cadence',action='store_true',help='Fit a uniform SDK state cadence over the 45–54 s replay interval')
 args=parser.parse_args()
 scene=ET.fromstring(mjcf.build_mjcf(v,(),cube='free'))
 prefix='first-contact'
@@ -45,6 +46,11 @@ model=mj.MjModel.from_xml_string(ET.tostring(scene,encoding='unicode'))
 dt=model.opt.timestep
 times=np.arange(45.5,53.1,dt)
 rows=robot[(robot['receipt_s']>=45)&(robot['receipt_s']<=54)]
+if args.cadence:
+    idx=np.arange(len(rows))
+    period,intercept=np.polyfit(idx,rows['receipt_s'],1)
+    rows['receipt_s']=intercept+idx*period
+    prefix+='-cadence'
 assert np.all(rows['origin']==int(observation['origin']))
 def series(key):
     return np.interp(times,rows['receipt_s'],rows[key])
@@ -106,6 +112,10 @@ def replay(dx,dy):
     peak=max(np.linalg.norm(np.frombuffer(p[2:],dtype='<i2').reshape(3,3)/8192,axis=1).max() for p in packets)
     taps=[t+times[0] for t in chip.taps.events if abs(t+times[0]-50.97782)<1]
     if dx==dy==0:
+        if args.cadence or args.export_force:
+            with (out/f'{prefix}-tap-times.csv').open('w') as f:
+                f.write('candidate_time_s\n')
+                f.writelines(f'{t:.6f}\n' for t in taps)
         if args.export_force:
             np.savez_compressed(args.export_force,forces=forces,start=times[0],dt=dt)
         observed=np.genfromtxt(out/'cube.csv.gz',delimiter=',',names=True)
@@ -138,7 +148,7 @@ for dy in (-5,0,5):
 ax.set(xlabel='Cube x offset from SDK sighting (mm)',ylabel='Cube yaw change (degrees)',xticks=[-5,0,5],title='First shelf contact · measured robot trajectory')
 ax.legend()
 fig.savefig(out/f'{prefix}-replay.png',dpi=150)
-if args.printed_fixture:
+if args.printed_fixture and not args.cadence:
     baseline=np.genfromtxt(out/'first-contact-replay.csv',names=True,delimiter=',',dtype=None,encoding='utf8')
     assert np.array_equal(list(zip(baseline['cube_dx_mm'],baseline['cube_dy_mm'])),[r[:2] for r in results])
     fig,axes=plt.subplots(1,3,figsize=(10,3.8),layout='constrained')

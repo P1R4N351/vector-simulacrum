@@ -1,0 +1,5 @@
+window,clock,intervals,gyro_difference_rms_rad_s
+Earlier turn,Receipt,20,0.5019013994203221
+Contact turn,Receipt,14,0.7577407402655885
+Earlier turn,Uniform cadence,20,0.18677041950971773
+Contact turn,Uniform cadence,14,0.27926627057564574
