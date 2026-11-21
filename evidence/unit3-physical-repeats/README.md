@@ -55,3 +55,18 @@ The original SDK payload carries the robot's own message timestamp. In A, both p
 The public [stock packet handler](https://github.com/kercre123/victor/blob/snowboy/engine/components/cubes/cubeAccelComponent.cpp) stamps a counter change with the latest robot message time. The [physical engine filter](https://github.com/kercre123/victor/blob/snowboy/engine/components/blockTapFilterComponent.cpp) starts a group at the first input, then releases its last payload on an engine update after the deadline. The source default is 75 ms. Substituting radio arrival times for engine arrival times and applying a punctual 75 ms timer would split both 150 ms pairs. The engine enqueue/update times and effective setting for these trials were not captured. A missing first callback remains possible. Keep the packet-level simulator behavior and published comparison distinct from an SDK event prediction.
 
 [Device-clock overlay](tap-clocks.png) · [Per-change timing](tap-clocks.csv) · [Original SDK tap stamps](sdk-tap-clocks.csv)
+
+### How far did the cube rotate during E?
+
+The first and last contacts rotated the cube in opposite directions. For each tap, the table compares top-glyph heading in two windows 0.8–1.6 seconds on either side. Positive means counterclockwise viewed from above. One method fits and rectifies the four white edges. The other registers the printed glyph texture after correcting local foreshortening. Both assume the cube settled on the same face.
+
+| Tap time (s) | Peak specific force (g) | Outline yaw (°) | Texture yaw (°) |
+|---:|---:|---:|---:|
+| 50.98 | 1.08 | +14.1 | +18.0 |
+| 65.45 | 1.22 | +1.0 | +1.3 |
+| 87.24 | 0.98 | −2.3 | −2.3 |
+| 94.00 | 1.14 | −10.4 | −11.1 |
+
+At 75, 79 and 83 seconds, texture registration gave absolute changes below 0.1° in three no-tap comparisons. The outline fit alone gave a spurious-looking 5.9° at 83 seconds as the cube LEDs changed. A fourth no-tap window lacked enough usable segmentations. Treat the exact magnitudes of the smaller tap rotations as provisional. These results supply physical contact-replay targets. They do not identify friction or fork geometry by themselves.
+
+[Before/after outline overlays](E/tap-heading.png) · [Angles and fit sensitivity](E/tap-heading.csv) · [Analysis](oval_rotation.py)
