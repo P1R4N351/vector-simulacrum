@@ -70,3 +70,11 @@ The first and last contacts rotated the cube in opposite directions. For each ta
 At 75, 79 and 83 seconds, texture registration gave absolute changes below 0.1° in three no-tap comparisons. The outline fit alone gave a spurious-looking 5.9° at 83 seconds as the cube LEDs changed. A fourth no-tap window lacked enough usable segmentations. Treat the exact magnitudes of the smaller tap rotations as provisional. These results supply physical contact-replay targets. They do not identify friction or fork geometry by themselves.
 
 [Before/after outline overlays](E/tap-heading.png) · [Angles and fit sensitivity](E/tap-heading.csv) · [Analysis](oval_rotation.py)
+
+### Replaying the first shelf contact with the free cube
+
+The frozen Vector 2 scene, driven by E's measured robot XY, yaw, wheel speeds, head angle and lift height, predicted a **9.3° counterclockwise rotation** from the original SDK cube sighting. The video estimates were 14.1° and 18.0°. The simulated packet peak was **1.90 g** against **1.08 g** recorded within one second either side of the tap. The nominal replay produced one packet tap in that window, matching the physical packet count.
+
+All nine initializations (−5, 0, +5 mm along each horizontal axis) began clear of robot penetration and struck the cube first with the right side of the simulated fork. Yaw ranged from 0.3° to 12.2°. Three positions started contact roughly 3.6 seconds before the physical tap. The offsets illustrate sensitivity; their range is not a measured localization error bound. The last SDK cube sighting preceded the tap by 44 seconds. The scene uses the default fork collision geometry, while this robot has a printed lift. The replay prescribes a level chassis following SDK odometry at each physics step, leaves the cube free, and uses one sensor noise seed and sampling phase. Robot odometry, actual contact geometry, and sensor phase remain distinct possible contributors. No friction or impact parameter was adjusted.
+
+[Yaw sweep](E/first-contact-replay.png) · [Physical and simulated accelerometer packets](E/first-contact-force.png) · [Per-pose outcomes](E/first-contact-replay.csv) · [Reproduce](oval_replay.py)

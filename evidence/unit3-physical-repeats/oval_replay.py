@@ -1,0 +1,110 @@
+"""Replay the first shelf yaw contact with measured robot kinematics and a free cube."""
+import csv
+from pathlib import Path
+import sys
+
+import matplotlib.pyplot as plt
+import mujoco as mj
+import numpy as np
+
+here = Path(__file__).resolve().parent
+sys.path.insert(0, str(here.parents[1]))
+from simulacrum import mjcf, params
+from simulacrum.cube import CubeAccelerometer
+
+out=here/'E'
+robot=np.genfromtxt(out/'robot.csv.gz',delimiter=',',names=True)
+observation=next(csv.DictReader((out/'object-events.csv').open()))
+v=params.values(params.load(model='vector_2'))
+model=mj.MjModel.from_xml_string(mjcf.build_mjcf(v,(),cube='free'))
+dt=model.opt.timestep
+times=np.arange(45.5,53.1,dt)
+rows=robot[(robot['receipt_s']>=45)&(robot['receipt_s']<=54)]
+assert np.all(rows['origin']==int(observation['origin']))
+def series(key):
+    return np.interp(times,rows['receipt_s'],rows[key])
+def joint(name):
+    return model.joint(name).qposadr[0]
+root=joint('cube_root')
+cube_v=model.joint('cube_root').dofadr[0]
+path=np.tile(model.qpos0,(len(times),1))
+x,y=series('x_mm'),series('y_mm')
+heading=np.interp(times,rows['receipt_s'],np.unwrap(rows['yaw_rad']))
+path[:,:2]=np.column_stack((x-x[0],y-y[0]))/1000
+path[:,3]=np.cos(heading/2);path[:,6]=np.sin(heading/2)
+lift=np.array([mjcf.lift_angle_of_height(v,h) for h in series('lift_mm')])
+path[:,joint('lift_joint')]=lift
+path[:,joint('wrist_joint')]=-lift
+path[:,joint('head_joint')]=series('head_rad')
+for axle,label in [('f','front'),('r','rear')]:
+    for side,speed in [('l','left_mmps'),('r','right_mmps')]:
+        path[:,joint(f'wheel_{axle}{side}_joint')]=np.cumsum(series(speed))*dt/v[f'wheel_{label}_radius_mm']
+velocity=np.zeros((len(path),model.nv))
+for i in range(len(path)-1):
+    mj.mj_differentiatePos(model,velocity[i],dt,path[i],path[i+1])
+center=np.array([float(observation['x_mm'])-x[0],float(observation['y_mm'])-y[0]])
+# From the same native SDK observation at +6.8361 s (w,x,y,z quaternion).
+w,qx,qy,qz=(-.7137432,.005623992,-.00070193043,-.70038456)
+angle=np.arctan2(2*(w*qz+qx*qy),1-2*(qy*qy+qz*qz))
+cube_body=model.body('cube').id
+def replay(dx,dy):
+    d=mj.MjData(model)
+    d.qpos[root:root+2]=(center+[dx,dy])/1000
+    d.qpos[root+3:root+7]=[np.cos(angle/2),0,0,np.sin(angle/2)]
+    first=None;overlap=0.;trace=[]
+    chip=CubeAccelerometer(v,dt,seed=17)
+    for i,t in enumerate(times):
+        d.qpos[:root]=path[i,:root]
+        d.qvel[:cube_v]=velocity[i,:cube_v]
+        d.ctrl[model.actuator('head').id]=path[i,joint('head_joint')]
+        d.ctrl[model.actuator('lift').id]=lift[i]
+        mj.mj_step(model,d)
+        chip.step((i+1)*dt,d.sensor('cube_accel').data/(v['gravity_mmps2']*.001))
+        for c in d.contact:
+            a,b=model.geom_bodyid[c.geom]
+            if cube_body in (a,b) and 0 not in (a,b):
+                if i==0:overlap=max(overlap,-1000*c.dist)
+                if first is None:
+                    other=c.geom[1] if a==cube_body else c.geom[0]
+                    first=(t,model.geom(other).name)
+        w1,x1,y1,z1=d.qpos[root+3:root+7]
+        trace.append(np.arctan2(2*(w1*z1+x1*y1),1-2*(z1*z1+y1*y1)))
+    a=np.rad2deg(np.unwrap(trace))
+    def settled(lo,hi):
+        return np.median(a[(times>=lo)&(times<=hi)])
+    change=settled(51.78,52.58)-settled(49.38,50.18)
+    packets=[p for t,p in chip.messages if abs(t+times[0]-50.97782)<1]
+    peak=max(np.linalg.norm(np.frombuffer(p[2:],dtype='<i2').reshape(3,3)/8192,axis=1).max() for p in packets)
+    taps=[t+times[0] for t in chip.taps.events if abs(t+times[0]-50.97782)<1]
+    if dx==dy==0:
+        observed=np.genfromtxt(out/'cube.csv.gz',delimiter=',',names=True)
+        g=np.linalg.norm([observed[k] for k in ('x_counts','y_counts','z_counts')],axis=0)/8192
+        fig,ax=plt.subplots(figsize=(8,3.4),layout='constrained')
+        for series_t,values,label in [(observed['receipt_s'],g,'Physical cube, packet receipt'),(
+                np.repeat([t+times[0] for t,p in chip.messages],3),
+                np.concatenate([np.linalg.norm(np.frombuffer(p[2:],dtype='<i2').reshape(3,3)/8192,axis=1) for t,p in chip.messages]),
+                'Frozen model, packet emitted')]:
+            mask=np.abs(series_t-50.97782)<1
+            ax.plot(series_t[mask],values[mask],'.-',ms=2,lw=.8,label=label)
+        ax.set(xlabel='Seconds from undock command',ylabel='Specific force magnitude (g)',title='First shelf contact at the SDK cube position')
+        ax.legend()
+        fig.savefig(out/'first-contact-force.png',dpi=150)
+        plt.close(fig)
+    return overlap,*(first or (None,'')),change,peak,len(taps)
+results=[]
+for dy in (-5,0,5):
+    for dx in (-5,0,5):
+        results.append([dx,dy,*replay(dx,dy)])
+with (out/'first-contact-replay.csv').open('w') as f:
+    writer=csv.writer(f,lineterminator='\n')
+    writer.writerow(['cube_dx_mm','cube_dy_mm','initial_overlap_mm','first_contact_s','first_geom','yaw_change_deg','packet_peak_g','packet_taps_in_window'])
+    writer.writerows(results)
+fig,ax=plt.subplots(figsize=(8,4.5),layout='constrained')
+ax.axhspan(14.148,18.013,color='#d3e5d7',label='Two optical estimates')
+for dy in (-5,0,5):
+    group=[r for r in results if r[1]==dy]
+    ax.plot([r[0] for r in group],[r[5] for r in group],'.-',label=f'Cube y offset {dy:+d} mm')
+ax.set(xlabel='Cube x offset from SDK sighting (mm)',ylabel='Cube yaw change (degrees)',xticks=[-5,0,5],title='First shelf contact · measured robot trajectory')
+ax.legend()
+fig.savefig(out/'first-contact-replay.png',dpi=150)
+print(results)
