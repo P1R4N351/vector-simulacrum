@@ -31,6 +31,16 @@
     }
   },
   "overrides": {
+    "cube_accel_noise_density_ug": {
+      "value": 124.0,
+      "unit": "ug/sqrt(Hz)",
+      "provenance": "fitted",
+      "low": 100.0,
+      "high": 200.0,
+      "source": "REC: evidence/unit3-cube-accelerometer/resting.tsv. Unit 3 shelf cube. Within-packet successive sample differences, 643 stationary packets. Independent undock-check and pre-pickup recordings both improve versus the datasheet nominal. See evidence/unit3-cube-accelerometer/stationary-noise.csv.",
+      "kind": "robot",
+      "note": "Bounds are a sensitivity range, not a confidence interval. Effective white-noise density for the current filter and quantization model. Specific to the recorded cube; a replacement cube requires its own check."
+    },
     "display_resolution_px": {
       "value": [
         160,

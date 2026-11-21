@@ -47,3 +47,18 @@ In the pickup recording, all eight packet tap candidates preceded one SDK tap ea
 These comparisons condition on real incoming packets. They validate decoding and event handling in this run. They do not show that simulated impacts yet produce the correct tap counts. The timestamps in the simulator are packet-level and exclude SDK delivery latency.
 
 [Physical SDK events](sdk-cube-events.csv) · [Paired timeline](event-replay.png) · [Replay](replay_events.py) · [Event times](event-replay.csv)
+
+### Stationary accelerometer noise
+
+Within each three-slot packet, successive sample differences divided by √2 estimate short-term noise while excluding gaps between received packets. The fit uses the pooled RMS across the three axes of the 643-packet resting recording. The simulator receives the mean resting specific force so mounting angle and static offset are held fixed. Its stock packet encoder, filter, range and quantization are retained. Fit and evaluation simulations use distinct random seeds.
+
+The fitted effective input noise density is 124 µg/√Hz. The Unit 3 Vector 2 profile uses this value for its recorded cube. The general profile retains the 220 µg/√Hz datasheet nominal. This is an effective parameter for the current sensor model. The experiment does not independently measure the chip's noise spectrum.
+
+| Held-out physical segment | Packets | Nominal error | Calibrated error |
+| --- | ---: | ---: | ---: |
+| Cube on shelf during undock check | 253 | 1.14 mg | 0.77 mg |
+| Last second before pickup | 27 | 1.94 mg | 0.24 mg |
+
+Errors are RMS across the three axis noise estimates, in thousandths of standard gravity. During undocking the real cube's Z noise reached 3.58 mg against 2.39 mg simulated. The recording does not separate shelf vibration from chip noise.
+
+[Axis comparison](stationary-noise.png) · [Numbers](stationary-noise.csv) · [Reproduce](stationary_noise.py)
