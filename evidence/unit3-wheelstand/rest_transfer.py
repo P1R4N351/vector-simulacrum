@@ -15,7 +15,9 @@ def vectors(rows, keys):
 
 previous = np.genfromtxt(here.parent/'unit3-cube-accelerometer/resting.csv', delimiter=',',names=True)
 gain = np.linalg.norm(vectors(previous, ['x_counts','y_counts','z_counts']).mean(axis=0))
-held = np.genfromtxt(here/'stationary.csv.gz',delimiter=',',names=True)
+repeat = '--repeat' in sys.argv
+suffix = '-repeat' if repeat else ''
+held = np.genfromtxt(here/f'stationary{suffix}.csv.gz',delimiter=',',names=True)
 assert np.array_equal(held['slot'], np.tile([0,1,2], len(held)//3))
 physical = vectors(held, 'xyz')
 v = params.values(params.load(model='vector_2'))
@@ -36,7 +38,7 @@ def metrics(values):
     return [norm.mean(),norm.std(),*np.sqrt(np.mean(differences**2,axis=(0,1)))]
 
 fig, axes = plt.subplots(1,2,figsize=(10,4),layout='constrained')
-with (here/'rest-transfer.csv').open('w') as f:
+with (here/f'rest-transfer{suffix}.csv').open('w') as f:
     writer = csv.writer(f,lineterminator='\n')
     writer.writerow(['series','seed','mean_g','sd_g','within_packet_rms_dx_g','within_packet_rms_dy_g','within_packet_rms_dz_g'])
     for label, scale in [('Shelf cube',None),('Frozen model',1.),('Earlier shelf gain',gain)]:
@@ -49,5 +51,5 @@ with (here/'rest-transfer.csv').open('w') as f:
 axes[0].set(xlabel='Specific force magnitude (g)',ylabel='Fraction at or below')
 axes[1].set(xlabel='Sensor axis',ylabel='Within-packet RMS change (mg)')
 axes[0].legend(fontsize=8)
-fig.savefig(here/'rest-transfer.png',dpi=150)
+fig.savefig(here/f'rest-transfer{suffix}.png',dpi=150)
 print('prior gain',gain)
