@@ -93,3 +93,15 @@ The earlier positive-impulse comparison counted upward support only. At 5.50 s (
 As a geometric sensitivity check we rotated the simulated cube right-edge-up about the midpoint of its left bottom edge at the sampled times. At 5.50 s the minimum gap anywhere on the fork was 3.05 mm for a 20° tilt and 1.97 mm for a 35° tilt. At 6.00 s both tilted poses came within 0.13 mm of the fork. These prescribed snapshots use the replay's horizontal placement and an assumed pivot. They are not reconstructed physical poses or dynamic predictions. A correction that supplies grip only on descent would still miss the earlier lifted frame.
 
 Run `python clearance.py ../.. /tmp/p2y8-fork.xml`. The calculation queries signed distances between all 58 fork and 62 cube collision pieces and groups the closest witness points by side and material. [Distances, nearest pieces and witness positions](clearance.csv)
+
+## Adding the observed sideways motion to the clearance check
+
+All four single-camera reconstructions place the cube center **8.6–14.6 mm right of its starting location** in the 5.50 s image. The closest point on the right half of the cube is on a rubber corner in each reconstruction. With the calibrated See3CAM lens and a corner resting on the shelf, the reconstructed rubber and fork overlap by 1.13 mm. With the pinhole sensitivity model and the same shelf constraint they have a 1.37 mm gap. Negative values indicate incompatible rigid geometry at the imposed poses. They do not measure rubber deformation or force. The earlier prescription of a tip about a stationary left edge left a positive gap under both tested angles.
+
+![Clearance at poses reconstructed from the raised top marker](optical-clearance.png)
+
+The 23 mm top marker is registered to the simulated initial cube pose using its pre-drive median. The marker center is assumed 22 mm above cube center. Each subsequent frame independently fits orientation and translation to its four observed corners. The shelf variant constrains the lowest corner of a 44.3 mm bounding box to remain on the initial support plane. Paired timestamps differ by at most 2.4 ms on the published time axes; actual cross-device synchronization uncertainty remains. Both fork snapshots use the recorded replay with nominal reach.
+
+The optical models have systematic errors larger than the clearance of interest. On nine settled frames after 9 s, shelf-constrained models put the cube 25.1–25.6 mm right, close to the earlier planar overhead estimate of 26.7 mm right, but 11.0–12.5 mm forward versus 5.2 mm in that estimate. The latter comparison uses the same camera. At 6 s the unconstrained reconstructions place the center below its initial height despite the tilt, while enforcing shelf contact raises the pixel residual to 6.3–11.7 px RMS. The robust observation is the sideways component already present at peak lift. These data cannot identify a submillimetre contact, justify a material change, or validate the late reconstructed pose.
+
+Run `python optical_clearance.py ../.. /tmp/p2y8-fork.xml`. [Raised-frame solutions](optical-clearance.csv) · [Settled-position cross-check](optical-endpoint.csv)
