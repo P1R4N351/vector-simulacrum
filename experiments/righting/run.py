@@ -25,7 +25,7 @@ def patient_copy(element):
     return patient
 
 
-def scene_xml(boxes=None, mass_g=50, friction=0.5):
+def scene_xml(boxes=None, mass_g=50, friction=0.5, fixed_grip=False):
     root = ET.fromstring(
         mjcf.build_mjcf(dict(replay.nominal_values(), **replay.OPEN_TABLE))
     )
@@ -48,6 +48,13 @@ def scene_xml(boxes=None, mass_g=50, friction=0.5):
         for geom in world.findall("geom"):
             geom.set("conaffinity", "7")
         add_cube(world, boxes, mass_g, friction)
+        if fixed_grip:
+            # Exact rigid mount at the stock carry transform. Cube inertia is retained.
+            cube = world.find("body[@name='cube']")
+            cube.remove(cube.find("freejoint"))
+            world.remove(cube)
+            patient.find(".//body[@name='patient_lift_fork']").append(cube)
+            cube.set("pos", "0.026 0 -0.0125")
     return ET.tostring(root, encoding="unicode")
 
 
@@ -91,18 +98,21 @@ def run(model, side, args):
         mj.mj_forward(model, data)
         fork_center = data.geom("patient_lift_fork_geom").xpos.copy()
         half_depth = model.geom("patient_lift_fork_geom").size[0]
-        cube_pos = data.joint("cube_root").qpos
-        cube_pos[:3] = [
-            fork_center[0],
-            fork_center[1] + side * (0.022 + half_depth + 0.0005),
-            0.0221,
-        ]
-        if args.presentation == "carry-pose":
-            wrist = data.body("patient_lift_fork")
-            cube_pos[:3] = wrist.xpos + wrist.xmat.reshape(3, 3) @ np.array(
-                [0.026, 0, -0.0125]
-            )
-            cube_pos[3:] = wrist.xquat
+        if args.fixed_grip:
+            cube_pos = data.body("cube").xpos
+        else:
+            cube_pos = data.joint("cube_root").qpos
+            cube_pos[:3] = [
+                fork_center[0],
+                fork_center[1] + side * (0.022 + half_depth + 0.0005),
+                0.0221,
+            ]
+            if args.presentation == "carry-pose":
+                wrist = data.body("patient_lift_fork")
+                cube_pos[:3] = wrist.xpos + wrist.xmat.reshape(3, 3) @ np.array(
+                    [0.026, 0, -0.0125]
+                )
+                cube_pos[3:] = wrist.xquat
         data.joint("root").qpos[1] = cube_pos[1] + side * args.offset_mm * 0.001
     if args.cube_control:
         root[0] += 0.45
@@ -123,13 +133,64 @@ def run(model, side, args):
                 n.startswith("patient_") for n in names
             ):
                 initial_overlap_mm = max(initial_overlap_mm, -contact.dist * 1000)
+    if args.predocked:
+        # Let the free patient/fork assembly settle under gravity before placing the
+        # rescuer at the known adjacent-face dock pose, with its fork above the cube.
+        data.actuator("lift").ctrl[0] = high
+        for _ in range(round(1.0 / model.opt.timestep)):
+            mj.mj_step(model, data)
+        cube_center = data.body("cube").xpos.copy()
+        # Near face is along world -x; use its actual projected extent after settling.
+        corners = np.array(
+            [
+                [a, b, c]
+                for a in (-0.022, 0.022)
+                for b in (-0.022, 0.022)
+                for c in (-0.022, 0.022)
+            ]
+        )
+        near_x = cube_center[0] + min(
+            (corners @ data.body("cube").xmat.reshape(3, 3).T)[:, 0]
+        )
+        root_r = data.joint("root").qpos
+        root_r[:2] = [near_x - 0.013, cube_center[1] + side * args.offset_mm * 0.001]
+        mj.mj_forward(model, data)
+        # Move back only enough to remove inter-robot overlap at initialization.
+        for _ in range(100):
+            overlap = False
+            for c in data.contact:
+                names = [model.geom(i).name for i in c.geom]
+                is_target = [n.startswith(("patient_", "cube_")) for n in names]
+                if (
+                    any(is_target)
+                    and not all(is_target)
+                    and not any(n in ("table", "floor") for n in names)
+                    and c.dist < -0.00005
+                ):
+                    overlap = True
+                    break
+            if not overlap:
+                break
+            root_r[0] -= 0.001
+            mj.mj_forward(model, data)
+        else:
+            raise RuntimeError("could not place rescuer without penetration")
+        data.time = 0
+    cube_at_start = data.body("cube").xquat.copy() if has_cube else None
     simultaneous_steps = 0
     patient_fork_steps = 0
     peak_cube_tilt = 0.0
     first = None
     lift_start = None
     frames = []
-    for tick in range(round((7 if has_cube else 4.5) / model.opt.timestep)):
+    start_xy = None
+    best_upright = 180.0
+    worst_tilt = 0.0
+    max_grip_error = 0.0
+    contact_duration = 0.0
+    for tick in range(
+        round((10 if args.predocked else 7 if has_cube else 4.5) / model.opt.timestep)
+    ):
         t = data.time
         if first and lift_start is None and t > first["t"] + args.delay_ms * 0.001:
             lift_start = t
@@ -145,9 +206,12 @@ def run(model, side, args):
                 args.patient_raise_deg
             ) * np.clip((t - 0.4) / 0.5, 0, 1)
             x = data.joint("root").qpos[0]
-            if (
-                lower_start is None
-                and x >= data.joint("cube_root").qpos[0] - 0.022 - 0.013
+            if lower_start is None and (
+                (args.predocked and t >= 0.35)
+                or (
+                    not args.predocked
+                    and x >= data.body("cube").xpos[0] - 0.022 - 0.013
+                )
             ):
                 lower_start = t
             angle = (
@@ -207,6 +271,22 @@ def run(model, side, args):
                     point = [contact.pos.tolist()]
                 if first is None:
                     first = dict(t=t, geoms=names, xyz_m=point[0])
+        if first is not None:
+            patient_body = data.body("patient_chassis")
+            tilt = float(np.degrees(np.arccos(np.clip(patient_body.xmat[8], -1, 1))))
+            best_upright = min(best_upright, tilt)
+            worst_tilt = max(worst_tilt, tilt)
+            if start_xy is None:
+                start_xy = patient_body.xpos[:2].copy()
+        contact_duration += rescuer_on_target * model.opt.timestep
+        if args.fixed_grip:
+            wrist = data.body("patient_lift_fork")
+            error = (
+                data.body("cube").xpos
+                - wrist.xpos
+                - wrist.xmat.reshape(3, 3) @ np.array([0.026, 0, -0.0125])
+            )
+            max_grip_error = max(max_grip_error, np.linalg.norm(error))
         simultaneous_steps += int(patient_on_cube and rescuer_on_target)
         patient_fork_steps += int(patient_on_cube)
         if has_cube:
@@ -229,9 +309,31 @@ def run(model, side, args):
     if has_cube:
         summary.pop("lift_start_s")
         summary.update(
+            rescuer_cube_contact_s=contact_duration,
+            closest_to_upright_deg=best_upright if first else None,
+            farthest_from_upright_deg=worst_tilt if first else None,
+            patient_travel_after_contact_mm=float(
+                np.linalg.norm(data.body("patient_chassis").xpos[:2] - start_xy) * 1000
+            )
+            if first
+            else None,
+        )
+        if args.fixed_grip:
+            summary["max_fixed_grip_position_error_mm"] = float(max_grip_error * 1000)
+        summary.update(
             initial_cube_patient_overlap_mm=initial_overlap_mm,
             final_cube_tilt_deg=float(
                 np.degrees(np.arccos(np.clip(data.body("cube").xmat[8], -1, 1)))
+            ),
+            net_cube_rotation_deg=float(
+                np.degrees(
+                    2
+                    * np.arccos(
+                        np.clip(
+                            abs(np.dot(cube_at_start, data.body("cube").xquat)), 0, 1
+                        )
+                    )
+                )
             ),
             lower_start_s=lower_start,
             reverse_start_s=reverse_start,
@@ -281,7 +383,25 @@ def main():
         default=0,
         help="sideways patient lift stroke before rescuer arrival",
     )
+    parser.add_argument(
+        "--fixed-grip",
+        action="store_true",
+        help="rigidly attach cube mass to the articulated patient fork at the carry pose",
+    )
+    parser.add_argument(
+        "--predocked",
+        action="store_true",
+        help="place rescuer at settled adjacent-face dock pose before running the roll",
+    )
     args = parser.parse_args()
+    if args.predocked and not args.cube_obj:
+        parser.error("--predocked requires a cube")
+    if args.fixed_grip:
+        if not args.cube_obj or args.cube_control or args.patient_raise_deg:
+            parser.error(
+                "fixed grip requires a cube, a present patient and no patient lift stroke"
+            )
+        args.presentation = "carry-pose"
     if not 0 <= args.patient_raise_deg <= 45:
         parser.error("patient lift stroke must be in [0,45] degrees")
     if args.cube_control and args.cube_obj is None:
@@ -300,7 +420,7 @@ def main():
     ):
         parser.error("require finite offset, power in [0,1] and delay in [0,4500] ms")
     boxes = collision_boxes(args.cube_obj) if args.cube_obj else None
-    xml = scene_xml(boxes, args.cube_mass_g, args.cube_friction)
+    xml = scene_xml(boxes, args.cube_mass_g, args.cube_friction, args.fixed_grip)
     model = mj.MjModel.from_xml_string(xml)
     args.output.mkdir(parents=True, exist_ok=False)
     (args.output / "scene.xml").write_text(xml)
@@ -315,6 +435,8 @@ def main():
     if boxes:
         summary.update(
             cube_control=args.cube_control,
+            fixed_grip=args.fixed_grip,
+            predocked=args.predocked,
             presentation=args.presentation,
             patient_raise_deg=args.patient_raise_deg,
             cube_mass_g=args.cube_mass_g,

@@ -56,7 +56,7 @@ async function main() {
     const page = await b.newPage();
     await page.goto(server.resolvedUrls.local[0] + "robot/model.json");
     await page.evaluate(
-      async ({ boxes, useSdkCube }) => {
+      async ({ boxes, useSdkCube, fixedGrip }) => {
         history.replaceState(null, "", "/");
         const T = await import("/node_modules/three/build/three.module.js"),
           { loadSdkModel } = await import("/src/game/sdkmodel.js");
@@ -151,7 +151,9 @@ async function main() {
           ctx.font = "bold 26px sans-serif";
           ctx.fillText(
             boxes.length
-              ? "Cube-assisted righting / adjacent-face approach"
+              ? fixedGrip
+                ? "Patient already engaged / rescuer leverage test"
+                : "Cube-assisted righting / adjacent-face approach"
               : "Belly-side approach / lift-assisted righting",
             18,
             33,
@@ -198,6 +200,8 @@ async function main() {
           JSON.parse(fs.readFileSync(path.join(dir, "run.json"))).cube_boxes ??
           [],
         useSdkCube: !!useSdkCube,
+        fixedGrip: JSON.parse(fs.readFileSync(path.join(dir, "run.json")))
+          .fixed_grip,
       },
     );
     const video = path.join(temp, "video.mp4");
