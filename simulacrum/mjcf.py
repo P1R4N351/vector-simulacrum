@@ -1,4 +1,4 @@
-"""MJCF generator for the Vector simulacrum. Authored-by: CPCS.
+"""MJCF generator for the Vector simulacrum..
 
 Every number in the generated model comes from the parameter table (through
 the value map from params.values or params.sample) or is derived from those

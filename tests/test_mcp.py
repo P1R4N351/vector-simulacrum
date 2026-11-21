@@ -1,4 +1,4 @@
-"""The MCP server: protocol, the four tools, and what they refuse. Needs no MuJoCo. Authored-by: CPCS."""
+"""The MCP server: protocol, the four tools, and what they refuse. Needs no MuJoCo.."""
 
 from __future__ import annotations
 
@@ -192,7 +192,7 @@ class Plan(unittest.TestCase):
         self.assertIn("EDGE_START_MM=40", shlex.split(planned["body"]["argv"][2]))
 
     def test_a_note_that_would_break_the_shell_line_is_refused(self) -> None:
-        for note in ("the operator's table", 'a "quoted" word', "$(reboot)", "back`tick`"):
+        for note in ("its table", 'a "quoted" word', "$(reboot)", "back`tick`"):
             out = call("recorder_plan", {"phases": ["rest"], "note": note})
             self.assertTrue(out["error"], note)
             self.assertIn("note:", out["body"]["error"])

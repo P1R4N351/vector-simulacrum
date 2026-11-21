@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Vector simulacrum as an MCP server over stdio. Authored-by: CPCS.
+"""The Vector simulacrum as an MCP server over stdio..
 
     <python> <skill>/mcp_server.py        any MCP client that starts a stdio server
 

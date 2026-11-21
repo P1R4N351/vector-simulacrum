@@ -1,4 +1,4 @@
-"""Replaying the real robot's recording through the model. Needs MuJoCo. Authored-by: CPCS.
+"""Replaying the real robot's recording through the model. Needs MuJoCo..
 
 The scores are the mean error of a group of segments as a fraction of each
 segment's own scale (command speed, no-slip turn rate, joint range). The

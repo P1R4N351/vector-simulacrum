@@ -1,12 +1,10 @@
 """Second recording of Vector for the simulacrum: the sequence a BARRIERED surface allows.
-
-Authored-by: CPCS (cpcs-5f62f24). Runs on the wire-pod host with its anki_vector install,
 fed on stdin; writes JSON lines to stdout and leaves nothing behind but a lock file it removes.
 
 First run on a robot 2026-11-18 (evidence/hw-rec-20261118). This copy is kept in
 skills/vector-simulacrum so the sequence the model needs is written down beside the model. Nothing
 in the skill imports it; tests/test_recorder.py runs it against a stand-in SDK with a stand-in clock.
-Edited by cpcs-66ffc23, logging only, from the original with sha256
+Edited by a lane, logging only, from the original with sha256
 192269145c74c5eb3e5f523a232d845cac9ef769702426a1dc770afcefad8602:
 after a hazard it keeps recording for ABORT_WATCH_S without commanding anything, the edge
 phase needs and records EDGE_START_MM, and NOTE is copied into the begin row.
@@ -526,7 +524,7 @@ def main():
     except FileExistsError:
         emit("c", name="lock_held", path=LOCK)
         return 3
-    os.write(fd, ("cpcs-5f62f24 hardware recording pid %d\n" % os.getpid()).encode())
+    os.write(fd, ("a lane hardware recording pid %d\n" % os.getpid()).encode())
     os.close(fd)
     for sig in STOP_SIGNALS:
         signal.signal(sig, on_signal)

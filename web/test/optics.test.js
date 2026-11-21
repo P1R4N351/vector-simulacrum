@@ -1,4 +1,4 @@
-// The head camera's geometry, from the real robot's calibration. Authored-by: CPCS.
+// The head camera's geometry, from the real robot's calibration..
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { edgeAnglesDeg, frustumCorners, pixelOf, project, projectionRows, rayOf } from "../src/sim/optics.js";

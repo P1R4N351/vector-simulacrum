@@ -1,5 +1,4 @@
 // The tread drive as the firmware runs it: encoder and speed control.
-// Authored-by: CPCS. A port of ../simulacrum/drive.py;
 // test/drive.test.js replays the Python's own traces through this file.
 //
 // No MuJoCo here. Both pieces are stepped once per 5 ms control tick.

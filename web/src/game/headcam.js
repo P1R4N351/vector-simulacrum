@@ -1,6 +1,5 @@
 // The robot's head camera: a three.js camera at the model's camera, looking
 // where the robot's engine says it looks, with the real calibration's optics.
-// Authored-by: CPCS.
 //
 // Position: the physics model's camera (head_camera_position_mm from the
 // firmware, relative to the neck), read each frame from the solver, so it

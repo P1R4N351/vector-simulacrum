@@ -1,4 +1,4 @@
-"""Write the generated MJCF to a file or to stdout. Authored-by: CPCS.
+"""Write the generated MJCF to a file or to stdout..
 
     python3 build_mjcf.py                       nominal robot on the table, to stdout
     python3 build_mjcf.py --out vector.xml

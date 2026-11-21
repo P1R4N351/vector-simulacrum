@@ -1,8 +1,8 @@
-"""Compare the model with the recording of the real robot. Authored-by: CPCS.
+"""Compare the model with the recording of the real robot..
 
-    cauldron python replay_recording.py
-    cauldron python replay_recording.py --set wheel_stall_torque_mNm=25 --set command_delay_ms=30
-    cauldron python replay_recording.py --sensitivity
+    the GPU host python replay_recording.py
+    the GPU host python replay_recording.py --set wheel_stall_torque_mNm=25 --set command_delay_ms=30
+    the GPU host python replay_recording.py --sensitivity
 
 Replays every commanded segment of evidence/hw-rec-20261115/table-run1.jsonl
 through VectorSim with the parameter table as it stands (or with overrides)

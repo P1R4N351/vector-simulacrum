@@ -1,6 +1,6 @@
-"""The whole pipeline once, small: train, export, check without torch, compare. Authored-by: CPCS.
+"""The whole pipeline once, small: train, export, check without torch, compare..
 
-    ./run_in_ct.sh smoke.py                       about five minutes in CT 930
+    ./run_in_ct.sh smoke.py                       about five minutes in a GPU host
     ./run_in_ct.sh smoke.py --iterations 20       shorter
 
 Three separate processes, so that the second and third hold no torch:

@@ -1,4 +1,4 @@
-"""The accelerometer's steady offsets, fitted from the recording. Needs numpy, no MuJoCo. Authored-by: CPCS."""
+"""The accelerometer's steady offsets, fitted from the recording. Needs numpy, no MuJoCo.."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Parameter table for the Vector simulacrum. Authored-by: CPCS.
+"""Parameter table for the Vector simulacrum..
 
 parameters.json is the single source of every physical number. This module
 loads it, checks it, and hands out plain name -> value maps. It needs no

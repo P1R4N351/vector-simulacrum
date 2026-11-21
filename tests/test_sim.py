@@ -1,4 +1,4 @@
-"""The simulated robot behaves as the table and the SDK say. Needs MuJoCo. Authored-by: CPCS.
+"""The simulated robot behaves as the table and the SDK say. Needs MuJoCo..
 
 Tolerances, under nominal parameters:
   straight drive   at 20 mm/s: 3 mm along the path. Faster: never short by more than

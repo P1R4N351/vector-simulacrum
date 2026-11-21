@@ -1,4 +1,4 @@
-"""What the recordings say about the time-of-flight sensor. Authored-by: CPCS.
+"""What the recordings say about the time-of-flight sensor..
 
     python3 -m simulacrum.prox_fit
 

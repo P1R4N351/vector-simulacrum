@@ -1,6 +1,6 @@
-"""Print the simulacrum's behaviour as numbers. Authored-by: CPCS.
+"""Print the simulacrum's behaviour as numbers..
 
-    cauldron python measure.py
+    the GPU host python measure.py
 
 The figures in README.md come from this script. It measures the model, not
 a robot: nothing here is evidence about a real Vector. Nothing is asserted

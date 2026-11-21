@@ -1,4 +1,4 @@
-// Where the robot's camera is and where it looks, against the robot's own geometry. Authored-by: CPCS.
+// Where the robot's camera is and where it looks, against the robot's own geometry..
 //
 // Expected values are worked out here from the table (neck joint, camera
 // offset from the neck) and the tilt, independently of the code under test,

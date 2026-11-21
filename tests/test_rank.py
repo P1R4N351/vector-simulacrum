@@ -1,4 +1,4 @@
-"""The ranking of the assumed parameters. The arithmetic needs no MuJoCo; the runs do. Authored-by: CPCS."""
+"""The ranking of the assumed parameters. The arithmetic needs no MuJoCo; the runs do.."""
 
 from __future__ import annotations
 

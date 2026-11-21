@@ -1,6 +1,4 @@
 """Record Vector's responses to a short scripted sequence, for comparison with the simulacrum.
-
-Authored-by: CPCS (cpcs-5f62f24). Runs on the wire-pod host with its anki_vector install,
 fed on stdin; writes JSON lines to stdout and leaves nothing behind but a lock file it removes.
 
 Safety, for a robot on an open-edged table:
@@ -162,7 +160,7 @@ def main():
     except FileExistsError:
         emit("c", name="lock_held", path=LOCK)
         return 3
-    os.write(fd, ("cpcs-5f62f24 hardware recording pid %d\n" % os.getpid()).encode())
+    os.write(fd, ("a lane hardware recording pid %d\n" % os.getpid()).encode())
     os.close(fd)
     signal.signal(signal.SIGTERM, on_signal)
     signal.signal(signal.SIGINT, on_signal)

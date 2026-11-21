@@ -5,8 +5,6 @@ description: A MuJoCo model of the Anki/DDL Vector robot for training policies t
 
 # vector-simulacrum
 
-Authored-by: CPCS. Fifth version, 2026-11-16. Runs in CT 930 `mujoco-cauldron`.
-
 This is the physics model that `skills/vector-sim` (the Go gRPC simulator,
 branch `cpcs/vector-cliff-guard`) says it is not. It does not replace that
 simulator and is not connected to it.
@@ -52,16 +50,16 @@ most sensitive to, by a wide margin ("The assumed values, ranked" below).
 | `build_mjcf.py` | Writes the generated MJCF to a file |
 | `demo.py`, `measure.py` | A short run; the model figures quoted below |
 | `evidence/hw-rec-20261115/` | The recording, the script that made it, SHA-256 in the table's `REC` source |
-| `evidence/` | Smoke run learning curves and outputs; the fit, replay, measurement, ranking and fault-check outputs; the hardware findings the third version started from; the conferral with GPTPCS-Astra |
-| `hardware/record_barriered.py` | The recorder for the next recording. **Not run yet.** Written by cpcs-5f62f24, who holds the robot; nothing here runs it against one |
+| `evidence/` | Smoke run learning curves and outputs; the fit, replay, measurement, ranking and fault-check outputs; the hardware findings the third version started from; the conferral with an external review lane |
+| `hardware/record_barriered.py` | The recorder for the next recording. **Not run yet.** Written by a lane, who holds the robot; nothing here runs it against one |
 | `tests/` | `run_all.py`, fifteen test files, `mutate.py` |
-| `run_in_ct.sh` | Copies this directory into CT 930 and runs a file there |
+| `run_in_ct.sh` | Copies this directory into a GPU host and runs a file there |
 | `mcp_server.py`, `simulacrum/mcp_service.py` | An MCP server over stdio: the table, the recordings and the recorder's command line as tools. Read-only; no robot, no MuJoCo |
 
 ## Use
 
 ```bash
-./run_in_ct.sh tests/run_all.py --require-mujoco   # all tests, in CT 930
+./run_in_ct.sh tests/run_all.py --require-mujoco   # all tests, in a GPU host
 ./run_in_ct.sh tests/mutate.py                      # break each property once
 ./run_in_ct.sh replay_recording.py --sensitivity    # the model against the real robot
 ./run_in_ct.sh fit_recording.py                     # refit (4 workers; prints values, changes no file)
@@ -91,7 +89,7 @@ VectorSim.randomised(seed=7)                        # ranged parameters drawn in
 Nothing in this directory connects to or commands a robot. The recording was
 made by another session (`evidence/hw-rec-20261115/record_table.py`).
 
-Keep to at most four worker processes and short runs in CT 930: the node is
+Keep to at most four worker processes and short runs in a GPU host: the node is
 a shared hypervisor. One process runs about 9 times real time. Do not start
 a second `run_in_ct.sh` while one is running: each run replaces the copy in
 the container.
@@ -166,7 +164,7 @@ mode); log lines go to stderr. Tools are added as the work needs them;
 `tools/list` shows only what is wired and tested (`tests/test_mcp.py`).
 
 Run on: macOS with Python 3.14 and with the stock Python 3.9, and Linux in
-CT 930. Not run on Windows; the newline and encoding handling is written
+a GPU host. Not run on Windows; the newline and encoding handling is written
 for it but has not been seen working there.
 
 | Tool | What it returns |
@@ -354,7 +352,7 @@ near the top of the track, 2.0 an "ESN" underneath.
 
 ### Battery, heat and the top speed (2026-11-18)
 
-The operator: "simulate voltage sag and other factors that affect motor
+The experimenter: "simulate voltage sag and other factors that affect motor
 efficacy/responsiveness ... from real sustained-load tests on multiple units".
 What one unit so far gives:
 
@@ -443,7 +441,7 @@ What this is worth, and what it is not:
   temperature. It is a fact about one robot: to train for any Vector, widen
   it to the part's 40 mg.
 
-The correlation and the bootstrap are there because GPTPCS-Astra asked for
+The correlation and the bootstrap are there because an external review lane asked for
 them (conferral of 2026-11-15, below); both confirmed its point.
 
 ### What the recording could not settle
@@ -509,10 +507,10 @@ Cautions carried from the published-figures work of the third version:
 
 ## The assumed values, ranked
 
-The operator asked for the assumed values to be resolved in order of their effect on
+The experimenter asked for the assumed values to be resolved in order of their effect on
 the simulation, for a policy that has to carry over to the real robot.
 `rank_assumed.py` measures that effect; `evidence/rank-20261116-output.txt`
-is its output (CT 930, 24 paired episodes, 63 variants of the table).
+is its output (a GPU host, 24 paired episodes, 63 variants of the table).
 
 Each assumed or chosen value is moved to its low bound and then to its high
 bound, everything else at the table's values, and compared with the
@@ -617,10 +615,10 @@ and `lift_power_gains` in the table, from `headController.cpp` and
 model's torques needs the head and lift motors' strength, which no source
 gives. They stay assumed.
 
-### The conferral with GPTPCS-Astra
+### The conferral with an external review lane
 
-At the operator's instruction the ranking method and the two recording findings were
-put to GPTPCS-Astra (one ask, answered on the Copilot route, no fall-through
+At its instruction the ranking method and the two recording findings were
+put to an external review lane (one ask, answered on the Copilot route, no fall-through
 to another provider). `evidence/astra-conferral-20261115.md` holds the ask,
 the reply verbatim, both checksums, and what each point led to. In short: it
 called the ranking a screen and not a priority list, warned that paired
@@ -737,7 +735,7 @@ cannot choose between two sides or between the centre of mass, the tread's
 grip along and across, and the shape of the contact; four point contacts
 probably overstate how much the load split matters for a real tread; and
 the centre of mass can be measured directly with a straight edge (item 1
-of "What hands can settle"). GPTPCS-Astra gave the same advice unprompted.
+of "What hands can settle"). an external review lane gave the same advice unprompted.
 
 An earlier version of this file also said full wheel speed was not in the
 recording. It is, briefly, in the robot's own turn after its cliff reaction;
@@ -861,7 +859,7 @@ Assumptions about robot behaviour made by the layer, not taken from a source:
   motion profile. The robot's own path follower is not reproduced, and the
   recording holds no such action to compare with.
 
-## Measured in the model (CT 930, 2026-11-15, table values)
+## Measured in the model (a GPU host, 2026-11-15, table values)
 
 These describe the model, not the robot.
 
@@ -1010,7 +1008,7 @@ robot's one run. They are not a spread measured across robots.
 
 ### Why not mjlab's task classes
 
-`mjlab` steps many robots as one MuJoCo Warp batch on a GPU. CT 930 has no
+`mjlab` steps many robots as one MuJoCo Warp batch on a GPU. a GPU host has no
 GPU, and what a policy has to be trained against here is the SDK layer:
 the command delay, the 60 ms state rate, one cliff bit for four sensors,
 wheel speed without a sign, and the robot's own cliff reaction taking
@@ -1020,8 +1018,8 @@ over `VectorSim` (`simulacrum/vec_env.py`), with up to 4 worker processes.
 
 A move to `mjlab` on the GPU node would need:
 
-1. CT 930 on the GPU host (it needs disk space first; see
-   `skills/mujoco-cauldron`), and `cauldron gpu-setup`.
+1. a GPU host on the GPU host (it needs disk space first; see
+   `skills/a GPU host`), and `the GPU host gpu-setup`.
 2. The robot as an `mjlab` entity, built from `mjcf.build_mjcf`, with the
    same actuators.
 3. The SDK layer rewritten as batched terms: command delay, state rate,
@@ -1039,7 +1037,7 @@ A move to `mjlab` on the GPU node would need:
 
 ### One thing that bites: import order
 
-In CT 930's environment, importing `mujoco` before `tensordict` ends in a
+In a GPU host's environment, importing `mujoco` before `tensordict` ends in a
 segmentation fault. Ten import orders were tried: the 4 with `mujoco`
 before `tensordict` crashed, the other 6 did not. `simulacrum/training.py`
 must be imported before anything that imports `mujoco`, and raises an
@@ -1121,7 +1119,7 @@ matters for deployment: same observation, same action.
 
 ## Tests
 
-`tests/run_all.py`, 170 tests in eleven files. In CT 930: declared 170, ran 170, passed 170, skipped 0.
+`tests/run_all.py`, 170 tests in eleven files. In a GPU host: declared 170, ran 170, passed 170, skipped 0.
 On a machine without MuJoCo: 87 pass and 83 are skipped, and the runner says
 so.
 
@@ -1187,7 +1185,7 @@ different reason (the fit ran in the tests' set-up, so a broken fit stopped
 the tests from running at all) and one because its text occurred twice. All
 five were faults in the check, not in what it checks, and were fixed there.
 
-`python3 skills/p10-scan.py --fail-on warn --fail-on-unscannable
+`python3 skills/a code scanner.py --fail-on warn --fail-on-unscannable
 skills/vector-simulacrum`: errors 0, warns 0 (40 files).
 
 ## The next recording
@@ -1228,7 +1226,7 @@ width across both treads. The side stand gives `com_z`; the rear stand then
 gives `com_x`. The table's assumed (-24, 22) mm predicts **64.9 degrees** on the
 rear wheels and **51.8 degrees** on the edge.
 
-Checked in the model (`wheelstand_check.py`, CT 930). Releasing it from rest
+Checked in the model (`wheelstand_check.py`, a GPU host). Releasing it from rest
 and bisecting which way it falls, the model tips at 64.82 degrees on its rear
 wheels against 64.90 from the formula, and at 51.855 on the edge against 51.854.
 Nothing but the standing wheels touches the table at either angle. The
@@ -1270,7 +1268,7 @@ between axes would not, and that is not known either.
 
 ### Against the hardware: the run when the robot is back
 
-The operator's go, 2026-11-18: when the robot is back within reach of its cube, this
+The experimenter's go, 2026-11-18: when the robot is back within reach of its cube, this
 lane runs the recorder itself on the wire-pod host and adjusts the table.
 The order, each a separate run of `hardware/record_barriered.py`:
 
@@ -1295,7 +1293,7 @@ and tests are rerun.
 
 No connection to the robot is needed for any of these, and each replaces an
 assumed value outright. The order is by what the model is sensitive to
-("The assumed values, ranked") and by what a measurement costs; GPTPCS-Astra's
+("The assumed values, ranked") and by what a measurement costs; an external review lane's
 own first three were the cliff margin, the fore-aft centre of mass and the
 mass.
 
@@ -1325,7 +1323,7 @@ checks the reported travel against a ruler.
 
 ### The script for it
 
-`hardware/record_barriered.py`, written by cpcs-5f62f24 from the list above.
+`hardware/record_barriered.py`, written by a lane from the list above.
 **It has not been run, and it must not be run on an open-edged table.** It
 is kept here so that the sequence the model needs sits beside the model.
 `tests/test_recorder.py` runs its own `main()` against a stand-in SDK and a
@@ -1365,7 +1363,7 @@ What the file will not settle, and what the reader still lacks:
 
 ### Two things the hardware sessions found
 
-Reported by cpcs-5f62f24 from driving the robot; not observed by this skill,
+Reported by a lane from driving the robot; not observed by this skill,
 except where the first recording shows it.
 
 - At the default control level the robot refuses control while its cliff
@@ -1385,8 +1383,8 @@ except where the first recording shows it.
 
 ## Sources read
 
-- The recording: `evidence/hw-rec-20261115/`, made 2026-11-15 by cpcs-5f62f24
-  with the operator's approval, through the wire-pod host's SDK
+- The recording: `evidence/hw-rec-20261115/`, made 2026-11-15 by a lane
+  with its approval, through the wire-pod host's SDK
 - Vector Technical Reference Manual, https://randym32.github.io/Vector-TRM.pdf
 - https://github.com/kercre123/victor (branch `snowboy`): `cozmoConfig.h`,
   `pathMotionProfile.clad`, `reactToCliff.json`, `behaviorReactToCliff.cpp`,

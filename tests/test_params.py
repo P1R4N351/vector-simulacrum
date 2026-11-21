@@ -1,4 +1,4 @@
-"""The parameter table and its checks. Needs no MuJoCo. Authored-by: CPCS."""
+"""The parameter table and its checks. Needs no MuJoCo.."""
 
 from __future__ import annotations
 

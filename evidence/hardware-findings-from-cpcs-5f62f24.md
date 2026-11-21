@@ -1,6 +1,6 @@
 # Vector hardware figures found online, 2026-11-15
 
-Gathered by cpcs-5f62f24 for the Vector simulacrum. Every figure in the
+Gathered by a lane for the Vector simulacrum. Every figure in the
 "read and checked" sections was read by me from the fetched file; the SHA-256
 prefix is of the bytes I fetched. Nothing here is measured on a robot.
 

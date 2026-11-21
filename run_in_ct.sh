@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Copy this skill into CT 930 (mujoco-cauldron) and run a file there with
-# `cauldron python`. Authored-by: CPCS.
+# Copy this skill into a GPU host (a GPU host) and run a file there with
+# `the GPU host python`..
 #
 #   ./run_in_ct.sh tests/run_all.py            run the whole test suite
 #   ./run_in_ct.sh tests/mutate.py             run the mutation check
@@ -35,7 +35,7 @@ build_script() {
     --exclude './web/node_modules' --exclude './web/dist' --exclude './web/public/robot/sdk' . | base64
   printf 'VECTOR_SIMULACRUM_TAR\n'
   printf 'cd %q\n' "$REMOTE_DIR"
-  printf 'cauldron python %q' "$target"
+  printf 'the GPU host python %q' "$target"
   local arg
   for arg in "$@"; do
     printf ' %q' "$arg"

@@ -2125,5 +2125,5 @@
   "wall_s": 251.6,
   "workers": 3
  },
- "note": "Smoke run in CT 930 on 2026-11-14: 150 PPO iterations, 32 robots, 32 steps each, 3 workers, CPU only. It proves the pipeline. It is not a trained policy."
+ "note": "Smoke run in a GPU host on 2026-11-14: 150 PPO iterations, 32 robots, 32 steps each, 3 workers, CPU only. It proves the pipeline. It is not a trained policy."
 }

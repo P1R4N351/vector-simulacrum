@@ -1,7 +1,7 @@
-"""Run the simulacrum's tests and say exactly how many ran. Authored-by: CPCS.
+"""Run the simulacrum's tests and say exactly how many ran..
 
     python3 tests/run_all.py                      everything that can run here
-    cauldron python tests/run_all.py --require-mujoco
+    the GPU host python tests/run_all.py --require-mujoco
     python3 tests/run_all.py --only test_sim.Cliff.test_reaction_on_stops_and_backs_away
 
 Exit codes: 0 all passed, 7 a test failed or errored (or was skipped under

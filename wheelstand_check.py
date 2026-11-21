@@ -1,4 +1,4 @@
-"""Does the model balance where simulacrum/wheelstand.py's closed form says? Authored-by: CPCS.
+"""Does the model balance where simulacrum/wheelstand.py's closed form says?.
 
     ./run_in_ct.sh wheelstand_check.py        (needs MuJoCo; prints JSON, writes nothing)
 

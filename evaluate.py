@@ -1,6 +1,6 @@
-"""Score an exported policy against two fixed baselines, without torch. Authored-by: CPCS.
+"""Score an exported policy against two fixed baselines, without torch..
 
-    cauldron python evaluate.py --policy /root/vector-runs/smoke/policy.onnx
+    the GPU host python evaluate.py --policy /root/vector-runs/smoke/policy.onnx
 
 Runs the ONNX policy, a robot that stands still, and a hand-written no-slip
 controller on the same randomised robots (same seeds, same commands, same

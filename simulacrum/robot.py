@@ -1,4 +1,4 @@
-"""SDK-shaped robot layer over the MuJoCo model. Authored-by: CPCS.
+"""SDK-shaped robot layer over the MuJoCo model..
 
 Takes the commands the real Vector takes through the SDK, in the same units
 (wheel speeds in mm/s, distances in mm, angles in degrees, lift height in mm)

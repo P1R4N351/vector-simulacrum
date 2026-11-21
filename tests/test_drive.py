@@ -1,4 +1,4 @@
-"""The firmware's encoder arithmetic and tread speed loop. Needs no MuJoCo. Authored-by: CPCS."""
+"""The firmware's encoder arithmetic and tread speed loop. Needs no MuJoCo.."""
 
 from __future__ import annotations
 

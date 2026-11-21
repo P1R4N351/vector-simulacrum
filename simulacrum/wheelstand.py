@@ -1,4 +1,4 @@
-"""Centre of mass from wheelstands, read by the robot's own accelerometer. Authored-by: CPCS.
+"""Centre of mass from wheelstands, read by the robot's own accelerometer..
 
     python3 -m simulacrum.wheelstand <recording.jsonl> [outer tread width mm]   the report, as JSON
     python3 -m simulacrum.wheelstand --expect              the balance angles the table predicts

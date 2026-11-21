@@ -1,4 +1,4 @@
-// Cliff, fall and pick-up flags against a trace of the Python. Authored-by: CPCS.
+// Cliff, fall and pick-up flags against a trace of the Python..
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Hazards } from "../src/sim/hazards.js";

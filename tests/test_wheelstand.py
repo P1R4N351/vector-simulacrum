@@ -1,6 +1,6 @@
 """Wheelstands: the balance geometry, reading tilt from the accelerometer, and a whole constructed session.
 
-Needs no MuJoCo except the last class, which checks the balance angle against the physics. Authored-by: CPCS.
+Needs no MuJoCo except the last class, which checks the balance angle against the physics..
 """
 
 from __future__ import annotations

@@ -1,4 +1,4 @@
-// The forward time-of-flight sensor, as the robot reports it. Authored-by: CPCS.
+// The forward time-of-flight sensor, as the robot reports it..
 // A port of ../simulacrum/prox.py; test/prox.test.js replays the Python's own
 // readings through this file.
 //

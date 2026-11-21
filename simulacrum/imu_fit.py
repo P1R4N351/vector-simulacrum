@@ -1,4 +1,4 @@
-"""Fit the accelerometer's steady offsets from the recording of the real robot. Authored-by: CPCS.
+"""Fit the accelerometer's steady offsets from the recording of the real robot..
 
     python3 -m simulacrum.imu_fit
 
@@ -28,7 +28,7 @@ well as its own standard error suggests; what is well fixed is their sum,
 the x reading on a level surface. describe() reports the correlation and a
 bootstrap over the still stretches. Leaving out a cluster of head angles
 does not test this, because the 22 degree cluster also faces the other way
-from most of the rest (GPTPCS-Astra's point, conferral of 2026-11-15).
+from most of the rest (an external review lane's point, conferral of 2026-11-15).
 """
 
 from __future__ import annotations

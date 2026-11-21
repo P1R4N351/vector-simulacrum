@@ -1,4 +1,4 @@
-// The browser robot layer against runs of the Python VectorSim. Authored-by: CPCS.
+// The browser robot layer against runs of the Python VectorSim..
 //
 // Same MJCF, same parameter values (sensor noise zeroed on both sides), same
 // commands at the same ticks. MuJoCo here is the WebAssembly build; there it

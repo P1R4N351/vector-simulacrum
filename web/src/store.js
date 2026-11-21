@@ -1,5 +1,4 @@
 // Bridge between the imperative simulator core and the React readouts.
-// Authored-by: CPCS. The layout follows the MicroDuck simulator's store
 // (pollen-robotics, Apache-2.0): state flows game -> store, intents flow
 // UI -> gameApi. Telemetry is throttled where it is produced (10 Hz), so
 // React never renders at frame rate.

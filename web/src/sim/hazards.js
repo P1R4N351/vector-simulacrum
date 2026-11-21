@@ -1,4 +1,4 @@
-// Cliff, fall and pick-up flags, as the robot derives them. Authored-by: CPCS.
+// Cliff, fall and pick-up flags, as the robot derives them..
 // A port of ../simulacrum/hazards.py; test/hazards.test.js
 // replays the Python's own trace through this file.
 //

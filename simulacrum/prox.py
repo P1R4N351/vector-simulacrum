@@ -1,4 +1,4 @@
-"""The forward time-of-flight sensor, as the robot reports it. Authored-by: CPCS.
+"""The forward time-of-flight sensor, as the robot reports it..
 
 No MuJoCo here. The robot layer casts the rays and hands over, for each one,
 the distance to what it hit. This module turns those into what the SDK

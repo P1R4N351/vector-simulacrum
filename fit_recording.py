@@ -1,9 +1,9 @@
-"""Fit model parameters to the recording of the real robot. Authored-by: CPCS.
+"""Fit model parameters to the recording of the real robot..
 
-    cauldron python fit_recording.py
-    cauldron python fit_recording.py --servos     (the head and lift only; the treads are left as they are)
-    cauldron python fit_recording.py --servo-delay   (the head and lift delay only)
-    cauldron python fit_recording.py --wheels-held-noload   (the treads, the table's no-load speed held)
+    the GPU host python fit_recording.py
+    the GPU host python fit_recording.py --servos     (the head and lift only; the treads are left as they are)
+    the GPU host python fit_recording.py --servo-delay   (the head and lift delay only)
+    the GPU host python fit_recording.py --wheels-held-noload   (the treads, the table's no-load speed held)
 
 Searches the tread drive and timing parameters so that the replayed model
 matches the recording on the fit segments only (the 30 and 100 mm/s spins

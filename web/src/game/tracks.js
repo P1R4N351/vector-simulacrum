@@ -1,5 +1,4 @@
 // Moving track cleats and wheel spokes, so the drive train can be seen working.
-// Authored-by: CPCS.
 //
 // On the robot each side has a motor-driven front wheel, a free-spinning rear
 // wheel, and a track around both. The physics model has the same arrangement:

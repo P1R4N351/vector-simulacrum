@@ -1,4 +1,4 @@
-"""The second-recording script, run against a stand-in SDK and a stand-in clock. Authored-by: CPCS.
+"""The second-recording script, run against a stand-in SDK and a stand-in clock..
 
 No robot, no network, no MuJoCo. hardware/record_barriered.py is loaded with
 a fake anki_vector package and a clock that only moves when the script

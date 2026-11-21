@@ -1,4 +1,4 @@
-// The track path the moving cleats follow. Authored-by: CPCS.
+// The track path the moving cleats follow..
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { makeBeltPath } from "../src/game/tracks.js";

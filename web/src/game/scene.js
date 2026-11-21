@@ -1,4 +1,4 @@
-// Everything drawn: the model's own geoms, plus labelled cosmetics. Authored-by: CPCS.
+// Everything drawn: the model's own geoms, plus labelled cosmetics..
 //
 // The physics model is boxes and cylinders: one mesh per MuJoCo geom, placed
 // each frame from the solver's geom poses. The scenery is always drawn that

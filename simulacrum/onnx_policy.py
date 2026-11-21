@@ -1,4 +1,4 @@
-"""Run an exported policy with onnxruntime only. Authored-by: CPCS.
+"""Run an exported policy with onnxruntime only..
 
 No torch is imported here or by anything this module imports. This is the
 deployment side: the same observation code as training (simulacrum.task),

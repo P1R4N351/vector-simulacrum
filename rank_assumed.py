@@ -1,7 +1,7 @@
-"""Rank the assumed parameters by how much each one moves the training task. Authored-by: CPCS.
+"""Rank the assumed parameters by how much each one moves the training task..
 
-    cauldron python rank_assumed.py
-    cauldron python rank_assumed.py --episodes 24 --workers 3 --policy /root/vector-runs/smoke3/policy.onnx
+    the GPU host python rank_assumed.py
+    the GPU host python rank_assumed.py --episodes 24 --workers 3 --policy /root/vector-runs/smoke3/policy.onnx
 
 Every entry of parameters.json whose provenance is "assumed" or "chosen" is
 set to its low bound and then to its high bound, all else at the table's

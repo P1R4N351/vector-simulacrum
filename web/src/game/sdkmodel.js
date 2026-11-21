@@ -1,5 +1,5 @@
 // The Vector SDK's 3D robot model, placed and moved by the physical robot's
-// geometry rather than by the SDK viewer's. Authored-by: CPCS.
+// geometry rather than by the SDK viewer's..
 //
 // The model is anki_vector/opengl/assets/vector.obj. It is not in this
 // repository (Anki Image and 3D Model License); tools/fetch_sdk_model.py copies

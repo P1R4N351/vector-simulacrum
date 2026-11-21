@@ -1,4 +1,4 @@
-// Status, readouts and controls over the 3D view. Authored-by: CPCS.
+// Status, readouts and controls over the 3D view..
 import { useEffect, useState } from "react";
 import { gameApi, useGame } from "../store.js";
 import MiniMap from "./MiniMap.jsx";

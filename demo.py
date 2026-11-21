@@ -1,6 +1,6 @@
-"""Run the simulacrum once and print what happened. Authored-by: CPCS.
+"""Run the simulacrum once and print what happened..
 
-    cauldron python demo.py
+    the GPU host python demo.py
 
 Three short runs: a straight drive and a turn on the table, then a drive at
 the table edge at each control level. Prints numbers, draws nothing.

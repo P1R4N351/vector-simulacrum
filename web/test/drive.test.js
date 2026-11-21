@@ -1,4 +1,4 @@
-// The tread encoder and speed loop against traces of the Python. Authored-by: CPCS.
+// The tread encoder and speed loop against traces of the Python..
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { TreadController, TreadEncoder, wholeMmps } from "../src/sim/drive.js";

@@ -1,4 +1,4 @@
-"""The recording of the real robot, and the table values measured from it. Needs no MuJoCo. Authored-by: CPCS."""
+"""The recording of the real robot, and the table values measured from it. Needs no MuJoCo.."""
 
 from __future__ import annotations
 

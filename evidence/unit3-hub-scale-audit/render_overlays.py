@@ -105,7 +105,7 @@ def _draw_shelf_ablation_bar(ax: Any, ladder: Dict[str, Any], summary: Dict[str,
     assert "with_shelf_f580" in summary["see5pt_ablation"], "missing 5pt ablation"
     s5 = summary["see5pt_ablation"]
     assert "4_unforced_no_shelf_proto_lip_89_3" in ladder["models"], "missing primary unforced model"
-    labels = ["With Shelf Orthog\n(BEFORE, f=473px)", "Drop Shelf (fprior=580)\n(fit 5pt, f=561px)", "Drop Shelf Unforced\n(Zero fprior, f=526px)", "Unforced 3-Cam BA\n(lip=-89.3, f=502px)"]
+    labels = ["With Shelf Orthog\n(BEFORE, f=473px)", "Drop Shelf (fprior=580)\n(a reviewer 5pt, f=561px)", "Drop Shelf Unforced\n(Zero fprior, f=526px)", "Unforced 3-Cam BA\n(lip=-89.3, f=502px)"]
     vals = [s5["with_shelf_f580"]["hubs_horiz_xy_mm"]["Bm-15"], s5["no_shelf_f580"]["hubs_horiz_xy_mm"]["Bm-15"], s5["no_shelf_unforced"]["hubs_horiz_xy_mm"]["Bm-15"], ladder["models"]["4_unforced_no_shelf_proto_lip_89_3"]["hubs"]["Bm-15"]["tri_xy_mm"]]
     cols = ["#c0392b", "#e67e22", "#2980b9", "#27ae60"]
     bars = ax.bar(range(len(labels)), vals, color=cols, width=0.58)
