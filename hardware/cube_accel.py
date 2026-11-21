@@ -49,7 +49,7 @@ NOTE.
 
 Exit codes: 0 done, 3 another collector holds the lock, 4 no single cube to connect to, 5 the app check failed
 (version mismatch with no file, a file with the wrong hash, or an upload the cube never confirmed), 6 the
-connection failed or dropped (rows up to then are kept). SIGTERM, SIGINT and SIGHUP end a collection cleanly.
+connection failed or dropped or no accelerometer packet arrived for two seconds (rows up to then are kept). SIGTERM, SIGINT and SIGHUP end a collection cleanly.
 """
 import asyncio
 import datetime
@@ -74,6 +74,7 @@ CMD_ACCEL, CMD_ACCEL_FAILURE, CMD_VOLTS = 2, 3, 4   # protocol.h
 COUNTS_PER_G = 0x2000               # bletool/index.js ONEG
 VOLTS_PER_COUNT = 3.6 / 1024.0      # bletool/index.js
 UPLOAD_WAIT_S = 15.0                # the robot's kFirmwareUpdateTimeout_sec (cubeBleClient_vicos.cpp)
+ACCEL_TIMEOUT_S = 2.0
 TICK_S = 0.25
 LOW_READINGS = 3
 LOCK = "/tmp/vector-cube-accel.lock"
@@ -142,6 +143,7 @@ def on_app_data(_sender, data):
     kind, fields = decode(data)
     COUNTS[kind] += 1
     if kind == "a":
+        fields["host_unix_ns"] = time.time_ns()
         SPAN["first"] = now() if SPAN["first"] is None else SPAN["first"]
         SPAN["last"] = now()
     if kind == "v":
@@ -213,6 +215,9 @@ async def collect(client):
     start = now()
     emit("c", name="collecting", seconds=COLLECT_S, utc=utc())
     for _ in range(int(COLLECT_S / TICK_S) + 1):
+        last = SPAN["last"] if SPAN["last"] is not None else start
+        if not STATE["stop"] and now() - last >= ACCEL_TIMEOUT_S:
+            STATE["stop"] = "accel_stream_timeout"
         if STATE["stop"] or now() - start >= COLLECT_S:
             break
         await nap(TICK_S)
@@ -275,7 +280,7 @@ async def session(ble, device, app):
         except Exception as exc:  # the cube drops the link itself when the host goes away
             emit("c", name="disconnect_failed", error=type(exc).__name__)
         emit("c", name="end", utc=utc(), **summary())
-    return 6 if STATE["stop"] == "disconnected" else 0
+    return 6 if STATE["stop"] in ("disconnected", "accel_stream_timeout") else 0
 
 
 async def run(ble):

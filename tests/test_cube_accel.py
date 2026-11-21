@@ -332,6 +332,15 @@ class Collector(unittest.TestCase):
         self.assertEqual(got["code"], 0)
         self.assertEqual([c.device.address for c in world.clients], ["cube-1"])
 
+    def test_battery_without_accelerometer_times_out(self) -> None:
+        world = World()
+        with mock.patch.object(world, "_accel"):
+            got = run(COLLECT, world)
+        self.assertEqual(got["code"], 6)
+        self.assertTrue(kinds(got["rows"], "v"))
+        self.assertEqual(control(got["rows"], "collected")[0]["stopped_by"], "accel_stream_timeout")
+        self.assertEqual(world.disconnects, 1)
+
     def test_a_dropped_connection_ends_the_run_and_keeps_what_arrived(self) -> None:
         world = World(drop_at=5.0)
         got = run(COLLECT, world)
