@@ -41,7 +41,20 @@ cube_id=m.body('cube').id
 cube=m.joint('cube_root').qposadr[0]
 def obs(t,k):
     return np.interp(t,approach['s'],approach[k]) if k in approach.dtype.names else np.interp(t+zero,state['sec'],state[k])
-def run(start,limit):
+def lowering_goal(elapsed, start_angle):
+    # Symmetric velocity-limited profile, from rest, using the stock action bounds.
+    goal=mjcf.lift_angle_of_height(v,32)
+    distance=max(0,start_angle-goal)
+    vmax=min(10.,np.sqrt(200.*distance))
+    ramp=vmax/200.
+    if vmax==0:return goal
+    cruise=max(0.,distance/vmax-ramp)
+    end=2*ramp+cruise
+    if elapsed<ramp:return start_angle-100.*elapsed**2
+    if elapsed<ramp+cruise:return start_angle-.5*vmax*ramp-vmax*(elapsed-ramp)
+    return goal+100.*max(0.,end-elapsed)**2
+
+def run(start,limit,onset=None):
     d=mj.MjData(m)
     m.actuator('lift').forcerange[:]=[-limit*.001,limit*.001]
     yaw=obs(start,'yaw')
@@ -64,13 +77,23 @@ def run(start,limit):
     controllers=[TreadController(v),TreadController(v)]
     sensor=CubeAccelerometer(v,sensor_dt,seed=17)
     trace=[];peak_load=0
+    drive_ended=False
+    lowering_start=mjcf.lift_angle_of_height(v,obs(onset,"lift_mm")) if onset is not None else lift
     for i,t in enumerate(np.arange(start,5.8,dt)):
         if i%round(.001*v['control_period_ms']/dt)==0:
+            lowering=onset is not None and t>=onset
+            if lowering:
+                chassis=m.jnt_bodyid[m.joint('root').id]
+                pitch_rad=np.arcsin(np.clip(d.xmat[chassis].reshape(3,3)[2,0],-1,1))
+                drive_ended |= pitch_rad>1.2 or t-onset>.5
             for controller,side in zip(controllers,['left','right']):
                 measured=d.joint('wheel_f'+side[0]+'_joint').qvel[0]*v['wheel_front_radius_mm']
-                duty=controller.update(obs(t,side) if t<4.84 else 0,measured)
+                requested=obs(t,side) if t<4.84 else 0
+                if lowering:requested=0 if drive_ended else 150
+                duty=controller.update(requested,measured)
                 d.actuator(side+'_wheel').ctrl[0]=duty*3.92/v['motor_reference_voltage_v']
-            d.actuator('lift').ctrl[0]=mjcf.lift_angle_of_height(v,obs(t,'lift_mm'))
+            d.actuator('lift').ctrl[0]=(lowering_goal(t-onset,lowering_start) if lowering
+                                           else mjcf.lift_angle_of_height(v,obs(t,'lift_mm')))
             d.actuator('head').ctrl[0]=obs(t,'head')
         mj.mj_step(m,d)
         downward=0.
@@ -86,27 +109,34 @@ def run(start,limit):
         rot=d.xmat[cube_id].reshape(3,3)
         top=d.xpos[cube_id,:2]+.022*rot[:2,2]
         pitch=np.rad2deg(np.arcsin(np.clip(d.xmat[m.jnt_bodyid[m.joint('root').id]].reshape(3,3)[2,0],-1,1)))
-        trace.append([t,pitch,np.linalg.norm(top-center)*1000,np.rad2deg(np.arctan2(rot[1,0],rot[0,0])-angle)])
+        trace.append([t,pitch,np.linalg.norm(top-center)*1000,np.rad2deg(np.arctan2(rot[1,0],rot[0,0])-angle),
+                      mjcf.lift_height_of_angle(v,float(d.joint("lift_joint").qpos[0]))])
     packets=np.array([[start+t,np.linalg.norm(a)/8192] for t,p in sensor.messages for a in np.frombuffer(p[2:],'<i2').reshape(3,3)])
     return np.array(trace),packets,len(sensor.taps.events),peak_load
 
-fig,axes=plt.subplots(3,1,sharex=True,figsize=(9,7),layout='constrained')
+firmware='--firmware' in sys.argv[2:]
+fig,axes=plt.subplots(4 if firmware else 3,1,sharex=True,figsize=(9,9 if firmware else 7),layout='constrained')
+if firmware:axes[3].plot(approach['s'],approach['lift_mm'],color='black')
 axes[0].plot(approach['s'],np.rad2deg(approach['pitch']),color='black',label='Physical')
 opt=np.genfromtxt(here/'optical-travel.csv',delimiter=',',names=True)
 ok=opt['correlation']>.7
 axes[1].scatter(opt['s_after_command'][ok],opt['travel_mm'][ok],color='black',s=9)
 force=np.genfromtxt(here/'cube.csv.gz',delimiter=',',names=True)
 axes[2].scatter(force['sec']-zero,np.linalg.norm([force[k] for k in 'xyz'],axis=0)/8192,color='black',s=4)
-with (here/'free-chassis.csv').open('w') as f:
+stem='firmware-drive' if firmware else 'free-chassis'
+with (here/(stem+'.csv')).open('w') as f:
     writer=csv.writer(f,lineterminator='\n')
-    writer.writerow(['release_s','limit_mNm','peak_pitch_deg','settled_travel_mm','settled_yaw_deg','peak_g','taps','peak_downward_fork_N'])
-    for start,limit in [(3.5,30),(3.8,30),(3.8,10),(3.8,80)]:
-        tr,pk,taps,load=run(start,limit)
-        writer.writerow([start,limit,tr[:,1].max(),*np.median(tr[tr[:,0]>5.5,2:],axis=0),pk[:,1].max(),taps,load])
+    writer.writerow((['onset_s'] if firmware else [])+['release_s','limit_mNm','peak_pitch_deg','settled_travel_mm','settled_yaw_deg','peak_g','taps','peak_downward_fork_N'])
+    cases=([(start,30,onset) for start in (3.5,3.8) for onset in (3.950686,4.015283)] if firmware
+           else [(3.5,30,None),(3.8,30,None),(3.8,10,None),(3.8,80,None)])
+    for start,limit,onset in cases:
+        tr,pk,taps,load=run(start,limit,onset)
+        writer.writerow(([onset] if firmware else [])+[start,limit,tr[:,1].max(),*np.median(tr[tr[:,0]>5.5,2:4],axis=0),pk[:,1].max(),taps,load])
         if limit==30:
-            for ax,j in zip(axes[:2],[1,2]):ax.plot(tr[:,0],tr[:,j],label=f'Free from {start} s')
+            for ax,j in zip(axes[:2],[1,2]):ax.plot(tr[:,0],tr[:,j],label=(f'{start:.1f} s release, {onset:.3f} s command' if firmware else f'Free from {start} s'))
             axes[2].plot(pk[:,0],pk[:,1])
-for ax,label in zip(axes,['Chassis pitch (°)','Top glyph travel (mm)','Cube specific force (g)']):
+            if firmware:axes[3].plot(tr[:,0],tr[:,4])
+for ax,label in zip(axes,['Chassis pitch (°)','Top glyph travel (mm)','Cube specific force (g)','Lift height (mm)']):
     ax.set(xlim=(3.45,5.75),ylabel=label)
 axes[0].legend();axes[-1].set_xlabel('Seconds after wheelstand command')
-fig.savefig(here/'free-chassis.png',dpi=155)
+fig.savefig(here/(stem+'.png'),dpi=155)
