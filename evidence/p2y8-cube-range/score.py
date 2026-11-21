@@ -17,7 +17,7 @@ import evaluate
 from simulacrum import params, prox
 
 
-def replay_trial(trial):
+def replay_trial(trial, cube_depth_mm=0):
     states = evaluate.states[evaluate.states["trial"] == trial]
     values = params.values(params.load(model="vector_2"))
     sensor = prox.ProxSensor(values, noise_seed=trial)
@@ -47,7 +47,7 @@ def replay_trial(trial):
         reading = sensor.read(hits,lift,0.0)
         samples.append((t,reading.distance_mm,reading.found_object))
 
-    evaluate.run((trial,"stl","overhead","weld",0,0,0),observe)
+    evaluate.run((trial,"stl","overhead","weld",cube_depth_mm,0,0),observe)
     samples = np.asarray(samples)
     rows = []
     for r in states[states["sec"] >= 0]:
