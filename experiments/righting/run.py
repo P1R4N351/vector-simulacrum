@@ -25,7 +25,7 @@ def patient_copy(element):
     return patient
 
 
-def scene_xml(boxes=None, mass_g=50, friction=0.5, fixed_grip=False):
+def scene_xml(boxes=None, mass_g=50, friction=0.5, fixed_grip=False, corner_friction=0.9):
     root = ET.fromstring(
         mjcf.build_mjcf(dict(replay.nominal_values(), **replay.OPEN_TABLE))
     )
@@ -47,7 +47,7 @@ def scene_xml(boxes=None, mass_g=50, friction=0.5, fixed_grip=False):
     if boxes:
         for geom in world.findall("geom"):
             geom.set("conaffinity", "7")
-        add_cube(world, boxes, mass_g, friction)
+        add_cube(world, boxes, mass_g, friction, corner_friction)
         if fixed_grip:
             # Exact rigid mount at the stock carry transform. Cube inertia is retained.
             cube = world.find("body[@name='cube']")
@@ -368,6 +368,8 @@ def main():
         help="proffer the SDK cube and approach its adjacent face",
     )
     parser.add_argument("--cube-mass-g", type=float, default=50)
+    parser.add_argument("--corner-friction", type=float, default=0.9)
+    parser.add_argument("--uniform-cube", action="store_true", help="Replay the earlier single-material geometry")
     parser.add_argument("--cube-friction", type=float, default=0.5)
     parser.add_argument(
         "--cube-control",
@@ -411,6 +413,7 @@ def main():
         and args.cube_mass_g > 0
         and np.isfinite(args.cube_friction)
         and args.cube_friction > 0
+        and np.isfinite(args.corner_friction) and args.corner_friction > 0
     ):
         parser.error("cube mass and friction must be finite and positive")
     if not (
@@ -420,7 +423,8 @@ def main():
     ):
         parser.error("require finite offset, power in [0,1] and delay in [0,4500] ms")
     boxes = collision_boxes(args.cube_obj) if args.cube_obj else None
-    xml = scene_xml(boxes, args.cube_mass_g, args.cube_friction, args.fixed_grip)
+    corner_friction = None if args.uniform_cube else args.corner_friction
+    xml = scene_xml(boxes, args.cube_mass_g, args.cube_friction, args.fixed_grip, corner_friction)
     model = mj.MjModel.from_xml_string(xml)
     args.output.mkdir(parents=True, exist_ok=False)
     (args.output / "scene.xml").write_text(xml)
@@ -441,6 +445,7 @@ def main():
             patient_raise_deg=args.patient_raise_deg,
             cube_mass_g=args.cube_mass_g,
             cube_friction=args.cube_friction,
+            corner_friction=corner_friction,
             sdk_cube_sha256=hashlib.sha256(args.cube_obj.read_bytes()).hexdigest(),
             cube_boxes=boxes,
         )

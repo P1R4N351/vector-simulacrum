@@ -6,6 +6,8 @@ import xml.etree.ElementTree as ET
 
 import numpy as np
 
+from corners import split_caps
+
 
 def sdk_surface(path: Path):
     vertices, triangles = [], []
@@ -83,7 +85,7 @@ def collision_boxes(path):
     return boxes
 
 
-def add_cube(world, boxes, mass_g, friction):
+def add_cube(world, boxes, mass_g, friction, corner_friction=0.9):
     cube = ET.SubElement(world, "body", name="cube")
     ET.SubElement(cube, "freejoint", name="cube_root")
     kg = mass_g * 0.001
@@ -95,16 +97,21 @@ def add_cube(world, boxes, mass_g, friction):
         mass=str(kg),
         diaginertia=" ".join([str(kg * 0.044**2 / 6)] * 3),
     )
-    for index, (pos, size) in enumerate(boxes):
+    parts = split_caps(boxes) if corner_friction is not None else (
+        (pos, half, "shell") for pos, half in boxes
+    )
+    for index, (pos, size, material) in enumerate(parts):
+        rubber = material == "rubber"
         ET.SubElement(
             cube,
             "geom",
             type="box",
-            name=f"cube_{index}",
+            name=f"cube_{material}_{index}",
             pos=" ".join(map(str, pos)),
             size=" ".join(map(str, size)),
             contype="4",
             conaffinity="3",
-            priority="1",
-            friction=f"{friction} .005 .0001",
+            priority="2" if rubber else "1",
+            friction=f"{corner_friction if rubber else friction} .005 .0001",
+            **({"solref": ".008 1", "rgba": ".035 .035 .035 1"} if rubber else {}),
         )
