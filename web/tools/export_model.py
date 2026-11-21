@@ -81,9 +81,10 @@ def _provenance_counts(table_bytes: bytes) -> Dict[str, int]:
     return counts
 
 
-def _calibration() -> Dict[str, Any]:
+def _calibration(image_size) -> Dict[str, Any]:
     """The real robot's camera calibration, checked against the field of view the robot reported with it."""
-    cal = json.loads(CALIBRATION_FILE.read_text(encoding="utf-8"))
+    path = HERE / "camera_calibration_vector2.json" if tuple(image_size) == (800, 600) else CALIBRATION_FILE
+    cal = json.loads(path.read_text(encoding="utf-8"))
     width, height, fx, fy = cal["width_px"], cal["height_px"], cal["fx_px"], cal["fy_px"]
     assert width > 0 and height > 0 and fx > 0.0 and fy > 0.0, "bad camera calibration"
     assert 0.0 < cal["cx_px"] < width and 0.0 < cal["cy_px"] < height, "optical centre outside the image"
@@ -103,7 +104,7 @@ def camera_block(v: Dict[str, Any]) -> Dict[str, Any]:
     Position: the table's head_camera_position_mm (the firmware's, relative to the neck).
     Tilt: the engine's 4 degrees down, until the table carries it.
     """
-    cal = _calibration()
+    cal = _calibration(v["camera_resolution_px"])
     width, height = cal["width_px"], cal["height_px"]
     assert [width, height] == [int(x) for x in v["camera_resolution_px"]], "calibration is for another image size"
     edges = {"left": math.atan(cal["cx_px"] / cal["fx_px"]), "right": math.atan((width - cal["cx_px"]) / cal["fx_px"]),

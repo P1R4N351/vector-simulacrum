@@ -18,7 +18,7 @@ class Vector2(unittest.TestCase):
         self.assertEqual(set(one), set(two))
         replaced = {n for n, e in two.items() if e.get("overrides_base")}
         self.assertEqual(replaced, {"display_resolution_px", "battery_capacity_mah", "total_mass_g", "com_x_mm",
-                                    "com_z_mm", "camera_fov_horizontal_deg", "camera_fov_vertical_deg"})
+                                    "com_z_mm", "camera_resolution_px", "camera_fov_horizontal_deg", "camera_fov_vertical_deg"})
         self.assertEqual((one["display_resolution_px"]["value"], two["display_resolution_px"]["value"]), ([184, 96], [160, 80]))
         for name in set(one) - replaced:
             self.assertEqual(one[name]["value"], two[name]["value"], name)
@@ -27,6 +27,15 @@ class Vector2(unittest.TestCase):
             self.assertNotIn("inherited", one[name], name)
         self.assertEqual(params.summary(self.two)["inherited"], 28)
         self.assertEqual(self.two["robot"], "Digital Dream Labs Vector 2.0")
+
+    def test_p2y8_camera_uses_its_reported_intrinsics_at_stream_resolution(self) -> None:
+        from web.tools.export_model import camera_block
+        camera = camera_block(params.values(self.two))
+        self.assertEqual((camera["width_px"], camera["height_px"]), (800, 600))
+        self.assertAlmostEqual(camera["fx_px"], 406.314453)
+        self.assertAlmostEqual(camera["fy_px"], 405.335419)
+        self.assertGreater(camera["cx_px"], 400)
+        self.assertLess(camera["cy_px"], 300)
 
     def test_ranges_for_what_2_0_may_change_cover_the_1_0_ranges(self) -> None:
         for name in ("total_mass_g", "com_x_mm", "com_z_mm"):

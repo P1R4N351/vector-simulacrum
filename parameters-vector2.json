@@ -4,7 +4,7 @@
   "base": "parameters.json",
   "robot": "Digital Dream Labs Vector 2.0",
   "read_on": "2026-11-18",
-  "what": "The entries where Vector 2.0 is known or suspected to differ from the base table. Everything else is inherited. The base table's manual and firmware values come from Anki-era sources (TRM 2021.02.14, the victor firmware), which predate 2.0. Its measured and fitted values come from the household's unit 1, a Vector 1.0; they are marked 'inherited' when this set is loaded. The household's 2.0 is unit 3; nothing has been measured on it yet.",
+  "what": "The entries where Vector 2.0 is known or suspected to differ from the base table. Everything else is inherited. The base table's manual and firmware values come from Anki-era sources (TRM 2021.02.14, the victor firmware), which predate 2.0. Its measured and fitted values come from the household's unit 1, a Vector 1.0; they are marked 'inherited' when this set is loaded. The household's 2.0 is unit 3; its camera overrides now use the calibration it reports.",
   "identify": "The robot's factory record (EMR, /dev/mmcblk0p29) holds HW_VER at offset 4 (TRM table 10); DDL's boot display code treats hw_ver >= 0x20 as 2.0 (VICOSLCD). On the body, 1.0 prints an 8-character 'S/N' near the top of the track, 2.0 an 'ESN' on the bottom (ANKISUP). The SDK reports no hardware revision.",
   "inherited_note": "measured or fitted on unit 1, a Vector 1.0; not verified on a Vector 2.0",
   "sources": {
@@ -19,6 +19,10 @@
     "ANKISUP": {
       "what": "Anki/DDL support article 338, where to find Vector's serial number on 1.0 and 2.0",
       "url": "https://support.anki.bot/article/338-how-do-i-find-vectors-serial-number"
+    },
+    "P2CAM": {
+      "what": "P2Y8 GetCameraConfig and 800 × 600 CameraFeed images, 2026-11-21",
+      "file": "web/camera_calibration_vector2.json"
     }
   },
   "overrides": {
@@ -71,21 +75,30 @@
       "kind": "robot"
     },
     "camera_fov_horizontal_deg": {
-      "value": 90.0,
+      "value": 89.102623,
       "unit": "deg",
-      "provenance": "assumed",
-      "source": "No confirmed source for 2.0. 1.0 is 90 (TRM 79.2); WEVOLVER alone gives 120 for 2.0. The range spans both; the value stays 90 until an image from a 2.0 says otherwise.",
-      "low": 90.0,
-      "high": 120.0,
+      "provenance": "sdk",
+      "source_kind": "vendor_sdk",
+      "source": "P2CAM: reported fov_x on one Vector 2.0.",
       "kind": "robot"
     },
     "camera_fov_vertical_deg": {
-      "value": 50.0,
+      "value": 73.0123444,
       "unit": "deg",
-      "provenance": "assumed",
-      "source": "No source for 2.0. 1.0 is 50 (TRM 79.2). The 2.0 sensor is 4:3 (1600x1200, VDOCS) where 1.0's is 16:9, so the image the SDK hands out may be taller; how 2.0 crops it is not known. The high bound is the author's.",
-      "low": 50.0,
-      "high": 90.0,
+      "provenance": "sdk",
+      "source_kind": "vendor_sdk",
+      "source": "P2CAM: reported fov_y on one Vector 2.0.",
+      "kind": "robot"
+    },
+    "camera_resolution_px": {
+      "value": [
+        800,
+        600
+      ],
+      "unit": "px",
+      "provenance": "sdk",
+      "source_kind": "vendor_sdk",
+      "source": "P2CAM: decoded CameraFeed JPEG dimensions on one Vector 2.0.",
       "kind": "robot"
     }
   }

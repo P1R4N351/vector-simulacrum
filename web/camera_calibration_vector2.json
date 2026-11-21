@@ -1,0 +1,14 @@
+{
+ "what": "P2Y8 (Vector 2.0) camera intrinsics returned by the SDK GetCameraConfig RPC",
+ "read": "Read directly from P2Y8 on 2026-11-21. Dimensions from the recorded CameraFeed JPEGs.",
+ "width_px": 800,
+ "height_px": 600,
+ "fx_px": 406.314453,
+ "fy_px": 405.335419,
+ "cx_px": 404.559357,
+ "cy_px": 295.485,
+ "reported_fov_x_deg": 89.102623,
+ "reported_fov_y_deg": 73.0123444,
+ "distortion": null,
+ "limits": "One unit and stream mode. GetCameraConfig does not report distortion coefficients. This describes the active pinhole calibration."
+}
