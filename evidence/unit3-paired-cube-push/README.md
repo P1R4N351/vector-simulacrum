@@ -17,3 +17,5 @@ The onboard estimate uses lines fitted to the four outer printed edges of the fr
 The overhead estimate uses the intersection of the top glyph diagonals. A local projective mapping uses the nominal 44 mm cube envelope in the initial pose, square constraints on the top glyphs at each settled observation, and the rear shelf edge for orientation. The overhead reconstruction does not use robot odometry or onboard displacements. Reported physical distances are approximate. Colors in the endpoint overlay compare vectors in dock-forward and dock-left coordinates. The time plots exclude oversized or occluded onboard glyphs and raised-fork onboard picks. During lifting, apparent marker motion also includes changing projection. Gaps indicate missing or rejected observations.
 
 The CSVs contain millimetres. endpoint-picks.json records both camera picks and robot state. The image contact sheet shows before and after for all five trials. These are physical validation references, not a simulation accuracy score.
+
+[Physical pickups, turns and rapid reversals with Unit 3](../unit3-native-pickup/README.md)
