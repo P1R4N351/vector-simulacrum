@@ -56,6 +56,7 @@ def measure(ref, quad):
 
 fig,axes=plt.subplots(4,2,figsize=(6.4,8.5),layout='constrained')
 rows=[]
+slide_rows=[]
 controls = [71.,75.,79.,83.]
 for idx,tap in enumerate(taps+controls):
     # Median over two settled windows and three segmentation levels.
@@ -82,6 +83,12 @@ for idx,tap in enumerate(taps+controls):
             if len(fits)>=3: ends.append(np.median(fits,axis=0))
         if len(ends)==2:
             angles.append(measure(*ends));ref_quads.append(ends[0])
+            # Both poses lie in the starting top-marker plane. The origin is its center.
+            rect=cv2.perspectiveTransform(ends[1][None],cv2.getPerspectiveTransform(ends[0],square))[0]
+            dx,dy=23*rect.mean(axis=0)
+            basis=np.linalg.lstsq(square,ends[0]-ends[0].mean(axis=0),rcond=None)[0]
+            affine_mm=23*np.linalg.solve(basis.T,ends[1].mean(axis=0)-ends[0].mean(axis=0))
+            slide_rows.append(['tap' if idx<len(taps) else 'control',tap,thresh,dx,dy,np.hypot(dx,dy),np.linalg.norm(affine_mm)])
     if len(angles)<2:
         assert idx>=len(taps)
         rows.append(["control",tap,len(angles),None,None,None,None,None])
@@ -111,4 +118,8 @@ with (out/'tap-heading.csv').open('w') as f:
     w=csv.writer(f,lineterminator='\n')
     w.writerow(['window_type','center_s','thresholds_used','ccw_change_deg','min_threshold_deg','max_threshold_deg','texture_ccw_deg','texture_correlation'])
     w.writerows(rows)
+with (out/'tap-translation.csv').open('w') as f:
+    w=csv.writer(f,lineterminator='\n')
+    w.writerow(['window_type','center_s','threshold','marker_x_mm','marker_y_mm','travel_mm','affine_travel_mm'])
+    w.writerows(slide_rows)
 print(rows)

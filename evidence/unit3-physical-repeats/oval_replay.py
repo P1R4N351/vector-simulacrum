@@ -27,7 +27,10 @@ parser.add_argument('--substeps',type=int,choices=(1,2,4,8,16),default=1,help='P
 parser.add_argument('--nominal-only',action='store_true',help='Replay the native cube pose only')
 parser.add_argument('--pad-shelf-ms',type=float,help='Test rubber-to-table contact time constant in milliseconds')
 parser.add_argument('--summary-only',action='store_true',help='Print replay metrics and skip plots and files')
+parser.add_argument('--slide-summary',action='store_true',help='Append settled planar cube travel to summary-only rows')
 args=parser.parse_args()
+if args.slide_summary and not args.summary_only:
+    parser.error('--slide-summary requires --summary-only')
 scene=ET.fromstring(mjcf.build_mjcf(v,(),cube='free'))
 prefix='first-contact'
 if args.printed_fixture:
@@ -102,6 +105,7 @@ def replay(dx,dy):
     d.qpos[root:root+2]=(center+[dx,dy])/1000
     d.qpos[root+3:root+7]=[np.cos(angle/2),0,0,np.sin(angle/2)]
     first=None;overlap=0.;trace=[]
+    centers=[]
     forces=[]
     loads=[]
     chip=CubeAccelerometer(v,sensor_dt,seed=17)
@@ -145,6 +149,8 @@ def replay(dx,dy):
             tilt=np.rad2deg(np.arccos(np.clip(1-2*(x1*x1+y1*y1),-1,1)))
             loads.append([round(t,6),*normals,force_g[2],tilt,chip.app.taps.count,
                           len(chip.taps.events),' '.join(sorted(parts)),*pad_load])
+        if args.slide_summary:
+            centers.append(d.qpos[root:root+2].copy())
         trace.append(np.arctan2(2*(w1*z1+x1*y1),1-2*(z1*z1+y1*y1)))
     a=np.rad2deg(np.unwrap(trace))
     def settled(lo,hi):
@@ -178,7 +184,13 @@ def replay(dx,dy):
         ax.legend()
         fig.savefig(out/f'{prefix}-force.png',dpi=150)
         plt.close(fig)
-    return overlap,*(first or (None,'')),change,peak,len(taps)
+    result=[overlap,*(first or (None,'')),change,peak,len(taps)]
+    if args.slide_summary:
+        xy=np.asarray(centers)
+        before=np.median(xy[(times>=49.38)&(times<=50.18)],axis=0)
+        after=np.median(xy[(times>=51.78)&(times<=52.58)],axis=0)
+        result.append(1000*np.linalg.norm(after-before))
+    return result
 results=[]
 offsets=(0,) if args.nominal_only else (-5,0,5)
 for dy in offsets:

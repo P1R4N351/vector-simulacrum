@@ -134,3 +134,11 @@ Increasing the time constant from 8 to 32 ms reduced the packet peak from **1.62
 On five separately recorded pushes, trial 1's endpoint error increased from 26.43 to 26.85 mm and its already underestimated tilt fell from 2.29° to 1.36°. Mean endpoint error across trials 2–5 was 1.24 mm at both settings (rounded). These push recordings check motion transfer; they lack matched raw cube acceleration for testing the peak improvement. The 32 ms setting remains experimental.
 
 [Pad–shelf sweep](E/pad-shelf.png) · [Per-setting metrics](E/pad-shelf.csv) · [Five transfer trials](E/pad-transfer.csv). Run `pad_shelf.py FIXTURE` and `pad_transfer.py FIXTURE` using the registered printed-fork fixture.
+
+### Did the cube slide far enough during the first tap?
+
+Registering the outer top glyph before and after contact at 50.98 s gives **8.0–9.5 mm** of planar displacement with projective rectification, or **7.1–7.6 mm** with a local affine map. Both methods assume a level top face and use Anki's nominal 23 mm marker width for the segmented outline. They share the same corner fits; their spread tests sensitivity to projection and edge selection, not absolute calibration accuracy. No-tap comparisons show up to 0.94 mm apparent projective displacement. The last tap, at 94.00 s, moved the glyph another 9.1–9.5 mm by the projective estimate.
+
+At the nominal SDK placement, the printed fork moves the cube **6.52 mm** with the frozen 8 ms pad setting, **6.62 mm** at 32 ms. The softer shelf contact had a much larger effect on packet acceleration than on net travel. Starting the cube 5 mm farther along odometry Y gives 9.34 and 9.02 mm at zero X offset, but both simulations then first touch at 47.21 s, well before the measured tap at 50.98 s. Neither setting brings those runs to the two central optical yaw estimates (14.1° and 18.0°). These are before/after displacement magnitudes, not total path lengths. All simulations in this comparison use 0.25 ms physics steps.
+
+[Rotation versus translation at nine starting positions](E/slide-transfer.png) · [Camera measurements and controls](E/tap-translation.csv) · [Replay endpoints](E/slide-transfer.csv). Run `oval_rotation.py` and then `slide_transfer.py FIXTURE`.
