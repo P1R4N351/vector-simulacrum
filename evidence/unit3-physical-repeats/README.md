@@ -124,3 +124,13 @@ In the nominal cadence-adjusted printed-fork replay, the same fork hull exerted 
 Only the physics integration and prescribed-pose update interval changed. Geometry, material settings, solver time constants, the 1 ms sensor integration interval, firmware clocks and random seed stayed fixed. The first three rows include the original nine cube poses; the finest two use only the nominal pose. Yaw varied by less than 0.24° across the five nominal replays. The coarser steps disagree on tap count, and the one-tap result at 0.25 ms disappears at both finer steps. This limits the conclusions one can draw about real fork impacts from a single simulated counter.
 
 [Contact loads and chip Z](E/contact-load.png) · [Time-step comparison](E/contact-steps.png) · [1 ms load trace](E/contact-load.csv). Generate the trace with `oval_replay.py --cadence --printed-fixture FIXTURE --contact-log E/contact-load.csv`, then run `contact_load.py`. Use `--substeps 2` and `4` for the placement sweep, and `--substeps 8 --nominal-only` and `16 --nominal-only` for the two finest comparisons. Run `contact_steps.py` for the comparison figure.
+
+### Separating rubber-on-shelf contact from fork contact
+
+During the three simulated counter increments (50.527–50.900 s), all solved fork normal load was on the plastic shell and all floor normal load was on rubber corners. We varied only the rubber-to-table contact solver time constant. The explicit 8 ms control reproduced the original nominal peak and tap count at both finer test steps. Friction, fork collision properties and recorded motion stayed fixed.
+
+Increasing the time constant from 8 to 32 ms reduced the packet peak from **1.62–1.66 g to 1.19–1.21 g** across 0.25 and 0.125 ms physics steps. Both steps produced one tap at 32 ms. The physical packet peak was 1.08 g with one counter change. Yaw remained around 11° against the camera's 14–18°. The time constant is a solver parameter; these runs do not measure a rubber material property.
+
+On five separately recorded pushes, trial 1's endpoint error increased from 26.43 to 26.85 mm and its already underestimated tilt fell from 2.29° to 1.36°. Mean endpoint error across trials 2–5 was 1.24 mm at both settings (rounded). These push recordings check motion transfer; they lack matched raw cube acceleration for testing the peak improvement. The 32 ms setting remains experimental.
+
+[Pad–shelf sweep](E/pad-shelf.png) · [Per-setting metrics](E/pad-shelf.csv) · [Five transfer trials](E/pad-transfer.csv). Run `pad_shelf.py FIXTURE` and `pad_transfer.py FIXTURE` using the registered printed-fork fixture.

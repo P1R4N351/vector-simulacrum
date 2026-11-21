@@ -25,6 +25,8 @@ parser.add_argument('--cadence',action='store_true',help='Fit a uniform SDK stat
 parser.add_argument('--contact-log',type=Path,help='Export solved cube contact loads for the nominal placement')
 parser.add_argument('--substeps',type=int,choices=(1,2,4,8,16),default=1,help='Physics steps per unchanged sensor integration step')
 parser.add_argument('--nominal-only',action='store_true',help='Replay the native cube pose only')
+parser.add_argument('--pad-shelf-ms',type=float,help='Test rubber-to-table contact time constant in milliseconds')
+parser.add_argument('--summary-only',action='store_true',help='Print replay metrics and skip plots and files')
 args=parser.parse_args()
 scene=ET.fromstring(mjcf.build_mjcf(v,(),cube='free'))
 prefix='first-contact'
@@ -45,6 +47,14 @@ if args.printed_fixture:
     for geom in pieces:
         ET.SubElement(fork,'geom',dict(attrs,type='mesh',mesh=geom.attrib['mesh'],name=geom.attrib['name'],mass='0'))
     prefix='printed-contact'
+if args.pad_shelf_ms is not None:
+    assert args.pad_shelf_ms>0
+    pairs=ET.SubElement(scene,'contact')
+    for pad in scene.findall(".//body[@name='cube']/geom"):
+        if pad.get('name').startswith('cube_rubber_'):
+            ET.SubElement(pairs,'pair',geom1='table',geom2=pad.get('name'),condim='3',
+                          friction='.9 .9 .005 .0001 .0001',solref=f'{args.pad_shelf_ms*.001} 1')
+    prefix+=f'-shelf{args.pad_shelf_ms:g}'
 model=mj.MjModel.from_xml_string(ET.tostring(scene,encoding='unicode'))
 sensor_dt=model.opt.timestep
 model.opt.timestep=sensor_dt/args.substeps
@@ -109,6 +119,7 @@ def replay(dx,dy):
         sample_load=args.contact_log and dx==dy==0 and 50.25<=t<=51.25
         normals=[0.,0.]
         parts=set()
+        pad_load=[0.,0.]
         for contact_index,c in enumerate(d.contact):
             a,b=model.geom_bodyid[c.geom]
             if sample_load and cube_body in (a,b):
@@ -117,7 +128,11 @@ def replay(dx,dy):
                 other=c.geom[1] if a==cube_body else c.geom[0]
                 name=model.geom(other).name
                 if wrench[0]>0:
-                    normals[int(name=='table')]+=wrench[0]
+                    surface=int(name=='table')
+                    normals[surface]+=wrench[0]
+                    cube_geom=c.geom[0] if a==cube_body else c.geom[1]
+                    if model.geom(cube_geom).name.startswith('cube_rubber_'):
+                        pad_load[surface]+=wrench[0]
                     if name!='table':
                         parts.add(name)
             if cube_body in (a,b) and 0 not in (a,b):
@@ -129,7 +144,7 @@ def replay(dx,dy):
         if sample_load:
             tilt=np.rad2deg(np.arccos(np.clip(1-2*(x1*x1+y1*y1),-1,1)))
             loads.append([round(t,6),*normals,force_g[2],tilt,chip.app.taps.count,
-                          len(chip.taps.events),' '.join(sorted(parts))])
+                          len(chip.taps.events),' '.join(sorted(parts)),*pad_load])
         trace.append(np.arctan2(2*(w1*z1+x1*y1),1-2*(z1*z1+y1*y1)))
     a=np.rad2deg(np.unwrap(trace))
     def settled(lo,hi):
@@ -138,11 +153,11 @@ def replay(dx,dy):
     packets=[p for t,p in chip.messages if abs(t+times[0]-50.97782)<1]
     peak=max(np.linalg.norm(np.frombuffer(p[2:],dtype='<i2').reshape(3,3)/8192,axis=1).max() for p in packets)
     taps=[t+times[0] for t in chip.taps.events if abs(t+times[0]-50.97782)<1]
-    if dx==dy==0:
+    if dx==dy==0 and not args.summary_only:
         if args.contact_log:
             with args.contact_log.open('w') as f:
                 wr=csv.writer(f,lineterminator='\n')
-                wr.writerow(['t_s','robot_normal_N','floor_normal_N','chip_z_g','cube_tilt_deg','app_count','reported_events','loaded_robot_geoms'])
+                wr.writerow(['t_s','robot_normal_N','floor_normal_N','chip_z_g','cube_tilt_deg','app_count','reported_events','loaded_robot_geoms','robot_rubber_N','floor_rubber_N'])
                 wr.writerows(loads)
         if args.cadence or args.export_force:
             with (out/f'{prefix}-tap-times.csv').open('w') as f:
@@ -169,6 +184,9 @@ offsets=(0,) if args.nominal_only else (-5,0,5)
 for dy in offsets:
     for dx in offsets:
         results.append([dx,dy,*replay(dx,dy)])
+if args.summary_only:
+    csv.writer(sys.stdout,lineterminator='\n').writerows(results)
+    sys.exit(0)
 with (out/f'{prefix}-replay.csv').open('w') as f:
     writer=csv.writer(f,lineterminator='\n')
     writer.writerow(['cube_dx_mm','cube_dy_mm','initial_overlap_mm','first_contact_s','first_geom','yaw_change_deg','packet_peak_g','packet_taps_in_window'])
