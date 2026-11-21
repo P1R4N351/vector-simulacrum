@@ -12,6 +12,10 @@ Unit 3 is a Vector 2.0 with a printed lift. After a baseline stock pickup, three
 
 The first pulse took the lift from 91.79 to 87.20 mm. The minimum came about 0.66 s after the command, after the all-motors stop returned. The lift recovered to 90.31 mm. The empty comparison used a lowered fork. Load, posture and the stop command therefore remain confounded.
 
+**Trial 3 (left-first) is a successful lift with improper engagement**, identified by the operator in the linked footage. The cube rides askew during the loaded portion. Treat it as a separate grip condition. The exact fork contact points are obscured. Trial 4 is visually confirmed as carried; its seating has not been independently established.
+
+![Trial 3 overhead frames during the carry and after release](trial3-engagement.jpg)
+
 The two longer sequences used opposed 80° commands followed by four alternating wheel-speed steps at 45 mm/s magnitude. Wheels-only stops kept the lift engaged. One sequence included an empty raised-fork control. Empty pitch ranges were 0.49° and 0.42° during the turns and 1.32° during reversals. The loaded reversal ranges were smaller in both sequences. A guard interrupted the second empty control after release. Pitch is the SDK robot pose estimate. Independent cube rocking and motor torque were not measured. Wheel speed shortfall during short reversals includes acceleration and sampling effects.
 
 ![Pitch, wheel speed and lift during turns and reversals](rotation.png)
@@ -28,12 +32,12 @@ Both variants receive the same interpolated SDK left/right wheel speeds, begin a
 
 | Physical condition | Gyro Z RMSE with the matching load, °/s | RMSE with the opposite load, °/s |
 | --- | --- | --- |
-| Loaded, left then right | 14.54, 17.61 | 26.69, 27.34 |
+| Improperly engaged carry, left then right | 14.54, 17.61 | 26.69, 27.34 |
 | Empty, left then right | 10.86, 8.77 | 42.69, 39.84 |
 | Loaded, right then left | 20.24, 19.14 | 25.42, 24.12 |
 | Loaded, rapid reversals after each turn pair | 9.96, 2.77 | 6.93, 2.30 |
 
-The matching configuration tracked gyro Z better on all six turns, including the opposite-order carry, but worse on both loaded reversal sequences. This tests rotational response conditional on real wheel motion and known physical engagement. It does not predict wheel speed, pickup success, relative cube movement or grip loss. Neither cube mass nor timing lag can be inferred independently from these results. The simulated payload is attached throughout, and the initial head angle is held fixed.
+The replay uses nominal cube placement even for the improperly engaged carry. Its gyro agreement cannot validate that placement, the pickup contact, or a cleanly seated payload baseline. Across these recordings the matching mass condition tracked gyro Z better on all six turns, including the opposite-order carry, but worse on both loaded reversal sequences. This tests rotational response conditional on real wheel motion and known physical engagement. It does not predict wheel speed, pickup success, relative cube movement or grip loss. Neither cube mass nor timing lag can be inferred independently from these results. The simulated payload is attached throughout, and the initial head angle is held fixed.
 
 ![Measured head gyro Z versus paired simulations for every action](replay-carry.png)
 
