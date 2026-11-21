@@ -46,15 +46,41 @@ def run(freeze):
     data.qpos[3:]=[np.cos(cube_yaw/2),0,0,np.sin(cube_yaw/2)]
     sensor=CubeAccelerometer(v,sensor_dt,seed=17)
     trace=[]
+    contacts=[]
+    cube_id=model.body("cube").id
+    fork_id=model.body("fork").id
     for i,t in enumerate(times):
         data.mocap_pos[0]=path[i];data.mocap_quat[0]=quat[i]
         mj.mj_step(model,data)
+        if not freeze:
+            for j,contact in enumerate(data.contact):
+                bodies=model.geom_bodyid[contact.geom]
+                if cube_id not in bodies:continue
+                wrench=np.zeros(6)
+                mj.mj_contactForce(model,data,j,wrench)
+                if wrench[0]<=0:continue
+                source='fork' if fork_id in bodies else 'shelf'
+                if source=='shelf' and not 3.8<=t<=4.6:continue
+                sign=1 if bodies[1]==cube_id else -1
+                rotation=contact.frame.reshape(3,3).T
+                force=sign*(rotation@wrench[:3])
+                arm=contact.pos-data.xipos[cube_id]
+                torque=np.cross(arm,force)+sign*(rotation@wrench[3:])
+                local=data.xmat[cube_id].reshape(3,3).T@arm
+                contacts.append([t,source,*local*1000,wrench[0],*force,torque[2]])
         if (i+1)%4:continue
         sensor.step((i+1)*dt,data.sensor('cube_accel').data/9.81)
         w,xq,yq,zq=data.qpos[3:]
         angle=np.arctan2(2*(w*zq+xq*yq),1-2*(yq*yq+zq*zq))
         top_xy=data.qpos[:2]*1000+22*np.array([2*(xq*zq+w*yq),2*(yq*zq-w*xq)])
         trace.append([t,np.linalg.norm(top_xy-center),np.rad2deg(angle-cube_yaw)])
+    if not freeze:
+        import gzip
+        with gzip.open(here/'contact-loads.csv.gz','wt') as stream:
+            writer=csv.writer(stream,lineterminator='\n')
+            writer.writerow(['s','source','cube_x_mm','cube_y_mm','cube_z_mm','normal_N','fx_N','fy_N','fz_N','yaw_Nm'])
+            for t,source,*values in contacts:
+                writer.writerow([round(t,6),source,*np.round(values,9)])
     packets=np.asarray([[t+times[0],np.linalg.norm(a)/8192] for t,p in sensor.messages for a in np.frombuffer(p[2:],'<i2').reshape(3,3)])
     return np.array(trace),packets,len(sensor.taps.events)
 
