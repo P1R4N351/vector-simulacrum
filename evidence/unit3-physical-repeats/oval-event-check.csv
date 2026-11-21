@@ -1,0 +1,9 @@
+run,event,replay_count,sdk_count,replay_seconds,sdk_seconds
+E,tap,4,4,50.8279 65.2728 87.0928 93.8672,50.9778 65.4498 87.2369 94.0007
+E,move,0,0,,
+E,stop,0,0,,
+E,axis,0,0,,
+F,tap,0,0,,
+F,move,0,0,,
+F,stop,0,0,,
+F,axis,0,0,,
