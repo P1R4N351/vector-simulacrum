@@ -38,3 +38,5 @@ The direct baseline reproduced both recorded final patient tilts to machine prec
 The next discriminating observation is whether a sideways patient's fork can retain a cube through a gentle pull from an adjacent face. Record the contact edge, cube orientation, and whether the fork releases before the patient begins rolling. That observation would constrain the fork-to-lip contact geometry independently of the rescuer's controller.
 
 For the follow-up with an already-engaged patient, use the [leverage control and morning close-up protocol](morning-grip.md).
+
+For a patient equipped with Dauler's printed lifting fork, supply `--patient-fork-stl /path/to/forks7.stl` with CoACD 1.0.14 installed. The run builds the wrist collision surface from convex parts using the web model's registration. It retains the wrist mass and placement reference. The shelf replay documents where this geometry transfers to P2Y8 and where the grip still slips. [Printed fork shelf trials](../../evidence/p2y8-printed-fork-contact/README.md)

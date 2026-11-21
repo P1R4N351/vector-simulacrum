@@ -367,6 +367,8 @@ def main():
         type=Path,
         help="proffer the SDK cube and approach its adjacent face",
     )
+    parser.add_argument("--patient-fork-stl", type=Path,
+                        help="use Dauler's forks7.stl for the printed patient's contact surfaces (requires coacd)")
     parser.add_argument("--cube-mass-g", type=float, default=50)
     parser.add_argument("--corner-friction", type=float, default=0.9)
     parser.add_argument("--uniform-cube", action="store_true", help="Replay the earlier single-material geometry")
@@ -425,6 +427,12 @@ def main():
     boxes = collision_boxes(args.cube_obj) if args.cube_obj else None
     corner_friction = None if args.uniform_cube else args.corner_friction
     xml = scene_xml(boxes, args.cube_mass_g, args.cube_friction, args.fixed_grip, corner_friction)
+    if args.patient_fork_stl:
+        from printed_fork import add_printed_fork
+        root = ET.fromstring(xml)
+        fork = root.find(".//body[@name='patient_lift_fork']")
+        add_printed_fork(root, fork, args.patient_fork_stl, "patient_", replay.nominal_values())
+        xml = ET.tostring(root, encoding="unicode")
     model = mj.MjModel.from_xml_string(xml)
     args.output.mkdir(parents=True, exist_ok=False)
     (args.output / "scene.xml").write_text(xml)
@@ -436,6 +444,8 @@ def main():
         delay_ms=args.delay_ms,
         sides={},
     )
+    if args.patient_fork_stl:
+        summary["patient_fork_stl_sha256"] = hashlib.sha256(args.patient_fork_stl.read_bytes()).hexdigest()
     if boxes:
         summary.update(
             cube_control=args.cube_control,
