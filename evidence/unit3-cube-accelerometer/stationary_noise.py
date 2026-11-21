@@ -32,8 +32,9 @@ def observations(name):
     return np.stack([np.frombuffer(p[3],dtype="<i2").reshape(3,3) for p in packets])/8192
 
 
-def simulate(density, force, seed):
-    chip=CubeAccelerometer(dict(v,cube_accel_noise_density_ug=density),step,seed=seed)
+def simulate(density, force, seed, word_format=(4, 0)):
+    # Original density experiment used the nominal 12-bit packet encoder.
+    chip=CubeAccelerometer(dict(v,cube_accel_noise_density_ug=density,cube_accel_word_format=word_format),step,seed=seed)
     chip.reset(force,0.)
     for n in range(1,round(20/step)+1):
         chip.step(n*step,force)

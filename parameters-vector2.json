@@ -31,6 +31,14 @@
     }
   },
   "overrides": {
+    "cube_accel_word_format": {
+      "value": [2, 1],
+      "unit": "[low bit count, low bit value]",
+      "provenance": "measured",
+      "source": "REC: evidence/unit3-cube-accelerometer/resting.tsv. The observed signed word lattice is 4k+1 on all axes, including both held-out captures.",
+      "kind": "robot",
+      "note": "Empirical packet format for this particular cube. It does not establish the chip identity or its effective analog resolution."
+    },
     "cube_accel_noise_density_ug": {
       "value": 124.0,
       "unit": "ug/sqrt(Hz)",

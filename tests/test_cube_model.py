@@ -59,6 +59,15 @@ class ChipAndApp(unittest.TestCase):
         chip = run(QUIET, 0.03, lambda n: [1.0 / LSB * 0.49, -3.0 / LSB, 0.0])
         self.assertEqual(unpack(chip.messages[0][1])[:3], [0, -3 * 16, 0])
 
+    def test_unit3_stock_packet_word_spacing_and_clipping(self):
+        values = dict(OPEN, cube_accel_word_format=params.values(params.load(model="vector_2"))["cube_accel_word_format"])
+        chip = run(values, .03, lambda n: [-5.0, 5.0, -4/8192])
+        self.assertEqual(unpack(chip.messages[0][1]), [-32767, 32765, -3]*3)
+        decoded = cube.samples_g(cube.rows(chip.messages), 8192, padding_bits=2)
+        np.testing.assert_equal(decoded[0]*8192, [-32768, 32764, -4])
+        mean_chip = run(values, .03, lambda n: [0.0, 0.0, 1.0], app="mean")
+        self.assertEqual(unpack(mean_chip.messages[0][1]), [0, 0, 8192]*3)
+
     def test_each_tick_keeps_the_last_frame_it_reads_and_a_frame_due_with_the_tick_is_read(self) -> None:
         coded = lambda n: [n / LSB, 0.0, 0.0]  # step n reads n counts on x
         chip = run(OPEN, 0.03, coded)

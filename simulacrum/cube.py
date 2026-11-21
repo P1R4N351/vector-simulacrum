@@ -17,7 +17,7 @@ below are data formats and firmware logic, cited where they are defined.
 3. A frame every cube_accel_frame_period_ms (filtered data at twice the bandwidth, BMA253DS:845-847,
    Table 4 at :866: 2 ms at 250 Hz). Quantised to 12 bits, two's complement (BMA253DS:832), clipped to the
    range, stored left-justified in 16 bits (MSB holds bits 11..4, the LSB byte bits 3..0 above four bits
-   that "may have any value and should be ignored", BMA253DS:832-842); the model writes those four as 0.
+   that "may have any value and should be ignored", BMA253DS:832-842); the nominal model writes those four as 0. Unit 3 uses its observed 4k+1 packet codes.
 4. FIFO mode (accel.c writes FIFO_CONFIG_1 = 0x40: fifo_mode 01, all three axes, BMA253DS:2192-2193,
    2216-2217): up to 32 frames, and once full "the data collection is stopped, and all additional samples
    are ignored" (BMA253DS:2174-2178).
@@ -91,13 +91,13 @@ class TapCounter:
         self.debounce = TAP_DEBOUNCE
 
 
-def counts_of(force_g: np.ndarray, lsb_per_g: float) -> List[int]:
-    """One frame: 12-bit two's complement, clipped, left-justified with the four low bits zero."""
-    full = 1 << (DATA_BITS - 1)
+def counts_of(force_g: np.ndarray, lsb_per_g: float, shift: int = LEFT_SHIFT, low_bits: int = 0) -> List[int]:
+    """Quantize and saturate on the signed word lattice of the selected cube."""
+    full = 1 << (15 - shift)
     out = []
     for value in force_g:
         q = int(round(float(value) * lsb_per_g))
-        out.append(max(-full, min(full - 1, q)) << LEFT_SHIFT)
+        out.append((max(-full, min(full - 1, q)) << shift) | low_bits)
     return out
 
 
@@ -227,9 +227,14 @@ class CubeAccelerometer:
         assert step_s > 0.0 and math.isfinite(step_s), "step must be positive"
         assert app in APPS, "the app is last or mean"
         self.app_kind = app
-        self.lsb_per_g = v["cube_accel_counts_per_g"] / float(1 << LEFT_SHIFT)
-        assert abs(self.lsb_per_g * v["cube_accel_range_g"] - (1 << (DATA_BITS - 1))) < 1e-9, \
-            "12 bits must span the range: counts per g and range disagree"
+        shift, low_bits = v.get("cube_accel_word_format", [LEFT_SHIFT, 0])
+        self.word_shift, self.low_bits = int(shift), int(low_bits)
+        if (shift != self.word_shift or low_bits != self.low_bits or
+                not 0 <= shift < 16 or not 0 <= low_bits < (1 << self.word_shift)):
+            raise ValueError("Invalid cube accelerometer word format")
+        self.lsb_per_g = v["cube_accel_counts_per_g"] / (1 << self.word_shift)
+        assert abs(v["cube_accel_counts_per_g"] * v["cube_accel_range_g"] - 32768) < 1e-9, \
+            "counts per g and range must span the signed word"
         self.frame_s = v["cube_accel_frame_period_ms"] * 0.001
         self.tick_s = v["cube_tick_ms"] * 0.001
         assert self.frame_s > 0.0 and self.tick_s > 0.0, "periods must be positive"
@@ -276,7 +281,7 @@ class CubeAccelerometer:
         when both fall at the same moment, and each frame holds the filter's output at this step."""
         sensed = self._sensed(np.asarray(force_g, dtype=float), noise=True)
         self.filter.update(np.concatenate([sensed, sensed]))
-        frame = counts_of(self.filter.output[:AXES], self.lsb_per_g)
+        frame = counts_of(self.filter.output[:AXES], self.lsb_per_g, self.word_shift, self.low_bits)
         for _ in range(MAX_EVENTS_PER_STEP):
             frame_at, tick_at = self._frame_time(), self._tick_time()
             if min(frame_at, tick_at) > t_s + TIME_EPS_S:
@@ -320,12 +325,14 @@ def rows(messages: Sequence[Tuple[float, bytes]]) -> List[Dict[str, Any]]:
     return out
 
 
-def samples_g(accel_rows: Sequence[Dict[str, Any]], counts_per_g: float, app: str = "last") -> np.ndarray:
+def samples_g(accel_rows: Sequence[Dict[str, Any]], counts_per_g: float, app: str = "last", *,
+              padding_bits: int = LEFT_SHIFT) -> np.ndarray:
     """Every sample in the rows, in g, one row per sample. Stock frames have four padding bits (BMA253DS:841).
-    The mean app uses those bits for the fractional part of the tick average. Each row's three samples are 10 ms apart, the last at the row's time."""
+    Use padding_bits=2 for the recorded unit 3 cube. The mean app uses those bits for the fractional part of the tick average. Each row's three samples are 10 ms apart, the last at the row's time."""
     assert counts_per_g > 0.0, "counts per g must be positive"
     assert app in APPS, "unknown cube app"
-    shift = LEFT_SHIFT if app == "last" else 0
+    assert isinstance(padding_bits, int) and 0 <= padding_bits < 16
+    shift = padding_bits if app == "last" else 0
     out = []
     for row in accel_rows:
         raw = row["raw"]

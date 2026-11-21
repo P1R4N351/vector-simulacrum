@@ -1,0 +1,7 @@
+capture,format,axis_words,observed_format_coverage,residue_TV_distance,stationary_scatter_rmse_mg,stationary_mean_norm_mg
+resting,Original,5787,0.0,1.0,0.26,970.709
+resting,Unit 3,5787,1.0,0.0138,0.232,970.709
+undock-check,Original,2277,0.0,1.0,0.748,970.603
+undock-check,Unit 3,2277,1.0,0.0167,0.789,970.603
+pickup,Original,11781,0.0,1.0,0.272,970.969
+pickup,Unit 3,11781,1.0,0.0166,0.248,970.969
