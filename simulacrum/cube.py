@@ -153,6 +153,21 @@ def engine_samples(payload: bytes) -> np.ndarray:
     return slots.astype(np.float32) / 32767 * 4 * 9810
 
 
+class TapListener:
+    """Packet-level ObjectTapped candidates before engine tap grouping or SDK delivery."""
+
+    def __init__(self) -> None:
+        self.previous: Optional[int] = None
+        self.events: List[float] = []
+
+    def receive(self, t_s: float, payload: bytes) -> None:
+        assert len(payload) == 20 and payload[0] == COMMAND_ACCEL
+        count = payload[1]
+        if self.previous is not None and count != self.previous:
+            self.events.append(t_s)
+        self.previous = count
+
+
 class MovementListener:
     """Hardware movement listener before the engine's carrying/docking broadcast checks."""
 
@@ -236,6 +251,7 @@ class CubeAccelerometer:
         self.fifo: List[List[int]] = []
         self.dropped = 0
         self.app = CubeApp(self.app_kind)
+        self.taps = TapListener()
         self.up_axis = UpAxisListener()
         self.movement = MovementListener()
         # Event times are counted, not summed: ten 2 ms steps summed come to 0.020000000000000004 s and would
@@ -282,7 +298,9 @@ class CubeAccelerometer:
     def _tick(self, t_s: float) -> None:
         self.app.tick(t_s, self.fifo)
         if self.app.slot == 0:
-            for accel in engine_samples(self.app.messages[-1][1]):
+            payload = self.app.messages[-1][1]
+            self.taps.receive(t_s, payload)
+            for accel in engine_samples(payload):
                 self.up_axis.update(t_s, accel)
                 self.movement.update(t_s, accel)
         self.fifo = []

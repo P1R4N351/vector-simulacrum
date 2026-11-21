@@ -290,6 +290,22 @@ class SpinWithTheCube(unittest.TestCase):
                         % (miss.round(1).tolist(), error_mm.round(1).tolist()))
 
 
+class TapListenerTests(unittest.TestCase):
+    def test_first_count_jump_wrap_and_repeat(self):
+        listener = cube.TapListener()
+        for t, count in enumerate([249, 249, 255, 0, 0, 1]):
+            listener.receive(t, cube.packet(count, [[0, 0, 0]] * 3))
+        self.assertEqual(listener.events, [2, 3, 5])
+
+    def test_packet_stream_and_reset(self):
+        chip = run(OPEN, .9, lambda n: [0, 0, 2 if (n//20)%2 else -2])
+        expected = [t for (_, a), (t, b) in zip(chip.messages, chip.messages[1:]) if a[1] != b[1]]
+        self.assertTrue(expected)
+        self.assertEqual(chip.taps.events, expected)
+        chip.reset(np.array([0, 0, 1]), 0.)
+        self.assertEqual(chip.taps.events, [])
+
+
 class MovementTests(unittest.TestCase):
     def test_threshold_and_hysteresis(self):
         listener = cube.MovementListener()

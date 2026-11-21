@@ -37,3 +37,13 @@ A receiver-clock model fitted only to the resting capture advances by 30 ms per 
 In the pickup record, one delivery gap runs from 196 ms before the first turn command to 76 ms after it. Another spans 1.028–1.279 s after that command, during the return turn. The packets carry no per-sample sequence numbers or hardware timestamps. These recordings cannot distinguish skipped, stalled or delayed sampling from missing notifications. The simulator's internal chip clock is therefore unchanged.
 
 [Robot and pod timelines](packet-cadence.png) · [Held-out scores](packet-cadence.csv) · [Analysis](packet_cadence.py)
+
+### What the cube told the SDK
+
+The simulator now exposes packet-level tap candidates as `sim.cube.taps.events`. It initializes the counter from the first packet and produces one candidate per changed counter, including counter wrap. Reset clears its history. This follows the [stock engine packet handler](https://github.com/kercre123/victor/blob/snowboy/engine/components/cubes/cubeAccelComponent.cpp).
+
+In the pickup recording, all eight packet tap candidates preceded one SDK tap each in the same order. SDK receipt followed packet receipt by 127–193 ms. No up-axis change was predicted or reported. The SDK reported one stop, 21 ms after the final simulated listener stop. Two listener starts and an earlier stop had no SDK counterpart. The engine checks whether it is docking with or carrying the object when deciding which movements to broadcast. The capture lacks that internal docking state, so it cannot establish the exact reason for each omitted event.
+
+These comparisons condition on real incoming packets. They validate decoding and event handling in this run. They do not show that simulated impacts yet produce the correct tap counts. The timestamps in the simulator are packet-level and exclude SDK delivery latency.
+
+[Physical SDK events](sdk-cube-events.csv) · [Paired timeline](event-replay.png) · [Replay](replay_events.py) · [Event times](event-replay.csv)
