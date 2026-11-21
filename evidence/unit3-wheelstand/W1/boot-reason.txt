@@ -1,0 +1,2 @@
+Mar 02 01:56:11 Vector kernel: qcom,qpnp-power-on qpnp-power-on-1: PMIC@SID0 Power-on reason: Triggered from SMPL (sudden momentary power loss) and 'cold' boot
+Mar 02 01:56:11 Vector kernel: qcom,qpnp-power-on qpnp-power-on-1: PMIC@SID0: Power-off reason: Triggered from UVLO (Under Voltage Lock Out)
