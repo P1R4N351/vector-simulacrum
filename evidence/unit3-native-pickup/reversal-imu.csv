@@ -1,0 +1,19 @@
+trial,physical_condition,channel,prediction,rmse
+3,loaded,Acceleration X (mm/s²),Empty model,534.3969212260276
+3,loaded,Acceleration X (mm/s²),50 g model,510.5718759677439
+3,loaded,Acceleration X (mm/s²),Constant baseline,452.8194198095999
+3,loaded,Pitch rate Y (°/s),Empty model,2.1083901449023537
+3,loaded,Pitch rate Y (°/s),50 g model,2.1479215580924023
+3,loaded,Pitch rate Y (°/s),Constant baseline,2.1345869896256806
+3,empty,Acceleration X (mm/s²),Empty model,601.079932005477
+3,empty,Acceleration X (mm/s²),50 g model,525.4858029346818
+3,empty,Acceleration X (mm/s²),Constant baseline,486.4549281084022
+3,empty,Pitch rate Y (°/s),Empty model,5.466066537678623
+3,empty,Pitch rate Y (°/s),50 g model,5.5103264681919315
+3,empty,Pitch rate Y (°/s),Constant baseline,5.515904883739147
+4,loaded,Acceleration X (mm/s²),Empty model,140.39754196113935
+4,loaded,Acceleration X (mm/s²),50 g model,144.39453364480374
+4,loaded,Acceleration X (mm/s²),Constant baseline,160.50010537295756
+4,loaded,Pitch rate Y (°/s),Empty model,0.5471359182432676
+4,loaded,Pitch rate Y (°/s),50 g model,0.5339456948720944
+4,loaded,Pitch rate Y (°/s),Constant baseline,0.544214034880795

@@ -42,3 +42,11 @@ The replay uses nominal cube placement even for the improperly engaged carry. It
 ![Measured head gyro Z versus paired simulations for every action](replay-carry.png)
 
 [Per-action errors](replay-carry.csv) · [Replay script](replay_carry.py). Run the script in the repository's MuJoCo Python environment.
+
+### Head IMU through rapid reversals
+
+The pitch-rate and fore–aft acceleration comparison keeps trial 3's improper engagement separate from the other carry. Both replay conditions include the preceding turn pair. The model's head IMU filter runs at each physics step. Each trace subtracts its own median in the 0.2 seconds before the first reverse command. Vertical lines show subsequent direction changes. A constant pre-command baseline provides a comparison for how much of the transient the model predicts.
+
+For the improperly engaged carry, the nominal loaded replay's pitch-rate RMSE was 2.15°/s against 2.13°/s for a constant baseline. Head X acceleration RMSE was 511 versus 453 mm/s². On trial 4, the same replay gave 0.53 versus 0.54°/s and 144 versus 161 mm/s². A usable grip model must also explain the cube's motion relative to the fork. Head IMU alone cannot measure it. These short traces have SDK receipt-time and sampling uncertainty.
+
+[Reversal IMU overlays](reversal-imu.png) · [Errors and constant-baseline controls](reversal-imu.csv) · [Replay](replay_reversals.py)
