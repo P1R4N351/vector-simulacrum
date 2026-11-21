@@ -105,3 +105,15 @@ The 23 mm top marker is registered to the simulated initial cube pose using its 
 The optical models have systematic errors larger than the clearance of interest. On nine settled frames after 9 s, shelf-constrained models put the cube 25.1–25.6 mm right, close to the earlier planar overhead estimate of 26.7 mm right, but 11.0–12.5 mm forward versus 5.2 mm in that estimate. The latter comparison uses the same camera. At 6 s the unconstrained reconstructions place the center below its initial height despite the tilt, while enforcing shelf contact raises the pixel residual to 6.3–11.7 px RMS. The robust observation is the sideways component already present at peak lift. These data cannot identify a submillimetre contact, justify a material change, or validate the late reconstructed pose.
 
 Run `python optical_clearance.py ../.. /tmp/p2y8-fork.xml`. [Raised-frame solutions](optical-clearance.csv) · [Settled-position cross-check](optical-endpoint.csv)
+
+## Checking the top-marker reconstruction against the onboard front stripe
+
+The fork obscures much of the cube during the raise. A straight portion of the front glyph becomes visible above it in two onboard frames. Its image angle changes from +0.75° before the lift to −39.25° raised and −33.75° during lowering (image rows increase downward). These are projected stripe angles, not physical roll angles.
+
+![Independent onboard stripe measurements](front-edge/overlay.png)
+
+We projected a 23 mm front edge from each of the four previously reconstructed overhead poses through P2Y8’s shelf-corrected camera transform. The raised frame was excluded from the pose fits. With the calibrated See3CAM lens and shelf support, the predicted angle was −36.43° (2.82° residual); the pinhole alternatives predicted about −19.8°. During lowering, the calibrated lens predicted −29.43° freely and −41.73° with shelf support; the pinhole alternatives predicted about −16°. The calibrated lens therefore matches this independent projected orientation better at both sampled poses. Angle agreement alone cannot validate cube translation, ground support or fork–rubber contact.
+
+The physical angles come from the strongest Hough line in manually selected rectangular stripe regions of native onboard crops; the line slope is unconstrained. For time pairing we applied the earlier 0.232 s onboard receipt offset and chose the closest available overhead pick. Residual frame-time differences were 118 ms raised and 69 ms lowering. Motion during those intervals limits the precision of this comparison.
+
+Run `python front_edge.py ../.. /tmp/p2y8-fork.xml`. [Onboard measurements, overhead times and projection variants](front-edge/angles.csv)
