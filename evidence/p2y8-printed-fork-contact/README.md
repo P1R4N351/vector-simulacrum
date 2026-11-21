@@ -83,3 +83,13 @@ With −1.5° held throughout all five replays, the simulated right edge of tria
 ![Physical edge-height bounds and wrist roll replays](wrist-roll.png)
 
 Run `python ../p2y8-fork-silhouette/crossbar_roll.py` and `python wrist_roll.py ../.. /tmp/p2y8-fork.xml` from this directory. [All 35 replays](wrist-roll.csv)
+
+## The fork separates at peak lift and makes contact again on descent
+
+The earlier positive-impulse comparison counted upward support only. At 5.50 s (65.50 mm lift), there are zero fork contacts and the minimum fork gaps to the right and left rubber corners are 3.26 and 3.27 mm. At 6.00 s the lift has already descended to 44.86 mm: four contacts exert a net **0.37 N downward** force on the cube. The rubber surfaces overlap by 0.01–0.02 mm in the compliant solver. This distinguishes losing upward support from losing all contact. The physical camera still shows the right marker edge higher in both frames.
+
+![Signed fork separation and vertical force through the lift](clearance.png)
+
+As a geometric sensitivity check we rotated the simulated cube right-edge-up about the midpoint of its left bottom edge at the sampled times. At 5.50 s the minimum gap anywhere on the fork was 3.05 mm for a 20° tilt and 1.97 mm for a 35° tilt. At 6.00 s both tilted poses came within 0.13 mm of the fork. These prescribed snapshots use the replay's horizontal placement and an assumed pivot. They are not reconstructed physical poses or dynamic predictions. A correction that supplies grip only on descent would still miss the earlier lifted frame.
+
+Run `python clearance.py ../.. /tmp/p2y8-fork.xml`. The calculation queries signed distances between all 58 fork and 62 cube collision pieces and groups the closest witness points by side and material. [Distances, nearest pieces and witness positions](clearance.csv)
