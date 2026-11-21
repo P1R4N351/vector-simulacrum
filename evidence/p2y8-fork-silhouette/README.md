@@ -12,3 +12,20 @@ The physical fork's lower edge is at native image row 272 in trial 5 and 259 in 
 The effective camera correction covers one head angle and includes chassis pitch relative to the shelf. All observations are from the same session. Distortion, a printed fork with different geometry, wrist pose and the head mount remain confounded. A second head angle or an independent side view with fork and rigid chassis landmarks would help distinguish them. The baseline physics and global camera mount remain unchanged.
 
 Run geometry.py for the crop overlays, shelf.py for the stationary-cube and camera-only checks, and contact.py REPO_PATH REGISTERED_XML for the ten contact simulations. The fixture construction is documented in the adjacent printed-fork study.
+
+## Can the apparent crossbar thickness identify an extra 2 mm of reach?
+
+For each of the two raised-fork crops, we adjusted modeled wrist height until the projected lower edge matched the measured lower edge to one native pixel. We then scored the **upper** edge, which was excluded from that adjustment. This conditions on a visible landmark despite the known lift-height discrepancy. The fitted height is a nuisance parameter. Neither cube travel nor cube depth enters the edge score.
+
+| Camera pose and trial | Upper-edge error at nominal reach | Upper-edge error at +2 mm |
+|---|---:|---:|
+| Original, trial 4 | 16 px | 8 px |
+| Original, trial 5 | 9 px | 14 px |
+| Shelf-calibrated, trial 4 | 26 px | 2 px |
+| Shelf-calibrated, trial 5 | 20 px | 4 px |
+
+These are absolute errors using the half-intensity crossing. With the camera correction previously fitted to stationary cube views on trials 1–2, both crops favor the extended reach at all three tested intensity thresholds (35%, 50%, 65%). With the original camera pose the preference changes with frame or threshold. Trial 4 was moving near the exposure; trial 5 had a stable recorded pose. Both observations cover the raised fork. Tilt and crossbar thickness of the actual print still trade off against reach, and the fitted wrist heights differ from telemetry. This supports testing the offset for P2Y8 but cannot establish the reach of his lowered fork.
+
+![Two registered contours on the original optical model](reach-silhouette.png)
+
+Reproduce with `python reach_silhouette.py` alongside the existing SDK mesh and camera assets. [All edge picks and model predictions](reach-silhouette.csv)
