@@ -29,6 +29,7 @@ parser.add_argument('--pad-shelf-ms',type=float,help='Test rubber-to-table conta
 parser.add_argument('--summary-only',action='store_true',help='Print replay metrics and skip plots and files')
 parser.add_argument('--slide-summary',action='store_true',help='Append settled planar cube travel to summary-only rows')
 parser.add_argument('--camera-trace',type=Path,help='Record replay motion at the original E overhead capture times')
+parser.add_argument('--camera-offset-ms',type=float,default=0.,help='Sample replay this many milliseconds after each camera receipt')
 args=parser.parse_args()
 if args.slide_summary and not args.summary_only:
     parser.error('--slide-summary requires --summary-only')
@@ -158,8 +159,9 @@ def replay(dx,dy):
         cam=np.genfromtxt(out/'onset-camera.csv',delimiter=',',names=True)
         xy=np.asarray(centers)
         for t in cam['receipt_s']:
-            if times[0]<=t<=times[-1]:
-                j=np.searchsorted(times,t)
+            sample_time=t+args.camera_offset_ms*.001
+            if times[0]<=sample_time<=times[-1]:
+                j=np.searchsorted(times,sample_time)
                 camera_rows.append([dx,dy,t,1000*np.linalg.norm(xy[j]-xy[0]),a[j]-a[0]])
     def settled(lo,hi):
         return np.median(a[(times>=lo)&(times<=hi)])
