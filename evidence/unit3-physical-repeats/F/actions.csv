@@ -1,0 +1,10 @@
+receipt_s,event,action,trial,reported_carry
+-34.87664,begin,connect on dock,,
+-0.00027,end,connect on dock,,
+0.0,begin,undock,,
+15.62956,end,undock,,
+15.62981,begin,standoff,,
+17.62147,end,standoff,,
+17.6218,begin,look,,
+18.61031,end,look,,
+19.1612,begin,look,,
