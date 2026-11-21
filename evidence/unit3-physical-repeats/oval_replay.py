@@ -20,6 +20,7 @@ observation=next(csv.DictReader((out/'object-events.csv').open()))
 v=params.values(params.load(model='vector_2'))
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--printed-fixture',type=Path,help='XML from unit3-printed-fork-contact/build_fixture.py')
+parser.add_argument('--export-force',type=Path,help='Save the nominal pre-filter cube acceleration for a sensor-only replay')
 args=parser.parse_args()
 scene=ET.fromstring(mjcf.build_mjcf(v,(),cube='free'))
 prefix='first-contact'
@@ -76,6 +77,7 @@ def replay(dx,dy):
     d.qpos[root:root+2]=(center+[dx,dy])/1000
     d.qpos[root+3:root+7]=[np.cos(angle/2),0,0,np.sin(angle/2)]
     first=None;overlap=0.;trace=[]
+    forces=[]
     chip=CubeAccelerometer(v,dt,seed=17)
     for i,t in enumerate(times):
         d.qpos[:root]=path[i,:root]
@@ -83,7 +85,10 @@ def replay(dx,dy):
         d.ctrl[model.actuator('head').id]=path[i,joint('head_joint')]
         d.ctrl[model.actuator('lift').id]=lift[i]
         mj.mj_step(model,d)
-        chip.step((i+1)*dt,d.sensor('cube_accel').data/(v['gravity_mmps2']*.001))
+        force_g=d.sensor('cube_accel').data/(v['gravity_mmps2']*.001)
+        if args.export_force and dx==dy==0:
+            forces.append(force_g)
+        chip.step((i+1)*dt,force_g)
         for c in d.contact:
             a,b=model.geom_bodyid[c.geom]
             if cube_body in (a,b) and 0 not in (a,b):
@@ -101,6 +106,8 @@ def replay(dx,dy):
     peak=max(np.linalg.norm(np.frombuffer(p[2:],dtype='<i2').reshape(3,3)/8192,axis=1).max() for p in packets)
     taps=[t+times[0] for t in chip.taps.events if abs(t+times[0]-50.97782)<1]
     if dx==dy==0:
+        if args.export_force:
+            np.savez_compressed(args.export_force,forces=forces,start=times[0],dt=dt)
         observed=np.genfromtxt(out/'cube.csv.gz',delimiter=',',names=True)
         g=np.linalg.norm([observed[k] for k in ('x_counts','y_counts','z_counts')],axis=0)/8192
         fig,ax=plt.subplots(figsize=(8,3.4),layout='constrained')

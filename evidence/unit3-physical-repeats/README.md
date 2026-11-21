@@ -86,3 +86,16 @@ Replacing the three collision boxes with the registered 58-piece forks7 mesh rai
 The comparison retains fork inertia, contact material, prescribed trajectory, cube, and sensor seed and phase. To reproduce, run the default replay, then run it with `--printed-fixture` pointing to the output of [the printed-fork fixture builder](../unit3-printed-fork-contact/build_fixture.py). Only the convex mesh assets are imported into the normal Vector 2 scene.
 
 [Geometry comparison](E/fork-transfer.png) · [Printed-fork accelerometer overlay](E/printed-contact-force.png) · [Results for all placements](E/printed-contact-replay.csv)
+
+### Could the cube's sampling phase explain the peak?
+
+At the nominal SDK cube pose, each fork generated one fixed 1 ms physical trajectory. We passed each trajectory through the existing cube accelerometer, firmware packetizer and tap listener 80 times. Frame phases covered 0–1.5 ms and app tick phases covered 0–9.5 ms, both in 0.5 ms steps, with the same noise seed. Phase zero reproduced both previously published nominal peaks and tap counts. In the two-second physical comparison window the recorder captured 60 packets and a maximum magnitude of 1.078 g.
+
+| Collider | Range of simulated packet peaks | Tap candidates across the 80 phase combinations |
+|---|---:|---|
+| Three boxes | 1.505–2.301 g | One in 40 combinations, two in 40 |
+| Printed fork | 1.489–2.729 g | Two in all 80 |
+
+Sampling phase affects the apparent peak substantially. Even the lowest printed-fork result was 38% above the recorded peak, and the cube's real tap counter incremented once. Host packet receipt had a 280 ms gap starting at 50.950 s; the on-robot monitor had a 260 ms gap between those same two receipts. The recording therefore bounds the delivered peaks, not the continuous physical maximum. Packet loss cannot be inferred from that gap alone. This sweep holds the app and its clock periods fixed; it measures phase sensitivity for this contact only.
+
+[Sampling phase overlay](E/phase-sweep.png) · [All phase combinations](E/phase-sweep.csv). To reproduce, run each version of the first-contact replay with `--export-force` and pass the resulting two NPZ files (boxes first) to `contact_phase.py`.
