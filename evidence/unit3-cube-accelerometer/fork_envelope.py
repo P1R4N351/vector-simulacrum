@@ -33,13 +33,17 @@ def forward_map(triangles, y, z):
     return depth
 
 
-def main(stl, fixture):
+def registered_fork(stl):
     record = np.dtype([("normal","<f4",3), ("tri","<f4",(3,3)), ("attribute","<u2")])
     xyz = np.frombuffer(stl.read_bytes(), dtype=record, offset=84)["tri"].astype(float)
     x,y,z = xyz.transpose(2,0,1)
     v = params.values(params.load(model="vector_2"))
-    source = np.stack((-z+v["lift_front_wrt_wrist_mm"]-26.52, -x-48.01,
+    return np.stack((-z+v["lift_front_wrt_wrist_mm"]-26.52, -x-48.01,
                        y+v["lift_xbar_top_wrt_wrist_mm"]-v["lift_xbar_height_mm"]+36.79), axis=-1)
+
+
+def main(stl, fixture):
+    source = registered_fork(stl)
     tree = ET.parse(fixture)
     meshes = {m.get("name"):m for m in tree.findall(".//asset/mesh")}
     pieces = []

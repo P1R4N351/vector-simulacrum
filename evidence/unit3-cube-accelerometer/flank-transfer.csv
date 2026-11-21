@@ -1,0 +1,10 @@
+fork_dx_mm,initialization,slide_2p86_mm,yaw_change_deg,max_center_mm,held_floor_fraction
+0,Before command,30.528,-11.769,22.686,1.0
+0,Last sighting,30.421,-10.641,22.613,1.0
+0,Last sighting + pitch,30.654,-8.792,22.356,1.0
+-2,Before command,28.79,-9.75,22.637,1.0
+-2,Last sighting,28.84,-6.148,22.644,1.0
+-2,Last sighting + pitch,28.723,-8.607,22.427,1.0
+2,Before command,32.554,-10.808,22.285,1.0
+2,Last sighting,32.371,-10.24,22.358,1.0
+2,Last sighting + pitch,32.652,-8.347,22.273,1.0
