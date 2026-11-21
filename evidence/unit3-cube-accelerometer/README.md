@@ -82,3 +82,13 @@ Four cube yaw orientations and nine horizontal placements per yaw cover a ±3 mm
 [Free-cube tilt and recorded apparent tilt](free-placement.png) · [Initial overlaps, drop and first shelf contact](free-placement.csv) · [No-overlap seating check](free-seating.csv) · [Replay](free_placement.py). Generate the fixture using the [printed-fork instructions](../unit3-printed-fork-contact/README.md) and run `python free_placement.py /path/to/fork.xml` with the viewer's link assets installed.
 
 In the second check each cube was lifted vertically in 1 mm increments to the first collision-free pose and released above the stationary fork. Of 36 releases, two stayed off the shelf for 400 ms. Both settled around 9° tilt and 9.4–9.5 mm above the nominal center. Thus the tested geometry can provide transient support without a latch, while these placements still miss the approximately 32° observed carry. A single static hold does not establish stability during lowering.
+
+### Acquisition from the shelf
+
+The free-cube replay now starts before the pickup command. It drives the printed fork and moving rails with the SDK chassis XY, yaw and lift trajectory. The cube starts upright on the shelf with center XY and heading from a camera sighting in the same odometry origin. Two initializations use the last sighting before the command and the final sighting at +2.06 s before simulated contact. A third applies recorded chassis pitch about the modeled front axle. The cube and wrist never have a linking constraint.
+
+All three runs make fork or rail contact at +2.17 s. By +6.5 s they have slid the cube 31.9–32.1 mm horizontally. The center stays within 0.55 mm of its settled shelf height during the entire replay. The last sampled contact in the raise is +3.16–3.18 s; the physical cube is visibly airborne at +3.65 s. For the level last-sighting run, the simulated cube is flat on the shelf throughout the 6.5–8.3 s physical hold.
+
+The failure occurs between initial contact and capture. Changing between these camera sightings and including SDK pitch leaves the outcome unchanged. All three use the same assumed fork surface and cube shape. The SDK sightings are correlated, so these runs cannot eliminate a shared position error or identify the contacting features on hardware.
+
+[Simulated center height and tilt over the real acquisition](free-pickup.png) · [Contact and displacement traces](free-pickup.csv) · [Robot path](pickup-path.csv) · [Camera poses](pickup-sightings.csv) · [Replay script](free_pickup.py). Use the same printed-fork fixture as the support test.
