@@ -72,3 +72,13 @@ A clipped ramp fitted only to the raise and the settled held angle gives 16.9° 
 Shifting the relative lift clock by ±100 ms changed the geometry prediction's placement error to 8.7–14.2° at the two endpoints. This single recorded placement helps distinguish hypotheses but does not verify deployment accuracy. The published simulator grip is unchanged.
 
 [Raise and lower traces](lift-cycle.png) · [Eight overhead exposures with reported wrist heights](lift-cycle-frames.jpg) · [Timing sensitivity](lift-cycle.csv) · [Analysis](lift_cycle.py)
+
+### Does free contact support the tilted carry?
+
+The 50 g cube starts at the SDK carry offset with the tilt estimated from the stationary pre-turn accelerometer. The solver has gravity, the rubber-corner and plastic-shell cube contacts, 58 convex printed-fork components and the articulated upper/lower rails. Only the wrist and rails follow a prescribed path. The free cube has no constraint. The wrist holds still for 400 ms, then follows recorded placement lift heights with a fixed chassis. This is a support and release test; the actual pickup could have entered a different contact configuration.
+
+Four cube yaw orientations and nine horizontal placements per yaw cover a ±3 mm square around the nominal offset. At 24 of the 36 starting poses, the cube touched the shelf before the wrist began lowering. Every one of the six initially non-overlapping poses fell in about 98 ms. All 12 poses still airborne at the command had started with collision overlap. Treating those as successful grips would hide an initialization artifact. The source fork STL remains a proxy for the printed part installed on this robot.
+
+[Free-cube tilt and recorded apparent tilt](free-placement.png) · [Initial overlaps, drop and first shelf contact](free-placement.csv) · [No-overlap seating check](free-seating.csv) · [Replay](free_placement.py). Generate the fixture using the [printed-fork instructions](../unit3-printed-fork-contact/README.md) and run `python free_placement.py /path/to/fork.xml` with the viewer's link assets installed.
+
+In the second check each cube was lifted vertically in 1 mm increments to the first collision-free pose and released above the stationary fork. Of 36 releases, two stayed off the shelf for 400 ms. Both settled around 9° tilt and 9.4–9.5 mm above the nominal center. Thus the tested geometry can provide transient support without a latch, while these placements still miss the approximately 32° observed carry. A single static hold does not establish stability during lowering.
