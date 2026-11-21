@@ -15,6 +15,7 @@ sys.path[:0]=[str(repo),str(here.parent/"unit3-printed-fork-contact")]
 from replay_links import add_links,rail_paths
 from simulacrum import params
 from decode import decode
+from pickup_support import contact_load, save as save_support
 
 
 def main():
@@ -27,7 +28,11 @@ def main():
     assert np.all(path['origin_id']==sights[0]['origin_id'])
     v=params.values(params.load(model="vector_2"))
     t=np.arange(-.3,13.1,m.opt.timestep)
-    x,y,yaw,lift=[np.interp(t,path['time_s'],path[k]) for k in ('x_mm','y_mm','yaw_rad','lift_mm')]
+    pose_clock=path['time_s'].copy()
+    smooth_receipt='--smooth-receipt' in sys.argv[2:]
+    if smooth_receipt:
+        pose_clock[1:-1]=(pose_clock[:-2]+2*pose_clock[1:-1]+pose_clock[2:])/4
+    x,y,yaw,lift=[np.interp(t,pose_clock,path[k]) for k in ('x_mm','y_mm','yaw_rad','lift_mm')]
     bx,_,bz=v['lift_base_position_mm']
     reach=bx+np.sqrt(v['lift_arm_length_mm']**2-(lift-bz)**2)
     wrist=.001*np.column_stack([x+reach*np.cos(yaw),y+reach*np.sin(yaw),lift])
@@ -35,6 +40,7 @@ def main():
     rails,railq=rail_paths(repo,x,y,yaw,lift)
     f=m.body('fork').mocapid[0]
     ids=[m.body(f'rail{i}').mocapid[0] for i in range(2)]
+    support=[]
     headings=[]
     output=[]
     fig,axes=plt.subplots(2,1,figsize=(9,6),sharex=True)
@@ -45,7 +51,7 @@ def main():
         link_rot=railq
         if label.endswith("+ pitch"):
             # SDK positive pitch raises the nose, about the transverse drive axle.
-            pitch=np.interp(t,path['time_s'],path['pitch_rad'])
+            pitch=np.interp(t,pose_clock,path['pitch_rad'])
             angle=Rotation.from_rotvec(np.column_stack([np.sin(yaw)*pitch,-np.cos(yaw)*pitch,np.zeros_like(t)]))
             axis=.001*np.column_stack([x,y,np.full_like(t,v["wheel_front_radius_mm"])])
             paths=axis+angle.apply(wrist-axis)
@@ -61,12 +67,20 @@ def main():
         since_contact=None
         floor=m.geom('table').id
         cubegeoms={g for g in range(m.ngeom) if m.geom_bodyid[g]==m.body('cube').id}
+        window=[]
+        cube=m.body('cube').id
+        weight=m.body_mass[cube]*np.linalg.norm(m.opt.gravity)
         for i,clock in enumerate(t):
             d.mocap_pos[f]=paths[i]
             d.mocap_quat[f]=orientations[i]
             d.mocap_pos[ids]=pivots[i]
             d.mocap_quat[ids]=link_rot[i]
             mj.mj_step(m,d)
+            if 1.99 <= clock <= 3.61:
+                window.append(contact_load(m,d,cube,floor,m.body('fork').id)/weight)
+                if len(window)==10:
+                    support.append([label,round(clock,4),round(lift[i],3),*np.mean(window,axis=0).round(5)])
+                    window.clear()
             pairs=[c.geom for c in d.contact if any(g in cubegeoms for g in c.geom)]
             floor_contact=any(floor in pair for pair in pairs)
             fork_contact=any(floor not in pair for pair in pairs)
@@ -86,6 +100,10 @@ def main():
         output.extend([[label,*row] for row in sample])
         high=(a[:,0]>6.5)&(a[:,0]<8.3)
         print(label,'first contact',since_contact,'max center height',a[:,1].max(),'held pose',np.median(a[high,1:3],axis=0),'floor fraction',a[high,3].mean())
+    if smooth_receipt:
+        save_support(here,support,stem='pickup-support-smoothed')
+        return
+    save_support(here,support)
     with (here/'shelf-yaw-sim.csv').open('w') as fobj:
         w=csv.writer(fobj,lineterminator='\n')
         w.writerow(['initialization','time_s','yaw_change_deg'])

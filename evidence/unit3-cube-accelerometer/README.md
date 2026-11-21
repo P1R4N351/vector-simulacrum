@@ -110,3 +110,13 @@ At +2.59 s the real cube had turned 7.6° clockwise. The three frozen replays ga
 A [nine-pose sensitivity check](shelf-yaw-sensitivity.csv) varied the initial cube heading from −8° to +8° in 2° increments around the last sighting, keeping the recorded pitch and fork trajectory fixed. Every run ended the physical carry interval with the simulated cube on the shelf (22.15 mm center height). The −6° case brought travel closer to the camera (28.7 vs 27.2 mm) but still under-rotated (9.2 vs 13.6°). At −8° the simulated spin reversed direction. These cases test sensitivity within this pickup only. No parameter was adopted.
 
 Run free_pickup.py with the printed-fork fixture, then shelf_yaw.py to reproduce the [simulated rotations](shelf-yaw-sim.csv) and [four-edge measurements](shelf-yaw-camera.csv).
+
+### Load on the cube at pickup
+
+![Simulated fork, shelf loads and recorded wrist height](pickup-support.png)
+
+Before the wrist rose, the simulated fork pressed the cube into the shelf. From +2.17 to +2.86 s the shelf carried a median 1.28–1.35 cube weights across the three replays. Both the plastic shell and rubber corners took downward force on average. The lower links contributed zero resolved vertical load. During the early raise (+2.86 to +3.18 s) the largest 10 ms mean upward fork load in each replay was only 0.22–0.26 cube weights. The real cube was visibly airborne by +3.65 s. These are simulated contact forces; the cube accelerometer measures net specific force and cannot separate a downward fork force from the opposing shelf reaction.
+
+The extreme 21-weight shelf spike in the pitch replay coincides with 3.11 mm of reported chassis travel between host timestamps just 17.6 ms apart. As a sensitivity check we preserved every measured pose, replacing each interior receipt timestamp with a weighted average of itself (1/2) and its two neighbors (1/4 each). In that replay peak shelf load fell to 1.84 weights. All three smoothed replays still left the cube on the shelf throughout the recorded carry interval. This demonstrates sensitivity of peak contact loads to input timing; absolute peak force is unvalidated.
+
+Run free_pickup.py with the same fixture and optionally append `--smooth-receipt`. The [original loads](pickup-support.csv) and [timing sensitivity](pickup-support-smoothed.csv) use consecutive 10 ms windows. Upward force is positive and all force columns are divided by cube weight. The last column averages the magnitude of the horizontal resultant from fork and links. Before first touch, shelf support equals one cube weight. Across the full plotted interval the summed mean vertical load also equals one weight to four decimal places for all three original runs.
