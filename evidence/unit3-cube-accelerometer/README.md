@@ -13,3 +13,17 @@ The radio recorder listened to the existing Bluetooth daemon socket, filtered no
 A separate docked baseline yielded 1,929 XYZ observations across 23.19 s. Mean magnitude was 0.971 g. On the first attempt the stream went stale during undocking and the robot returned to dock before pickup. Connecting after undocking obtained the movement recording. Disconnect was requested after placement. Notifications continued for a time after the request. The disposable cell reported at least 1.56 V across the recordings.
 
 [Three capture segments](cube-xyz.png) · [Socket listener](robot_packets.pl) · [Decoder](decode.py) · [Overlay generator](pickup_plot.py). Run `python decode.py resting.tsv undock-check.tsv pickup.tsv` followed by `python pickup_plot.py`.
+
+### Can the pre-turn cube orientation predict the turns?
+
+The wheel replay uses recorded shaft speeds, initial head and lift positions, the frozen 3.75 mm contact inset, a 50 g cube rigidly carried at the SDK offset, and the simulated cube chip and shipped packet encoder. All conditions see the same wheel inputs. The tilted case rotates the cube body about its center to align its pre-turn measured gravity direction with fork vertical, leaving scale and bias unchanged. Its orientation comes only from packets received 1.7 to 0.2 s before the first turn. Both turns are withheld from that estimate. They are from the same pickup.
+
+| Prediction | First turn, vector RMS error (g) | Return, vector RMS error (g) |
+| --- | ---: | ---: |
+| Level rigid carry | 0.572 | 0.556 |
+| Rigid carry at measured tilt | 0.228 | 0.151 |
+| Constant pre-turn reading | 0.130 | 0.054 |
+
+Errors use the Euclidean norm of the three-axis error for each packet mean, scored at host receipt time. Gravity does not specify yaw. Testing four quarter-turn orientations about vertical gave 0.194–0.246 g outward and 0.132–0.210 g on return. Each exceeded the constant baseline on its corresponding turn. Tilt accounts for much of the mean error; the rigid model still fails to predict the transient better than a constant. The simulation assumes chip position, grip and cube center. Relative grip motion, wheel interpolation and radio latency remain unresolved. These results do not justify a universal tilted mounting angle.
+
+[Packet overlay](turn-replay.png) · [Scores for all orientations](turn-replay.csv) · [Reproduce the comparison](replay_turns.py)
