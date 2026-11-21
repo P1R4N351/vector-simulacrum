@@ -47,3 +47,11 @@ Replaying E's captured packets through the frozen listeners recovered all four S
 After standoff, the quiet head-look windows in E and F gave physical X/Y/Z within-packet scatter of 1.99/2.34/2.80 and 2.03/2.21/2.80 mg. The frozen simulator gave 2.27/2.34/2.37 mg. It underestimated Z scatter by about 15% in both windows. Both observations use the same cube and shelf orientation. A second orientation would help distinguish an axis effect from vibration. The model parameters are unchanged.
 
 [Sensor and event comparison](oval-sensor-check.png) · [Event times](oval-event-check.csv) · [Held-out tap timing residuals](tap-receipt-transfer.csv) · [Reproduce](oval_sensor_check.py)
+
+### Which tap survived in the two close pairs?
+
+The original SDK payload carries the robot's own message timestamp. In A, both pairs of counter changes were **150 ms apart on robot uptime** (10 ms recorder resolution). The two SDK stamps fall **30 and 19 ms before the second change**, versus **120 and 131 ms after the first**. Across all twelve independently paired taps in pickup and E, stamp-minus-radio offsets range from −25 to +35 ms. The ordinary offset range supports matching A's two callbacks to the later changes. The earlier pickup also includes **two separate callbacks for changes 170 ms apart**. The previously measured 146 ms pod-receipt lag therefore must not be used as a tap suppression rule.
+
+The public [stock packet handler](https://github.com/kercre123/victor/blob/snowboy/engine/components/cubes/cubeAccelComponent.cpp) stamps a counter change with the latest robot message time. The [physical engine filter](https://github.com/kercre123/victor/blob/snowboy/engine/components/blockTapFilterComponent.cpp) starts a group at the first input, then releases its last payload on an engine update after the deadline. The source default is 75 ms. Substituting radio arrival times for engine arrival times and applying a punctual 75 ms timer would split both 150 ms pairs. The engine enqueue/update times and effective setting for these trials were not captured. A missing first callback remains possible. Keep the packet-level simulator behavior and published comparison distinct from an SDK event prediction.
+
+[Device-clock overlay](tap-clocks.png) · [Per-change timing](tap-clocks.csv) · [Original SDK tap stamps](sdk-tap-clocks.csv)
