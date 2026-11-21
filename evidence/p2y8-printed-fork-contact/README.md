@@ -154,3 +154,18 @@ Two overhead exposures at 5.264 and 5.747 s contain a readable top glyph missed 
 On trials 1–2 the approach fit gives a 232 ms lag from host receipt times and 236 ms from device capture intervals. Held-out approach RMS errors for trials 3–5 change from 0.94/3.00/0.89 mm to 1.22/2.78/0.57 mm. Neither clock consistently wins. The overhead timestamps still use the host request midpoint, so absolute shutter sync remains unknown. This timing change and the extra exposure leave the raised pose unresolved. Using this frame to fit rubber friction would confound projection and contact errors.
 
 [Recovered crops and controls](front-edge/recovered-marker.png) · [Stripe errors](front-edge/clock.png) · [All position scores](front-edge/clock-position.csv) · [Approach scores](front-edge/clock-travel.csv). Reproduce with the same arguments as front_edge.py using capture_clock.py.
+
+### Checking a second cube face within each overhead exposure
+
+The overhead camera also sees a white border on the vertical face away from the robot. We fit the four top glyph corners, then projected the upper border of the adjacent face through the same lens at the same exposure. No adjacent-face picks enter the pose fit. The measurement uses the dark-to-white gradient along the central straight section, rejecting picks more than 2 px from a robust line. The modeled edge is sampled at 25 points before lens distortion.
+
+| Median distance to reserved border, native overhead pixels | 5.498 s | 5.998 s |
+|---|---:|---:|
+| Calibrated lens, free pose | 3.2 | 4.3 |
+| Calibrated lens, lowest corner constrained to shelf | 6.8 | 15.4 |
+| Pinhole, free pose | 27.3 | 30.8 |
+| Pinhole, shelf constraint | 27.5 | 38.3 |
+
+The free calibrated pose transfers across cube faces within a few overhead pixels in both exposures. Forcing the bounding box onto the initial shelf plane worsens the second-face prediction, especially during lowering. This evidence favors the free pose for interpreting these overhead frames. It cannot independently establish world height or isolate the onboard camera mount error. The opposing camera sees a different face, at a different scale and exposure time.
+
+[Image overlays](front-edge/adjacent-face.png) · [Per-frame results](front-edge/adjacent-face.csv). Run `python adjacent_face.py ../.. /tmp/p2y8-fork.xml`.
