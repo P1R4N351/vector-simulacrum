@@ -7,3 +7,15 @@ Run S contains 22 real up-axis notifications covering all six codes. The log lac
 ![Physical notifications and separate simulated step response](up-axis.png)
 
 Reproduce with `python evidence/free-cube-sensors/up_axis.py`. The processing order comes from Anki's CubeAccelComponent, UpAxisChangedListener and LowPassFilterListener. [Stock engine source](https://github.com/kercre123/victor/tree/669ec7499a7084640b57706a7937884a6568be50/engine/components/cubes)
+
+## Movement start and stop
+
+The hardware engine filters successive accelerometer samples for changes, adds at most 500 to its score per sample, subtracts 300, and clips to 0–20,000. At the nominal 100 Hz sample rate, even a sustained maximum input needs 51 samples from zero to cross the strict 10,000 start threshold. Falling below 5,000 ends an episode. The simulator exposes the listener transitions as `sim.cube.movement.events` (packet time, moving boolean). The robot engine separately suppresses SDK broadcasts while carrying or docking with that cube.
+
+![Simulated movement scores for the five measured shelf trajectories](movement.png)
+
+Five printed-fork replays used the recorded chassis/lift paths, baseline fork reach and an accelerometer at the assumed cube center. Each simulated cube moved (2.83–5.93 mm net); none triggered the stock movement listener. The largest observed packet-end score was 8,763 on trial 5. The listener checks every slot. An episode could start within a packet even if its final score fell back below threshold. The CSV counts those transitions too.
+
+The overhead camera measured 5.16–27.23 mm across these same physical cycles. Their recordings lack synchronized cube packets or movement events, so they cannot validate whether the physical listener fired. A separate SDK recording, run S, contains 11 starts and 11 stops without a matched acceleration trace. Absence of a simulated notification therefore gives no basis for scoring a physical push as stationary.
+
+From the repo root run `python evidence/free-cube-sensors/movement.py . /tmp/p2y8-fork.xml` with the registered printed-fork fixture. [Numerical results](movement.csv)

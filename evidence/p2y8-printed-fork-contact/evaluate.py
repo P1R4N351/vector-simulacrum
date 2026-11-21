@@ -28,7 +28,7 @@ observed = np.genfromtxt(
 yaws = np.genfromtxt(here / "overhead-yaw.csv", names=True, delimiter=",")
 
 
-def run(key, observer=None, *, extra_reach_mm=0, wrist_pitch_deg=0):
+def run(key, observer=None, *, extra_reach_mm=0, wrist_pitch_deg=0, observer_stride=5):
     trial, geometry, heading, drive, depth, lateral, height = key[:7]
     xml = ET.parse(
         base / "fixture.xml" if geometry == "boxes" else Path(sys.argv[2]).resolve()
@@ -91,7 +91,7 @@ def run(key, observer=None, *, extra_reach_mm=0, wrist_pitch_deg=0):
         d.mocap_pos[0] = pos
         d.mocap_quat[0] = q[j]
         mj.mj_step(m, d)
-        if observer is not None and j % 5 == 0:
+        if observer is not None and j % observer_stride == 0:
             observer(m, d, t[j] - 1.5, l[j])
         if j % 20 == 0 or j == len(path) - 1:
             w, a, b, c = cube[3:]

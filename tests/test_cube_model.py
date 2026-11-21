@@ -290,6 +290,32 @@ class SpinWithTheCube(unittest.TestCase):
                         % (miss.round(1).tolist(), error_mm.round(1).tolist()))
 
 
+class MovementTests(unittest.TestCase):
+    def test_threshold_and_hysteresis(self):
+        listener = cube.MovementListener()
+        listener.update(0., np.zeros(3, dtype=np.float32))
+        for tick in range(1, 52):
+            accel = np.array([5000 * (-1)**tick, 0, 0], dtype=np.float32)
+            listener.update(tick / 100, accel)
+            if tick == 50:
+                self.assertEqual(listener.score, 10000.)
+                self.assertFalse(listener.moving)
+        self.assertEqual(listener.events, [(.51, True)])
+        for tick in range(52, 200):
+            listener.update(tick / 100, accel)
+        self.assertFalse(listener.moving)
+        self.assertEqual([state for _, state in listener.events], [True, False])
+
+    def test_packet_delivery_and_reset(self):
+        chip = run(OPEN, 1.2, lambda n: [(-1)**(n//10), 0, 1])
+        self.assertTrue(chip.movement.moving)
+        self.assertEqual(len(chip.movement.events), 1)
+        self.assertIn(chip.movement.events[0][0], [t for t, _ in chip.messages])
+        chip.reset(np.array([0,0,1]), 0.)
+        self.assertEqual(chip.movement.events, [])
+        self.assertEqual(chip.movement.score, 0.)
+
+
 class UpAxisTests(unittest.TestCase):
     def test_filter_delay_initial_silence_and_engine_codes(self):
         # An instantaneous quarter turn crosses at the 23rd 10 ms reading:

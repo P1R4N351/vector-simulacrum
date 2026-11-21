@@ -146,6 +146,37 @@ class CubeApp:
             self.slot = 0
 
 
+def engine_samples(payload: bytes) -> np.ndarray:
+    """Decode packet slots as mm/s² with CubeAccelComponent's float conversion."""
+    assert len(payload) == 20 and payload[0] == COMMAND_ACCEL
+    slots = np.frombuffer(payload, dtype="<i2", offset=2).reshape(FRAMES_PER_MESSAGE, AXES)
+    return slots.astype(np.float32) / 32767 * 4 * 9810
+
+
+class MovementListener:
+    """Hardware movement listener before the engine's carrying/docking broadcast checks."""
+
+    def __init__(self) -> None:
+        self.previous: Optional[np.ndarray] = None
+        self.filtered = np.zeros(AXES, dtype=np.float32)
+        self.score = 0.0
+        self.moving = False
+        self.events: List[Tuple[float, bool]] = []
+
+    def update(self, t_s: float, accel: np.ndarray) -> None:
+        if self.previous is not None:
+            self.filtered = np.float32(.8) * (self.filtered + accel - self.previous)
+            magnitude = float(np.linalg.norm(self.filtered))
+            self.score = float(np.clip(np.float32(self.score + min(500., magnitude)) - 300., 0., 20000.))
+            if self.score > 10000. and not self.moving:
+                self.moving = True
+                self.events.append((t_s, True))
+            elif 0. < self.score < 5000. and self.moving:
+                self.moving = False
+                self.events.append((t_s, False))
+        self.previous = accel
+
+
 class UpAxisListener:
     """Engine-side UpAxisChangedListener. Axis codes follow gateway/public/cube.proto."""
 
@@ -155,23 +186,22 @@ class UpAxisListener:
         self.events: List[Tuple[float, int]] = []
 
     def receive(self, t_s: float, payload: bytes) -> None:
-        """Deliver a packet at simulator time. Each slot advances the engine filter once."""
-        assert len(payload) == 20 and payload[0] == COMMAND_ACCEL
-        slots = np.frombuffer(payload, dtype="<i2", offset=2).reshape(FRAMES_PER_MESSAGE, AXES)
-        for slot in slots:
-            accel = slot.astype(np.float32) / 32767 * 4 * 9810
-            if self.filtered is None:
-                self.filtered = accel
-                continue
-            self.filtered = accel * np.float32(.03) + self.filtered * np.float32(.97)
-            index = int(np.argmax(np.abs(self.filtered)))
-            dominant = self.filtered[index]
-            if dominant == 0:
-                continue
-            axis = 1 + 2 * index + int(dominant > 0)
-            if self.axis and axis != self.axis:
-                self.events.append((t_s, axis))
-            self.axis = axis
+        for accel in engine_samples(payload):
+            self.update(t_s, accel)
+
+    def update(self, t_s: float, accel: np.ndarray) -> None:
+        if self.filtered is None:
+            self.filtered = accel
+            return
+        self.filtered = accel * np.float32(.03) + self.filtered * np.float32(.97)
+        index = int(np.argmax(np.abs(self.filtered)))
+        dominant = self.filtered[index]
+        if dominant == 0:
+            return
+        axis = 1 + 2 * index + int(dominant > 0)
+        if self.axis and axis != self.axis:
+            self.events.append((t_s, axis))
+        self.axis = axis
 
 
 class CubeAccelerometer:
@@ -207,6 +237,7 @@ class CubeAccelerometer:
         self.dropped = 0
         self.app = CubeApp(self.app_kind)
         self.up_axis = UpAxisListener()
+        self.movement = MovementListener()
         # Event times are counted, not summed: ten 2 ms steps summed come to 0.020000000000000004 s and would
         # put the frame due at 20 ms after the tick due then.
         self._t0, self._frames, self._ticks = t_s, 0, 0
@@ -251,7 +282,9 @@ class CubeAccelerometer:
     def _tick(self, t_s: float) -> None:
         self.app.tick(t_s, self.fifo)
         if self.app.slot == 0:
-            self.up_axis.receive(t_s, self.app.messages[-1][1])
+            for accel in engine_samples(self.app.messages[-1][1]):
+                self.up_axis.update(t_s, accel)
+                self.movement.update(t_s, accel)
         self.fifo = []
 
     @property
