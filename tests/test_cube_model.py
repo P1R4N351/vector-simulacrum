@@ -290,6 +290,29 @@ class SpinWithTheCube(unittest.TestCase):
                         % (miss.round(1).tolist(), error_mm.round(1).tolist()))
 
 
+class UpAxisTests(unittest.TestCase):
+    def test_filter_delay_initial_silence_and_engine_codes(self):
+        # An instantaneous quarter turn crosses at the 23rd 10 ms reading:
+        # the old axis decays as .97**n; the new one grows as 1-.97**n.
+        for app in cube.APPS:
+            chip = run(OPEN, .60, lambda n: [0, 0, 1] if n <= 300 else [-1, 0, 0], app=app)
+            self.assertEqual(chip.up_axis.events, [(.54, 1)])
+            chip.reset(np.array([0, 0, 1]), 0)
+            self.assertEqual(chip.up_axis.events, [])
+            self.assertEqual(chip.up_axis.axis, 0)
+
+    def test_all_faces_and_tie_order(self):
+        listener = cube.UpAxisListener()
+        t = 0.0
+        for value, axis in [([8000,8000,0],2), ([0,0,-8000],5), ([0,-8000,0],3),
+                            ([-8000,0,0],1), ([0,0,8000],6), ([0,8000,0],4)]:
+            for _ in range(40):
+                t += .03
+                listener.receive(t, cube.packet(0, [value]*3))
+            self.assertEqual(listener.axis, axis)
+        self.assertEqual([axis for _, axis in listener.events], [5,3,1,6,4])
+
+
 SPIN_TOLERANCE_MM = 5.0
 HOLDABLE = dict(V, cube_mass_g=25.0)  # the table's 50 g falls out of its assumed 30 mN*m lift; see README
 
