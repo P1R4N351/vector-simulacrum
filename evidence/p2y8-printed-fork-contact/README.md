@@ -127,3 +127,15 @@ The favorable projected angle does not carry over to stripe position. With the c
 Holding the horizontal position and orientation fixed and moving the cube vertically to minimize the front-edge error takes another 10.0–14.7 mm of height in the raised view. That is a sensitivity check, not a height measurement: depth, lateral translation, proximity to the camera and exposure timing all affect this residual. The ±millimetre fork clearances calculated from overhead alone should not be used to select a contact surface. The onboard marker position must also be reproduced at a common time.
 
 Run `python stripe_position.py ../.. /tmp/p2y8-fork.xml`. [All variants and finite-segment errors](front-edge/position.csv)
+
+## Two-camera pose with a reserved edge
+
+For the raised pair we fitted a single rigid cube pose to four overhead top-marker corners and the onboard front marker's upper edge. The perpendicular right border of the front marker was excluded from every fit. Its physical picks use the falling brightness gradient along native image rows 25–85, with a manually selected search region clear of the rounded corner. Both fitted and reserved front-edge residuals use finite 23 mm segments. Pose initialization, camera mounts, robot telemetry, marker dimensions and exposure pairing are the same as in the previous position check.
+
+![Reserved right stripe and projections before and after fitting the upper stripe](front-edge/joint.png)
+
+With calibrated optics, adding the onboard upper edge at equal pixel weight reduced median error on the reserved right edge from 216.5 to 41.3 px. Overhead corner RMS rose from 1.53 to 15.69 px. Weighting the upper edge four times as heavily drove its own RMS below 0.4 px but worsened the reserved error to 63.8 px. The pinhole sensitivity model at equal weight missed the reserved edge by 24.5 px. The cameras have different pixel scales and noise, so these weights are sensitivity checks, not inferred observation variances.
+
+At equal weight both reconstructions put the lowest corner of the bounding box above the shelf (10.0 and 14.5 mm). The held-out errors and the residual 118 ms frame-time difference preclude treating that as a measured clearance or using the compromise pose to tune a contact. Source frames independently show the tilt. A single rigid pose under this registration fails to reproduce the lifted cube precisely in both views.
+
+Run `python joint_marker.py ../.. /tmp/p2y8-fork.xml`. [All weights, errors and inferred translations](front-edge/joint.csv)

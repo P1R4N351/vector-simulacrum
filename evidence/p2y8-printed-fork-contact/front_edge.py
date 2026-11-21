@@ -19,10 +19,10 @@ origin = np.r_[rotation(a) @ center + pick["state"]["xy"],22.15]
 basis = Rotation.from_euler("z", yaws["degrees"][0],degrees=True)
 
 
-def project_pixels(t,rot,delta):
+def project_pixels(t,rot,delta,points=front):
     r = states[states["trial"]==1]
     x,y,yaw,h=[np.interp(t+1.5,r["sec"],r[k]) for k in ("x_mm","y_mm","yaw_deg","head_rad")]
-    world = origin + basis.apply(rot.apply(front)+delta)
+    world = origin + basis.apply(rot.apply(points)+delta)
     body = Rotation.from_euler("z",-yaw,degrees=True).apply(world-[x,y,0])
     camera = [-13+18.84*np.cos(h)+7.96*np.sin(h),0,49+18.84*np.sin(h)-7.96*np.cos(h)-.52]
     pitch = h + np.deg2rad(5.16-4)
