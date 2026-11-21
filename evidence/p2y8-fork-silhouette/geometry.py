@@ -17,12 +17,14 @@ x, y, z = triangles.transpose(2, 0, 1)
 mesh = np.stack((-z - 22.52, -x - 48.01, y + 8.29), axis=-1)
 
 
-def silhouette(height, head, pitch_delta=0, center_z_delta=0, extra_reach_mm=0):
+def silhouette(height, head, pitch_delta=0, center_z_delta=0, extra_reach_mm=0, wrist_pitch_deg=0):
     pitch = head - np.deg2rad(4) + pitch_delta
     c, s = np.cos(head), np.sin(head)
     camera_center = [-13 + 18.84*c + 7.96*s, 0, 49 + 18.84*s - 7.96*c + center_z_delta]
     wrist = [extra_reach_mm - 41 + np.sqrt(66**2 - (height-45)**2), 0, height]
-    rel = mesh + wrist - camera_center
+    angle = np.deg2rad(wrist_pitch_deg)
+    ca, sa = np.cos(angle), np.sin(angle)
+    rel = mesh @ np.array([[ca, 0, -sa], [0, 1, 0], [sa, 0, ca]]) + wrist - camera_center
     depth = rel @ [np.cos(pitch), 0, np.sin(pitch)]
     assert depth.min() > 0
     u = camera["cx_px"] - camera["fx_px"] * rel[:, :, 1] / depth

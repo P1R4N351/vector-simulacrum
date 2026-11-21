@@ -10,9 +10,9 @@ camera = read(here.parent / "p2y8-paired-cube-push/traces.csv")
 windows = read(here / "push-phase.csv")
 
 
-def score(job, *, cube_depth_mm=0):
+def score(job, *, cube_depth_mm=0, wrist_pitch_deg=0):
     trial, reach = job
-    result, samples = run((trial, "stl", "overhead", "weld", cube_depth_mm, 0, 0), extra_reach_mm=reach)
+    result, samples = run((trial, "stl", "overhead", "weld", cube_depth_mm, 0, 0), extra_reach_mm=reach, wrist_pitch_deg=wrist_pitch_deg)
     trace = np.asarray(samples)
     start = windows["raise_sec"][trial - 1]
     obs = camera[(camera["trial"] == trial) & (camera["camera"] == "frames") &

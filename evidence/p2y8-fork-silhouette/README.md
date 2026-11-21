@@ -44,3 +44,13 @@ Eight original 800 × 600 onboard grayscale frames per trial were median-combine
 Under shelf-calibrated optics the observed edge moves rightward toward the bottom of each image while the predicted edge moves leftward. Extension brings the edge closer but leaves a shape or orientation discrepancy. The pixels constrain the projected fork opening at working height. They cannot distinguish fore–aft reach from fork width or wrist rotation, and they do not show the depth of the hidden contact surface. All five runs use the same robot, head angle, and shelf.
 
 The native crops start at column 540 and row 310. The PNGs store twice the median intensity to retain half-gray levels. At four rows per trial, the score uses the strongest falling intensity gradient between columns 570 and 660 after Gaussian smoothing and averaging nine rows. Neighboring rows are correlated. Run `python low_reach.py` to reproduce the [edge positions](low/edges.csv) and overlay.
+
+## Testing a constant wrist pitch against cube motion
+
+At fixed +2 mm reach, rotating the STL about the wrist pin can reproduce the *slope* of its right inner edge. We selected pitch from −25° to +25° in one-degree increments using only the change in edge column across four image rows on trials 2–3. The observed change was +3.9 px across 75 rows on both trials. The closest modeled change was +4.2 px at +17° (positive rotates the forward axis downward). On reserved trials 4 and 5, the predictions were +4.2 and +3.9 px against observed +3.9 and +3.3 px.
+
+![Wrist pitch compared with measured fork edges and cube displacement](wrist-pitch.png)
+
+This rotation puts the edge in the wrong place. Mean absolute horizontal error on trials 4 and 5 increased from 12.25 and 7.50 px to 24.75 and 22.00 px. Applying the same rotation throughout the measured lift trajectory increased their settled displacement errors from 1.11 and 0.95 mm to 1.79 and 1.66 mm. Trial 1 still missed the sideways sweep by 26.19 mm. The frozen camera pose, cube registration, wrist pin, friction and odometry were identical between treatments. These results argue against applying a constant pitch correction to the whole fork. The right edge alone cannot distinguish taper in the printed part from a change in wrist pose.
+
+Run `python wrist_pitch.py ../.. /tmp/p2y8-fork.xml` to reproduce the [measurements](wrist-pitch.csv) and plot.
