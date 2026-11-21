@@ -1,0 +1,47 @@
+sec,kind,action,response
+0.0,begin,undock,
+15.725264,end,undock,"{'ok': True, 'stopped_reason': 'goal', 'prox_mm': 46.0, 'actual_delta': {'x': 0.1189, 'y': -0.0056, 'theta': 0.25054}, 'clamped': False, 'chunks_executed': 1, 'motion_result': {'ok': True, 'reason': 'completed', 'moved_mm': 0.0, 'turned_rad': 0.0, 'detail': 'goal', 'chunks': 1, 'clamped': False, 'prox_mm': 102.0}}"
+15.725451,begin,connect off dock,
+33.598337,end,connect off dock,"status {
+  code: RESPONSE_RECEIVED
+}
+success: true"
+33.598536,begin,look,
+34.37095,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+34.921196,begin,look,
+35.712915,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+36.263177,begin,look,
+37.082653,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+37.632967,begin,aim,
+38.895018,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+38.895207,begin,look,
+39.598499,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+40.197496,begin,disconnect,
+40.262994,end,disconnect,"status {
+  code: REQUEST_PROCESSING
+}"
+40.264771,begin,dock,
+76.432034,end,dock,"status {
+  code: RESPONSE_RECEIVED
+}
+result: BEHAVIOR_COMPLETE_STATE"

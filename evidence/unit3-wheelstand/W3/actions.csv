@@ -1,0 +1,16 @@
+sec,kind,action,response
+0.0,begin,undock,
+17.066612,end,undock,"{'ok': True, 'stopped_reason': 'goal', 'prox_mm': 81.0, 'actual_delta': {'x': 0.1194, 'y': -0.0058, 'theta': 0.24973}, 'clamped': False, 'chunks_executed': 1, 'motion_result': {'ok': True, 'reason': 'completed', 'moved_mm': 0.0, 'turned_rad': 0.0, 'detail': 'goal', 'chunks': 1, 'clamped': False, 'prox_mm': 103.0}}"
+17.06721,begin,connect off dock,
+32.235703,end,connect off dock,"status {
+  code: RESPONSE_RECEIVED
+}"
+34.236987,begin,retry cube connection,
+49.402169,end,retry cube connection,"status {
+  code: RESPONSE_RECEIVED
+}"
+55.510962,begin,dock,
+120.138904,end,dock,"status {
+  code: RESPONSE_RECEIVED
+}
+result: BEHAVIOR_COMPLETE_STATE"
