@@ -17,11 +17,11 @@ def boundaries(frame, fraction):
             230 + np.flatnonzero(profile[230:295] > lower)[0])
 
 
-def matched(target, offset, pitch, dz):
+def matched(target, offset, pitch, dz, roll=0):
     low, high = 52., 69.
     for _ in range(12):
         h = (low + high) / 2
-        mask = silhouette(h, HEAD, np.deg2rad(pitch), dz, offset)
+        mask = silhouette(h, HEAD, np.deg2rad(pitch), dz, offset, wrist_roll_deg=roll)
         if edges(mask)[1] > target:
             low = h
         else:

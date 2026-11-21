@@ -73,3 +73,13 @@ In the two usable raised-marker frames at 5.50 and 6.00 seconds, the **right edg
 The printed-fork replay produced less than 0.025 mm of lateral height difference throughout 5–6.5 s. During 5–5.5 s its summed positive vertical contact impulse was nearly symmetric (right 0.0151 N·s, left 0.0148 N·s). In the next half second both sides delivered less than 0.000003 N·s. The missing behavior is asymmetric tilt while the real cube remains inclined after simulated support falls away. The sparse images cannot establish the instant of first contact or identify the contacting surface.
 
 Run `python tip_direction.py ../.. /tmp/p2y8-fork.xml`. [Signed optical and simulated traces](tip-direction.csv) · [Simulated upward impulses](tip-support.csv)
+
+## Can a slightly rolled fork initiate the one-sided lift?
+
+Across 110 native columns, the lower edge of the raised crossbar slopes upward toward image-right by 3.04 px in trial 4 and 2.69 px in trial 5. A −1.5° wrist roll predicts 3.00 px in both frames using shelf-calibrated optics, nominal reach and height conditioned on the center of the edge. A level wrist predicts zero. This is roll relative to the assumed camera pose; camera roll and print asymmetry also affect that slope. Three edge thresholds and seven roll settings are included in the [crossbar comparison](../p2y8-fork-silhouette/crossbar-roll.csv).
+
+With −1.5° held throughout all five replays, the simulated right edge of trial 1's 23 mm glyph stayed within 0.002 mm of level at 5.50 and 6.00 s. The physical edge was higher by 6.70–13.13 mm across those views and lens choices. None of the tested angles from −4° to +4° produced the observed tilt. Trial 1's settled error changed from 26.43 to 26.63 mm at −1.5°. On trials 2–5, endpoint errors changed from 1.23/1.41/1.34/1.07 mm to 0.98/1.43/1.30/1.04 mm. Cube initialization, fork reach, pitch, contact materials and drive remained fixed. A static wrist roll consistent with the pictures still fails to retain one side of the cube.
+
+![Physical edge-height bounds and wrist roll replays](wrist-roll.png)
+
+Run `python ../p2y8-fork-silhouette/crossbar_roll.py` and `python wrist_roll.py ../.. /tmp/p2y8-fork.xml` from this directory. [All 35 replays](wrist-roll.csv)

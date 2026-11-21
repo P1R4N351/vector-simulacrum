@@ -28,7 +28,7 @@ observed = np.genfromtxt(
 yaws = np.genfromtxt(here / "overhead-yaw.csv", names=True, delimiter=",")
 
 
-def run(key, observer=None, *, extra_reach_mm=0, wrist_pitch_deg=0, observer_stride=5):
+def run(key, observer=None, *, extra_reach_mm=0, wrist_pitch_deg=0, wrist_roll_deg=0, observer_stride=5):
     trial, geometry, heading, drive, depth, lateral, height = key[:7]
     xml = ET.parse(
         base / "fixture.xml" if geometry == "boxes" else Path(sys.argv[2]).resolve()
@@ -83,7 +83,10 @@ def run(key, observer=None, *, extra_reach_mm=0, wrist_pitch_deg=0, observer_str
     pitch_half = np.deg2rad(wrist_pitch_deg) / 2
     cp, sp = np.cos(pitch_half), np.sin(pitch_half)
     # Compose chassis yaw with pitch around the local wrist axis.
-    q = np.column_stack((cy * cp, -sy * sp, cy * sp, sy * cp))
+    cr, sr = np.cos(np.deg2rad(wrist_roll_deg)/2), np.sin(np.deg2rad(wrist_roll_deg)/2)
+    # Local roll about forward is applied before wrist pitch and chassis yaw.
+    q = np.column_stack((cy*cp*cr + sy*sp*sr, cy*cp*sr - sy*sp*cr,
+                         cy*sp*cr + sy*cp*sr, sy*cp*cr - cy*sp*sr))
     if drive == "weld":
         d.joint("wrist_motion").qpos[:] = [*path[0], *q[0]]
     trace = []
