@@ -107,3 +107,20 @@ Two successive SDK state messages arrived 108.5 ms and 12.8 ms apart during the 
 The printed-fork replay with that cadence retained **both original packet tap candidates at 50.57 and 50.75 s** and added a third at 50.90 s (nominal cube pose, original noise seed and sensor phase). The physical cube reported one counter change. Predicted yaw increased from 10.40° to 11.30° and peak packet magnitude fell from 1.68 to 1.61 g. The physical measurements were 14–18° and 1.08 g recorded. The clock correction removes a spurious angular-speed spike, but that spike alone does not account for the extra tap. No production contact parameters were fitted.
 
 [Chassis gyro, wheel speeds and simulated taps](E/motion-clock.png) · [Cadence-adjusted cube acceleration](E/printed-contact-cadence-force.png) · [All nine starting positions](E/printed-contact-cadence-replay.csv). Reproduce with `oval_replay.py --printed-fixture FIXTURE --cadence`, then `state_timing.py ORIGINAL_PRINTED_FORCE.npz` using the force export from the original receipt-time replay.
+
+### Are the three simulated taps separate impacts?
+
+In the nominal cadence-adjusted printed-fork replay, the same fork hull exerted a positive normal load at every 1 ms step from first touch (50.527 s) through the third app increment (50.899 s). The counter incremented at 50.559, 50.729 and 50.899 s. Over that interval the cube tilted less than 0.13° and its summed floor normal load briefly fell below 1 µN on 43 steps. The simulation produces several vertical acceleration transients during one sustained fork contact. There is no corresponding physical force measurement.
+
+| Physics step (ms) | Cube yaw (°) | Peak packet magnitude (g) | Packet taps |
+|---:|---:|---:|---:|
+| 1 | 11.30 | 1.61 | 3 |
+| 0.5 | 11.37 | 1.84 | 4 |
+| 0.25 | 11.22 | 1.62 | 1 |
+| 0.125 | 11.18 | 1.66 | 2 |
+| 0.0625 | 11.14 | 1.61 | 2 |
+| Physical | 14–18 | 1.08 recorded | 1 |
+
+Only the physics integration and prescribed-pose update interval changed. Geometry, material settings, solver time constants, the 1 ms sensor integration interval, firmware clocks and random seed stayed fixed. The first three rows include the original nine cube poses; the finest two use only the nominal pose. Yaw varied by less than 0.24° across the five nominal replays. The coarser steps disagree on tap count, and the one-tap result at 0.25 ms disappears at both finer steps. This limits the conclusions one can draw about real fork impacts from a single simulated counter.
+
+[Contact loads and chip Z](E/contact-load.png) · [Time-step comparison](E/contact-steps.png) · [1 ms load trace](E/contact-load.csv). Generate the trace with `oval_replay.py --cadence --printed-fixture FIXTURE --contact-log E/contact-load.csv`, then run `contact_load.py`. Use `--substeps 2` and `4` for the placement sweep, and `--substeps 8 --nominal-only` and `16 --nominal-only` for the two finest comparisons. Run `contact_steps.py` for the comparison figure.

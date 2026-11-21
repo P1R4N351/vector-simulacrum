@@ -1,0 +1,2 @@
+cube_dx_mm,cube_dy_mm,initial_overlap_mm,first_contact_s,first_geom,yaw_change_deg,packet_peak_g,packet_taps_in_window
+0,0,0.0,50.52699999988113,lift_fork_geom_stl_8,11.181322871476453,1.6594154904341145,2

@@ -22,6 +22,9 @@ parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--printed-fixture',type=Path,help='XML from unit3-printed-fork-contact/build_fixture.py')
 parser.add_argument('--export-force',type=Path,help='Save the nominal pre-filter cube acceleration for a sensor-only replay')
 parser.add_argument('--cadence',action='store_true',help='Fit a uniform SDK state cadence over the 45–54 s replay interval')
+parser.add_argument('--contact-log',type=Path,help='Export solved cube contact loads for the nominal placement')
+parser.add_argument('--substeps',type=int,choices=(1,2,4,8,16),default=1,help='Physics steps per unchanged sensor integration step')
+parser.add_argument('--nominal-only',action='store_true',help='Replay the native cube pose only')
 args=parser.parse_args()
 scene=ET.fromstring(mjcf.build_mjcf(v,(),cube='free'))
 prefix='first-contact'
@@ -43,6 +46,8 @@ if args.printed_fixture:
         ET.SubElement(fork,'geom',dict(attrs,type='mesh',mesh=geom.attrib['mesh'],name=geom.attrib['name'],mass='0'))
     prefix='printed-contact'
 model=mj.MjModel.from_xml_string(ET.tostring(scene,encoding='unicode'))
+sensor_dt=model.opt.timestep
+model.opt.timestep=sensor_dt/args.substeps
 dt=model.opt.timestep
 times=np.arange(45.5,53.1,dt)
 rows=robot[(robot['receipt_s']>=45)&(robot['receipt_s']<=54)]
@@ -52,6 +57,10 @@ if args.cadence:
     rows['receipt_s']=intercept+idx*period
     prefix+='-cadence'
 assert np.all(rows['origin']==int(observation['origin']))
+if args.substeps>1:
+    prefix+=f'-sub{args.substeps}'
+if args.nominal_only:
+    prefix+='-nominal'
 def series(key):
     return np.interp(times,rows['receipt_s'],rows[key])
 def joint(name):
@@ -84,7 +93,8 @@ def replay(dx,dy):
     d.qpos[root+3:root+7]=[np.cos(angle/2),0,0,np.sin(angle/2)]
     first=None;overlap=0.;trace=[]
     forces=[]
-    chip=CubeAccelerometer(v,dt,seed=17)
+    loads=[]
+    chip=CubeAccelerometer(v,sensor_dt,seed=17)
     for i,t in enumerate(times):
         d.qpos[:root]=path[i,:root]
         d.qvel[:cube_v]=velocity[i,:cube_v]
@@ -92,17 +102,34 @@ def replay(dx,dy):
         d.ctrl[model.actuator('lift').id]=lift[i]
         mj.mj_step(model,d)
         force_g=d.sensor('cube_accel').data/(v['gravity_mmps2']*.001)
-        if args.export_force and dx==dy==0:
-            forces.append(force_g)
-        chip.step((i+1)*dt,force_g)
-        for c in d.contact:
+        if (i+1)%args.substeps==0:
+            if args.export_force and dx==dy==0:
+                forces.append(force_g)
+            chip.step((i+1)*dt,force_g)
+        sample_load=args.contact_log and dx==dy==0 and 50.25<=t<=51.25
+        normals=[0.,0.]
+        parts=set()
+        for contact_index,c in enumerate(d.contact):
             a,b=model.geom_bodyid[c.geom]
+            if sample_load and cube_body in (a,b):
+                wrench=np.zeros(6)
+                mj.mj_contactForce(model,d,contact_index,wrench)
+                other=c.geom[1] if a==cube_body else c.geom[0]
+                name=model.geom(other).name
+                if wrench[0]>0:
+                    normals[int(name=='table')]+=wrench[0]
+                    if name!='table':
+                        parts.add(name)
             if cube_body in (a,b) and 0 not in (a,b):
                 if i==0:overlap=max(overlap,-1000*c.dist)
                 if first is None:
                     other=c.geom[1] if a==cube_body else c.geom[0]
                     first=(t,model.geom(other).name)
         w1,x1,y1,z1=d.qpos[root+3:root+7]
+        if sample_load:
+            tilt=np.rad2deg(np.arccos(np.clip(1-2*(x1*x1+y1*y1),-1,1)))
+            loads.append([round(t,6),*normals,force_g[2],tilt,chip.app.taps.count,
+                          len(chip.taps.events),' '.join(sorted(parts))])
         trace.append(np.arctan2(2*(w1*z1+x1*y1),1-2*(z1*z1+y1*y1)))
     a=np.rad2deg(np.unwrap(trace))
     def settled(lo,hi):
@@ -112,12 +139,17 @@ def replay(dx,dy):
     peak=max(np.linalg.norm(np.frombuffer(p[2:],dtype='<i2').reshape(3,3)/8192,axis=1).max() for p in packets)
     taps=[t+times[0] for t in chip.taps.events if abs(t+times[0]-50.97782)<1]
     if dx==dy==0:
+        if args.contact_log:
+            with args.contact_log.open('w') as f:
+                wr=csv.writer(f,lineterminator='\n')
+                wr.writerow(['t_s','robot_normal_N','floor_normal_N','chip_z_g','cube_tilt_deg','app_count','reported_events','loaded_robot_geoms'])
+                wr.writerows(loads)
         if args.cadence or args.export_force:
             with (out/f'{prefix}-tap-times.csv').open('w') as f:
                 f.write('candidate_time_s\n')
                 f.writelines(f'{t:.6f}\n' for t in taps)
         if args.export_force:
-            np.savez_compressed(args.export_force,forces=forces,start=times[0],dt=dt)
+            np.savez_compressed(args.export_force,forces=forces,start=times[0],dt=sensor_dt)
         observed=np.genfromtxt(out/'cube.csv.gz',delimiter=',',names=True)
         g=np.linalg.norm([observed[k] for k in ('x_counts','y_counts','z_counts')],axis=0)/8192
         fig,ax=plt.subplots(figsize=(8,3.4),layout='constrained')
@@ -133,8 +165,9 @@ def replay(dx,dy):
         plt.close(fig)
     return overlap,*(first or (None,'')),change,peak,len(taps)
 results=[]
-for dy in (-5,0,5):
-    for dx in (-5,0,5):
+offsets=(0,) if args.nominal_only else (-5,0,5)
+for dy in offsets:
+    for dx in offsets:
         results.append([dx,dy,*replay(dx,dy)])
 with (out/f'{prefix}-replay.csv').open('w') as f:
     writer=csv.writer(f,lineterminator='\n')
@@ -148,7 +181,7 @@ for dy in (-5,0,5):
 ax.set(xlabel='Cube x offset from SDK sighting (mm)',ylabel='Cube yaw change (degrees)',xticks=[-5,0,5],title='First shelf contact · measured robot trajectory')
 ax.legend()
 fig.savefig(out/f'{prefix}-replay.png',dpi=150)
-if args.printed_fixture and not args.cadence:
+if args.printed_fixture and not args.cadence and not args.nominal_only:
     baseline=np.genfromtxt(out/'first-contact-replay.csv',names=True,delimiter=',',dtype=None,encoding='utf8')
     assert np.array_equal(list(zip(baseline['cube_dx_mm'],baseline['cube_dy_mm'])),[r[:2] for r in results])
     fig,axes=plt.subplots(1,3,figsize=(10,3.8),layout='constrained')
