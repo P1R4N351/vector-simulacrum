@@ -1,0 +1,77 @@
+<mujoco>
+  <option timestep=".001" integrator="implicitfast" />
+  <worldbody>
+    <geom name="table" type="box" pos="0 0 -0.01" size="0.75 0.75 0.01" contype="0" conaffinity="7" rgba="0.8 0.7 0.55 1" />
+    <body name="fork" mocap="true">
+      <geom name="lift_fork_geom" type="box" pos="0.0015 0 -0.02425" size="0.0025 0.015 0.00425" mass="0.006" rgba="0.3 0.3 0.3 1" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+      <geom name="fork_side_left" type="box" pos="0.002 0.022 -0.01" size="0.0015 0.0015 0.0105" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+      <geom name="fork_side_right" type="box" pos="0.002 -0.022 -0.01" size="0.0015 0.0015 0.0105" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+    </body>
+    <body name="cube">
+      <freejoint name="cube_root" />
+      <inertial pos="0 0 0" mass="0.05" diaginertia="1.6133333333333334e-05 1.6133333333333334e-05 1.6133333333333334e-05" />
+      <geom type="box" name="cube_rubber_0" pos="-0.018075 -0.018075 -0.018075" size="0.0040750000000000005 0.0040750000000000005 0.0040750000000000005" contype="4" conaffinity="3" priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1" />
+      <geom type="box" name="cube_shell_1" pos="-0.018 -0.018 -0.011407136310634888" size="0.004 0.004 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_2" pos="-0.018 -0.01317935598553618 -0.018" size="0.004 0.0008206440144638187 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_3" pos="-0.018 -0.01317935598553618 -0.011407136310634888" size="0.004 0.0008206440144638187 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_4" pos="-0.013211579950256933 -0.018 -0.018" size="0.0007884200497430653 0.004 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_5" pos="-0.013211579950256933 -0.018 -0.011407136310634888" size="0.0007884200497430653 0.004 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_6" pos="-0.013211579950256933 -0.01317935598553618 -0.018" size="0.0007884200497430653 0.0008206440144638187 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_7" pos="-0.013211579950256933 -0.01317935598553618 -0.011407136310634888" size="0.0007884200497430653 0.0008206440144638187 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_8" pos="-0.018 -0.018 0.011407136310634888" size="0.004 0.004 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_rubber_9" pos="-0.018075 -0.018075 0.018075" size="0.0040750000000000005 0.0040750000000000005 0.0040750000000000005" contype="4" conaffinity="3" priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1" />
+      <geom type="box" name="cube_shell_10" pos="-0.018 0.0 0.011407136310634888" size="0.004 0.013999999999999999 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_11" pos="-0.018 0.0 0.018" size="0.004 0.013999999999999999 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_12" pos="-0.018 0.018 0.011407136310634888" size="0.004 0.004 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_rubber_13" pos="-0.018075 0.018075 0.018075" size="0.0040750000000000005 0.0040750000000000005 0.0040750000000000005" contype="4" conaffinity="3" priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1" />
+      <geom type="box" name="cube_shell_14" pos="0.0 -0.018 0.011407136310634888" size="0.013999999999999999 0.004 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_15" pos="0.0 -0.018 0.018" size="0.013999999999999999 0.004 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_16" pos="0.0 0.0 0.011407136310634888" size="0.013999999999999999 0.013999999999999999 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_17" pos="0.0 0.0 0.018" size="0.013999999999999999 0.013999999999999999 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_18" pos="0.0 0.018 0.011407136310634888" size="0.013999999999999999 0.004 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_19" pos="0.0 0.018 0.018" size="0.013999999999999999 0.004 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_20" pos="0.018 -0.018 0.011407136310634888" size="0.004 0.004 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_rubber_21" pos="0.018075 -0.018075 0.018075" size="0.0040750000000000005 0.0040750000000000005 0.0040750000000000005" contype="4" conaffinity="3" priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1" />
+      <geom type="box" name="cube_shell_22" pos="0.018 0.0 0.011407136310634888" size="0.004 0.013999999999999999 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_23" pos="0.018 0.0 0.018" size="0.004 0.013999999999999999 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_24" pos="0.018 0.018 0.011407136310634888" size="0.004 0.004 0.002592863689365111" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_rubber_25" pos="0.018075 0.018075 0.018075" size="0.0040750000000000005 0.0040750000000000005 0.0040750000000000005" contype="4" conaffinity="3" priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1" />
+      <geom type="box" name="cube_shell_26" pos="0.0 0.00482064401446382 -0.010681807110398801" size="0.022 0.01717935598553618 0.001867534489129026" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_27" pos="-0.017211579950256933 -0.0003031952688621782 0.0" size="0.004788420049743065 0.012055516702210181 0.008814272621269775" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_28" pos="-0.02037366413995757 0.012154963487852385 0.0" size="0.0016263358600424292 0.00040264205450438184 0.008814272621269775" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_29" pos="-0.018 0.01327880277117838 -0.018" size="0.004 0.0007211972288216168 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_30" pos="-0.018 0.01327880277117838 -0.013274670799763914" size="0.004 0.0007211972288216168 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_rubber_31" pos="-0.018075 0.018075 -0.018075" size="0.0040750000000000005 0.0040750000000000005 0.0040750000000000005" contype="4" conaffinity="3" priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1" />
+      <geom type="box" name="cube_shell_32" pos="-0.018 0.018 -0.013274670799763914" size="0.004 0.004 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_33" pos="-0.013211579950256933 0.01327880277117838 -0.018" size="0.0007884200497430653 0.0007211972288216168 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_34" pos="-0.013211579950256933 0.01327880277117838 -0.013274670799763914" size="0.0007884200497430653 0.0007211972288216168 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_35" pos="-0.013211579950256933 0.018 -0.018" size="0.0007884200497430653 0.004 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_36" pos="-0.013211579950256933 0.018 -0.013274670799763914" size="0.0007884200497430653 0.004 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_37" pos="0.004788420049743065 -0.01717935598553618 -0.010681807110398801" size="0.017211579950256933 0.00482064401446382 0.001867534489129026" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_38" pos="-0.00017375939815494814 -0.020373666023884268 0.0" size="0.012249400502358919 0.0016263339761157306 0.008814272621269775" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_39" pos="-0.00017375939815494814 9.944678564220363e-05 -0.017274670799763914" size="0.012249400502358919 0.012458158756714563 0.004725329200236086" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_40" pos="0.004788420049743065 0.0 0.0" size="0.017211579950256933 0.011752321433348003 0.008814272621269775" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_41" pos="-0.00017375939815494814 0.020373666023884268 0.0" size="0.012249400502358919 0.0016263339761157306 0.008814272621269775" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_42" pos="0.00016166269325206938 -0.01524982674055827 0.0" size="0.011913978410951903 0.0034975053072102674 0.008814272621269775" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_43" pos="0.00016166269325206938 0.01524982674055827 0.0" size="0.011913978410951903 0.0034975053072102674 0.008814272621269775" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_44" pos="0.013037820552101984 -0.018 -0.018" size="0.0009621794478980143 0.004 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_45" pos="0.013037820552101984 -0.018 -0.013274670799763914" size="0.0009621794478980143 0.004 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_46" pos="0.013037820552101984 -0.01317935598553618 -0.018" size="0.0009621794478980143 0.0008206440144638187 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_47" pos="0.013037820552101984 -0.01317935598553618 -0.013274670799763914" size="0.0009621794478980143 0.0008206440144638187 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_rubber_48" pos="0.018075 -0.018075 -0.018075" size="0.0040750000000000005 0.0040750000000000005 0.0040750000000000005" contype="4" conaffinity="3" priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1" />
+      <geom type="box" name="cube_shell_49" pos="0.018 -0.018 -0.013274670799763914" size="0.004 0.004 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_50" pos="0.018 -0.01317935598553618 -0.018" size="0.004 0.0008206440144638187 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_51" pos="0.018 -0.01317935598553618 -0.013274670799763914" size="0.004 0.0008206440144638187 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_52" pos="0.017037820552101984 -0.012055516702210181 0.0" size="0.0049621794478980135 0.0003031952688621782 0.008814272621269775" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_53" pos="0.013037820552101984 0.01327880277117838 -0.018" size="0.0009621794478980143 0.0007211972288216168 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_54" pos="0.013037820552101984 0.01327880277117838 -0.013274670799763914" size="0.0009621794478980143 0.0007211972288216168 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_55" pos="0.013037820552101984 0.018 -0.018" size="0.0009621794478980143 0.004 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_56" pos="0.013037820552101984 0.018 -0.013274670799763914" size="0.0009621794478980143 0.004 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_57" pos="0.018 0.01327880277117838 -0.018" size="0.004 0.0007211972288216168 0.004" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_58" pos="0.018 0.01327880277117838 -0.013274670799763914" size="0.004 0.0007211972288216168 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_rubber_59" pos="0.018075 0.018075 -0.018075" size="0.0040750000000000005 0.0040750000000000005 0.0040750000000000005" contype="4" conaffinity="3" priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1" />
+      <geom type="box" name="cube_shell_60" pos="0.018 0.018 -0.013274670799763914" size="0.004 0.004 0.0007253292002360849" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+      <geom type="box" name="cube_shell_61" pos="0.020373661465076263 0.012154963487852385 0.0" size="0.001626338534923737 0.00040264205450438184 0.008814272621269775" contype="4" conaffinity="3" priority="1" friction="0.5 .005 .0001" />
+    </body>
+  </worldbody>
+</mujoco>
