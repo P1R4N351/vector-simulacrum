@@ -29,3 +29,18 @@ These are absolute errors using the half-intensity crossing. With the camera cor
 ![Two registered contours on the original optical model](reach-silhouette.png)
 
 Reproduce with `python reach_silhouette.py` alongside the existing SDK mesh and camera assets. [All edge picks and model predictions](reach-silhouette.csv)
+
+## Lowered fork during approach
+
+Eight original 800 × 600 onboard grayscale frames per trial were median-combined over −1.5 to +2.3 seconds relative to the approach command. The right inner edge of the printed fork is visible against the shelf. We projected the two reach settings at the recorded head angle and lift height (30.65–32.68 mm), with no per-frame alignment. The left edge has weaker contrast and competing cube edges. Only the right inner edge was scored.
+
+| Camera pose | Nominal mean absolute horizontal error | With 2 mm extra reach |
+|---|---:|---:|
+| Shelf-calibrated | 28.65 px | 11.35 px |
+| Original | 19.30 px | 5.75 px |
+
+![Measured and predicted inner edge of lowered fork](low/overlay.png)
+
+Under shelf-calibrated optics the observed edge moves rightward toward the bottom of each image while the predicted edge moves leftward. Extension brings the edge closer but leaves a shape or orientation discrepancy. The pixels constrain the projected fork opening at working height. They cannot distinguish fore–aft reach from fork width or wrist rotation, and they do not show the depth of the hidden contact surface. All five runs use the same robot, head angle, and shelf.
+
+The native crops start at column 540 and row 310. The PNGs store twice the median intensity to retain half-gray levels. At four rows per trial, the score uses the strongest falling intensity gradient between columns 570 and 660 after Gaussian smoothing and averaging nine rows. Neighboring rows are correlated. Run `python low_reach.py` to reproduce the [edge positions](low/edges.csv) and overlay.
