@@ -1,5 +1,7 @@
 """Replay the first shelf yaw contact with measured robot kinematics and a free cube."""
+import argparse
 import csv
+import xml.etree.ElementTree as ET
 from pathlib import Path
 import sys
 
@@ -16,7 +18,29 @@ out=here/'E'
 robot=np.genfromtxt(out/'robot.csv.gz',delimiter=',',names=True)
 observation=next(csv.DictReader((out/'object-events.csv').open()))
 v=params.values(params.load(model='vector_2'))
-model=mj.MjModel.from_xml_string(mjcf.build_mjcf(v,(),cube='free'))
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--printed-fixture',type=Path,help='XML from unit3-printed-fork-contact/build_fixture.py')
+args=parser.parse_args()
+scene=ET.fromstring(mjcf.build_mjcf(v,(),cube='free'))
+prefix='first-contact'
+if args.printed_fixture:
+    fixture=ET.parse(args.printed_fixture)
+    fork=scene.find(".//body[@name='lift_fork']")
+    original=fork.find("geom[@name='lift_fork_geom']")
+    attrs={k:val for k,val in original.attrib.items() if k not in ('name','type','pos','size','mass')}
+    for geom in fork.findall('geom'):
+        geom.set('contype','0')
+        geom.set('conaffinity','0')
+    asset=ET.SubElement(scene,'asset')
+    meshes=fixture.findall(".//asset/mesh")
+    pieces=fixture.findall(".//body[@name='fork']/geom[@type='mesh']")
+    assert len(pieces)==len(meshes)==58
+    for mesh in meshes:
+        asset.append(mesh)
+    for geom in pieces:
+        ET.SubElement(fork,'geom',dict(attrs,type='mesh',mesh=geom.attrib['mesh'],name=geom.attrib['name'],mass='0'))
+    prefix='printed-contact'
+model=mj.MjModel.from_xml_string(ET.tostring(scene,encoding='unicode'))
 dt=model.opt.timestep
 times=np.arange(45.5,53.1,dt)
 rows=robot[(robot['receipt_s']>=45)&(robot['receipt_s']<=54)]
@@ -88,14 +112,14 @@ def replay(dx,dy):
             ax.plot(series_t[mask],values[mask],'.-',ms=2,lw=.8,label=label)
         ax.set(xlabel='Seconds from undock command',ylabel='Specific force magnitude (g)',title='First shelf contact at the SDK cube position')
         ax.legend()
-        fig.savefig(out/'first-contact-force.png',dpi=150)
+        fig.savefig(out/f'{prefix}-force.png',dpi=150)
         plt.close(fig)
     return overlap,*(first or (None,'')),change,peak,len(taps)
 results=[]
 for dy in (-5,0,5):
     for dx in (-5,0,5):
         results.append([dx,dy,*replay(dx,dy)])
-with (out/'first-contact-replay.csv').open('w') as f:
+with (out/f'{prefix}-replay.csv').open('w') as f:
     writer=csv.writer(f,lineterminator='\n')
     writer.writerow(['cube_dx_mm','cube_dy_mm','initial_overlap_mm','first_contact_s','first_geom','yaw_change_deg','packet_peak_g','packet_taps_in_window'])
     writer.writerows(results)
@@ -106,5 +130,20 @@ for dy in (-5,0,5):
     ax.plot([r[0] for r in group],[r[5] for r in group],'.-',label=f'Cube y offset {dy:+d} mm')
 ax.set(xlabel='Cube x offset from SDK sighting (mm)',ylabel='Cube yaw change (degrees)',xticks=[-5,0,5],title='First shelf contact · measured robot trajectory')
 ax.legend()
-fig.savefig(out/'first-contact-replay.png',dpi=150)
+fig.savefig(out/f'{prefix}-replay.png',dpi=150)
+if args.printed_fixture:
+    baseline=np.genfromtxt(out/'first-contact-replay.csv',names=True,delimiter=',',dtype=None,encoding='utf8')
+    assert np.array_equal(list(zip(baseline['cube_dx_mm'],baseline['cube_dy_mm'])),[r[:2] for r in results])
+    fig,axes=plt.subplots(1,3,figsize=(10,3.8),layout='constrained')
+    for ax,column,key,target,title in zip(axes,(5,6,7),('yaw_change_deg','packet_peak_g','packet_taps_in_window'),
+                                           ((14.148,18.013),(1.078,1.078),(1,1)),
+                                           ('Cube yaw (°)','Peak specific force (g)','Packet tap count')):
+        for idx,r in enumerate(results):
+            ax.plot([0,1],[baseline[key][idx],r[column]],'o-',color='#284971' if idx==4 else '.7',
+                    lw=2 if idx==4 else .8,zorder=4 if idx==4 else 1,ms=5 if idx==4 else 3)
+        if target[0]==target[1]:ax.axhline(target[0],color='#367843',ls='--')
+        else:ax.axhspan(*target,color='#cee7d0')
+        ax.set(xticks=[0,1],xticklabels=['Three boxes','Printed fork'],title=title,xlim=(-.2,1.2))
+    fig.suptitle('Same shelf contact and trajectory · blue: SDK cube pose · gray: ±5 mm grid · green: physical')
+    fig.savefig(out/'fork-transfer.png',dpi=150)
 print(results)
