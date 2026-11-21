@@ -62,3 +62,13 @@ The fitted effective input noise density is 124 µg/√Hz. The Unit 3 Vector 2 p
 Errors are RMS across the three axis noise estimates, in thousandths of standard gravity. During undocking the real cube's Z noise reached 3.58 mg against 2.39 mg simulated. The recording does not separate shelf vibration from chip noise.
 
 [Axis comparison](stationary-noise.png) · [Numbers](stationary-noise.csv) · [Reproduce](stationary_noise.py)
+
+### Does a pickup-height fit predict placement?
+
+During lowering the cube still showed 29–32° of apparent roll at 49–56 mm reported wrist height, with packet-mean force magnitudes near 1 g. During raising, nearby heights included strong translational impulses: at 54 mm the magnitude was 0.56 g. Interpreting that sample as an orientation measurement would be misleading. The plotted signal is the angle of the packet-mean Y/Z acceleration vector relative to its pre-pickup direction.
+
+A clipped ramp fitted only to the raise and the settled held angle gives 16.9° RMS error over the withheld lowering interval (32 packets). A second prediction holds the measured tilt until a corner of the 44 mm cube would reach the shelf, then limits the roll by floor clearance. For the SDK center offset of −12.5 mm and a single-axis roll θ, the center must be at least 22(cos θ + sin θ) mm above the shelf. This gives about 43 mm wrist height at first contact. The geometry prediction scores 11.1° RMS without tuning on placement. It assumes a fixed wrist-to-center offset and rotation about one horizontal axis. The camera does not establish the exact corner contact time.
+
+Shifting the relative lift clock by ±100 ms changed the geometry prediction's placement error to 8.7–14.2° at the two endpoints. This single recorded placement helps distinguish hypotheses but does not verify deployment accuracy. The published simulator grip is unchanged.
+
+[Raise and lower traces](lift-cycle.png) · [Eight overhead exposures with reported wrist heights](lift-cycle-frames.jpg) · [Timing sensitivity](lift-cycle.csv) · [Analysis](lift_cycle.py)
