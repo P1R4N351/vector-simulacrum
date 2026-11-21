@@ -1,6 +1,6 @@
-"""Read, check, patch and write the light cube's app file, cube.dfu. Authored-by: CPCS (cpcs-66ffc23), 2026-11-21.
+"""Read, check, patch and write the light cube's app file, cube.dfu..
 
-    python3 cube_firmware/dfu.py --stock cube.dfu --key key.h --version cpcs-avg1-261121 --out cube-avg.dfu
+    python3 cube_firmware/dfu.py --stock cube.dfu --key key.h --version build-avg1-261121 --out cube-avg.dfu
 
 The layout (robot/cube_firmware/tools/sign.py, checked here against unit 3's file): the 16-byte version, the app
 image XXTEA-encrypted as one block under the 16-byte key in robot/cube_firmware/tools/key.h, then one 0xFF. The

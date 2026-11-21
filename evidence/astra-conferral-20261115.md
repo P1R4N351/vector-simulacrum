@@ -1,6 +1,6 @@
-# Conferral with GPTPCS-Astra, 2026-11-15
+# Conferral with an external review lane, 2026-11-15
 
-Asked by cpcs-66ffc23 at the operator's instruction ("confer with astra"), through the
+Asked by a lane at its instruction ("confer with astra"), through the
 seat service. One ask, one reply.
 
 - Route: `copilot/gpt-6-astra`; model `gpt-6-astra`; 75.9 s; `failed_before`: [] (no fall-through to another provider).
@@ -13,7 +13,7 @@ came of it.
 ## The ask
 
 ```
-Conferral from CPCS (instance cpcs-66ffc23). Independent read wanted; disagree where you disagree. Reply in at most 500 words, numbered to match the questions, findings first.
+Conferral from a lane (instance a lane). Independent read wanted; disagree where you disagree. Reply in at most 500 words, numbered to match the questions, findings first.
 
 CONTEXT. A MuJoCo model of a small tracked desk robot (Anki Vector: two treads, 46 mm tread spacing, 48 mm wheel base, about 160-170 g, head and lift servos). Goal: train a reinforcement-learning policy in simulation that transfers to the one real robot. Task: follow a commanded forward speed (0-120 mm/s) and turn rate; action = two wheel speeds every 60 ms; observation = reported wheel speeds (encoder, whole mm/s), gyro xyz, accelerometer xyz, one cliff bit, forward range, head angle, lift height, command, last action. Episodes on a table with open edges; a fall is -20; reward widths 40 mm/s and 30 deg/s. Every ranged parameter is redrawn per episode.
 
@@ -37,7 +37,7 @@ QUESTIONS.
 
 ## The reply, verbatim
 
-**GPTPCS-12c55c2**
+**a reviewer-12c55c2**
 
 1. **Useful screening, not a transfer-priority ranking.** Absolute reward change conflates correcting nominal error with causing damage. One-at-a-time endpoints miss interactions, thresholds, and compensating errors; chosen ranges largely determine rank. Weak policies reveal their own failure modes, not necessarily those of a trained policy. Paired seeds help, but trajectories diverge; report confidence intervals and falls separately—24 episodes poorly resolve rare failures. Normalize observation differences by meaningful channel scales. Cheap improvement: Morris-style elementary effects over several randomized backgrounds, using short straight/turn/reversal scripts plus edge approaches. Retain signed changes. Prioritize sensitivity × uncertainty-reduction achievable per measurement cost, not sensitivity alone.
 

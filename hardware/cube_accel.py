@@ -1,6 +1,4 @@
 """Read a Vector light cube's accelerometer directly over Bluetooth LE from a host computer. Never touches the robot.
-
-Authored-by: CPCS (cpcs-66ffc23), 2026-11-21. Needs Python 3.9+ and the bleak package, imported only when this
 runs (written to bleak's documented API: BleakScanner.discover with return_adv, BleakClient read_gatt_char,
 write_gatt_char, start_notify; not yet run against bleak or a cube). Writes JSON lines to stdout.
 
@@ -304,7 +302,7 @@ def main():
     except FileExistsError:
         emit("c", name="lock_held", path=LOCK)
         return 3
-    os.write(fd, ("cpcs-66ffc23 cube accelerometer pid %d\n" % os.getpid()).encode())
+    os.write(fd, ("a lane cube accelerometer pid %d\n" % os.getpid()).encode())
     os.close(fd)
     for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
         signal.signal(sig, on_signal)

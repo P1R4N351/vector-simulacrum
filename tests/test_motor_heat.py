@@ -1,4 +1,4 @@
-"""The tread heat fit, on a constructed run and on REC2 run F; and the model under sustained load. Authored-by: CPCS."""
+"""The tread heat fit, on a constructed run and on REC2 run F; and the model under sustained load.."""
 
 from __future__ import annotations
 

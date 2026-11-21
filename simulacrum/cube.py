@@ -1,4 +1,4 @@
-"""The light cube's accelerometer, as the cube's chip and app make its messages. Authored-by: CPCS.
+"""The light cube's accelerometer, as the cube's chip and app make its messages..
 
 Needs numpy, not MuJoCo. robot.py feeds it the specific force at the cube's chip site once per physics
 step when the model carries a cube; on its own it takes any specific-force series.
@@ -23,7 +23,7 @@ below are data formats and firmware logic, cited where they are defined.
    are ignored" (BMA253DS:2174-2178).
 5. The app's tick, every cube_tick_ms: it reads every frame in the FIFO into the same slot, so the slot keeps
    the last frame read; a tick that finds no frame leaves the slot as it was. Each frame's z goes through
-   the tap counter. With app="mean" (cube_firmware/tick_avg.s, cpcs-66ffc23's replacement tick) the slot
+   the tap counter. With app="mean" (cube_firmware/tick_avg.s, a lane's replacement tick) the slot
    gets the mean of the tick's frames instead, with its fraction in the four low bits. After the third tick it sends the 20-byte message (protocol.h AccelDataCommand:
    command 2, tap_count, three samples of x, y, z as int16 little-endian) and starts the next. accel.c
    hal_acc_tick; the shipped app's code at 0x20005db4..0x20005e72 does the same, constant for constant

@@ -1,4 +1,4 @@
-"""The simulacrum's MCP tools: read the table and the recordings, plan a recording. Authored-by: CPCS.
+"""The simulacrum's MCP tools: read the table and the recordings, plan a recording..
 
 Transport is in mcp_server.py; this module holds the tools and the JSON-RPC
 dispatch, so tests can call them without a pipe.

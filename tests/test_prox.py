@@ -1,4 +1,4 @@
-"""The time-of-flight sensor's reporting rules and what the recordings say. No MuJoCo. Authored-by: CPCS."""
+"""The time-of-flight sensor's reporting rules and what the recordings say. No MuJoCo.."""
 
 from __future__ import annotations
 

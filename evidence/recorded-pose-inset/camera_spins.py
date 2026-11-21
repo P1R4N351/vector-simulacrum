@@ -1,13 +1,13 @@
-"""Where P2Y8 turns about in its four camera-recorded spins. Authored-by: CPCS.
+"""Where unit 3 turns about in its four camera-recorded spins..
 
     python3 -m simulacrum.camera_spins
 
 Needs numpy and scipy, not MuJoCo.
 
-The footage and the picks are gptpcs-01a1f1b's (evidence/camera-spins in
+The footage and the picks are a lane's (evidence/camera-spins in
 that lane's tree, commit 33ff9ea; copied to
-evidence/camera-spins-p2y8-20261120). A fixed camera looked across the
-shelf at P2Y8 while it spun four times at 150 mm/s; that lane picked the
+evidence/camera-spins-unit3-20261120). A fixed camera looked across the
+shelf at unit 3 while it spun four times at 150 mm/s; that lane picked the
 forward end of the backpack lens in 35 keyframes, and a second point along
 the roof (the aim point) for heading. The camera's model and the dock
 references below are copied unchanged from that lane's
@@ -20,7 +20,7 @@ lane's lens height). Within one spin the lens moves on a circle about the
 turn centre, so a circle fitted to its path gives the centre without using
 any heading; the aim point then turns the centre into the body frame. The
 lens is LENS_X_MM behind the front axle, which rests on that lane's
-geometric model of P2Y8.
+geometric model of unit 3.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ from scipy.optimize import least_squares
 from scipy.spatial.transform import Rotation
 
 ROOT = Path(__file__).resolve().parent.parent
-PICKS = ROOT / "evidence" / "camera-spins-p2y8-20261120" / "camera-picks.csv"
+PICKS = ROOT / "evidence" / "camera-spins-unit3-20261120" / "camera-picks.csv"
 LENS_X_MM = -36.3
 LENS_HEIGHT_MM = 65.5
 # World X right, Y away from the camera, Z up, origin on the shelf under the dock glyph (mm).

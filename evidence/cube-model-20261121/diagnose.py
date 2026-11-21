@@ -1,4 +1,4 @@
-"""What the model's lift can hold, and what a spin with the cube in the lift shows. Authored-by: CPCS (cpcs-66ffc23).
+"""What the model's lift can hold, and what a spin with the cube in the lift shows..
 
     ./run_in_ct.sh evidence/cube-model-20261121/diagnose.py
 

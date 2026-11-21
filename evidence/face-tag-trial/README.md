@@ -1,6 +1,6 @@
-# Optical check of P2Y8's head and chassis
+# Optical check of unit 3's head and chassis
 
-P2Y8 is a Vector 2.0 with printed lift and hubcaps, stock treads and its clear faceplate removed. The crown and backpack provide stock geometry. The printed hub centres serve as axle landmarks only. The web renders below show an assembled Vector. The fit uses the crown aperture centres.
+unit 3 is a Vector 2.0 with printed lift and hubcaps, stock treads and its clear faceplate removed. The crown and backpack provide stock geometry. The printed hub centres serve as axle landmarks only. The web renders below show an assembled Vector. The fit uses the crown aperture centres.
 
 ## Crown geometry
 

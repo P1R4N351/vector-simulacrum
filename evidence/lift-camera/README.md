@@ -1,6 +1,6 @@
 # Six camera-tracked spins with the lift down, up and down again
 
-P2Y8 moved about **66 mm left and 26 mm away from the camera** between its first and final resting poses. The middle, raised-lift pair still drifted left. Both 42 mm contact models sent that pair **right**. The discrepancy survives comparing pairs, where the robot returns roughly to its starting orientation and optical lever-arm errors largely cancel.
+unit 3 moved about **66 mm left and 26 mm away from the camera** between its first and final resting poses. The middle, raised-lift pair still drifted left. Both 42 mm contact models sent that pair **right**. The discrepancy survives comparing pairs, where the robot returns roughly to its starting orientation and optical lever-arm errors largely cancel.
 
 ![Measured and predicted turn displacements](../physics-plots/lift-camera-drift.png)
 
@@ -21,11 +21,11 @@ P2Y8 moved about **66 mm left and 26 mm away from the camera** between its first
 | Up | 20.1 | 0.5 | −4.5 | −12.5 |
 | Down B | 24.6 | 0.3 | 5.1 | −7.5 |
 
-The cylinder model comes within 0.2 mm of the distance on the raised CW turn while missing its direction. The optical pair distances, including the away component, are 25.4, 22.1 and 25.1 mm. The sensitivity ranges overlap. The experiment has one raised pair, and P2Y8 sampled a different part of the shelf with each spin. It establishes persistent shelf-left drift across both postures. It does not isolate a lift effect or distinguish a surface bias from a chassis bias.
+The cylinder model comes within 0.2 mm of the distance on the raised CW turn while missing its direction. The optical pair distances, including the away component, are 25.4, 22.1 and 25.1 mm. The sensitivity ranges overlap. The experiment has one raised pair, and unit 3 sampled a different part of the shelf with each spin. It establishes persistent shelf-left drift across both postures. It does not isolate a lift effect or distinguish a surface bias from a chassis bias.
 
 ## Trial and replay
 
-CPCS controlled the physical robot. Head angle was −0.4° throughout the spins. Median lift heights were 30.6, 90.3 and 31.7 mm in A/B/A order. Each pair comprised a 3 s CCW and a 3 s CW command at equal and opposite 150 mm/s wheel speeds. CPCS measured second-half gyro magnitudes of 205.2 / 200.9, 206.5 / 204.4 and 206.2 / 203.4 °/s for the three pairs. The changes with the lift raised were comparable to the differences between the two down repeats. After the final spin, the robot returned to its charger. Robot telemetry confirmed charging and quiet mode active, and the Home Assistant quiet switch read on.
+a lane controlled the physical robot. Head angle was −0.4° throughout the spins. Median lift heights were 30.6, 90.3 and 31.7 mm in A/B/A order. Each pair comprised a 3 s CCW and a 3 s CW command at equal and opposite 150 mm/s wheel speeds. a lane measured second-half gyro magnitudes of 205.2 / 200.9, 206.5 / 204.4 and 206.2 / 203.4 °/s for the three pairs. The changes with the lift raised were comparable to the differences between the two down repeats. After the final spin, the robot returned to its charger. Robot telemetry confirmed charging and quiet mode active, and the Home Assistant quiet switch read on.
 
 Each model replay uses the same recorded left/right speeds from 0.4 s before the command through 1 s after stop. Each spin starts settled at its measured head and lift posture. Both use the existing Vector 2.0 physical axles and 42 mm effective span. Cylinder integration uses 1 ms steps and sphere integration uses 0.125 ms steps. SDK and simulated displacement refer to the point 25 mm behind the front axle. The only optical input to each replay's placement on the plot is the starting heading. Each vector starts at zero before summing the six vectors in shelf coordinates. This omits small apparent movements in the pauses, which explains the difference between the accumulated camera vector (67.5 mm left, 25.4 mm away) and the first-to-last optical measurement. There was no fit to the six endpoint displacements.
 

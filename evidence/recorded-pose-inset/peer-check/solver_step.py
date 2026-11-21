@@ -38,9 +38,9 @@ def score_c7(m):
 def record_rows(p2, c7):
     rows = []
     for m in p2:
-        rows.append(dict(robot='P2Y8', spin=m['spin'], step_ms='', inset_mm='', **{k:m[k] for k in ('yaw','roll','pitch','center_mm')}))
+        rows.append(dict(robot='unit 3', spin=m['spin'], step_ms='', inset_mm='', **{k:m[k] for k in ('yaw','roll','pitch','center_mm')}))
     for m in c7:
-        rows.append(dict(robot='C7K8', spin=m['spin'], step_ms='', inset_mm='', **score_c7(m)))
+        rows.append(dict(robot='unit 1', spin=m['spin'], step_ms='', inset_mm='', **score_c7(m)))
     return rows
 
 
@@ -51,7 +51,7 @@ def main():
     args=parser.parse_args()
     p2_runs, _, p2_truth=read_inputs(args.p2)
     with args.c7_scores.open() as f:
-        c7_truth=[r for r in csv.DictReader(f) if r['source']=='C7K8']
+        c7_truth=[r for r in csv.DictReader(f) if r['source']=='unit 1']
     rows=record_rows(p2_truth,c7_truth)
     v1=params.values(params.load(model='vector_1'))
     states,commands=recording.load(args.c7)
@@ -61,11 +61,11 @@ def main():
             with timestep_only(ms):
                 for seg,start,t,v2 in p2_runs:
                     _,m=simulated(inset,seg,start,t,dict(v2,sim_timestep_ms=ms))
-                    rows.append(dict(robot='P2Y8',spin=seg.label,step_ms=ms,inset_mm=inset,**{k:m[k] for k in ('yaw','roll','pitch','center_mm')}))
+                    rows.append(dict(robot='unit 3',spin=seg.label,step_ms=ms,inset_mm=inset,**{k:m[k] for k in ('yaw','roll','pitch','center_mm')}))
                 for seg in c7_runs:
                     trace=c7_transfer.simulate(dict(v1,sim_timestep_ms=ms),replay._state_at(states,seg.t_cmd),seg,None if inset<0 else inset)
                     score=c7_transfer.score(trace,seg.t_stop-seg.t_cmd,'sim')
-                    rows.append(dict(robot='C7K8',spin=seg.label,step_ms=ms,inset_mm=inset,**score_c7(score)))
+                    rows.append(dict(robot='unit 1',spin=seg.label,step_ms=ms,inset_mm=inset,**score_c7(score)))
     write(args.out/'solver_step.csv',rows)
     groups=defaultdict(list)
     truth={(r['robot'],r['spin']):r for r in rows if r['step_ms']==''}
@@ -75,7 +75,7 @@ def main():
     for (robot,ms,inset),group in groups.items():
         d=dict(robot=robot,step_ms=ms,inset_mm=inset)
         for k in ('yaw','roll','pitch','center_mm'):
-            if robot=='C7K8' and k=='center_mm':
+            if robot=='unit 1' and k=='center_mm':
                 d[k+'_mean']=float(np.mean([r[k] for r in group]))
                 d[k+'_mae']=''
                 continue

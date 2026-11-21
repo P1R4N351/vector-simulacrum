@@ -1,6 +1,6 @@
-# Why P2Y8’s close LiDAR hub span came up short
+# Why unit 3’s close LiDAR hub span came up short
 
-P2Y8 was stationary for 18 paired Record3D frames per heading. The two farther poses were 179.6° apart by SDK yaw. Both complete printed rims cleared the image borders by at least 52 working pixels. Their estimated optical depths were 189–198 mm, versus 111–118 mm in the earlier close view.
+unit 3 was stationary for 18 paired Record3D frames per heading. The two farther poses were 179.6° apart by SDK yaw. Both complete printed rims cleared the image borders by at least 52 working pixels. Their estimated optical depths were 189–198 mm, versus 111–118 mm in the earlier close view.
 
 | View | 3D span from printed rims in RGB | Raw depth span | Span after edge registration | Registered depth span, frame P10–P90 |
 |---|---:|---:|---:|---:|

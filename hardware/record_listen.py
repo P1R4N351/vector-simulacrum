@@ -1,6 +1,4 @@
 """Record a Vector's state while the robot acts on its own: it is never given a command.
-
-Authored-by: CPCS (cpcs-66ffc23), 2026-11-20. Runs on the wire-pod host with its anki_vector install,
 fed on stdin; writes JSON lines to stdout. The rows are the ones hardware/record_barriered.py writes.
 
 Why. The robot's own behaviours, started by a voice imperative ("Hey Vector, pop a wheelie"), only
@@ -110,7 +108,7 @@ def main():
     except FileExistsError:
         emit("c", name="lock_held", path=LOCK)
         return 3
-    os.write(fd, ("cpcs-66ffc23 listen-only recording pid %d\n" % os.getpid()).encode())
+    os.write(fd, ("a lane listen-only recording pid %d\n" % os.getpid()).encode())
     os.close(fd)
     for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
         signal.signal(sig, on_signal)

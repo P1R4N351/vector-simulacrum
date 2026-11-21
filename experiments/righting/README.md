@@ -39,4 +39,4 @@ The next discriminating observation is whether a sideways patient's fork can ret
 
 For the follow-up with an already-engaged patient, use the [leverage control and morning close-up protocol](morning-grip.md).
 
-For a patient equipped with Dauler's printed lifting fork, supply `--patient-fork-stl /path/to/forks7.stl` with CoACD 1.0.14 installed. The run builds the wrist collision surface from convex parts using the web model's registration. It retains the wrist mass and placement reference. The shelf replay documents where this geometry transfers to P2Y8 and where the grip still slips. [Printed fork shelf trials](../../evidence/p2y8-printed-fork-contact/README.md)
+For a patient equipped with Dauler's printed lifting fork, supply `--patient-fork-stl /path/to/forks7.stl` with CoACD 1.0.14 installed. The run builds the wrist collision surface from convex parts using the web model's registration. It retains the wrist mass and placement reference. The shelf replay documents where this geometry transfers to unit 3 and where the grip still slips. [Printed fork shelf trials](../../evidence/unit3-printed-fork-contact/README.md)

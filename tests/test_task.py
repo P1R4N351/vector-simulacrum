@@ -1,4 +1,4 @@
-"""The training task: what the policy sees, what it may do, how episodes end. Authored-by: CPCS.
+"""The training task: what the policy sees, what it may do, how episodes end..
 
 Needs MuJoCo, not torch.
 """

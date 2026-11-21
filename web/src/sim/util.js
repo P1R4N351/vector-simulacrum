@@ -1,4 +1,4 @@
-// Small shared helpers for the simulator port. Authored-by: CPCS.
+// Small shared helpers for the simulator port..
 
 export function assert(condition, message) {
   if (!condition) throw new Error(`assertion failed: ${message}`);

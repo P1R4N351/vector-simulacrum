@@ -1,5 +1,4 @@
 """Is the spin error aliasing? The chip's true force at every physics step against the cube's samples.
-Authored-by: CPCS (cpcs-66ffc23). ./run_in_ct.sh evidence/cube-model-20261121/alias.py"""
 from __future__ import annotations
 import json, math, sys
 from pathlib import Path

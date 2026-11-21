@@ -1,4 +1,4 @@
-"""How a tread's top speed falls under sustained full power: a first-order heat state, per tread. Authored-by: CPCS.
+"""How a tread's top speed falls under sustained full power: a first-order heat state, per tread..
 
     python3 -m simulacrum.motor_heat_fit evidence/hw-rec-20261118/run-f-endurance-unit1.jsonl
 

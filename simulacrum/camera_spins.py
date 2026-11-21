@@ -1,10 +1,10 @@
-"""Where unit 3 turns about in its four camera-recorded spins. Authored-by: CPCS.
+"""Where unit 3 turns about in its four camera-recorded spins..
 
     python3 -m simulacrum.camera_spins
 
 Needs numpy and scipy, not MuJoCo.
 
-The footage and the picks are gptpcs-01a1f1b's (evidence/camera-spins in
+The footage and the picks are a lane's (evidence/camera-spins in
 that lane's tree, commit 33ff9ea; copied to
 evidence/camera-spins-unit3-20261120). A fixed camera looked across the
 shelf at unit 3 while it spun four times at 150 mm/s; that lane picked the

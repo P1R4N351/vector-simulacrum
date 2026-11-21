@@ -18,4 +18,4 @@ Five printed-fork replays used the recorded chassis/lift paths, baseline fork re
 
 The overhead camera measured 5.16–27.23 mm across these same physical cycles. Their recordings lack synchronized cube packets or movement events, so they cannot validate whether the physical listener fired. A separate SDK recording, run S, contains 11 starts and 11 stops without a matched acceleration trace. Absence of a simulated notification therefore gives no basis for scoring a physical push as stationary.
 
-From the repo root run `python evidence/free-cube-sensors/movement.py . /tmp/p2y8-fork.xml` with the registered printed-fork fixture. [Numerical results](movement.csv)
+From the repo root run `python evidence/free-cube-sensors/movement.py . /tmp/unit3-fork.xml` with the registered printed-fork fixture. [Numerical results](movement.csv)

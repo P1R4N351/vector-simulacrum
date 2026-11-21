@@ -1,6 +1,6 @@
 {
- "what": "P2Y8 (Vector 2.0) camera intrinsics returned by the SDK GetCameraConfig RPC",
- "read": "Read directly from P2Y8 on 2026-11-21. Dimensions from the recorded CameraFeed JPEGs.",
+ "what": "unit 3 (Vector 2.0) camera intrinsics returned by the SDK GetCameraConfig RPC",
+ "read": "Read directly from unit 3 on 2026-11-21. Dimensions from the recorded CameraFeed JPEGs.",
  "width_px": 800,
  "height_px": 600,
  "fx_px": 406.314453,

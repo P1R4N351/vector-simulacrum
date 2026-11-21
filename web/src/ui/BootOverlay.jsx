@@ -1,4 +1,4 @@
-// Loading progress, and the error if loading or the simulation stops. Authored-by: CPCS.
+// Loading progress, and the error if loading or the simulation stops..
 import { useGame } from "../store.js";
 
 export default function BootOverlay() {

@@ -1,4 +1,4 @@
-"""The MCP server: protocol, the four tools, and what they refuse. Needs no MuJoCo. Authored-by: CPCS."""
+"""The MCP server: protocol, the four tools, and what they refuse. Needs no MuJoCo.."""
 
 from __future__ import annotations
 

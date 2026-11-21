@@ -112,7 +112,7 @@ for i, block in enumerate(["A0", "A180"]):
             "o-",
             ms=2,
             color="#262626",
-            label="P2Y8",
+            label="unit 3",
         )
         ax.set(
             title=f"{block} · {spin}",

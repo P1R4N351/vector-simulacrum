@@ -96,14 +96,14 @@
 
 [Head, lift, shell and tread findings](../stock-shell-physics-20261118.md)
 
-[P2Y8 lateral friction and head posture](../lateral-friction/README.md) compares the B friction sweep with held-out A camera endpoints and gyro traces, including a level-shelf control.
+[unit 3 lateral friction and head posture](../lateral-friction/README.md) compares the B friction sweep with held-out A camera endpoints and gyro traces, including a level-shelf control.
 
-[P2Y8 stationary head sweeps](../head-sweep/README.md) separate head posture, chassis offset, approach direction and a shelf-frame component, with opposite and sideways heading tests at held-out A.
+[unit 3 stationary head sweeps](../head-sweep/README.md) separate head posture, chassis offset, approach direction and a shelf-frame component, with opposite and sideways heading tests at held-out A.
 
 [Optical head and chassis check](../face-tag-trial/README.md) includes matched stock-crown and simulator views, the held-out vent-placement check, side-insert tracking from opposite headings and the fixed-backpack pitch comparison.
 
-The [P2Y8 three-camera survey](../three-camera-survey/README.md) includes the full orbit coverage, held-out silhouette and head-angle checks, crown and microphone reprojections, and the revised Vector 2.0 crown rendering.
+The [unit 3 three-camera survey](../three-camera-survey/README.md) includes the full orbit coverage, held-out silhouette and head-angle checks, crown and microphone reprojections, and the revised Vector 2.0 crown rendering.
 
 ### Longitudinal contact inset at the recorded posture
 
-The P2Y8 yaw fit selected 3.75 mm per end and reduced yaw error on all four held-out C7K8 spins. The camera pivot and roll/pitch measurements still disagree with the model. [Overlays, selection sweep and replay data](../recorded-pose-inset/README.md)
+The unit 3 yaw fit selected 3.75 mm per end and reduced yaw error on all four held-out unit 1 spins. The camera pivot and roll/pitch measurements still disagree with the model. [Overlays, selection sweep and replay data](../recorded-pose-inset/README.md)

@@ -1,4 +1,4 @@
-"""The cube-hold recorder, run against a stand-in SDK and a stand-in clock. Authored-by: CPCS.
+"""The cube-hold recorder, run against a stand-in SDK and a stand-in clock..
 
 No robot, no network. It checks that hardware/hold_cube.py asks for no more than reserve control, renews the
 cube connection inside the SDK subscription's 60 s, reads both batteries on schedule, records cube

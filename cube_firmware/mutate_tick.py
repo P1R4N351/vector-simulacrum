@@ -1,8 +1,8 @@
-"""Break tick_avg.s once per arm and show the image check catches it. Authored-by: CPCS (cpcs-66ffc23).
+"""Break tick_avg.s once per arm and show the image check catches it..
 
     CUBE_STOCK_DFU=... CUBE_KEY=... python3 cube_firmware/mutate_tick.py
 
-tests/mutate.py cannot carry these arms: the image tests need unit 3's file, which CT 930 does not have, so there
+tests/mutate.py cannot carry these arms: the image tests need unit 3's file, which a GPU host does not have, so there
 they skip and every arm would survive. For each arm: the text must occur exactly once and the file must change;
 the mutated tick is assembled, patched into the image and run in the interpreter on the same scenarios as
 tests/test_cube_firmware.py. An arm is CAUGHT when the messages differ from the model of the mean app, or the

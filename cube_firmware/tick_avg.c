@@ -1,5 +1,5 @@
 /* The light cube app's accelerometer tick, keeping the mean of each tick's FIFO frames instead of the last one.
- * Authored-by: CPCS (cpcs-66ffc23), 2026-11-21.
+ *.
  *
  * This is the same tick as tick_avg.s, in C, for reading and for the host test. It is not what is flashed:
  * GCC 16.1 makes 256 bytes of it at -Os, and the shipped tick's place holds 204, so tick_avg.s is written by

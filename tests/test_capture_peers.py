@@ -1,4 +1,4 @@
-"""The peer-capture script and its saver, against a stand-in SDK, pod and clock. Authored-by: CPCS (cpcs-66ffc23).
+"""The peer-capture script and its saver, against a stand-in SDK, pod and clock..
 
 No robot, no network. It checks that hardware/capture_peers.py holds behaviour control and commands
 nothing, lifts quiet mode only while control is held and always puts it back first, never connects while

@@ -1,4 +1,4 @@
-// Top view of the table: edges, the block, the path driven, the robot. Authored-by: CPCS.
+// Top view of the table: edges, the block, the path driven, the robot..
 import { useEffect, useRef } from "react";
 import { gameApi, useGame } from "../store.js";
 

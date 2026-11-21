@@ -3,7 +3,7 @@
  "out": "cube-avg1.dfu (kept out of the repository: it is Anki's app, encrypted with their key)",
  "out_sha256": "10f5ddd8d4f087535e19753c1f5e99e48747fd646e74cbd45989d48480defb70",
  "out_bytes": 3209,
- "version": "cpcs-avg1-261121",
+ "version": "build-avg1-261121",
  "image_bytes": 3192,
  "changed": [
   "0x20005800-0x20005804",

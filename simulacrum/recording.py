@@ -1,4 +1,4 @@
-"""Read the recording of the real robot and measure it. Authored-by: CPCS.
+"""Read the recording of the real robot and measure it..
 
 No MuJoCo, and nothing here talks to a robot: it reads two files in
 evidence/hw-rec-20261115. The figures filed as "measured" in the parameter

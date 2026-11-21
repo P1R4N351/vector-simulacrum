@@ -1,10 +1,10 @@
-"""Train a wheel-speed policy with PPO and export it to ONNX. Authored-by: CPCS.
+"""Train a wheel-speed policy with PPO and export it to ONNX..
 
-    cauldron python train.py --out /root/vector-runs/smoke --iterations 100
-    cauldron python train.py --out /root/vector-runs/tiny --iterations 2 --envs 4 --steps 16 --workers 0
+    the GPU host python train.py --out /root/vector-runs/smoke --iterations 100
+    the GPU host python train.py --out /root/vector-runs/tiny --iterations 2 --envs 4 --steps 16 --workers 0
 
 Writes model.pt, curve.json, policy.onnx, policy.json and parity.npz to --out
-and prints the learning curve. The defaults are a smoke run for CT 930 (CPU
+and prints the learning curve. The defaults are a smoke run for a GPU host (CPU
 only, shared node): they prove the pipeline, they do not train a usable
 policy. --workers is capped at 4 by the environment pool.
 """

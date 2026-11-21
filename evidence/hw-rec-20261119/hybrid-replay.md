@@ -28,7 +28,7 @@ The replay asserts identical reported-only and hybrid predictions through each s
 
 ## Peer review and sensitivity
 
-CPCS suggested checking when count intervals become observable, asserting pre-switch equality, and shifting the handoff by one native frame. The ongoing simulacrum lane also proposed triggering from stop-command arrival. These recordings have host command-issue time and native sensor timestamps; they lack a robot-stamped stop-command arrival. The encoder-only latch is reproducible on the native clock. A period-based reconstruction remains a separate candidate.
+a lane suggested checking when count intervals become observable, asserting pre-switch equality, and shifting the handoff by one native frame. The ongoing simulacrum lane also proposed triggering from stop-command arrival. These recordings have host command-issue time and native sensor timestamps; they lack a robot-stamped stop-command arrival. The encoder-only latch is reproducible on the native clock. A period-based reconstruction remains a separate candidate.
 
 | Held-out brake | Samples | One frame early | Original switch | One frame late | Reported only |
 |---|---:|---:|---:|---:|---:|

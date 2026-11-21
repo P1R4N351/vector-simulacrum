@@ -1,4 +1,4 @@
-"""Sensor scatter in a held spin, with the IMU chip's filter and without it. Authored-by: CPCS.
+"""Sensor scatter in a held spin, with the IMU chip's filter and without it..
 
     ./run_in_ct.sh evidence/imu-filter-20261120/scatter.py
 

@@ -9,7 +9,7 @@ import os
 reference=Path(os.environ.get('CAP_SCALE_DIR', Path(__file__).resolve().parents[2]/'orbit-cap-scale'))
 sys.path.insert(0,str(reference))
 from fit import fit,FOCAL,CENTER,residual
-raw=Path(os.environ.get('FLIP_ARCHIVE',Path.home()/'Pictures/Vector/P2Y8-20261119-three-camera'))
+raw=Path(os.environ.get('FLIP_ARCHIVE',Path.home()/'Pictures/Vector/unit 3-20261119-three-camera'))
 seeds={105:[(575,539,26,56,.12),(440,606,32,52,.16)],180:[(222,545,22,60,-.05),(331,612,26,54,-.1)]}
 def edges(im,seed):
     x,y,w,h,s=seed

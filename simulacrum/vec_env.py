@@ -1,11 +1,11 @@
-"""Many tasks stepped together, in this process or in worker processes. Authored-by: CPCS.
+"""Many tasks stepped together, in this process or in worker processes..
 
 No torch. Each environment has its own seed and is independent of the
 others, so the result does not depend on how many workers carry them.
 An environment that ends is reset at once; the observation returned for it
 is the first one of its next episode.
 
-CT 930 sits on a shared hypervisor: the pool refuses more than MAX_WORKERS
+a GPU host sits on a shared hypervisor: the pool refuses more than MAX_WORKERS
 worker processes.
 """
 

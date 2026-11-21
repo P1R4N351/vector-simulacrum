@@ -25,12 +25,12 @@ def main():
     for tc in [2,4,6,8,12,16]:
         scores=[simulated(3.75,seg,start,ts,dict(values,contact_time_constant_ms=tc))[1]
                 for seg,start,ts,values in runs]
-        results.append(summarize('P2Y8',tc,scores,obs))
+        results.append(summarize('unit 3',tc,scores,obs))
     vals=params.values(params.load(model='vector_1'))
     src=PARENT.parent/'hw-rec-20261118/run-e-spins.jsonl'
     states, cmds=recording.load(src)
     with (PARENT/'c7_scores.csv').open() as f:
-        observed={r['spin']:dict(yaw=float(r['mean_abs_yaw_rad_s'])) for r in csv.DictReader(f) if r['source']=='C7K8'}
+        observed={r['spin']:dict(yaw=float(r['mean_abs_yaw_rad_s'])) for r in csv.DictReader(f) if r['source']=='unit 1'}
     for tc in [2,4,6,8,12,16]:
         scores=[]; obs=[]
         for seg in recording.segments(cmds,vals).values():
@@ -41,7 +41,7 @@ def main():
             scores.append(dict(yaw=r['mean_abs_yaw_rad_s'],roll=r['mean_abs_roll_rad_s'],
                                pitch=r['mean_abs_pitch_rad_s'],center_mm=r['simulation_icr_x_mm']))
             obs.append(observed[seg.label])
-        results.append(summarize('C7K8',tc,scores,obs))
+        results.append(summarize('unit 1',tc,scores,obs))
     with (HERE/'relaxation.csv').open('w',newline='') as f:
         w=csv.DictWriter(f,fieldnames=results[0]); w.writeheader();w.writerows(results)
 

@@ -1,6 +1,4 @@
 """Hold a Vector's cube connected for hours and record what the cube reports. Never commands the robot.
-
-Authored-by: CPCS (cpcs-66ffc23), 2026-11-20. Runs on the wire-pod host with its anki_vector install;
 writes JSON lines to stdout.
 
 Why. The robot connects its cube only while something subscribes to the connection. The SDK's
@@ -139,7 +137,7 @@ def main():
     except FileExistsError:
         emit("c", name="lock_held", path=LOCK)
         return 3
-    os.write(fd, ("cpcs-66ffc23 cube hold pid %d\n" % os.getpid()).encode())
+    os.write(fd, ("a lane cube hold pid %d\n" % os.getpid()).encode())
     os.close(fd)
     for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
         signal.signal(sig, on_signal)

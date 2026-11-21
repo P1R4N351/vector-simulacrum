@@ -1,4 +1,4 @@
-# P2Y8 stationary head sweeps on the shelf
+# unit 3 stationary head sweeps on the shelf
 
 A head-dependent residual and a component fixed in shelf coordinates both predicted the held-out readings. A chassis offset alone missed most of the variation. The clockwise versus counterclockwise arrival difference fitted at B failed to transfer to opposite headings at A.
 
@@ -16,7 +16,7 @@ All 1,219 SDK samples in the nine analyzed sweeps passed the wheel and gyro gate
 
 ## Measurement
 
-P2Y8 (Vector 2.0) stood off the dock with the lift lowered. At each of two spots, we established nominal headings 0° and 180° and approached each from both directions. For each of the eight primary sweeps the final approach was a commanded 23° turn. The head targets were 0°, 25°, −15°, 40°, 10°, then 0° again. The chassis received no motion command during a sweep. After each head command completed, we allowed two seconds to settle, then sampled for 1.35 s. We kept windows separate, so multiple SDK rows from one rest do not count as independent trials.
+unit 3 (Vector 2.0) stood off the dock with the lift lowered. At each of two spots, we established nominal headings 0° and 180° and approached each from both directions. For each of the eight primary sweeps the final approach was a commanded 23° turn. The head targets were 0°, 25°, −15°, 40°, 10°, then 0° again. The chassis received no motion command during a sweep. After each head command completed, we allowed two seconds to settle, then sampled for 1.35 s. We kept windows separate, so multiple SDK rows from one rest do not count as independent trials.
 
 B is the fit spot. All scores at A use the coefficients from B, including a separate check at a nominal 90° heading omitted from training. A setup sweep at B followed straight travel and is excluded from both fit and scores. The paired-approach B0 CW run was taken on returning from A. The head targets and competing models were set before viewing the A results.
 
@@ -24,7 +24,7 @@ We compare the equivalent horizontal specific force in milligravity (mg). The ra
 
 ## Competing explanations
 
-Each model includes a chassis-fixed constant. The head term allows a different residual at each commanded head position relative to the zero target, after applying the real encoder angle. The shelf term rotates one horizontal vector into the body frame using the optical heading of that sweep. The arrival term changes sign with the last turn. This separates patterns in the measurements; the shelf-frame coefficient is an *equivalent* inclination. Independent leveling of the shelf was reported by the operator through CPCS. Neither the static accelerometer nor a single overhead chassis landmark measures bare-shelf slope or tiny chassis pitch directly. A head-dependent residual could include head angle calibration, sensor bias or chassis pitch as the head shifts load. The arrival test covers these short positioning turns, not the longer endurance spins.
+Each model includes a chassis-fixed constant. The head term allows a different residual at each commanded head position relative to the zero target, after applying the real encoder angle. The shelf term rotates one horizontal vector into the body frame using the optical heading of that sweep. The arrival term changes sign with the last turn. This separates patterns in the measurements; the shelf-frame coefficient is an *equivalent* inclination. Independent leveling of the shelf was reported by an operator through a lane. Neither the static accelerometer nor a single overhead chassis landmark measures bare-shelf slope or tiny chassis pitch directly. A head-dependent residual could include head angle calibration, sensor bias or chassis pitch as the head shifts load. The arrival test covers these short positioning turns, not the longer endurance spins.
 
 [Measured and predicted traces](../physics-plots/head-sweep-transfer.png) · [Raw head readings, corrected readings and model comparison](../physics-plots/head-sweep-components.png) · [Fit and transfer scores](transfer.csv) · [Settled SDK samples](samples.csv) · [Optical picks](marks.csv) · [Backpack motion check](stationarity.csv)
 

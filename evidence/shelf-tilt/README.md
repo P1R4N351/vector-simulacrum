@@ -1,6 +1,6 @@
 # How much of the shelf drift does gravity explain?
 
-P2Y8's head accelerometer measured a **0.98° effective downslope** at spot B, about 1.39% to shelf-left and 1.00% toward the dock. Its direction was 36° dockward from shelf-left. Spot A, reserved for evaluation, independently gave 0.91° (1.28% left, 0.94% dockward). Applying B's gravity vector without adjustment cut held-out pair endpoint error by **39% for the cylinder contacts and 57% for the sphere contacts**. Both models overshot the leftward component.
+unit 3's head accelerometer measured a **0.98° effective downslope** at spot B, about 1.39% to shelf-left and 1.00% toward the dock. Its direction was 36° dockward from shelf-left. Spot A, reserved for evaluation, independently gave 0.91° (1.28% left, 0.94% dockward). Applying B's gravity vector without adjustment cut held-out pair endpoint error by **39% for the cylinder contacts and 57% for the sphere contacts**. Both models overshot the leftward component.
 
 ![Held-out trajectories from the measured and flat gravity fields](../physics-plots/shelf-tilt-heldout.png)
 

@@ -1,4 +1,4 @@
-// Pinhole camera geometry from calibrated intrinsics. Authored-by: CPCS.
+// Pinhole camera geometry from calibrated intrinsics..
 //
 // c is the camera block of public/robot/model.json: image size, focal lengths
 // fx and fy in pixels, optical centre cx, cy in pixels (measured from the top

@@ -112,7 +112,7 @@ def native_summary(native,sdk):
             t=np.array([float(r['ms_from_last_edge']) for r in sub])*.001
             g=np.array([[float(r['head_'+k]) for k in ('gx','gy','gz')] for r in sub])
             theta=np.array([float(r['head_rad']) for r in sub])+np.radians(-.05)
-            result.append(score(spin,"P2Y8_100mmps",source,0,t,g,theta,(-.5,-.2)))
+            result.append(score(spin,"unit 3_100mmps",source,0,t,g,theta,(-.5,-.2)))
     return result,matched
 
 
@@ -122,14 +122,14 @@ def main():
     p.add_argument('simultaneous_sdk',type=Path);p.add_argument('out',type=Path)
     a=p.parse_args(); a.out.mkdir(exist_ok=True,parents=True)
     summaries=[]
-    for unit,model,path,pre in [('P2Y8','vector_2',a.p2,.48),('C7K8','vector_1',a.c7,.3)]:
+    for unit,model,path,pre in [('unit 3','vector_2',a.p2,.48),('unit 1','vector_1',a.c7,.3)]:
         v=params.values(params.load(model=model)); states,commands=recording.load(path)
         for seg in recording.segments(commands,v).values():
             if seg.kind!='wheels' or seg.left*seg.right>=0:continue
-            if unit=='P2Y8':
+            if unit=='unit 3':
                 stop=next(c for c in commands if c.get('name')=='stop' and c['t']==seg.t_stop)
                 seg=recording.Segment(seg.label,seg.kind,seg.t_cmd,stop['issued_t'],seg.left,seg.right)
-            steady=(.7,1.4) if unit=='P2Y8' else ((seg.t_stop-seg.t_cmd)/2,seg.t_stop-seg.t_cmd)
+            steady=(.7,1.4) if unit=='unit 3' else ((seg.t_stop-seg.t_cmd)/2,seg.t_stop-seg.t_cmd)
             rows=[(r['t']-seg.t_cmd,r['gyro'],r['head']) for r in states if seg.t_cmd<=r['t']<=seg.t_stop]
             dense=run_sim(v,replay._state_at(states,seg.t_cmd),seg,pre)
             summaries.extend(spin_scores(seg.label,unit,rows,dense,steady,np.radians(v['imu_pitch_offset_deg'])))

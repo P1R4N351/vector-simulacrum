@@ -1,4 +1,4 @@
-"""The runner's verdict on skips (tests/run_all.py). Authored-by: CPCS."""
+"""The runner's verdict on skips (tests/run_all.py).."""
 
 from __future__ import annotations
 

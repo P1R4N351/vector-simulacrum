@@ -1,5 +1,4 @@
 # A static container for the simulator page: build with Vite, serve with nginx on 8080.
-# Authored-by: CPCS. The layout follows the MicroDuck simulator's Dockerfile.
 #
 #   docker build -t vector-simulacrum-web .                             robot drawn as physics shapes
 #   docker build --build-arg WITH_SDK_MODEL=1 -t vector-simulacrum-web .   with the SDK's robot model

@@ -1,4 +1,4 @@
-"""The IMU chip's low-pass filter. The filter needs numpy only; the robot tests need MuJoCo. Authored-by: CPCS."""
+"""The IMU chip's low-pass filter. The filter needs numpy only; the robot tests need MuJoCo.."""
 
 from __future__ import annotations
 
@@ -126,7 +126,7 @@ class InTheRobot(unittest.TestCase):
                 "rate_over_true": gyro_rate / true_rate}
 
     def test_the_filter_takes_the_treads_vibration_out_of_a_spin_but_not_the_turn(self) -> None:
-        """Measured in CT 930 on 2026-11-20 over four spins: filtered, the gyro's turn rate is 0.9927 to 1.0009 of the
+        """Measured in a GPU host on 2026-11-20 over four spins: filtered, the gyro's turn rate is 0.9927 to 1.0009 of the
         true one; read at one instant per tick it is 0.9871 to 1.0238, which is the aliasing."""
         raw, filtered = self._spin(PASS_THROUGH), self._spin({})
         self.assertLess(filtered["roll"], 0.35 * raw["roll"], (filtered, raw))

@@ -1,4 +1,4 @@
-// The IMU chip's own low-pass filter, run at every physics step. Authored-by: GEMINI (port of ../simulacrum/imu_filter.py by CPCS).
+// The IMU chip's own low-pass filter, run at every physics step.../simulacrum/imu_filter.py by a lane).
 //
 // Needs no MuJoCo. Models the BMI160's two digital filter stages in series as
 // two one-pole EMA sections placed so their series response is -3 dB at cutoffHz.

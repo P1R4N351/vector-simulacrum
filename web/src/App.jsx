@@ -1,4 +1,3 @@
-// Authored-by: CPCS.
 import { useEffect, useRef } from "react";
 import { bootGame } from "./game/game.js";
 import { useGame } from "./store.js";

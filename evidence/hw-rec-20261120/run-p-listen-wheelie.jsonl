@@ -1,7 +1,7 @@
 {"k": "c", "t": 0.0121, "name": "quiet", "method": "GET", "enabled": true, "active": true, "holding_reserve": true, "muted": true}
 {"k": "c", "t": 0.017, "name": "quiet", "method": "POST", "enabled": false, "active": false, "holding_reserve": false, "muted": false}
 {"k": "c", "t": 0.019, "name": "connect_to", "serial": "0a1b2c3d", "ip": "192.0.2.10", "control": "none"}
-{"k": "c", "t": 1.0274, "name": "begin", "note": "run P 2026-11-20, unit 3, listen only, no SDK control; the operator says Hey Vector pop a wheelie; the robot starts on its charger, the new cube in front of it", "utc": "2026-11-20T23:02:03.000+00:00"}
+{"k": "c", "t": 1.0274, "name": "begin", "note": "run P 2026-11-20, unit 3, listen only, no SDK control; an operator says Hey Vector pop a wheelie; the robot starts on its charger, the new cube in front of it", "utc": "2026-11-20T23:02:03.000+00:00"}
 {"k": "s", "t": 1.0362, "gyro": [0.0009569530375301838, -0.00038497522473335266, -0.0005836751661263406], "accel": [-4362.0625, 280.225830078125, 8552.27734375], "wl": 0.0, "wr": 0.0, "head": -0.3775397539138794, "lift": 31.321754455566406, "pose": [1.1823880672454834, -0.028233323246240616, -10.18339729309082], "yaw": -0.01078867819160223, "pitch": -0.09320768713951111, "status": 3159808, "prox": 177, "proxq": 0.011414231732487679, "img_ts": 2019984}
 {"k": "b", "t": 1.0946, "volts": 4.0765, "level": 2, "charging": true, "on_platform": true}
 {"k": "c", "t": 1.095, "name": "listening", "seconds": 240.0}

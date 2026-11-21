@@ -1,7 +1,7 @@
-"""Run an exported ONNX policy on the simulacrum without torch. Authored-by: CPCS.
+"""Run an exported ONNX policy on the simulacrum without torch..
 
-    cauldron python run_policy.py --policy /root/vector-runs/smoke/policy.onnx
-    cauldron python run_policy.py --policy .../policy.onnx --parity .../parity.npz
+    the GPU host python run_policy.py --policy /root/vector-runs/smoke/policy.onnx
+    the GPU host python run_policy.py --policy .../policy.onnx --parity .../parity.npz
 
 The first form drives one simulated robot closed-loop and prints how well the
 command was followed. The second also checks that this process, which has no

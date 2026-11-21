@@ -1,4 +1,4 @@
-"""Fit the accelerometer's steady offsets from the recording of the real robot. Authored-by: CPCS.
+"""Fit the accelerometer's steady offsets from the recording of the real robot..
 
     python3 -m simulacrum.imu_fit
     python3 -m simulacrum.imu_fit --head-sweep evidence/head-sweep-unit3-20261120
@@ -29,7 +29,7 @@ well as its own standard error suggests; what is well fixed is their sum,
 the x reading on a level surface. describe() reports the correlation and a
 bootstrap over the still stretches. Leaving out a cluster of head angles
 does not test this, because the 22 degree cluster also faces the other way
-from most of the rest (GPTPCS-Astra's point, conferral of 2026-11-15).
+from most of the rest (an external review lane's point, conferral of 2026-11-15).
 
 A seventh number, scale_x, multiplies the x axis's reading of gravity
 before the offset is added (the part's sensitivity error on that axis).
@@ -38,9 +38,9 @@ of 1: across the head angles recorded, the z axis's share of gravity
 changes too little for its scale to be told from its offset, and nothing
 here turns the robot onto its side to show y's.
 
-head_sweep() reads unit 3's stationary head sweeps (the GEMINI seat's
+head_sweep() reads unit 3's stationary head sweeps (the another substrate's
 analysis, the lab's coordination room turn 166, of SDK samples taken by
-gptpcs-01a1f1b): fit on spot B, score at spot A, which the fit never saw.
+a lane): fit on spot B, score at spot A, which the fit never saw.
 Each settled window is one equally weighted mean; heading is the robot's
 odometry, which is continuous across both spots.
 """

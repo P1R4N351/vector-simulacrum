@@ -1,4 +1,4 @@
-// SDK-shaped robot layer over the MuJoCo model, in the browser. Authored-by: CPCS.
+// SDK-shaped robot layer over the MuJoCo model, in the browser..
 // A port of ../simulacrum/robot.py. test/robot.test.js
 // runs this file against recorded runs of the Python (same MJCF, same commands).
 //

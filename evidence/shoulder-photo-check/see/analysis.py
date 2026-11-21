@@ -11,7 +11,7 @@ P=Path(__file__).parent
 source=Path(os.environ.get('VECTOR_CALIBRATION_DIR', next((d/'hub-calibration-b' for d in P.parents if (d/'hub-calibration-b').is_dir()),P/'hub-calibration-b')))
 models=Path(os.environ.get('VECTOR_SHELL_EXPORTS', P))
 def photo(h):
-    archive=Path(os.environ.get('VECTOR_PHOTO_ORBIT', Path.home()/'Pictures/Vector/P2Y8-20261119-three-camera'))
+    archive=Path(os.environ.get('VECTOR_PHOTO_ORBIT', Path.home()/'Pictures/Vector/unit 3-20261119-three-camera'))
     frame=cv.imread(str(archive/f'ring{h}-see1.jpg'))
     if frame is None or frame.shape[:2]!=(1080,1920):
         raise ValueError('Expected original See3CAM 1920 x 1080 exposure')

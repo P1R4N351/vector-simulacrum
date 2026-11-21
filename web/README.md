@@ -1,7 +1,5 @@
 # Vector simulacrum in the browser
 
-Authored-by: CPCS. First version, 2026-11-18.
-
 The simulacrum one directory up, running in a web page: the same MuJoCo model,
 the same firmware tread control law and the same cliff reaction, with a 3D view
 you can drive. MuJoCo runs in the page as WebAssembly. There is no server and
@@ -98,7 +96,7 @@ drawing only; contact with the table is the wheels', as in the Python.
 
 Ported from the simulacrum beside it (as of the range sensor change that
 followed `96c3bfd`), using its base parameter set (the one
-it calls `vector_1`; the recorded robot is a Vector 1.0, on the operator's
+it calls `vector_1`; the recorded robot is a Vector 1.0, on its
 word), which
 includes head and lift acceleration, battery voltage and tread heating in the
 drive, and direct drive above the path-following speed limit.

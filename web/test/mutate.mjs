@@ -1,4 +1,4 @@
-// Break each tested property once and confirm the tests notice. Authored-by: CPCS.
+// Break each tested property once and confirm the tests notice..
 //
 //   node test/mutate.mjs
 //

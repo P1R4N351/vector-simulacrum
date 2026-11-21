@@ -1,5 +1,5 @@
 {"k": "c", "t": 0.0024, "name": "connect_to", "serial": "0a1b2c3d", "ip": "192.0.2.10", "control": "reserve"}
-{"k": "c", "t": 1.2351, "name": "begin", "note": "run S 2026-11-21, unit 3 docked, cube 02:00:00:00:00:01 held connected by re-sending connect_cube every 30 s, reserve control; the operator may tap or move the cube", "utc": "2026-11-21T01:23:48.059+00:00"}
+{"k": "c", "t": 1.2351, "name": "begin", "note": "run S 2026-11-21, unit 3 docked, cube 02:00:00:00:00:01 held connected by re-sending connect_cube every 30 s, reserve control; an operator may tap or move the cube", "utc": "2026-11-21T01:23:48.059+00:00"}
 {"k": "c", "t": 1.2358, "name": "holding", "seconds": 10800.0, "renew_s": 30.0, "battery_s": 60.0, "utc": "2026-11-21T01:23:48.060+00:00"}
 {"k": "e", "t": 32.1728, "event": "object_connection_state", "utc": "2026-11-21T01:24:18.997+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
 {"k": "e", "t": 32.2423, "event": "object_connection_state", "utc": "2026-11-21T01:24:19.067+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}

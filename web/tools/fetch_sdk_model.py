@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy the Vector SDK's own 3D robot model into this app. Authored-by: CPCS.
+"""Copy the Vector SDK's own 3D robot model into this app..
 
 The page draws the robot with the model that the Vector Python SDK ships for
 its 3D viewer (anki_vector/opengl/assets/vector.obj). That model is NOT part

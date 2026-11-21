@@ -1,4 +1,4 @@
-// The simulator core in the page: boot, the control loop, input, camera. Authored-by: CPCS.
+// The simulator core in the page: boot, the control loop, input, camera..
 //
 // Structure after the MicroDuck simulator (pollen-robotics, Apache-2.0): an
 // imperative core that owns the physics and the rendering, a small store that

@@ -1,4 +1,4 @@
-"""The light cube's accelerometer model (simulacrum/cube.py) and the cube carried in the lift. Authored-by: CPCS.
+"""The light cube's accelerometer model (simulacrum/cube.py) and the cube carried in the lift..
 
 The first three classes need numpy only. Their expected values are built apart from the code they check:
 packets with struct from protocol.h's layout, frame values coded by the time they were taken, tap sequences

@@ -7,8 +7,6 @@ description: A MuJoCo model of the Anki/DDL Vector robot for training policies t
 
 [Physics overlay gallery](evidence/physics-plots/README.md) · [Held-out encoder/gyro timing test](evidence/hw-rec-20261119/unit2-ccw100.md#encoder-to-gyro-timing-test)
 
-Authored-by: CPCS. Fifth version, 2026-11-16. Runs in CT 930 `mujoco-cauldron`.
-
 This is the physics model that `skills/vector-sim` (the Go gRPC simulator,
 branch `cpcs/vector-cliff-guard`) says it is not. It does not replace that
 simulator and is not connected to it.
@@ -54,16 +52,16 @@ most sensitive to, by a wide margin ("The assumed values, ranked" below).
 | `build_mjcf.py` | Writes the generated MJCF to a file |
 | `demo.py`, `measure.py` | A short run; the model figures quoted below |
 | `evidence/hw-rec-20261115/` | The recording, the script that made it, SHA-256 in the table's `REC` source |
-| `evidence/` | Smoke run learning curves and outputs; the fit, replay, measurement, ranking and fault-check outputs; the hardware findings the third version started from; the conferral with GPTPCS-Astra |
-| `hardware/record_barriered.py` | The recorder for the next recording. **Not run yet.** Written by cpcs-5f62f24, who holds the robot; nothing here runs it against one |
+| `evidence/` | Smoke run learning curves and outputs; the fit, replay, measurement, ranking and fault-check outputs; the hardware findings the third version started from; the conferral with an external review lane |
+| `hardware/record_barriered.py` | The recorder for the next recording. **Not run yet.** Written by a lane, who holds the robot; nothing here runs it against one |
 | `tests/` | `run_all.py`, fifteen test files, `mutate.py` |
-| `run_in_ct.sh` | Copies this directory into CT 930 and runs a file there |
+| `run_in_ct.sh` | Copies this directory into a GPU host and runs a file there |
 | `mcp_server.py`, `simulacrum/mcp_service.py` | An MCP server over stdio: the table, the recordings and the recorder's command line as tools. Read-only; no robot, no MuJoCo |
 
 ## Use
 
 ```bash
-./run_in_ct.sh tests/run_all.py --require-mujoco   # all tests, in CT 930
+./run_in_ct.sh tests/run_all.py --require-mujoco   # all tests, in a GPU host
 ./run_in_ct.sh tests/mutate.py                      # break each property once
 ./run_in_ct.sh replay_recording.py --sensitivity    # the model against the real robot
 ./run_in_ct.sh fit_recording.py                     # refit (4 workers; prints values, changes no file)
@@ -93,7 +91,7 @@ VectorSim.randomised(seed=7)                        # ranged parameters drawn in
 Nothing in this directory connects to or commands a robot. The recording was
 made by another session (`evidence/hw-rec-20261115/record_table.py`).
 
-Keep to at most four worker processes and short runs in CT 930: the node is
+Keep to at most four worker processes and short runs in a GPU host: the node is
 a shared hypervisor. One process runs about 9 times real time. Do not start
 a second `run_in_ct.sh` while one is running: each run replaces the copy in
 the container.
@@ -168,7 +166,7 @@ mode); log lines go to stderr. Tools are added as the work needs them;
 `tools/list` shows only what is wired and tested (`tests/test_mcp.py`).
 
 Run on: macOS with Python 3.14 and with the stock Python 3.9, and Linux in
-CT 930. Not run on Windows; the newline and encoding handling is written
+a GPU host. Not run on Windows; the newline and encoding handling is written
 for it but has not been seen working there.
 
 | Tool | What it returns |
@@ -335,7 +333,7 @@ predicts a balance at 64.9 degrees, -29 at 59.4.
 
 **Where the robot turns about rules out -29 (2026-11-20).** The GEMINI
 seat pointed out (the lab's coordination room turn 166) that the centre of mass also
-moves the point the robot spins about. gptpcs-01a1f1b's camera followed
+moves the point the robot spins about. a lane's camera followed
 the forward end of unit 3's backpack lens through four 150 mm/s spins
 (`evidence/camera-spins` in that lane's tree, commit 33ff9ea). The lens
 sits about 36.3 mm behind the front axle. Within a spin it moves on a
@@ -343,10 +341,10 @@ circle about the turn centre. A circle fitted to it per spin, with that
 lane's calibration and no heading or SDK data, puts the centre 7.4, 10.2,
 7.6 and 10.9 mm ahead of the lens and within 2 mm of the centreline: x =
 -28.9, -26.1, -28.7, -25.4 mm. A focal prior from 450 to 720 px, or the
-lens height 5 mm either way, moves that by at most 0.9 mm. The GEMINI seat
+lens height 5 mm either way, moves that by at most 0.9 mm. The another substrate
 found that dropping the shelf constraint moves the mean from -27.3 to
 between -24.9 and -26.3 mm (turn 216). Followed the same way in the model
-(2.0 table, CT 930), with the head and lift where unit 3's were (22.5 degrees,
+(2.0 table, a GPU host), with the head and lift where unit 3's were (22.5 degrees,
 32.7 mm):
 
 | `com_x_mm` | Turn centre x | Steady rate at 146 mm/s, / unit 3's 3.24 rad/s | Mean roll, pitch rate in the spin |
@@ -368,7 +366,7 @@ instant. Filtered the same way, the model rocks about as much as the
 robot. See "What the rocking was".) Unit 3 turned 312 to 320 degrees per 1.5 s spin by its own
 IMU, at 3.24 and 3.23 rad/s. The head-at-0 run's 5 % difference between the
 model's two directions was chatter, not a lasting asymmetry: in unit 3's pose
-the two directions agree (2.55, 2.54 rad/s), and the GEMINI seat found the
+the two directions agree (2.55, 2.54 rad/s), and the another substrate found the
 true yaw rates differ by 1.5 % with a sign that a solver tolerance flips.
 Caveats: one robot, with a printed
 lift and no faceplate; the lens's x comes from that lane's geometric model;
@@ -430,17 +428,17 @@ That passed at 3.1047 mm (-24.1 to -25.1) and would have failed at 3.10 or
 5 mm. A centre of mass moved back to -29 mm (above) put it 10 mm behind.
 
 The camera's turn centres come from `simulacrum/camera_spins.py` (needs
-scipy). It is a port of the circle fit above, with gptpcs-01a1f1b's
+scipy). It is a port of the circle fit above, with a lane's
 calibration unchanged.
 
-gptpcs-01a1f1b fitted the other way round (the lab's coordination room turn 221). It
+a lane fitted the other way round (the lab's coordination room turn 221). It
 used its own contact rollers with the axles kept, fitted on unit 3 and held
 out unit 1, and found 3.75 mm. Its held-out run E improves on all four spins.
 The two directions agree within a millimetre.
 
 **What the rocking was.** I reported, in this README and in the room, that
 the model's treads chattered at three to ten times the robots' roll rate.
-That compared unlike signals, and gptpcs-01a1f1b found it (turn 223). The
+That compared unlike signals, and a lane found it (turn 223). The
 robot's gyro is low-passed inside the IMU chip; the model's was read at one
 instant per 5 ms tick, so faster vibration aliased into it. A scratch
 filter at every 1 ms physics step brought the model's rocking down to the
@@ -534,7 +532,7 @@ added after it, at the level recorded at the robot's output. So the model's
 noise is independent from one 5 ms reading to the next, and the robot's is
 not. The recording, at one state every 60 ms, cannot tell the difference.
 
-Rocking, from `evidence/imu-filter-20261120/compare_spins.py` in CT 930.
+Rocking, from `evidence/imu-filter-20261120/compare_spins.py` in a GPU host.
 Mean |roll|, |pitch| in rad/s over the steady half of each spin, at the
 table's inset of 3.1 mm:
 
@@ -629,7 +627,7 @@ near the top of the track, 2.0 an "ESN" underneath.
 
 ### The first run on a Vector 2.0 (2026-11-19)
 
-Unit 3 is not a stock 2.0 body. The operator (via gptpcs-01a1f1b, the lab's coordination room
+Unit 3 is not a stock 2.0 body. The operator (via a lane, the lab's coordination room
 turn 161): its lift and hubcaps are 3D-printed, its tracks are stock, and its
 faceplate is removed. Every unit 3 figure below (top speed, turn rate, the lift
 run, the accelerometer) is from that modified body, so a difference from
@@ -639,7 +637,7 @@ Run G (`evidence/hw-rec-20261119/run-g-endurance-0a1b2c3d.jsonl`), on
 unit 3 (0a1b2c3d), the household's Vector 2.0, reached through its daughter
 pod with `VECTOR_IP`: the endurance phase, 300 mm/s commanded. After 9
 spins (about 52 s) control was lost. Corrected 2026-11-19 from unit 3's own
-`/var/log/messages`, as read by gptpcs-01a1f1b (the lab's coordination room turn 103,
+`/var/log/messages`, as read by a lane (the lab's coordination room turn 103,
 not checked here): an app intent `SleepCommand` reached the robot at about
 91.42 s and took control (the recorder saw the loss at 96.66 s); a genuine
 front-left cliff stop came at about 119.7 s, 17 s after the recorder's last
@@ -683,7 +681,7 @@ direction not confirmed. The model spins at 175 deg/s here, 0.85 of unit 3's
 rate, as on unit 1. Before the run unit 3 sat on its charger ramp without
 contact; the `nudge` phase seated it on its first 16 mm move back (run I).
 
-Drift, from gptpcs-01a1f1b's calibrated camera over the same run
+Drift, from a lane's calibrated camera over the same run
 (P1R4N351/vector-simulacrum PR #1, comment 7025928568; their measurement):
 leftward movement per ccw+cw pair, lift down / up / down again:
 
@@ -696,25 +694,25 @@ leftward movement per ccw+cw pair, lift down / up / down again:
 
 No lift effect on drift is resolved either (the three blocks also crossed
 different spots on the shelf). The robot moved 20 to 25 mm the same way
-every pair. A follow-up by gptpcs-01a1f1b (the lab's coordination room turn 133; eight
+every pair. A follow-up by a lane (the lab's coordination room turn 133; eight
 lift-down spins at two shelf spots with opposite headings, farther from the
 dock) showed whose bias that is: a drift fixed to the shelf predicted the
 camera endpoints within 8.3 and 2.9 mm, a drift fixed to the robot's heading
 missed by 44.8 and 46.6 mm, and all eight turns went shelf-left; net leftward
 movement per pair at spot A facing 0 and 180 deg and spot B likewise: 22.7,
 14.4, 22.3 and 19.5 mm (PR #1, comment 7026442869, with footage and inputs). So the
-sideways drift is fixed to the shelf, not to the robot's heading; the operator also saw
-the robot creep back toward its charger. It is not a slope: the operator measured the
-shelf level at every position. gptpcs-01a1f1b's opposite-heading
+sideways drift is fixed to the shelf, not to the robot's heading; an operator also saw
+the robot creep back toward its charger. It is not a slope: an operator measured the
+shelf level at every position. a lane's opposite-heading
 accelerometer rests read 0.98 and 0.91 deg (turn 137), so that reading has
 some other cause and is not a tilt measurement. Part of the head
-accelerometer's behaviour is the sensor itself (the GEMINI seat, turns 158 and
+accelerometer's behaviour is the sensor itself (the another substrate, turns 158 and
 166): the total gravity it reads changes with head angle (979 to 1001 mg),
 which no tilt can do, and a bias plus an x-axis scale of about 1.014 explains
 that head-angle excursion (reproduced here; see "The accelerometer's x
 scale" below). That does not explain the opposite-heading difference: with no tilt, about 16 mg stays
 unexplained at both spots. The chassis itself does not lean (optically -0.07
-deg at spot A, gptpcs-01a1f1b turn 163, PR #1 comment 7027738144). So the
+deg at spot A, a lane turn 163, PR #1 comment 7027738144). So the
 opposite-heading signal, like the drift, is still open. The simulacrum models
 a per-axis bias and, since 2026-11-20, a per-axis scale. What on the shelf pushes the
 robot one way is open: a surface that grips differently in different
@@ -722,7 +720,7 @@ directions (tape strips, grain), local unevenness, or something at the dock.
 
 ### How far spins move the robot: a camera measurement (2026-11-19)
 
-gptpcs-01a1f1b measured unit 3 (Vector 2.0) with a fixed camera calibrated on a
+a lane measured unit 3 (Vector 2.0) with a fixed camera calibrated on a
 printed glyph, over four commanded ±150 mm/s turns (P1R4N351/vector-simulacrum
 PR #1, comment 7025537786; their measurement, not repeated here):
 
@@ -831,7 +829,7 @@ What this is worth, and what it is not:
   temperature. It is a fact about one robot: to train for any Vector, widen
   it to the part's 40 mg.
 
-The correlation and the bootstrap are there because GPTPCS-Astra asked for
+The correlation and the bootstrap are there because an external review lane asked for
 them (conferral of 2026-11-15, below); both confirmed its point.
 
 ### The accelerometer's x scale (2026-11-20)
@@ -845,7 +843,7 @@ g, too little to tell its scale from its offset. Nothing recorded rolls the
 robot onto its side, so y's scale is not visible either. y and z stay at 1.
 
 Unit 3 (the 2.0) carries the evidence: unit 3's stationary head sweeps from
-gptpcs-01a1f1b, analysed by the GEMINI seat (the lab's coordination room turn 166),
+a lane, analysed by the another substrate (the lab's coordination room turn 166),
 copied to `evidence/head-sweep-unit3-20261120`. `python3 -m simulacrum.imu_fit
 --head-sweep evidence/head-sweep-unit3-20261120` fits spot B and scores spot A.
 The fit never sees spot A. Heading is the robot's odometry.
@@ -858,7 +856,7 @@ The fit never sees spot A. Heading is the robot's odometry.
 Vector error per settled window, root mean square. A 200-draw bootstrap over
 B's windows puts the scale between 1.0085 and 1.0207. With the scale fitted,
 the offsets are 13.2, 4.0, -18.1 mg and the frame's pitch is -0.05 degrees
-(-0.22 with the scale fixed). The GEMINI seat's own fit, at gravity 9810
+(-0.22 with the scale fixed). The another substrate's own fit, at gravity 9810
 rather than 9806.65, gave 1.0138, 13.2, 3.9 and -18.5. These three values
 replace unit 1's in `parameters-vector2.json`, marked fitted. Before this, the
 2.0 table had inherited them from a 1.0.
@@ -871,7 +869,7 @@ What it is not:
 - About 15 mg of the opposite-heading difference is still unexplained.
 - Unit 1's x scale is not settled. Over table-run1's 26 stretches,
   `imu_fit.fit(..., free_scale=True)` gives 1.0118, standard error 0.0044.
-  The GEMINI seat's fit over table-run1 and run A gave 0.999 and no gain on
+  The another substrate's fit over table-run1 and run A gave 0.999 and no gain on
   held-out windows. That fit gave the two runs' different surfaces one shared
   tilt, which pulls the scale toward 1 (its author, the lab's coordination room turn
   195). Run A cannot be fitted on its own: it has one heading,
@@ -949,7 +947,7 @@ Cautions carried from the published-figures work of the third version:
 The operator asked for the assumed values to be resolved in order of their effect on
 the simulation, for a policy that has to carry over to the real robot.
 `rank_assumed.py` measures that effect; `evidence/rank-20261116-output.txt`
-is its output (CT 930, 24 paired episodes, 63 variants of the table).
+is its output (a GPU host, 24 paired episodes, 63 variants of the table).
 
 Each assumed or chosen value is moved to its low bound and then to its high
 bound, everything else at the table's values, and compared with the
@@ -1054,10 +1052,10 @@ and `lift_power_gains` in the table, from `headController.cpp` and
 model's torques needs the head and lift motors' strength, which no source
 gives. They stay assumed.
 
-### The conferral with GPTPCS-Astra
+### The conferral with an external review lane
 
-At the operator's instruction the ranking method and the two recording findings were
-put to GPTPCS-Astra (one ask, answered on the Copilot route, no fall-through
+At its instruction the ranking method and the two recording findings were
+put to an external review lane (one ask, answered on the Copilot route, no fall-through
 to another provider). `evidence/astra-conferral-20261115.md` holds the ask,
 the reply verbatim, both checksums, and what each point led to. In short: it
 called the ranking a screen and not a priority list, warned that paired
@@ -1174,7 +1172,7 @@ cannot choose between two sides or between the centre of mass, the tread's
 grip along and across, and the shape of the contact; four point contacts
 probably overstate how much the load split matters for a real tread; and
 the centre of mass can be measured directly with a straight edge (item 1
-of "What hands can settle"). GPTPCS-Astra gave the same advice unprompted.
+of "What hands can settle"). an external review lane gave the same advice unprompted.
 
 An earlier version of this file also said full wheel speed was not in the
 recording. It is, briefly, in the robot's own turn after its cliff reaction;
@@ -1228,7 +1226,7 @@ the firmware disagreements.
   from a seeded generator: one seed, one run.
 - **A free light cube** on the table at world coordinates (100, 0) mm with
   `VectorSim(cube="free")`. Its 62 shell and rubber contact boxes come from the
-  [shelf replay fixture](evidence/p2y8-cube-contact-replay/fixture.xml).
+  [shelf replay fixture](evidence/unit3-cube-contact-replay/fixture.xml).
   The robot range sensor sees it and the cube sends accelerometer packets as it moves.
   Mass distribution, friction and corner stiffness are estimates. Pass
   `cube_app="mean"` to simulate the modified firmware. Decode its messages with
@@ -1317,7 +1315,7 @@ Assumptions about robot behaviour made by the layer, not taken from a source:
   motion profile. The robot's own path follower is not reproduced, and the
   recording holds no such action to compare with.
 
-## Measured in the model (CT 930, 2026-11-15, table values)
+## Measured in the model (a GPU host, 2026-11-15, table values)
 
 These describe the model, not the robot.
 
@@ -1471,7 +1469,7 @@ robot's one run. They are not a spread measured across robots.
 
 ### Why not mjlab's task classes
 
-`mjlab` steps many robots as one MuJoCo Warp batch on a GPU. CT 930 has no
+`mjlab` steps many robots as one MuJoCo Warp batch on a GPU. a GPU host has no
 GPU, and what a policy has to be trained against here is the SDK layer:
 the command delay, the 60 ms state rate, one cliff bit for four sensors,
 wheel speed without a sign, and the robot's own cliff reaction taking
@@ -1481,8 +1479,8 @@ over `VectorSim` (`simulacrum/vec_env.py`), with up to 4 worker processes.
 
 A move to `mjlab` on the GPU node would need:
 
-1. CT 930 on the GPU host (it needs disk space first; see
-   `skills/mujoco-cauldron`), and `cauldron gpu-setup`.
+1. a GPU host on the GPU host (it needs disk space first; see
+   `skills/a GPU host`), and `the GPU host gpu-setup`.
 2. The robot as an `mjlab` entity, built from `mjcf.build_mjcf`, with the
    same actuators.
 3. The SDK layer rewritten as batched terms: command delay, state rate,
@@ -1500,7 +1498,7 @@ A move to `mjlab` on the GPU node would need:
 
 ### One thing that bites: import order
 
-In CT 930's environment, importing `mujoco` before `tensordict` ends in a
+In a GPU host's environment, importing `mujoco` before `tensordict` ends in a
 segmentation fault. Ten import orders were tried: the 4 with `mujoco`
 before `tensordict` crashed, the other 6 did not. `simulacrum/training.py`
 must be imported before anything that imports `mujoco`, and raises an
@@ -1585,7 +1583,7 @@ matters for deployment: same observation, same action.
 `tests/run_all.py`, 348 tests in twenty-five files. Results after the
 peer-capture tool, 2026-11-21 (`evidence/peer-capture-20261121/`):
 
-- In CT 930, with `--require-mujoco`: declared 348, ran 348, passed 340,
+- In a GPU host, with `--require-mujoco`: declared 348, ran 348, passed 340,
   failed 0, skipped 8, all of them optional inputs; exit 0.
 - On the Mac, without Anki's cube file and key: passed 235, skipped 113,
   because MuJoCo is absent.
@@ -1596,14 +1594,14 @@ peer-capture tool, 2026-11-21 (`evidence/peer-capture-20261121/`):
 Results after the cube app, 2026-11-21, when the suite was 332 tests in
 twenty-four files:
 
-- In CT 930: declared 332, ran 332, passed 324, failed 0, skipped 8
-  (`evidence/cube-firmware-20261121/ct930-run_all.txt`).
+- In a GPU host: declared 332, ran 332, passed 324, failed 0, skipped 8
+  (`evidence/cube-firmware-20261121/the GPU host-run_all.txt`).
 - On the Mac, with unit 3's `cube.dfu` and `key.h` given: declared 332, ran
   332, passed 226, failed 0, skipped 106, because MuJoCo is absent.
 - On the Mac without them: passed 219, skipped 113.
 
-The eight skips in CT 930 are the cube app's image tests, which need
-Anki's file and key, and the C tick's host build, since CT 930 has no C
+The eight skips in a GPU host are the cube app's image tests, which need
+Anki's file and key, and the C tick's host build, since a GPU host has no C
 compiler. Skips like these are marked "optional input" (`tests/_common.py`).
 `--require-mujoco` still fails on any other skip; `tests/test_run_all.py`
 checks that. The runner says which tests it skipped. (The 2026-11-16 version
@@ -1654,7 +1652,7 @@ table twice gives no change; a value the task never reads changes nothing.
 For the table: scene and solver settings are `chosen`, and nothing about the
 robot is.
 
-`tests/mutate.py` breaks each property once. On 2026-11-20 in CT 930, after
+`tests/mutate.py` breaks each property once. On 2026-11-20 in a GPU host, after
 the listen-only recorder: 173 of 173 injected faults caught, each by a test
 named in advance, 0 survived, 0 set-up errors. The 151 tests the arms name
 pass on an untouched copy first, and a wording-only change leaves all 275
@@ -1698,7 +1696,7 @@ different reason (the fit ran in the tests' set-up, so a broken fit stopped
 the tests from running at all) and one because its text occurred twice. All
 five were faults in the check, not in what it checks, and were fixed there.
 
-`python3 skills/p10-scan.py --fail-on warn --fail-on-unscannable
+`python3 skills/a code scanner.py --fail-on warn --fail-on-unscannable
 skills/vector-simulacrum`: errors 0, warns 0 (40 files).
 
 ## The next recording
@@ -1739,7 +1737,7 @@ width across both treads. The side stand gives `com_z`; the rear stand then
 gives `com_x`. The table's assumed (-24, 22) mm predicts **64.9 degrees** on the
 rear wheels and **51.8 degrees** on the edge.
 
-Checked in the model (`wheelstand_check.py`, CT 930). Releasing it from rest
+Checked in the model (`wheelstand_check.py`, a GPU host). Releasing it from rest
 and bisecting which way it falls, the model tips at 64.82 degrees on its rear
 wheels against 64.90 from the formula, and at 51.855 on the edge against 51.854.
 Nothing but the standing wheels touches the table at either angle. The
@@ -1965,7 +1963,7 @@ centre `simulacrum/spin_fit.py` and `camera_spins.py` find.
 
 In the model (below), a carried cube's chip circles 42.3 to 44.1 mm from
 the centre the robot turns about. That is from circle fits in two turns at
-±80 mm/s, CT 930. The pull that gives:
+±80 mm/s, a GPU host. The pull that gives:
 
 | Turn rate | ω²r | 12-bit steps (1/512 g) |
 |---|---|---|
@@ -2070,7 +2068,7 @@ Two consequences of the tap detector as shipped:
   is a tap, while a rise needs a fall within 10 frames. The model keeps
   this.
 
-**What the model found (CT 930):**
+**What the model found (a GPU host):**
 
 1. **The modelled lift cannot hold the table's cube.** The table's
    `servo_torque_max_mNm` is 30 mN·m, assumed with no source, and shared
@@ -2133,7 +2131,7 @@ Everything else is as shipped:
 The mean is of the 12-bit values with their fraction in the four low bits,
 so samples are finer than the chip's own steps. The model has it as
 `CubeApp("mean")` / `CubeAccelerometer(app="mean")`. Its version string is
-`cpcs-avg1-261121`.
+`build-avg1-261121`.
 
 **How it was built** (`cube_firmware/`):
 
@@ -2197,7 +2195,7 @@ started. It re-reads the file whenever it flashes (`bleClient.cpp:213, 450`).
    RAM, so the cube came back with none.
 3. `hold_cube.py` connected the cube at reserve control. The first attempt
    timed out after 20 s. Then the robot saw the mismatch at 00:46:05 and
-   flashed: `@cube.firmware_flash_success … cpcs-avg1-261121` at 00:46:13
+   flashed: `@cube.firmware_flash_success … build-avg1-261121` at 00:46:13
    (`unit3-log-flash.txt`).
 
 The battery messages kept coming for the rest of the 120 s hold
@@ -2284,7 +2282,7 @@ no Vector also counts.
 
 No connection to the robot is needed for any of these, and each replaces an
 assumed value outright. The order is by what the model is sensitive to
-("The assumed values, ranked") and by what a measurement costs; GPTPCS-Astra's
+("The assumed values, ranked") and by what a measurement costs; an external review lane's
 own first three were the cliff margin, the fore-aft centre of mass and the
 mass.
 
@@ -2314,7 +2312,7 @@ checks the reported travel against a ruler.
 
 ### The script for it
 
-`hardware/record_barriered.py`, written by cpcs-5f62f24 from the list above.
+`hardware/record_barriered.py`, written by a lane from the list above.
 **It has not been run, and it must not be run on an open-edged table.** It
 is kept here so that the sequence the model needs sits beside the model.
 `tests/test_recorder.py` runs its own `main()` against a stand-in SDK and a
@@ -2354,7 +2352,7 @@ What the file will not settle, and what the reader still lacks:
 
 ### Two things the hardware sessions found
 
-Reported by cpcs-5f62f24 from driving the robot; not observed by this skill,
+Reported by a lane from driving the robot; not observed by this skill,
 except where the first recording shows it.
 
 - At the default control level the robot refuses control while its cliff
@@ -2374,8 +2372,8 @@ except where the first recording shows it.
 
 ## Sources read
 
-- The recording: `evidence/hw-rec-20261115/`, made 2026-11-15 by cpcs-5f62f24
-  with the operator's approval, through the wire-pod host's SDK
+- The recording: `evidence/hw-rec-20261115/`, made 2026-11-15 by a lane
+  with its approval, through the wire-pod host's SDK
 - Vector Technical Reference Manual, https://randym32.github.io/Vector-TRM.pdf
 - https://github.com/kercre123/victor (branch `snowboy`): `cozmoConfig.h`,
   `pathMotionProfile.clad`, `reactToCliff.json`, `behaviorReactToCliff.cpp`,

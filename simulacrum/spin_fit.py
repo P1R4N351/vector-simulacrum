@@ -1,6 +1,6 @@
-"""Where the treads meet the table, fitted from the robots' recorded spins. Authored-by: CPCS.
+"""Where the treads meet the table, fitted from the robots' recorded spins..
 
-    cauldron python fit_spins.py
+    the GPU host python fit_spins.py
 
 Needs MuJoCo. It replays recordings and never talks to a robot.
 

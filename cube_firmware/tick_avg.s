@@ -1,5 +1,5 @@
 @ The light cube app's accelerometer tick, keeping the mean of each tick's FIFO frames instead of the last one.
-@ Authored-by: CPCS (cpcs-66ffc23), 2026-11-21. Cortex-M0 Thumb, hand-written to fit where the shipped tick was.
+@. Cortex-M0 Thumb, hand-written to fit where the shipped tick was.
 @
 @ It replaces hal_acc_tick in the shipped app (2018-08-14T17:40) in place, at 0x20005db4, within the 204 bytes up
 @ to 0x20005e80; the only call to it is the bl at 0x200063ba. tick_avg.c is the same tick in C, for reading and for

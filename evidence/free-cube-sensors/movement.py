@@ -10,7 +10,7 @@ import numpy as np
 
 here = Path(__file__).resolve().parent
 repo = here.parents[1]
-sys.path[:0] = [str(here.parent / "p2y8-printed-fork-contact"), str(repo)]
+sys.path[:0] = [str(here.parent / "unit3-printed-fork-contact"), str(repo)]
 from evaluate import run, observed
 from simulacrum import cube, mjcf, params
 

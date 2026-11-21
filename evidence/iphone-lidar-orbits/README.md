@@ -1,6 +1,6 @@
-# Three 360° RGB-D scans of P2Y8
+# Three 360° RGB-D scans of unit 3
 
-P2Y8 is a Vector 2.0 with printed hubcaps and lift, stock tracks, and the faceplate removed. The stationary iPhone 12 Pro recorded five paired color and depth frames at each of twelve headings spaced 30° apart, plus one closing view per pose. The encoder-reported head angles were about −1° and 35°. The lift reported about 31 mm down and 82 mm up. SDK yaw traversed +360.5°, −359.3° and +359.0° respectively. Both reported wheel speeds were zero in every capture index sample. The robot finished charging, with quiet mode confirmed on.
+unit 3 is a Vector 2.0 with printed hubcaps and lift, stock tracks, and the faceplate removed. The stationary iPhone 12 Pro recorded five paired color and depth frames at each of twelve headings spaced 30° apart, plus one closing view per pose. The encoder-reported head angles were about −1° and 35°. The lift reported about 31 mm down and 82 mm up. SDK yaw traversed +360.5°, −359.3° and +359.0° respectively. Both reported wheel speeds were zero in every capture index sample. The robot finished charging, with quiet mode confirmed on.
 
 ![One full rotation in each pose](three-poses.webp)
 
@@ -14,7 +14,7 @@ Each PLY is a coarse colored point cloud in robot millimetres. Photography of th
 
 The shoulder depth relative to the badge panel supported starting the transverse curve closer to the center. The Vector 2.0 mesh now blends from the earlier quartic section into a quadratic through the middle-height rear panel. The maximum vertex displacement is 0.62 mm. The centerline and outer lip coincide with their original positions. The change fades out toward the belly and roof. A preliminary 2 mm shoulder displacement visibly distorted the junction with the black side housing, so the final revision uses the existing section limits.
 
-![P2Y8 and two web renders from the same angle](model-comparison.jpg)
+![unit 3 and two web renders from the same angle](model-comparison.jpg)
 
 The level pose supplied the training view. For each straight rear exposure, camera orientation came from the orbit, range from neighboring rim views, and the rear badge registered the image center. Forty shell rows supplied fixed rays to two shoulder bands and the central panel. Averaging the two sides reduces yaw sensitivity. Subtracting the center depth removes a common range offset. A five-pixel vertical sampling shift follows the [preceding registration check](../iphone-far-rims/README.md). No per-pose range correction was fitted.
 

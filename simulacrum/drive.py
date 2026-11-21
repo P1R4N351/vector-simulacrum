@@ -1,4 +1,4 @@
-"""The tread drive as the firmware runs it: encoder and speed control. Authored-by: CPCS.
+"""The tread drive as the firmware runs it: encoder and speed control..
 
 No MuJoCo here. Two small pieces, each stepped once per 5 ms control tick:
 

@@ -1,6 +1,6 @@
-# P2Y8 three-camera survey · 19 November 2026
+# unit 3 three-camera survey · 19 November 2026
 
-P2Y8 is a Vector 2.0 with stock treads, printed lift and hubcaps, and the transparent faceplate removed. The shelf hides the ground-contact surfaces. Stock exterior and underside references are available in [Digital Dream Labs’ Vector 2.0 regulatory photographs](https://fccid.io/m/f715ecdccc13ef685afd7a3a3221e5ec5971fe605c006cf883b6620114e3d932.pdf).
+unit 3 is a Vector 2.0 with stock treads, printed lift and hubcaps, and the transparent faceplate removed. The shelf hides the ground-contact surfaces. Stock exterior and underside references are available in [Digital Dream Labs’ Vector 2.0 regulatory photographs](https://fccid.io/m/f715ecdccc13ef685afd7a3a3221e5ec5971fe605c006cf883b6620114e3d932.pdf).
 
 ## Capture and calibration
 

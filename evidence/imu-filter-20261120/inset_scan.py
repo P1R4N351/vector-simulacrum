@@ -1,4 +1,4 @@
-"""The spin fit's two recordings on a fine grid of contact insets. Authored-by: CPCS.
+"""The spin fit's two recordings on a fine grid of contact insets..
 
     ./run_in_ct.sh evidence/imu-filter-20261120/inset_scan.py
 

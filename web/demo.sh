@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # From a fresh clone to the simulator running in a browser, in one command.
-# Authored-by: CPCS.
 #
 #   ./demo.sh                  check, test, build, then serve on http://127.0.0.1:5183
 #   ./demo.sh --port 8080      serve on another port

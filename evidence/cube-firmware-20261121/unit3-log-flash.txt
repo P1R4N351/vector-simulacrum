@@ -7,7 +7,7 @@
 04-30 00:45:35.110 info vic-engine 3759 BleClient.OnOutboundConnectionChange.IgnoringUnexpected: (tc122929) Ignoring unexpected disconnection from address 02:00:00:00:00:01 (connection_id 0). Expected address:
 04-30 00:45:49.860 info vic-engine 3759 @cube.scan_result117257316
 04-30 00:46:05.110 info vic-engine 3759 @cube.firmware_mismatch02:00:00:00:00:012018-08-14T17:4017272784
-04-30 00:46:13.610 info vic-engine 3759 @cube.firmware_flash_success02:00:00:00:00:01cpcs-avg1-26112117280944
+04-30 00:46:13.610 info vic-engine 3759 @cube.firmware_flash_success02:00:00:00:00:01build-avg1-26112117280944
 04-30 00:46:13.610 info vic-engine 3759 @cube.connected02:00:00:00:00:0117280956
 04-30 00:47:34.860 info vic-engine 3759 @cube_connection_coordinator.disconnect_requestedAppCubeConnectionSubscriber8117362378
 04-30 00:47:34.860 info vic-engine 3759 @cube.disconnected02:00:00:00:00:0117362436

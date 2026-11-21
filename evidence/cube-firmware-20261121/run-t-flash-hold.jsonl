@@ -1,5 +1,5 @@
 {"k": "c", "t": 0.0023, "name": "connect_to", "serial": "0a1b2c3d", "ip": "192.0.2.10", "control": "reserve"}
-{"k": "c", "t": 1.4991, "name": "begin", "note": "flash run 2026-11-21, unit 3 docked, cube 02:00:00:00:00:01 after the operator pulled and refitted its cell; unit 3 offers cube-avg1.dfu (cpcs-avg1-261121) through a bind mount; reserve control, nothing commanded", "utc": "2026-11-21T03:12:22.521+00:00"}
+{"k": "c", "t": 1.4991, "name": "begin", "note": "flash run 2026-11-21, unit 3 docked, cube 02:00:00:00:00:01 after an operator pulled and refitted its cell; unit 3 offers cube-avg1.dfu (build-avg1-261121) through a bind mount; reserve control, nothing commanded", "utc": "2026-11-21T03:12:22.521+00:00"}
 {"k": "c", "t": 1.4995, "name": "holding", "seconds": 120.0, "renew_s": 30.0, "battery_s": 30.0, "utc": "2026-11-21T03:12:22.522+00:00"}
 {"k": "e", "t": 36.7991, "event": "object_connection_state", "utc": "2026-11-21T03:12:57.821+00:00", "object_id": 0, "connected": false, "factory_id": "", "object_type": 2}
 {"k": "r", "t": 36.7997, "success": false, "factory_id": ""}

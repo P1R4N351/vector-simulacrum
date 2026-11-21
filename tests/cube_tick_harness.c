@@ -1,4 +1,4 @@
-/* Runs cube_firmware/tick_avg.c on the host for tests/test_cube_firmware.py. Authored-by: CPCS (cpcs-66ffc23).
+/* Runs cube_firmware/tick_avg.c on the host for tests/test_cube_firmware.py..
  *
  * stdin: one tick per line: the number of FIFO frames n, then 3n int16 values (x, y, z per frame).
  * stdout: one line per message the tick sends, its 20 bytes in hex.

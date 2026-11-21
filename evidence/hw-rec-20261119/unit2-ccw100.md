@@ -10,7 +10,7 @@ Aligned at wheel-command issue, Unit 1's measured gyro sample at +1.274 s was 61
 
 The pod's activated-robot list retained Unit 2's pairing and address while live battery and stats calls returned TCP connection refused. The spore later reached the correct robot at the reserved address on wlan0, verified by ping and robot hostname. On the robot, vic-cloud owns TCP 443. Its journal shows a cloud-only restart at boot +1641 s; the replacement process retried the local switchboard gateway Unix socket about every five seconds from +1644.6 through +2519.9, receiving “operation not permitted.” It never logged a port-443 listener in that interval. Switchboard was still the earlier process. Both services restarted around +2524–2529 s, and vic-cloud logged its listener at +2537.9 s. The journal establishes the failing dependency and recovery; it does not identify which permission check or launch condition caused that socket error. Monotonic times avoid the robot's incorrect wall clock.
 
-During this investigation CPCS switched the daughter from an independent wire-pod to forwarding for the mother. The paired SDK worked through the daughter's port 443; control and telemetry used that path. The prior robot-local failure and the change in pod topology are distinct events. No further daemon or firmware change was necessary for this recording.
+During this investigation a lane switched the daughter from an independent wire-pod to forwarding for the mother. The paired SDK worked through the daughter's port 443; control and telemetry used that path. The prior robot-local failure and the change in pod topology are distinct events. No further daemon or firmware change was necessary for this recording.
 
 ## Held-out replay with measured wheel speeds
 

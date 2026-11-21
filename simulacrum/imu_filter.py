@@ -1,4 +1,4 @@
-"""The IMU chip's own low-pass filter, run at every physics step. Authored-by: CPCS.
+"""The IMU chip's own low-pass filter, run at every physics step..
 
 Needs numpy, not MuJoCo.
 

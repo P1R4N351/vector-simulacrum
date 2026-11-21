@@ -1,4 +1,4 @@
-// Shared test set-up: the MuJoCo WebAssembly module and the exported model. Authored-by: CPCS.
+// Shared test set-up: the MuJoCo WebAssembly module and the exported model..
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";

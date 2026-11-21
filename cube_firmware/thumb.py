@@ -1,4 +1,4 @@
-"""A small ARMv6-M Thumb interpreter, enough to run the cube app's accelerometer tick. Authored-by: CPCS.
+"""A small ARMv6-M Thumb interpreter, enough to run the cube app's accelerometer tick..
 
 Why: the replacement tick (tick_avg.s) is hand-written and goes onto a cube, so the exact bytes are run here
 before they are flashed, against the model in simulacrum/cube.py. The shipped tick runs here too; it must

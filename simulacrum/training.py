@@ -1,11 +1,11 @@
-"""PPO training on the task with rsl_rl, and ONNX export. Authored-by: CPCS.
+"""PPO training on the task with rsl_rl, and ONNX export..
 
-Needs torch, tensordict and rsl_rl (all in CT 930's environment). The
+Needs torch, tensordict and rsl_rl (all in a GPU host's environment). The
 environment adapter gives rsl_rl one observation group, "policy", used by
 both actor and critic, and keeps its own record of every finished episode so
 the learning curve does not depend on rsl_rl's logger.
 
-Import order matters in CT 930's environment (mujoco 3.11, tensordict 0.15,
+Import order matters in a GPU host's environment (mujoco 3.11, tensordict 0.15,
 torch 2.15): importing mujoco before tensordict ends in a segmentation fault
 when tensordict is imported (measured 2026-11-14: "import mujoco, tensordict"
 crashes, "import tensordict, mujoco" does not). So this module must be

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export the simulacrum's model for the browser. Authored-by: CPCS.
+"""Export the simulacrum's model for the browser..
 
 Writes, from the simulacrum one directory up (the single source of every number):
 
@@ -387,7 +387,7 @@ def main(argv: Sequence[str]) -> int:
 
     table_bytes = (root / "parameters.json").read_bytes()
     # The base table, which the simulacrum calls vector_1. The recorded robot is a Vector 1.0
-    # (the table's REC and REC2 sources, on the operator's word).
+    # (the table's REC and REC2 sources, on its word).
     v = params.values(params.load(model=ROBOT_MODEL))
     d = mjcf.derive(v)
     xml = mjcf.build_mjcf(v, SCENE_OBSTACLES)

@@ -1,4 +1,4 @@
-"""The parameter table and its checks. Needs no MuJoCo. Authored-by: CPCS."""
+"""The parameter table and its checks. Needs no MuJoCo.."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ class Vector2(unittest.TestCase):
         self.assertEqual(params.summary(self.two)["inherited"], 27)
         self.assertEqual(self.two["robot"], "Digital Dream Labs Vector 2.0")
 
-    def test_p2y8_camera_uses_its_reported_intrinsics_at_stream_resolution(self) -> None:
+    def test_unit3_camera_uses_its_reported_intrinsics_at_stream_resolution(self) -> None:
         from web.tools.export_model import camera_block
         camera = camera_block(params.values(self.two))
         self.assertEqual((camera["width_px"], camera["height_px"]), (800, 600))

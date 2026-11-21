@@ -1,6 +1,6 @@
 # Heading reversal at two shelf locations
 
-P2Y8 drifted toward **shelf-left on all eight accepted spins**. At each of two locations, turning the robot around left the drift pointing left and back toward the dock. In the robot's starting frame the lateral component reversed. This favors a shelf-fixed contribution over a fixed bias toward one side of the chassis under these test conditions.
+unit 3 drifted toward **shelf-left on all eight accepted spins**. At each of two locations, turning the robot around left the drift pointing left and back toward the dock. In the robot's starting frame the lateral component reversed. This favors a shelf-fixed contribution over a fixed bias toward one side of the chassis under these test conditions.
 
 ![Four measured pair displacements in shelf and body coordinates](../physics-plots/heading-crossover-frames.png)
 
@@ -25,13 +25,13 @@ The two spot centers were about 78 mm apart. The two starts within each spot dif
 
 ## Clearance and controls
 
-The operator observed possible ramp contact during near-dock positioning. Those three pilot pairs were excluded. Before the accepted runs P2Y8 drove another 50 mm forward. Camera-guided moves set up the remaining conditions. The four starting drive centers lay 195–196 mm forward of the glyph plane, or 101–102 mm beyond the front ramp lip. Even the closest of the twelve **resting drive centers** was 89 mm forward of that lip. These are center measurements, not tread-to-ramp gaps. The cropped clip shows the four accepted pairs in execution order.
+The operator observed possible ramp contact during near-dock positioning. Those three pilot pairs were excluded. Before the accepted runs unit 3 drove another 50 mm forward. Camera-guided moves set up the remaining conditions. The four starting drive centers lay 195–196 mm forward of the glyph plane, or 101–102 mm beyond the front ramp lip. Even the closest of the twelve **resting drive centers** was 89 mm forward of that lip. These are center measurements, not tread-to-ramp gaps. The cropped clip shows the four accepted pairs in execution order.
 
 ![Four corrected camera views at the start of the accepted pairs](starts.jpg)
 
 The cyan marks show the ramp front and projected drive center. The red and green crosses identify the backpack and head landmarks.
 
-Lift height stayed at 32.7 mm. Both wheels were commanded at opposite 150 mm/s for three seconds, then stopped and allowed to settle before reversing. The median measured wheel magnitudes in the steady portions ranged from 147.5 to 150 mm/s. The two existing Vector 2.0 replay models took the measured wheel speeds, with physical axles in their stock locations. Each turn started settled at the measured lift and head posture. Cylinders used a 1 ms integration step and spheres 0.125 ms. Simulated displacement was rotated into shelf coordinates using each turn's starting camera heading. No surface or contact parameter was fit to these endpoints. P2Y8 returned to the dock. SDK telemetry reported charging and quiet mode active and muted, and the Kulfi Home Assistant quiet switch read on.
+Lift height stayed at 32.7 mm. Both wheels were commanded at opposite 150 mm/s for three seconds, then stopped and allowed to settle before reversing. The median measured wheel magnitudes in the steady portions ranged from 147.5 to 150 mm/s. The two existing Vector 2.0 replay models took the measured wheel speeds, with physical axles in their stock locations. Each turn started settled at the measured lift and head posture. Cylinders used a 1 ms integration step and spheres 0.125 ms. Simulated displacement was rotated into shelf coordinates using each turn's starting camera heading. No surface or contact parameter was fit to these endpoints. unit 3 returned to the dock. SDK telemetry reported charging and quiet mode active and muted, and the Kulfi Home Assistant quiet switch read on.
 
 SDK drive-center pose jumped 21.9 mm at A180 and 28.2 mm at B180 within individual state intervals after the CW stop. This occurred while facing the dock. The recorded fields do not identify what triggered those corrections. This is why the camera supplies the independent position reference even where the final SDK endpoint appears close.
 

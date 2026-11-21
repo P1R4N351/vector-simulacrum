@@ -1,4 +1,4 @@
-"""Fit longitudinal contact inset on P2Y8's four camera spins, excluding all other robots."""
+"""Fit longitudinal contact inset on unit 3's four camera spins, excluding all other robots."""
 import argparse
 import csv
 import json

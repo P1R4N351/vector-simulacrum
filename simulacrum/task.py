@@ -1,4 +1,4 @@
-"""Speed-and-turn following task on the simulacrum. Authored-by: CPCS.
+"""Speed-and-turn following task on the simulacrum..
 
 One VectorTask is one robot on one table for one episode at a time. The
 policy is given a forward speed and a turn rate to hold and answers with two

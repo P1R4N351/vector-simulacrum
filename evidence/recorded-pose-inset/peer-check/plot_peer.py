@@ -14,14 +14,14 @@ fig, axes=plt.subplots(2,2,figsize=(11,7),layout="constrained")
 for index,(geom,desc) in enumerate([("roller","Fixed axles"),("shifted","Shifted wheels")]):
     ax=axes[0,index]
     for fname,swap in [('crossed_summary.csv',False),('swapped_multiccd_summary.csv',True)]:
-        rows=[r for r in read(fname) if r['robot']=='P2Y8' and r['implementation']==geom]
+        rows=[r for r in read(fname) if r['robot']=='unit 3' and r['implementation']==geom]
         on=(geom=='shifted')!=swap
         ax.plot([float(r['inset_mm']) for r in rows],[float(r['rms_yaw_error_pct']) for r in rows],
                 marker='o',color='#166a73' if on else '#ae602c',label='Multi-contact '+('on' if on else 'off'))
-    ax.set(xlabel='Inset per end (mm)',ylabel='Steady yaw RMS error (%)',title=f'P2Y8  ·  {desc}',xticks=[3.,3.75],ylim=(0,5.3))
+    ax.set(xlabel='Inset per end (mm)',ylabel='Steady yaw RMS error (%)',title=f'unit 3  ·  {desc}',xticks=[3.,3.75],ylim=(0,5.3))
     ax.legend()
 data=read('sampling_scores.csv')
-for ax,unit in zip(axes[1],['P2Y8','C7K8']):
+for ax,unit in zip(axes[1],['unit 3','unit 1']):
     for i,(axis,color) in enumerate([('roll','#655589'),('pitch','#397764')]):
         vals=[]
         for k in ['recorded','instant','onepole_18.65Hz','twopole_18.65Hz']:

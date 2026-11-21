@@ -1,4 +1,4 @@
-"""The listen-only recorder, run against a stand-in SDK, a stand-in pod and a stand-in clock. Authored-by: CPCS.
+"""The listen-only recorder, run against a stand-in SDK, a stand-in pod and a stand-in clock..
 
 No robot, no network, no MuJoCo. It checks that hardware/record_listen.py never asks for behaviour
 control and never commands anything, that it records for the time it is given, and that it lifts the

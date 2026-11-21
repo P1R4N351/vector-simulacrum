@@ -1,6 +1,4 @@
 """The cube app with the averaging tick (cube_firmware/), checked against the model before it goes on a cube.
-
-Authored-by: CPCS. The image tests need unit 3's cube.dfu and the key file, given by CUBE_STOCK_DFU and CUBE_KEY;
 neither is in this repository (the app is Anki's and the key is theirs), so without them those tests skip and
 say so. They also need the ARM GNU toolchain to build the new tick.
 
@@ -34,7 +32,7 @@ HAVE_IMAGE = bool(STOCK and KEY and Path(STOCK).is_file() and Path(KEY).is_file(
 HAVE_ARM = all(shutil.which(t) for t in dfu.TOOLS)
 CC = shutil.which("cc") or shutil.which("gcc") or shutil.which("clang")
 IMAGE_SKIP = _common.IMAGE_SKIP_REASON
-VERSION = b"cpcs-avg1-261121"
+VERSION = b"build-avg1-261121"
 SPI_READ8, SPI_READ, UDIV, SEND_HOOK = 0x20006350, 0x200062f0, 0x200058ba, 0x20009800
 STACK_TOP, STACK_BYTES = 0x20009000, 256
 STATE_AT, STATE_END = 0x20006430, 0x20006454  # the tick's state block and the message after it

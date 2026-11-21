@@ -1,5 +1,5 @@
 {"k": "c", "t": 0.002, "name": "connect_to", "serial": "0a1b2c3d", "ip": "192.0.2.10", "control": "none"}
-{"k": "c", "t": 1.0421, "name": "begin", "note": "run R 2026-11-21, unit 3 docked, cube 02:00:00:00:00:01 held connected by re-sending connect_cube every 30 s, no behaviour control; the operator may tap or move the cube", "utc": "2026-11-21T01:18:54.143+00:00"}
+{"k": "c", "t": 1.0421, "name": "begin", "note": "run R 2026-11-21, unit 3 docked, cube 02:00:00:00:00:01 held connected by re-sending connect_cube every 30 s, no behaviour control; an operator may tap or move the cube", "utc": "2026-11-21T01:18:54.143+00:00"}
 {"k": "c", "t": 1.0423, "name": "holding", "seconds": 10800.0, "renew_s": 30.0, "battery_s": 60.0, "utc": "2026-11-21T01:18:54.144+00:00"}
 {"k": "r", "t": 1.0429, "error": "VectorControlException: Unable to run 'connect_cube' because it requires behavior control.\n\nMake sure to request control from Vector either by providing the 'be"}
 {"k": "b", "t": 1.1178, "volts": 3.5875, "charging": false, "on_platform": true}

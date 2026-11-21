@@ -32,15 +32,15 @@ def run(p2_data,c7_data,outdir,shifted,swap_solver):
         scores.append(dict(robot=robot,spin=spin,implementation=impl,inset_mm=inset,
                            yaw_rad_s=yaw,roll_rad_s=roll,pitch_rad_s=pitch,center_mm=pivot))
     for m in p2_actual:
-        record('P2Y8',m['spin'],'recorded','',m['yaw'],m['roll'],m['pitch'],m['center_mm'])
+        record('unit 3',m['spin'],'recorded','',m['yaw'],m['roll'],m['pitch'],m['center_mm'])
     values=params.values(params.load(model='vector_1'))
     states,commands=recording.load(c7_data)
     spins=[s for s in recording.segments(commands,values).values() if s.left*s.right<0]
     for seg in spins:
         rows=[c7.data_row(r['t']-seg.t_cmd,r['head'],r['gyro'],r['lift'],r['wl'],r['wr'],
                           *r['pose'][:2],r['yaw'],values['imu_pitch_offset_deg']) for r in states]
-        m=c7.score(rows,seg.t_stop-seg.t_cmd,'C7K8')
-        record('C7K8',seg.label,'recorded','',m['mean_abs_yaw_rad_s'],m['mean_abs_roll_rad_s'],
+        m=c7.score(rows,seg.t_stop-seg.t_cmd,'unit 1')
+        record('unit 1',seg.label,'recorded','',m['mean_abs_yaw_rad_s'],m['mean_abs_roll_rad_s'],
                m['mean_abs_pitch_rad_s'],None)
     for implementation in ('roller','shifted'):
         for inset in (3.,3.75):
@@ -55,17 +55,17 @@ def run(p2_data,c7_data,outdir,shifted,swap_solver):
                     stack.enter_context(patch.object(p2,'contact_xml',roller_with_multiccd))
                 for run in runs:
                     _,m=p2.simulated(inset,*run)
-                    record('P2Y8',m['spin'],implementation,inset,m['yaw'],m['roll'],m['pitch'],m['center_mm'])
+                    record('unit 3',m['spin'],implementation,inset,m['yaw'],m['roll'],m['pitch'],m['center_mm'])
                 for seg in spins:
                     rows=c7.simulate(values,replay._state_at(states,seg.t_cmd),seg,inset)
                     m=c7.score(rows,seg.t_stop-seg.t_cmd,implementation)
-                    record('C7K8',seg.label,implementation,inset,m['mean_abs_yaw_rad_s'],m['mean_abs_roll_rad_s'],
+                    record('unit 1',seg.label,implementation,inset,m['mean_abs_yaw_rad_s'],m['mean_abs_roll_rad_s'],
                            m['mean_abs_pitch_rad_s'],m['simulation_icr_x_mm'])
     prefix='swapped_multiccd' if swap_solver else 'crossed'
     outdir.mkdir(exist_ok=True,parents=True)
     c7.write_csv(outdir/f'{prefix}_geometry.csv',scores)
     aggregates=[]
-    for robot in ('P2Y8','C7K8'):
+    for robot in ('unit 3','unit 1'):
         obs={r['spin']:r for r in scores if r['robot']==robot and r['implementation']=='recorded'}
         for impl in ('roller','shifted'):
             for inset in (3.,3.75):

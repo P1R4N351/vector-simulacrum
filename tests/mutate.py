@@ -1,6 +1,6 @@
-"""Break each tested property once and show its test fails. Authored-by: CPCS.
+"""Break each tested property once and show its test fails..
 
-    cauldron python tests/mutate.py        all arms (needs MuJoCo, torch, rsl_rl, onnxruntime)
+    the GPU host python tests/mutate.py        all arms (needs MuJoCo, torch, rsl_rl, onnxruntime)
     python3 tests/mutate.py                the arms that need none of those; the rest are NOT-RUN
 
 For every arm: copy the skill to a temporary directory, swap one piece of

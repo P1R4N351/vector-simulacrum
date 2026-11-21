@@ -1,4 +1,4 @@
-"""The tread contact inset: fitted on unit 1's spins, held out on unit 3's. Needs MuJoCo. Authored-by: CPCS."""
+"""The tread contact inset: fitted on unit 1's spins, held out on unit 3's. Needs MuJoCo.."""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ class InsetFit(unittest.TestCase):
             self.assertLess(abs(1.0 - after["ratio"]), abs(1.0 - before["ratio"]), after["label"])
             self.assertGreater(after["ratio"], 0.9, after["label"])
 
-    @unittest.skipUnless(HAVE_SCIPY, "scipy is not installed here; run in CT 930")
+    @unittest.skipUnless(HAVE_SCIPY, "scipy is not installed here; run in a GPU host")
     def test_the_inset_keeps_the_turn_centre_within_5_mm_of_where_unit3_turns(self) -> None:
         """Averaged over the fitted inset and 0.04 mm either side: one spin's centre moves by up to 5.7 mm between
         insets 0.02 mm apart (evidence/imu-filter-20261120/inset_scan-output.txt), so one inset alone says little.

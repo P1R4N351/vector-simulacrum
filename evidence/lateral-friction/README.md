@@ -1,4 +1,4 @@
-# Does lateral tread friction explain P2Y8’s drift?
+# Does lateral tread friction explain unit 3’s drift?
 
 Both 42 mm contact models preferred lateral friction 0.8875 at spot B with the B inclination imposed. It improved the angular-speed match at held-out A, but **both models predicted the final position worse**. The data do not support changing the simulator default.
 

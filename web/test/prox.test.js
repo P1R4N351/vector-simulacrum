@@ -1,4 +1,4 @@
-// The time-of-flight sensor's reporting rules against readings of the Python. Authored-by: CPCS.
+// The time-of-flight sensor's reporting rules against readings of the Python..
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ProxSensor, rayDirections } from "../src/sim/prox.js";

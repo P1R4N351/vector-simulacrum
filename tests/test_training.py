@@ -1,4 +1,4 @@
-"""PPO training, ONNX export and the torch-free policy runner. Authored-by: CPCS.
+"""PPO training, ONNX export and the torch-free policy runner..
 
 Needs MuJoCo, torch, rsl_rl and onnxruntime. One tiny training run (3
 iterations, 4 environments, 16 steps) is shared by the tests: it proves the

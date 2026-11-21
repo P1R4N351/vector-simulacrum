@@ -1,6 +1,6 @@
-# P2Y8 wheelbase check with iPhone 12 Pro LiDAR
+# unit 3 wheelbase check with iPhone 12 Pro LiDAR
 
-Two stationary, opposite-facing poses supplied 18 paired Record3D RGB and hue-coded depth frames each. P2Y8 has printed hubcaps. The existing camera reconstruction predicts 48.83 and 48.93 mm in the two held-out A photo sets. No iPhone measurement went into that fit.
+Two stationary, opposite-facing poses supplied 18 paired Record3D RGB and hue-coded depth frames each. unit 3 has printed hubcaps. The existing camera reconstruction predicts 48.83 and 48.93 mm in the two held-out A photo sets. No iPhone measurement went into that fit.
 
 | Measurement | Right-facing | Left-facing |
 |---|---:|---:|

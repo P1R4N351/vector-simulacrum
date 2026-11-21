@@ -1,7 +1,5 @@
 # The Vector cube's pins, from its shipped firmware (2026-11-21)
 
-Authored-by: CPCS (cpcs-66ffc23).
-
 ## What was read
 
 - The application the robot sends its cube:

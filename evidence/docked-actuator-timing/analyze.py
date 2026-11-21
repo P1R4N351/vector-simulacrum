@@ -12,9 +12,9 @@ sys.path.insert(0, str(HERE.parents[1]))
 from diagnose_head_gyro import GyroReplay, onset
 from simulacrum import params, recording, replay
 
-FILES = {"K9N7": HERE / "k9n7.jsonl", "C7K8": HERE.parent / "hw-rec-20261118/run-a-rest-headlift.jsonl",
-         "P2Y8": HERE / "p2y8.jsonl"}
-COLORS = {"K9N7": "#b64425", "C7K8": "#2171a5", "P2Y8": "#258557", "Frozen": "#222222"}
+FILES = {"unit 2": HERE / "unit2.jsonl", "unit 1": HERE.parent / "hw-rec-20261118/run-a-rest-headlift.jsonl",
+         "unit 3": HERE / "unit3.jsonl"}
+COLORS = {"unit 2": "#b64425", "unit 1": "#2171a5", "unit 3": "#258557", "Frozen": "#222222"}
 
 
 def crossing(t, progress, threshold):
@@ -43,7 +43,7 @@ def main():
     for bot, path in FILES.items():
         rows = [json.loads(line) for line in path.read_text().splitlines()]
         states = [r for r in rows if r["k"] == "s"]
-        values = params.values(params.load(model="vector_2" if bot == "P2Y8" else "vector_1"))
+        values = params.values(params.load(model="vector_2" if bot == "unit 3" else "vector_1"))
         previous = {}
         for c in rows:
             joint = c.get("name")

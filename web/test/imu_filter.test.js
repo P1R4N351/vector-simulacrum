@@ -1,4 +1,4 @@
-// Port of ../simulacrum/../tests/test_imu_filter.py plus accel_scale check. Authored-by: GEMINI.
+// Port of ../simulacrum/../tests/test_imu_filter.py plus accel_scale check..
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CHANNELS, ImuFilter, cornersHz } from "../src/sim/imu_filter.js";

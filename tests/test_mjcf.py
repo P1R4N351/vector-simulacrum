@@ -1,4 +1,4 @@
-"""The generated MJCF follows the parameter table. Needs no MuJoCo. Authored-by: CPCS."""
+"""The generated MJCF follows the parameter table. Needs no MuJoCo.."""
 
 from __future__ import annotations
 

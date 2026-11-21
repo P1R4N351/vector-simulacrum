@@ -1,4 +1,4 @@
-"""Replay a recording of the real robot through the model and compare. Authored-by: CPCS.
+"""Replay a recording of the real robot through the model and compare..
 
 The recording (evidence/hw-rec-20261115) holds the robot's state messages
 and the commands that were sent, with host receive times. Each commanded

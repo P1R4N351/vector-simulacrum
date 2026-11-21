@@ -1,5 +1,5 @@
 /* Places the replacement tick where the shipped one was, and names the shipped app's routines it calls at
-   their Thumb addresses (bit 0 set). Authored-by: CPCS (cpcs-66ffc23). */
+   their Thumb addresses (bit 0 set).. */
 spi_read8 = 0x20006351;
 spi_read = 0x200062f1;
 udiv = 0x200058bb;

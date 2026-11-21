@@ -1,6 +1,6 @@
 # madizmo Vector V2 tread, 0.4 mm nozzle
 
-This replay uses the single STL from the requested design, anki_vector_tracks_V2.stl (SHA256 898644b2bea1f108c45d88131171e9d8338f479ebef0280980261b1cc86635a9). It uses the bundled CuraEngine 5.10.0-beta.1, Kingroon KP3S machine and extruder definitions, nominal 0.40 mm nozzle and bead width, and 0.20 mm layers. The local OctoPrint history for the KP3S confirms Marlin 2.1.1. The nozzle size is the operator's estimate. [madizmo's design](https://www.thingiverse.com/thing:4287628)
+This replay uses the single STL from the requested design, anki_vector_tracks_V2.stl (SHA256 898644b2bea1f108c45d88131171e9d8338f479ebef0280980261b1cc86635a9). It uses the bundled CuraEngine 5.10.0-beta.1, Kingroon KP3S machine and extruder definitions, nominal 0.40 mm nozzle and bead width, and 0.20 mm layers. The local OctoPrint history for the KP3S confirms Marlin 2.1.1. The nozzle size is its estimate. [madizmo's design](https://www.thingiverse.com/thing:4287628)
 
 The 0.02 mm slit routed all 42 inner teeth through the central tooth band without travel between paths on layers 1–56. Even 0.01 mm worked on this mesh in the tested orientation. The uncut control produced 366 non-extruding moves over those layers. This threshold is specific to the geometry and Cura settings. The teeth extend across only about 2 mm of the 11.6 mm tread width.
 

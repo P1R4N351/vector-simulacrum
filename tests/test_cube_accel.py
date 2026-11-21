@@ -1,6 +1,4 @@
 """The cube accelerometer collector, run against a stand-in bleak, stand-in cubes and a stand-in clock.
-
-Authored-by: CPCS. No radio and no cube. The expected values are taken from Anki's sources, separately from the
 script: the message layout from robot/cube_firmware/app/protocol.h (packed here with struct), the field offsets
 and scale from bletool/index.js, the UUIDs as bletool/cube.js and factory.js write them, and the service UUID
 from the advertising bytes in src/config/user_config.h. It says nothing about a real cube or bleak.

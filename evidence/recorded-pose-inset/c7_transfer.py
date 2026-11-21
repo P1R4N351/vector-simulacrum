@@ -1,4 +1,4 @@
-"""Transfer a frozen P2Y8 contact inset to four C7K8 run E spins.
+"""Transfer a frozen unit 3 contact inset to four unit 1 run E spins.
 
 Use the bbec512a simulacrum source on PYTHONPATH, with contact.py on the same
 path. Arguments are the run E JSONL, output directory, and frozen inset in mm.
@@ -76,7 +76,7 @@ def score(rows, duration, source):
     for name in ("yaw_rad_s", "roll_rad_s", "pitch_rad_s", "gyro_z_rad_s", "roll_residual_rad_s"):
         out["mean_abs_"+name] = float(np.mean([abs(r[name]) for r in steady]))
     out["mean_signed_yaw_rad_s"] = float(np.mean([r["yaw_rad_s"] for r in steady]))
-    out["simulation_icr_x_mm"] = icr(steady) if source != "C7K8" else None
+    out["simulation_icr_x_mm"] = icr(steady) if source != "unit 1" else None
     return out
 
 
@@ -104,7 +104,7 @@ def main():
         obs = [data_row(r["t"] - seg.t_cmd, r["head"], r["gyro"], r["lift"], r["wl"], r["wr"],
                         *r["pose"][:2], r["yaw"], values["imu_pitch_offset_deg"]) for r in states
                if seg.t_cmd-replay.PRE_S <= r["t"] <= seg.t_stop+replay.POST_S]
-        series = {"C7K8":obs, "original":simulate(values, start, seg, None)}
+        series = {"unit 1":obs, "original":simulate(values, start, seg, None)}
         if args.inset is not None:
             for name, inset in (("proxy_zero",0), ("frozen",args.inset)):
                 series[name] = simulate(values, start, seg, inset)

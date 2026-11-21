@@ -14,7 +14,7 @@ def write_table(destination, filename, key, updates):
     table["sources"]["POSEFIT"] = {"what": "Numerical reference for bbec512a1212"}
     for name, value, low, high, unit in updates:
         table[key][name] = {"value":value, "low":low, "high":high, "unit":unit,
-                            "provenance":"assumed" if key == "parameters" else "fitted", "kind":"robot", "source":"POSEFIT: REC head sweep on P2Y8, reference bbec512a1212"}
+                            "provenance":"assumed" if key == "parameters" else "fitted", "kind":"robot", "source":"POSEFIT: REC head sweep on unit 3, reference bbec512a1212"}
     (destination / filename).write_text(json.dumps(table))
 
 

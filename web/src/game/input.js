@@ -1,5 +1,4 @@
 // Keyboard, gamepad and on-screen pad, merged into one drive intent.
-// Authored-by: CPCS.
 //
 // Held keys give a continuous intent (forward, turn, head, lift); single
 // presses call a handler by name. Nothing here knows about the simulator.

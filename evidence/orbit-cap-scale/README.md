@@ -1,4 +1,4 @@
-# Front-to-rear hub spacing from P2Y8’s printed cap rims
+# Front-to-rear hub spacing from unit 3’s printed cap rims
 
 **48 mm fits better than 42 mm in all nine full-resolution side views.** Five development headings gave a median free estimate of 48.27 mm. With the extraction and fitting procedure fixed, median rim error on four additional headings was **22.0 native pixels at 48 mm**, versus **55.6 at 42 mm**. These results support retaining the released 48 mm longitudinal axle spacing. The 42 mm lateral contact span used in turn replay measures a different dimension.
 

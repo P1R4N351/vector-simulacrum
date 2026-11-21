@@ -1,4 +1,4 @@
-"""Turn a capture_peers.py stream into image files and a manifest. Authored-by: CPCS (cpcs-66ffc23), 2026-11-21.
+"""Turn a capture_peers.py stream into image files and a manifest..
 
 Usage: python3 hardware/save_capture.py <new output folder> < stream.jsonl
 

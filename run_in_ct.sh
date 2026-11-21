@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Copy this skill into CT 930 (mujoco-cauldron) and run a file there with
-# `cauldron python`. Authored-by: CPCS.
+# Copy this skill into a GPU host (a GPU host) and run a file there with
+# `the GPU host python`..
 #
 #   ./run_in_ct.sh tests/run_all.py            run the whole test suite
 #   ./run_in_ct.sh tests/mutate.py             run the mutation check
@@ -11,7 +11,7 @@
 # lives in /root/vector-simulacrum (or CAULDRON_REMOTE_DIR, which must be a
 # folder directly under /root) and is replaced on every run.
 #
-# The container is shared. Every run holds /root/.cauldron-run.lock from
+# The container is shared. Every run holds /root/.the GPU host-run.lock from
 # before the copy is replaced until the run ends, so two runs never overlap:
 # one cannot wipe another's copy mid-run, and the shared node never carries
 # two test loads at once. A run waits for the lock up to CAULDRON_LOCK_WAIT_S
@@ -23,7 +23,7 @@ set -euo pipefail
 
 readonly HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REMOTE_DIR="${CAULDRON_REMOTE_DIR:-/root/vector-simulacrum}"
-readonly LOCK_FILE="/root/.cauldron-run.lock"
+readonly LOCK_FILE="/root/.the GPU host-run.lock"
 readonly LOCK_WAIT_S="${CAULDRON_LOCK_WAIT_S:-1800}"
 readonly EXIT_BUSY=75
 readonly JUMP_HOST="${CAULDRON_JUMP_HOST:?set CAULDRON_JUMP_HOST to the SSH host that reaches the node}"
@@ -52,7 +52,7 @@ build_script() {
     --exclude './web/node_modules' --exclude './web/dist' --exclude './web/public/robot/sdk' . | base64
   printf 'VECTOR_SIMULACRUM_TAR\n'
   printf 'cd %q\n' "$REMOTE_DIR"
-  printf 'cauldron python %q' "$target"
+  printf 'the GPU host python %q' "$target"
   local arg
   for arg in "$@"; do
     printf ' %q' "$arg"

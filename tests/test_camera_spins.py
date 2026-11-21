@@ -1,4 +1,4 @@
-"""Unit 3's turn centre from the camera spins. Needs numpy and scipy, not MuJoCo. Authored-by: CPCS."""
+"""Unit 3's turn centre from the camera spins. Needs numpy and scipy, not MuJoCo.."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ if HAVE_SCIPY:
     import numpy as np
     from simulacrum import camera_spins
 
-REASON = "scipy is not installed here; run in CT 930"
+REASON = "scipy is not installed here; run in a GPU host"
 
 
 @unittest.skipUnless(HAVE_SCIPY, REASON)

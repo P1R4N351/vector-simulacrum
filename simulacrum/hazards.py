@@ -1,4 +1,4 @@
-"""Cliff, fall and pick-up flags, as the robot derives them. Authored-by: CPCS.
+"""Cliff, fall and pick-up flags, as the robot derives them..
 
 No MuJoCo here: the inputs are the four cliff ranges and the accelerometer
 magnitude, once per control tick. The thresholds come from the parameter

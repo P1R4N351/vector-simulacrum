@@ -1,4 +1,4 @@
-"""The IMU chip's filter against both robots' spins. Authored-by: CPCS.
+"""The IMU chip's filter against both robots' spins..
 
     ./run_in_ct.sh evidence/imu-filter-20261120/compare_spins.py
 

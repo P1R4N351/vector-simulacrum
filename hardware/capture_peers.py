@@ -1,6 +1,4 @@
 """Camera frames for teaching Vectors to see each other: one robot holds still and streams what it sees.
-
-Authored-by: CPCS (cpcs-66ffc23), 2026-11-21. Runs on the wire-pod host with its anki_vector install,
 fed on stdin; writes JSON lines to stdout, frames as base64 JPEG, and leaves nothing behind but a lock
 file it removes. hardware/save_capture.py turns the stream into image files and a manifest.
 
@@ -23,7 +21,7 @@ What it does, in order:
 
 Settings (environment):
   VECTOR_SERIAL  the observing robot, 8 hex digits        VECTOR_IP   its address, optional
-  IN_VIEW        what the operator put in front of it: "none", or units from unit 1,unit 2,unit 3 joined
+  IN_VIEW        what an operator put in front of it: "none", or units from unit 1,unit 2,unit 3 joined
                  by commas. It is the scene's plan; per-frame boxes come later, from labelling.
   SCENE          free text: surface, light, background (at most 400 characters)
   CAPTURE_S      10..600, default 120      FPS     0.2..5, default 1      STALL_S  2..30, default 10
@@ -226,7 +224,7 @@ def main():
     except FileExistsError:
         emit("c", name="lock_held", path=LOCK)
         return 3
-    os.write(fd, ("cpcs-66ffc23 peer capture pid %d\n" % os.getpid()).encode())
+    os.write(fd, ("a lane peer capture pid %d\n" % os.getpid()).encode())
     os.close(fd)
     for sig in STOP_SIGNALS:
         signal.signal(sig, on_signal)
