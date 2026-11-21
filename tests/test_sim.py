@@ -98,8 +98,13 @@ class Vector2(unittest.TestCase):
             sim.advance(0.5)
             z0 = sim.pose_mm()[2]
             sim.set_wheel_motors(-100.0, 100.0)
-            sim.advance(2.0)
-            self.assertGreater(abs(math.degrees(sim.state.pose_angle_rad)), 20.0, "it turned")
+            # Added up tick by tick: the heading wraps at 180 degrees, so a near full turn would read as a small one.
+            turned, last = 0.0, sim.state.pose_angle_rad
+            for _ in range(int(round(2.0 / sim.dt))):
+                now = sim.step(1).pose_angle_rad
+                turned += math.remainder(now - last, 2.0 * math.pi)
+                last = now
+            self.assertGreater(abs(math.degrees(turned)), 20.0, "it turned")
             self.assertLess(abs(sim.pose_mm()[2] - z0), 3.0, "it stayed on its treads")
 
 
@@ -400,15 +405,29 @@ class RangeSensors(unittest.TestCase):
         level = _quiet_sim().advance(0.5)
         self.assertLess(level.accel_mmps2[0], -50.0 * mg)
 
+    def test_the_x_scale_multiplies_the_reading_of_gravity_before_the_offset(self) -> None:
+        head = 30.0
+        readings = []
+        for kx in (1.0, 1.05):
+            sim = VectorSim(values=params.values(params.load(), dict(QUIET, accel_scale=[kx, 1.0, 1.0])), head_deg=head)
+            readings.append(sim.advance(0.5))
+        v = params.values(params.load())
+        g, mg = v["gravity_mmps2"], 0.001 * v["gravity_mmps2"]
+        angle = readings[0].head_angle_rad + math.radians(v["imu_pitch_offset_deg"])
+        self.assertAlmostEqual(readings[1].accel_mmps2[0] - readings[0].accel_mmps2[0], 0.05 * g * math.sin(angle), delta=3.0 * mg)
+        self.assertAlmostEqual(readings[1].accel_mmps2[2], readings[0].accel_mmps2[2], delta=3.0 * mg)
+
     def _gyro_pitch_in_a_spin_deg(self, head_deg: float, offset_deg: float) -> float:
-        """Pitch of the gyro's frame as a spin shows it: atan(gyro x / gyro z), mean of both turn directions."""
+        """Pitch of the gyro's frame as a spin shows it: atan(gyro x / gyro z), mean of both turn directions,
+        over 120 state periods (7.2 s): the treads' rocking leaks into gyro x, and 20 periods were too few
+        for it to average out once the contact inset changed it (up - down came out at 40.0)."""
         found = []
         for speed in (100.0, -100.0):
             sim = VectorSim(values=params.values(params.load(), dict(QUIET, imu_pitch_offset_deg=offset_deg)),
                             head_deg=head_deg)
             sim.set_wheel_motors(-speed, speed)
             sim.advance(1.5)
-            states = [sim.step(sim._state_ticks) for _ in range(20)]
+            states = [sim.step(sim._state_ticks) for _ in range(120)]
             found.append(math.degrees(math.atan(sum(s.gyro_radps[0] for s in states)
                                                 / sum(s.gyro_radps[2] for s in states))))
         return 0.5 * (found[0] + found[1])
@@ -505,13 +524,24 @@ class Cliff(unittest.TestCase):
 
     def test_reaction_off_the_robot_drives_off_and_falls(self) -> None:
         sim = _edge_sim(CONTROL_OVERRIDE)
+        flagged = []
+        update = sim.hazards.update
+
+        def watch(ranges: list, accel: float) -> None:
+            update(ranges, accel)
+            flagged.append(sim.hazards.falling)
+
+        sim.hazards.update = watch
         result = sim.drive_straight(300.0, 100.0)
         sim.advance(1.0)
         self.assertEqual(sim.reactions, 0)
         self.assertTrue(sim.sim_truth()["fallen"])
         self.assertEqual(result.result, robot.RESULT_OFF_GROUND)
         self.assertTrue(any(s.cliff_detected for s in sim.states))
-        self.assertTrue(any(s.falling for s in sim.states))
+        # The fall flag holds for 5 to 7 control ticks before the landing clears it, less than one 60 ms state
+        # period, so whether a state message carries it is a matter of phase: one did at an inset of 3.0 mm and
+        # none does at 3.1, with the IMU filter or without. The robot's own loop sees it; that is what is checked.
+        self.assertTrue(any(flagged))
         self.assertTrue(any(s.picked_up for s in sim.states))
         self.assertTrue(sim.has_control, "at the override level the robot never takes control away")
 

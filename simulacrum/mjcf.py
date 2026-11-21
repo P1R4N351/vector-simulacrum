@@ -21,6 +21,8 @@ CLIFF_NAMES = ("front_left", "front_right", "back_left", "back_right")
 # The robot's own geoms are in this group and the scene's in group 0, so that the time-of-flight
 # sensor's rays (robot.py) can be cast at the scene alone. Contact does not use groups.
 ROBOT_GEOM_GROUP = 1
+# Where the model may carry a light cube: nowhere (the default) or in the lift.
+CUBE_MOUNTS = (None, "lift")
 
 
 def num(value: float) -> str:
@@ -79,8 +81,8 @@ def _moving_part_points(v: Dict[str, Any]) -> List[Tuple[float, float, float]]:
         (m["head"], v["neck_joint_position_mm"][0], v["neck_joint_position_mm"][2]),
         (m["arm"], 0.5 * (sx + wrist[0]), 0.5 * (sz + wrist[1])),
         (m["fork"], wrist[0] + fx, wrist[1] + fz),
-        (2.0 * m["wheel"], 0.0, v["wheel_front_radius_mm"]),
-        (2.0 * m["wheel"], -v["wheel_base_mm"], v["wheel_rear_radius_mm"]),
+        (2.0 * m["wheel"], wheel_x_mm(v)[0], v["wheel_front_radius_mm"]),
+        (2.0 * m["wheel"], wheel_x_mm(v)[1], v["wheel_rear_radius_mm"]),
     ]
     assert all(p[0] > 0.0 for p in points), "non-positive part mass"
     assert len(points) == 5, "part list changed"
@@ -153,13 +155,47 @@ def _wheel_xml(v: Dict[str, Any], name: str, x_mm: float, y_mm: float, radius_mm
     )
 
 
+def wheel_x_mm(v: Dict[str, Any]) -> Tuple[float, float]:
+    """x of the front and rear wheels in the model: the axles, each moved inward by tread_contact_inset_mm.
+    The firmware's wheel base stays the axle-to-axle distance; the inset moves where the treads meet the table."""
+    base, inset = v["wheel_base_mm"], v["tread_contact_inset_mm"]
+    assert base > 0.0, "wheel base must be positive"
+    assert 0.0 <= inset < 0.25 * base, "contact inset must be at least 0 and under a quarter of the wheel base"
+    return -inset, -(base - inset)
+
+
+def _tip_supports_xml(v: Dict[str, Any]) -> str:
+    """Body-fixed cylinders round the real axles, a little smaller than the wheels, for tipping.
+
+    With a contact inset the wheels touch the table inside the axles, which is right on a flat
+    table but would move the edge the robot tips over. These sit tip_support_clearance_mm above
+    the table at rest, so they carry nothing on the flat and take over once the body tilts: a
+    robot balances with its centre of mass above the centre of the circle it rests on, whatever
+    the circle's radius, so the tipping angles are the real axles' (wheelstand.py)."""
+    inset, gap = v["tread_contact_inset_mm"], v["tip_support_clearance_mm"]
+    assert gap > 0.0, "tip supports must clear the table"
+    if inset <= 0.0:
+        return ""
+    half, half_w = 0.5 * v["tread_spacing_mm"] * MM, 0.5 * v["tread_width_mm"] * MM
+    rf, rr, base = v["wheel_front_radius_mm"], v["wheel_rear_radius_mm"], v["wheel_base_mm"]
+    assert gap < min(rf, rr), "tip supports would have no size"
+    out = ""
+    for name, x_mm, radius_mm in (("tip_front", 0.0, rf), ("tip_rear", -base, rr)):
+        for side, y in (("l", half), ("r", -half)):
+            out += (f'      <geom name="{name}_{side}" type="cylinder" fromto="{num(x_mm * MM)} {num(y - half_w)} '
+                    f'{num(radius_mm * MM)} {num(x_mm * MM)} {num(y + half_w)} {num(radius_mm * MM)}" '
+                    f'size="{num((radius_mm - gap) * MM)}" mass="0" rgba="0.15 0.15 0.15 0.3" '
+                    f'group="{ROBOT_GEOM_GROUP}" {_contact_attrs(v, v["tread_friction"])}/>\n')
+    return out
+
+
 def _wheels_xml(v: Dict[str, Any]) -> str:
     half = 0.5 * v["tread_spacing_mm"]
     assert half > 0.5 * v["chassis_width_mm"], "treads overlap the chassis"
-    assert v["wheel_base_mm"] > 0.0, "wheel base must be positive"
-    rf, rr, base = v["wheel_front_radius_mm"], v["wheel_rear_radius_mm"], v["wheel_base_mm"]
-    return (_wheel_xml(v, "wheel_fl", 0.0, half, rf, True) + _wheel_xml(v, "wheel_fr", 0.0, -half, rf, True)
-            + _wheel_xml(v, "wheel_rl", -base, half, rr, False) + _wheel_xml(v, "wheel_rr", -base, -half, rr, False))
+    rf, rr = v["wheel_front_radius_mm"], v["wheel_rear_radius_mm"]
+    front, rear = wheel_x_mm(v)
+    return (_wheel_xml(v, "wheel_fl", front, half, rf, True) + _wheel_xml(v, "wheel_fr", front, -half, rf, True)
+            + _wheel_xml(v, "wheel_rl", rear, half, rr, False) + _wheel_xml(v, "wheel_rr", rear, -half, rr, False))
 
 
 def _head_xml(v: Dict[str, Any]) -> str:
@@ -188,7 +224,29 @@ def _head_xml(v: Dict[str, Any]) -> str:
     )
 
 
-def _lift_xml(v: Dict[str, Any], d: Dict[str, Any]) -> str:
+def _carried_cube_xml(v: Dict[str, Any]) -> str:
+    """A light cube held in the lift, as the engine places a carried cube (cube_carry_offset_mm from the
+    wrist, on the level fork's axes), with a site at its accelerometer. The fork's body is the parent, so the
+    two never collide with each other; the cube touches the world like the fork does."""
+    half = 0.5 * v["cube_size_mm"]
+    chip = v["cube_chip_position_mm"]
+    yaw = math.radians(v["cube_chip_yaw_deg"])
+    assert half > 0.0 and v["cube_mass_g"] > 0.0, "the cube must have size and mass"
+    assert len(chip) == 3 and all(abs(c) < half for c in chip), "the chip must be inside the cube"
+    assert len(v["cube_carry_offset_mm"]) == 3, "the carry offset has three axes"
+    return (
+        f'        <body name="cube" pos="{vec([c * MM for c in v["cube_carry_offset_mm"]])}">\n'
+        f'          <geom name="cube_geom" type="box" size="{vec((half * MM,) * 3)}" '
+        f'mass="{num(v["cube_mass_g"] * GRAM)}" rgba="0.85 0.85 0.8 1" group="{ROBOT_GEOM_GROUP}" '
+        f'{_contact_attrs(v, v["chassis_friction"])}/>\n'
+        f'          <site name="cube_chip" pos="{vec([c * MM for c in chip])}" '
+        f'quat="{vec((math.cos(0.5 * yaw), 0.0, 0.0, math.sin(0.5 * yaw)))}" size="0.001"/>\n'
+        f'        </body>\n'
+    )
+
+
+def _lift_xml(v: Dict[str, Any], d: Dict[str, Any], cube: Any = None) -> str:
+    assert cube in CUBE_MOUNTS, "a cube goes nowhere or in the lift"
     arm_len = v["lift_arm_length_mm"] * MM
     half_w = 0.5 * v["lift_xbar_width_mm"] * MM
     fx, fz = _fork_center_wrt_wrist(v)
@@ -209,6 +267,7 @@ def _lift_xml(v: Dict[str, Any], d: Dict[str, Any]) -> str:
         f'        <geom name="lift_fork_geom" type="box" pos="{vec((fx * MM, 0, fz * MM))}" '
         f'size="{vec((half_x, half_w, half_z))}" mass="{num(d["masses_g"]["fork"] * GRAM)}" '
         f'rgba="0.3 0.3 0.3 1" group="{ROBOT_GEOM_GROUP}" {_contact_attrs(v, v["chassis_friction"])}/>\n'
+        + (_carried_cube_xml(v) if cube == "lift" else "") +
         f'      </body>\n'
         f'    </body>\n'
     )
@@ -249,6 +308,7 @@ def _chassis_xml(v: Dict[str, Any], d: Dict[str, Any]) -> str:
         f'mass="{num(d["masses_g"]["chassis"] * GRAM)}" diaginertia="{vec(d["chassis_inertia"])}"/>\n'
         f'      <geom name="chassis_geom" type="box" pos="{vec((v["chassis_center_x_mm"] * MM, 0, center_z))}" '
         f'size="{vec(half)}" rgba="0.35 0.35 0.4 1" group="{ROBOT_GEOM_GROUP}" {_contact_attrs(v, v["chassis_friction"])}/>\n'
+        + _tip_supports_xml(v)
     )
 
 
@@ -296,12 +356,14 @@ def _equality_xml(v: Dict[str, Any], d: Dict[str, Any]) -> str:
     )
 
 
-def _sensors_xml(v: Dict[str, Any]) -> str:
+def _sensors_xml(v: Dict[str, Any], cube: Any = None) -> str:
     assert len(_cliff_positions(v)) == 4, "the robot has four cliff sensors"
     out = ""
     for name, _, _ in _cliff_positions(v):
         out += f'    <rangefinder name="cliff_{name}" site="cliff_{name}"/>\n'
     out += '    <gyro name="gyro" site="imu"/>\n    <accelerometer name="accel" site="imu"/>\n'
+    if cube is not None:
+        out += '    <accelerometer name="cube_accel" site="cube_chip"/>\n'
     assert out.count("<rangefinder") == 4, "expected four cliff range sensors"
     return out
 
@@ -323,8 +385,9 @@ def _scene_xml(v: Dict[str, Any], obstacles: Sequence[Sequence[float]]) -> str:
     return out
 
 
-def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = ()) -> str:
-    """Return the whole model, robot and scene, as one MJCF string."""
+def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cube: Any = None) -> str:
+    """Return the whole model, robot and scene, as one MJCF string; cube="lift" adds a carried cube."""
+    assert cube in CUBE_MOUNTS, "a cube goes nowhere or in the lift"
     d = derive(v)
     gravity = -v["gravity_mmps2"] * MM
     assert gravity < 0.0, "gravity must point down"
@@ -340,10 +403,10 @@ def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = ()) -> 
         + _chassis_xml(v, d) + _sites_xml(v)
         + _wheels_xml(v).replace("    <", "      <").replace("    </", "      </")
         + _head_xml(v).replace("    <", "      <").replace("    </", "      </")
-        + _lift_xml(v, d).replace("    <", "      <").replace("    </", "      </")
+        + _lift_xml(v, d, cube).replace("    <", "      <").replace("    </", "      </")
         + '    </body>\n  </worldbody>\n'
         + _equality_xml(v, d) +
         '  <actuator>\n' + _actuators_xml(v, d) + '  </actuator>\n'
-        '  <sensor>\n' + _sensors_xml(v) + '  </sensor>\n'
+        '  <sensor>\n' + _sensors_xml(v, cube) + '  </sensor>\n'
         '</mujoco>\n'
     )

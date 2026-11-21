@@ -1,0 +1,9 @@
+{"part": "hold", "cube_mass_g": 10.0, "lift_mm_at_0": 91.32, "lift_mm_at_0.2s": 91.32, "lift_mm_at_1.2s": 91.32}
+{"part": "hold", "cube_mass_g": 20.0, "lift_mm_at_0": 90.95, "lift_mm_at_0.2s": 90.95, "lift_mm_at_1.2s": 90.95}
+{"part": "hold", "cube_mass_g": 25.0, "lift_mm_at_0": 90.76, "lift_mm_at_0.2s": 90.76, "lift_mm_at_1.2s": 90.76}
+{"part": "hold", "cube_mass_g": 30.0, "lift_mm_at_0": 90.57, "lift_mm_at_0.2s": 90.57, "lift_mm_at_1.2s": 90.57}
+{"part": "hold", "cube_mass_g": 40.0, "lift_mm_at_0": 90.18, "lift_mm_at_0.2s": 90.18, "lift_mm_at_1.2s": 90.18}
+{"part": "hold", "cube_mass_g": 50.0, "lift_mm_at_0": 83.79, "lift_mm_at_0.2s": 63.4, "lift_mm_at_1.2s": 34.52}
+{"part": "hold", "cube_mass_g": 60.0, "lift_mm_at_0": 62.86, "lift_mm_at_0.2s": 34.51, "lift_mm_at_1.2s": 34.51}
+{"part": "spin", "cube_mass_g": 20.0, "omega_radps": 2.2934, "cube_centre_mm": [-112.29, 54.63], "chip_circles_centre_mm": [-44.13, -0.65], "chip_circle_radius_mm": 44.13, "cube_delta_g": [-0.0602, 0.02929, -0.03327], "tilt_still_deg": [0.0, 0.001], "tilt_turning_deg": [0.005, 0.03], "robot_imu_still_mmps2": [-574.2, -76.0, 10029.3], "robot_imu_turning_mmps2": [-537.2, -54.9, 9986.4], "lift_mm_end": 90.96, "samples": [99, 198]}
+{"part": "spin", "cube_mass_g": 25.0, "omega_radps": 2.5622, "cube_centre_mm": [-119.75, -85.8], "chip_circles_centre_mm": [-42.25, -1.19], "chip_circle_radius_mm": 42.27, "cube_delta_g": [-0.08014, -0.05742, -0.05281], "tilt_still_deg": [0.0, 0.001], "tilt_turning_deg": [0.004, 0.039], "robot_imu_still_mmps2": [-573.9, -76.6, 10029.0], "robot_imu_turning_mmps2": [-583.3, -93.9, 9988.9], "lift_mm_end": 90.68, "samples": [99, 198]}

@@ -94,7 +94,7 @@ class Randomisation(unittest.TestCase):
         assumed = {n for n, e in self.doc["parameters"].items() if e["provenance"] in ("assumed", "chosen")}
         varied = set(task.varied_parameters(self.doc))
         self.assertEqual(assumed - varied, {"sim_timestep_ms"})
-        self.assertEqual(len(assumed), 30)
+        self.assertEqual(len(assumed), 44)  # 35, then nine for the light cube (2026-11-21)
         identified = {n for n, e in self.doc["parameters"].items()
                       if e["provenance"] in ("measured", "fitted") and "low" in e}
         self.assertEqual(identified - varied, set(), "measured and fitted values are varied inside their ranges too")

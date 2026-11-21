@@ -128,6 +128,16 @@ class Tilt(unittest.TestCase):
             self.assertAlmostEqual(got[0], pitch, delta=1e-6)
             self.assertAlmostEqual(got[1], roll, delta=1e-6)
 
+    def test_an_x_axis_scale_unlike_the_others_is_undone_before_the_tilt(self) -> None:
+        scaled = dict(V, accel_scale=[1.05, 1.0, 1.0])
+        mg = 0.001 * V["gravity_mmps2"]
+        for pitch, head in ((64.9, 0.0), (30.0, 0.35)):
+            raw = reading(pitch, 0.0, head)
+            row = {"accel": [(raw[0] - mg * V["accel_bias_mg"][0]) * 1.05 + mg * V["accel_bias_mg"][0], raw[1], raw[2]],
+                   "head": head}
+            self.assertAlmostEqual(wheelstand.tilt_deg(row, scaled)[0], pitch, delta=1e-6)
+            self.assertGreater(abs(wheelstand.tilt_deg(row, V)[0] - pitch), 0.3)
+
 
 def a_session(true_x: float, true_z: float, step: float) -> Tuple[Session, Dict[str, float]]:
     """Releases on both sides of each balance angle, as a person would make them, plus one hand move and one off-pose hold."""

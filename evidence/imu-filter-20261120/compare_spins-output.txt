@@ -1,0 +1,28 @@
+first state |accel| 10035.7 mm/s^2 (gravity 9810.0); filter updates after settling 0
+after 10 ticks: 50 filter updates (5 physics steps per tick)
+unit 1 run E, inset 3.10 mm
+unit 1 run E  none              spin_ccw_150  model rate 3.181 roll 0.533 pitch 0.165 | robot rate 3.226 roll 0.076 pitch 0.138 | ratio 0.986
+unit 1 run E  none              spin_cw_150   model rate 3.257 roll 0.490 pitch 0.265 | robot rate 3.211 roll 0.080 pitch 0.084 | ratio 1.014
+unit 1 run E  none              spin_ccw_220  model rate 4.692 roll 0.588 pitch 0.274 | robot rate 4.700 roll 0.085 pitch 0.120 | ratio 0.998
+unit 1 run E  none              spin_cw_220   model rate 4.706 roll 0.842 pitch 0.454 | robot rate 4.731 roll 0.123 pitch 0.201 | ratio 0.995
+unit 1 run E  one section       spin_ccw_150  model rate 3.221 roll 0.112 pitch 0.056 | robot rate 3.226 roll 0.076 pitch 0.138 | ratio 0.998
+unit 1 run E  one section       spin_cw_150   model rate 3.252 roll 0.096 pitch 0.081 | robot rate 3.211 roll 0.080 pitch 0.084 | ratio 1.013
+unit 1 run E  one section       spin_ccw_220  model rate 4.663 roll 0.144 pitch 0.147 | robot rate 4.700 roll 0.085 pitch 0.120 | ratio 0.992
+unit 1 run E  one section       spin_cw_220   model rate 4.715 roll 0.241 pitch 0.164 | robot rate 4.731 roll 0.123 pitch 0.201 | ratio 0.997
+unit 1 run E  two equal (table) spin_ccw_150  model rate 3.241 roll 0.087 pitch 0.044 | robot rate 3.226 roll 0.076 pitch 0.138 | ratio 1.005
+unit 1 run E  two equal (table) spin_cw_150   model rate 3.249 roll 0.075 pitch 0.072 | robot rate 3.211 roll 0.080 pitch 0.084 | ratio 1.012
+unit 1 run E  two equal (table) spin_ccw_220  model rate 4.645 roll 0.108 pitch 0.117 | robot rate 4.700 roll 0.085 pitch 0.120 | ratio 0.988
+unit 1 run E  two equal (table) spin_cw_220   model rate 4.719 roll 0.204 pitch 0.129 | robot rate 4.731 roll 0.123 pitch 0.201 | ratio 0.997
+unit 3 camera, inset 3.10 mm
+unit 3 camera none              ccw_1         model rate 3.286 roll 0.603 pitch 0.147 | robot rate 3.296 roll 0.121 pitch 0.072 | ratio 0.997
+unit 3 camera none              cw_1          model rate 3.071 roll 0.338 pitch 0.168 | robot rate 3.250 roll 0.124 pitch 0.112 | ratio 0.945
+unit 3 camera none              ccw_2         model rate 3.284 roll 0.605 pitch 0.146 | robot rate 3.273 roll 0.131 pitch 0.083 | ratio 1.003
+unit 3 camera none              cw_2          model rate 3.057 roll 0.369 pitch 0.174 | robot rate 3.249 roll 0.086 pitch 0.080 | ratio 0.941
+unit 3 camera one section       ccw_1         model rate 3.244 roll 0.144 pitch 0.082 | robot rate 3.296 roll 0.121 pitch 0.072 | ratio 0.984
+unit 3 camera one section       cw_1          model rate 3.104 roll 0.094 pitch 0.112 | robot rate 3.250 roll 0.124 pitch 0.112 | ratio 0.955
+unit 3 camera one section       ccw_2         model rate 3.243 roll 0.143 pitch 0.082 | robot rate 3.273 roll 0.131 pitch 0.083 | ratio 0.991
+unit 3 camera one section       cw_2          model rate 3.075 roll 0.100 pitch 0.109 | robot rate 3.249 roll 0.086 pitch 0.080 | ratio 0.946
+unit 3 camera two equal (table) ccw_1         model rate 3.233 roll 0.082 pitch 0.070 | robot rate 3.296 roll 0.121 pitch 0.072 | ratio 0.981
+unit 3 camera two equal (table) cw_1          model rate 3.115 roll 0.063 pitch 0.095 | robot rate 3.250 roll 0.124 pitch 0.112 | ratio 0.958
+unit 3 camera two equal (table) ccw_2         model rate 3.230 roll 0.081 pitch 0.070 | robot rate 3.273 roll 0.131 pitch 0.083 | ratio 0.987
+unit 3 camera two equal (table) cw_2          model rate 3.083 roll 0.061 pitch 0.086 | robot rate 3.249 roll 0.086 pitch 0.080 | ratio 0.949

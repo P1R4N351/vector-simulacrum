@@ -77,17 +77,17 @@
   ]
  ],
  "provenance_counts": {
-  "assumed": 23,
-  "chosen": 7,
-  "fitted": 18,
+  "assumed": 36,
+  "chosen": 8,
+  "fitted": 19,
   "manual": 17,
   "measured": 10,
-  "sdk": 85
+  "sdk": 90
  },
  "robot_model": "vector_1",
  "source": {
-  "table_sha256": "48187888c6208a08f8a39f3910ca1f7f710d935b6e17f89cc58d3e2e971a0862",
-  "xml_sha256": "f7c1f2f3b7cace98d7fdb7b8fb282926d9dd409a1404ec062f90c80f0582d874"
+  "table_sha256": "d0fcffd9d47b5357c289e26df75ff94057816607cf9b39cc7437d0be9d7085ae",
+  "xml_sha256": "45256671ed9a3637a0fc3acd153ff87eecf22838d214e5dd21bbabd13332ca25"
  },
  "values": {
   "accel_bias_mg": [
@@ -95,8 +95,14 @@
    -7.7,
    22.3
   ],
+  "accel_filter_cutoff_hz": 40.0,
   "accel_noise_rms_mg": 1.26,
   "accel_range_g": 2.0,
+  "accel_scale": [
+   1.0,
+   1.0,
+   1.0
+  ],
   "battery_capacity_mah": 320.0,
   "battery_rest_voltage_v": 4.03,
   "battery_sag_v_per_power": 0.0,
@@ -136,6 +142,36 @@
   "command_delay_ms": 75.0,
   "contact_time_constant_ms": 4.0,
   "control_period_ms": 5.0,
+  "cube_accel_bandwidth_hz": 250.0,
+  "cube_accel_bias_mg": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "cube_accel_counts_per_g": 8192.0,
+  "cube_accel_filter_second_pole": 1.0,
+  "cube_accel_frame_period_ms": 2.0,
+  "cube_accel_noise_density_ug": 220.0,
+  "cube_accel_range_g": 4.0,
+  "cube_accel_scale": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "cube_carry_offset_mm": [
+   26.0,
+   0.0,
+   -12.5
+  ],
+  "cube_chip_position_mm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "cube_chip_yaw_deg": 0.0,
+  "cube_mass_g": 50.0,
+  "cube_size_mm": 44.0,
+  "cube_tick_ms": 10.0,
   "directive_forward_speed_max_mmps": 160.0,
   "directive_forward_speed_min_mmps": 20.0,
   "directive_turn_speed_max_dps": 120.0,
@@ -157,6 +193,7 @@
    0.009,
    -0.001
   ],
+  "gyro_filter_cutoff_hz": 18.65,
   "gyro_noise_rms_dps": 0.034,
   "gyro_range_dps": 500.0,
   "head_accel_default_radps2": 10.0,
@@ -185,6 +222,7 @@
   "head_speed_default_radps": 10.0,
   "head_speed_max_radps": 10.0,
   "heading_hold_gain_mmps_per_rad": 200.0,
+  "imu_filter_second_pole": 1.0,
   "imu_part": "BMI160",
   "imu_pitch_offset_deg": -0.66,
   "imu_position_mm": [
@@ -245,6 +283,7 @@
   "table_length_mm": 600.0,
   "table_thickness_mm": 20.0,
   "table_width_mm": 600.0,
+  "tip_support_clearance_mm": 0.3,
   "tof_found_pitch_limit_deg": 5.0,
   "tof_fov_deg": 25.0,
   "tof_lift_clear_ms": 90.0,
@@ -271,6 +310,7 @@
   "tof_weak_distance_mm": 69.0,
   "tof_weak_distance_sd_mm": 22.2,
   "total_mass_g": 170.0,
+  "tread_contact_inset_mm": 3.1,
   "tread_friction": 0.9,
   "tread_friction_power_fraction": 0.1573,
   "tread_heat_loss_rate_per_s": [

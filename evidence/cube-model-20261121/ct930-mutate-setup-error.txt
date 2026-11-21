@@ -1,0 +1,7 @@
+SETUP-ERROR: no summary line; stderr: /loader.py", line 169, in loadTestsFromName
+    parent, obj = obj, getattr(obj, part)
+                       ^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'SpinWithTheCube' has no attribute 'test_constructed_spins_return_the_turn_centres_they_were_built_with'
+; Failed to access attribute:
+Traceback
+exit=3

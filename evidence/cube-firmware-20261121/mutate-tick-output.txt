@@ -1,0 +1,15 @@
+control (unmutated): MATCH
+arm 1 drops three low bits, not four: CAUGHT (DIFFER)
+arm 2 no rounding: CAUGHT (DIFFER)
+arm 3 sums start at 2048 n: CAUGHT (DIFFER)
+arm 4 only two axes averaged: CAUGHT (DIFFER)
+arm 5 a tick with no frame is averaged anyway: CAUGHT (DIFFER)
+arm 6 the limit after a drop is 89: CAUGHT (DIFFER)
+arm 7 the tap threshold is 2881: CAUGHT (DIFFER)
+arm 8 the tap window lasts 11 frames: CAUGHT (DIFFER)
+arm 9 the tap count is not kept: CAUGHT (DIFFER)
+arm 10 four ticks per message: CAUGHT (DIFFER)
+arm 11 the window opens on 2880 itself: CAUGHT (DIFFER)
+arm 12 the window opens on -2880 itself: CAUGHT (DIFFER)
+result: 12 of 12 arms caught, 0 survived
+exit=0

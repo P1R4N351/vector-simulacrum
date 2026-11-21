@@ -1,0 +1,132 @@
+control: 117 tests named by the arms pass on an untouched copy
+neutral (docstring reworded): SURVIVED as required; 332 ran, 113 skipped
+arm  1 any provenance accepted: CAUGHT
+arm  2 assumed value may lack a range: CAUGHT
+arm  3 value may sit outside its range: CAUGHT
+arm  4 sampling ignores the seed: CAUGHT
+arm  5 wheel radius typed by hand: CAUGHT
+arm  6 tread friction typed by hand: CAUGHT
+arm  7 table length typed by hand: CAUGHT
+arm  8 left and right front cliff sensors swapped: CAUGHT
+arm  9 signal quality ignores how much of the cone is filled: CAUGHT
+arm 10 lift window ignored: CAUGHT
+arm 11 lift out of view at once: CAUGHT
+arm 12 pitch does not stop an object being found: CAUGHT
+arm 13 reported distance not clamped at the top: CAUGHT
+arm 14 weak reading reports no distance: CAUGHT
+arm 15 encoder scale without the firmware's 0.96 factor: CAUGHT
+arm 16 encoder never reads zero: CAUGHT
+arm 17 encoder follows the direction of travel: CAUGHT
+arm 18 feedforward line dropped from the speed loop: CAUGHT
+arm 19 power applied against the commanded direction: CAUGHT
+arm 20 a stop command keeps the motor powered: CAUGHT
+arm 21 tread motor has no friction: CAUGHT
+arm 22 stall torque typed by hand: CAUGHT
+arm 23 state period back at the firmware's 30 ms: CAUGHT
+arm 24 gyro noise back at the datasheet's figure: CAUGHT
+arm 25 cliff back-up back at the assumed 40 mm: CAUGHT
+arm 26 state interval taken as the mean of every other row: CAUGHT
+arm 27 a fit may be filed without citing the recording: CAUGHT
+arm 28 heat fit keeps spins a hazard ended: CAUGHT
+arm 29 vector 2 inherits measurements unmarked: CAUGHT
+arm 30 vector 2 accepts overrides of unknown entries: CAUGHT
+arm 31 same-way driving counted as the robot's fast turn: CAUGHT
+arm 32 the table may describe other classes than the code allows: CAUGHT
+arm 33 next recording: fast spins held 2 s, not 3: CAUGHT
+arm 34 next recording: the reversal stops between its halves: CAUGHT
+arm 35 next recording: the repeated step is not the first recording's: CAUGHT
+arm 36 next recording: a cliff no longer ends motion: CAUGHT
+arm 37 next recording: the run ends at once after a hazard: CAUGHT
+arm 38 next recording: the edge phase starts without the ruler distance: CAUGHT
+arm 39 next recording: control read from the flag that never clears: CAUGHT
+arm 40 next recording: losing control is not a hazard: CAUGHT
+arm 41 next recording: state rows drop the image time stamp: CAUGHT
+arm 42 a turn read from gyro z alone: CAUGHT
+arm 43 spin fraction taken over the whole segment, ramp included: CAUGHT
+arm 44 still stretches keep their first and last rows: CAUGHT
+arm 45 gyro offset typed by hand: CAUGHT
+arm 46 spin fraction entry is the old gyro-z figure: CAUGHT
+arm 47 accelerometer fit: head pitch with the wrong sign: CAUGHT
+arm 48 accelerometer fit takes in the stretches on the charger: CAUGHT
+arm 49 accelerometer fit stops after one step: CAUGHT
+arm 50 accelerometer x offset typed by hand: CAUGHT
+arm 51 the robot's mass may be filed as chosen: CAUGHT
+arm 52 ranking: a variant moves nothing: CAUGHT
+arm 53 ranking: turn-rate change left out of the motion figure: CAUGHT
+arm 54 ranking: order by name, not by reward change: CAUGHT
+arm 55 ranking: an entry clears the floor whatever it did: CAUGHT
+arm 56 accelerometer scale not undone in the tilt: CAUGHT
+arm 57 accelerometer fit ignores its x scale: CAUGHT
+arm 58 accelerometer fit runs with a number that moves nothing: CAUGHT
+arm 59 contact inset ignored: CAUGHT
+arm 60 cube hold asks for default control: CAUGHT
+arm 61 cube hold ignores a low robot battery: CAUGHT
+arm 62 cube hold renews only once: CAUGHT
+arm 63 cube hold never lets the cube go: CAUGHT
+arm 64 cube collector reads the samples one byte early: CAUGHT
+arm 65 cube collector halves the scale: CAUGHT
+arm 66 cube app written from byte 0: CAUGHT
+arm 67 cube app written without response: CAUGHT
+arm 68 cube collector connects with no power named: CAUGHT
+arm 69 cube collector uploads over a matching app: CAUGHT
+arm 70 cube collector trusts any app file: CAUGHT
+arm 71 cube collector picks the first of several cubes: CAUGHT
+arm 72 cube collector ignores a low cube battery: CAUGHT
+arm 73 cube tick keeps the first frame it reads: CAUGHT
+arm 74 cube frame due with a tick waits for the next one: CAUGHT
+arm 75 the runner lets any skip pass under --require-mujoco: CAUGHT
+arm 76 cube mean does not round: CAUGHT
+arm 77 cube FIFO never fills: CAUGHT
+arm 78 cube chip has thirteen bits: CAUGHT
+arm 79 cube noise ignores the step length: CAUGHT
+arm 80 cube reading keeps the four low bits: CAUGHT
+arm 81 cube taps need a second edge after a drop too: CAUGHT
+arm 82 cube tap window never closes: CAUGHT
+arm 83 cube turn centre divides by omega, not its square: CAUGHT
+arm 84 listen-only recorder asks for control: CAUGHT
+arm 85 listen-only recorder never puts quiet mode back: CAUGHT
+arm 86 listen-only recorder lifts quiet mode that was off: CAUGHT
+arm 87 IMU filter corners ignore the second section: CAUGHT
+arm 88 IMU filter runs one section: CAUGHT
+arm 89 IMU filter corner taken as rad/s: CAUGHT
+arm 90 gyro cutoff typed by hand: CAUGHT
+arm 91 2.0 x scale typed by hand: CAUGHT
+arm 92 head sweeps keep the moving rows: CAUGHT
+arm 93 head sweeps keep the setup sweep: CAUGHT
+arm 94 recording outside the skill read: CAUGHT
+arm 95 spin fraction read from gyro z alone: CAUGHT
+arm 96 plan accepts any note: CAUGHT
+arm 97 edge planned without a ruler distance: CAUGHT
+arm 98 client protocol version not echoed: CAUGHT
+arm 99 notifications answered: CAUGHT
+arm 100 phase space table loses a phase: CAUGHT
+arm 101 remote command leaves the note unquoted: CAUGHT
+arm 102 Windows command line keeps forward slashes: CAUGHT
+arm 103 line fit intercept with the wrong sign: CAUGHT
+arm 104 rear balance measured from the front axle: CAUGHT
+arm 105 IMU pitch offset ignored in the tilt: CAUGHT
+arm 106 accelerometer offsets not subtracted: CAUGHT
+arm 107 roll read against uz alone: CAUGHT
+arm 108 slow drift kept as one still stretch: CAUGHT
+arm 109 trials off the reference pose used: CAUGHT
+arm 110 bracket taken from the wrong ends: CAUGHT
+arm 111 a slow hand move counted as a release: CAUGHT
+arm 112 wheelstand phase leaves the head where it is: CAUGHT
+arm 113 wheelstand listen time unchecked: CAUGHT
+arm 114 wheelstand tool drops the ruler width: CAUGHT
+arm 115 wheelie allowed before other phases: CAUGHT
+arm 116 cube not waited for: CAUGHT
+arm 117 the robot's answer to connect_cube not recorded: CAUGHT
+arm 118 dock allowed before other phases: CAUGHT
+arm 119 dock alone on the charger drives off first: CAUGHT
+arm 120 endurance runs on past the low-battery voltage: CAUGHT
+arm 121 battery not read before each endurance cycle: CAUGHT
+arm 122 battery read inside the hazard loop: CAUGHT
+arm 123 endurance speed unchecked: CAUGHT
+arm 124 VECTOR_IP not passed to the SDK: CAUGHT
+arm 125 lift-spin phase skips the lift-up spins: CAUGHT
+arm 126 nudge keeps driving after the contact shows: CAUGHT
+arm 127 a hang-up leaves the motors running: CAUGHT
+arm 128 plan lets a wheelie run before other phases: CAUGHT
+mutation result: 128 of 128 arms caught, 0 survived, 0 set-up errors, 71 not run (need MuJoCo and the training packages); control passed; neutral change survived
+exit=0

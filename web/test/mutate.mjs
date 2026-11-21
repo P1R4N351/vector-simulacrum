@@ -19,7 +19,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const COPIED = ["src/sim", "src/game/tracks.js", "src/game/headcam.js", "test", "public/robot/vector.xml", "public/robot/model.json",
   "camera_calibration.json", "package.json"];
 const SUITE = ["test/drive.test.js", "test/hazards.test.js", "test/robot.test.js", "test/tracks.test.js", "test/optics.test.js",
-  "test/headcam.test.js", "test/prox.test.js"];
+  "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js"];
 const ARMS = [
   { name: "control: untouched copy", file: null, mustFail: false },
   { name: "neutral: a comment added", file: "src/sim/drive.js", old: "export class TreadEncoder {", new: "// neutral change\nexport class TreadEncoder {", mustFail: false },
@@ -33,7 +33,7 @@ const ARMS = [
   { name: "override level still reacts to a cliff", file: "src/sim/robot.js", old: 'if (this.controlLevel !== CONTROL_DEFAULT || this._reactPhase !== "idle") return;', new: 'if (this._reactPhase !== "idle") return;', mustFail: true },
   { name: "cliff reaction leaves control with the caller", file: "src/sim/robot.js", old: "    this.hasControl = false;\n", new: "", mustFail: true },
   { name: "wheel commands arrive with no delay", file: "src/sim/robot.js", old: "this._wheelDelay = pyRound(v.command_delay_ms / v.control_period_ms);", new: "this._wheelDelay = 0;", mustFail: true },
-  { name: "one physics step fewer per control tick", file: "src/sim/robot.js", old: "for (let i = 0; i < this.d.substeps; i++) this.mujoco.mj_step(this.model, this.data);", new: "for (let i = 1; i < this.d.substeps; i++) this.mujoco.mj_step(this.model, this.data);", mustFail: true },
+  { name: "one physics step fewer per control tick", file: "src/sim/robot.js", old: "for (let i = 0; i < this.d.substeps; i++) {", new: "for (let i = 1; i < this.d.substeps; i++) {", mustFail: true },
   { name: "drive_straight does not hold its heading", file: "src/sim/robot.js", old: "const steer = v.heading_hold_gain_mmps_per_rad * (a.yaw0 - this._yawTotal);", new: "const steer = 0;", mustFail: true },
   { name: "reset keeps the old physics state", file: "src/sim/robot.js", old: "    this.mujoco.mj_resetData(this.model, this.data);\n", new: "", mustFail: true },
   { name: "rear wheel angles read from the front wheels", file: "src/sim/robot.js", old: 'this._allWheelQ = ["wheel_fl", "wheel_fr", "wheel_rl", "wheel_rr"].map(qadr);', new: 'this._allWheelQ = ["wheel_fl", "wheel_fr", "wheel_fl", "wheel_fr"].map(qadr);', mustFail: true },
@@ -64,6 +64,13 @@ const ARMS = [
   { name: "camera: tilted up instead of down", file: "src/game/headcam.js", old: "makeRotationX((-extraPitch * Math.PI) / 180)", new: "makeRotationX((extraPitch * Math.PI) / 180)", mustFail: true },
   { name: "camera: tilt left out", file: "src/game/headcam.js", old: "      ).multiply(tilt);\n", new: "      );\n", mustFail: true },
   { name: "camera: pose read from the wrong place in the solver", file: "src/game/headcam.js", old: "m[o], m[o + 1], m[o + 2], p[3 * id],", new: "m[o], m[o + 1], m[o + 2], p[3 * id] + 0.01,", mustFail: true },
+  { name: "IMU filter corners ignore the second section", file: "src/sim/imu_filter.js", old: "const x = 2 / ((1 + q2) + Math.sqrt((1 + q2) ** 2 + 4 * q2));", new: "const x = 1;", mustFail: true },
+  { name: "IMU filter runs one section", file: "src/sim/imu_filter.js", old: "s1[ch] += g1[ch] * (s0[ch] - s1[ch]);", new: "s1[ch] = s0[ch];", mustFail: true },
+  { name: "IMU filter corner taken as rad/s", file: "src/sim/imu_filter.js", old: "const gain = 1 - Math.exp(-2 * Math.PI * corners[row] * stepS);", new: "const gain = 1 - Math.exp(-corners[row] * stepS);", mustFail: true },
+  { name: "robot reads the raw sensor, not the filter", file: "src/sim/robot.js", old: "const out = this._imuFilter.output;", new: "const out = this._imuAdr.map((adr) => this.data.sensordata[adr]);", mustFail: true },
+  { name: "IMU filter stepped once per tick", file: "src/sim/robot.js", old: "this._imuFilter.update(raw);\n    }\n  }", new: "}\n    this._imuFilter.update(raw);\n  }", mustFail: true },
+  { name: "IMU filter not reset after settling", file: "src/sim/robot.js", old: "this.data.time = 0;\n    this._resetImuFilter();", new: "this.data.time = 0;", mustFail: true },
+  { name: "accel_scale dropped in _sampleImu", file: "src/sim/robot.js", old: "accel[i] = clamp((out[i] / MM) * v.accel_scale[i] + mg * v.accel_bias_mg[i]", new: "accel[i] = clamp(out[i] / MM + mg * v.accel_bias_mg[i]", mustFail: true },
 ];
 
 function makeCopy() {
@@ -90,7 +97,7 @@ function applyArm(dir, arm) {
 function runSuite(dir) {
   const done = spawnSync(process.execPath, ["--test", ...SUITE],
     { cwd: dir, encoding: "utf8", timeout: 180000 });
-  const counted = /^ℹ tests (\d+)$/m.exec(done.stdout ?? "");
+  const counted = /^(?:ℹ|#) tests (\d+)$/m.exec(done.stdout ?? "");
   return { status: done.status, tests: counted ? Number(counted[1]) : 0, timedOut: done.error?.code === "ETIMEDOUT" };
 }
 

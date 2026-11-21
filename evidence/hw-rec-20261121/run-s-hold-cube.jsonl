@@ -1,0 +1,166 @@
+{"k": "c", "t": 0.0024, "name": "connect_to", "serial": "0a1b2c3d", "ip": "192.0.2.10", "control": "reserve"}
+{"k": "c", "t": 1.2351, "name": "begin", "note": "run S 2026-11-21, unit 3 docked, cube 02:00:00:00:00:01 held connected by re-sending connect_cube every 30 s, reserve control; the operator may tap or move the cube", "utc": "2026-11-21T01:23:48.059+00:00"}
+{"k": "c", "t": 1.2358, "name": "holding", "seconds": 10800.0, "renew_s": 30.0, "battery_s": 60.0, "utc": "2026-11-21T01:23:48.060+00:00"}
+{"k": "e", "t": 32.1728, "event": "object_connection_state", "utc": "2026-11-21T01:24:18.997+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "e", "t": 32.2423, "event": "object_connection_state", "utc": "2026-11-21T01:24:19.067+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 32.2431, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "b", "t": 32.4045, "volts": 3.5875, "charging": false, "on_platform": true}
+{"k": "e", "t": 33.0268, "event": "object_connection_state", "utc": "2026-11-21T01:24:19.851+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 33.0292, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "b", "t": 61.6545, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.4}
+{"k": "r", "t": 63.2559, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 63.2562, "event": "object_connection_state", "utc": "2026-11-21T01:24:50.081+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "e", "t": 67.6945, "event": "object_tapped", "utc": "2026-11-21T01:24:54.519+00:00", "object_id": 1, "timestamp": 10758181}
+{"k": "e", "t": 68.0004, "event": "object_moved", "utc": "2026-11-21T01:24:54.825+00:00", "object_id": 1, "timestamp": 10758436}
+{"k": "e", "t": 68.6561, "event": "object_up_axis_changed", "utc": "2026-11-21T01:24:55.481+00:00", "object_id": 1, "timestamp": 10759197, "up_axis": 6}
+{"k": "e", "t": 68.6801, "event": "object_tapped", "utc": "2026-11-21T01:24:55.505+00:00", "object_id": 1, "timestamp": 10758943}
+{"k": "e", "t": 68.7715, "event": "object_up_axis_changed", "utc": "2026-11-21T01:24:55.596+00:00", "object_id": 1, "timestamp": 10759197, "up_axis": 1}
+{"k": "e", "t": 69.0124, "event": "object_up_axis_changed", "utc": "2026-11-21T01:24:55.837+00:00", "object_id": 1, "timestamp": 10759451, "up_axis": 3}
+{"k": "e", "t": 69.1951, "event": "object_tapped", "utc": "2026-11-21T01:24:56.019+00:00", "object_id": 1, "timestamp": 10759706}
+{"k": "e", "t": 69.976, "event": "object_up_axis_changed", "utc": "2026-11-21T01:24:56.800+00:00", "object_id": 1, "timestamp": 10760468, "up_axis": 6}
+{"k": "e", "t": 69.9954, "event": "object_up_axis_changed", "utc": "2026-11-21T01:24:56.820+00:00", "object_id": 1, "timestamp": 10760468, "up_axis": 1}
+{"k": "e", "t": 70.0937, "event": "object_tapped", "utc": "2026-11-21T01:24:56.918+00:00", "object_id": 1, "timestamp": 10760468}
+{"k": "e", "t": 70.3966, "event": "object_up_axis_changed", "utc": "2026-11-21T01:24:57.221+00:00", "object_id": 1, "timestamp": 10760977, "up_axis": 4}
+{"k": "e", "t": 70.5127, "event": "object_tapped", "utc": "2026-11-21T01:24:57.337+00:00", "object_id": 1, "timestamp": 10760977}
+{"k": "e", "t": 70.6939, "event": "object_up_axis_changed", "utc": "2026-11-21T01:24:57.518+00:00", "object_id": 1, "timestamp": 10761231, "up_axis": 6}
+{"k": "e", "t": 71.0012, "event": "object_up_axis_changed", "utc": "2026-11-21T01:24:57.826+00:00", "object_id": 1, "timestamp": 10761484, "up_axis": 2}
+{"k": "e", "t": 71.1711, "event": "object_tapped", "utc": "2026-11-21T01:24:57.995+00:00", "object_id": 1, "timestamp": 10761484}
+{"k": "e", "t": 71.3523, "event": "object_tapped", "utc": "2026-11-21T01:24:58.177+00:00", "object_id": 1, "timestamp": 10761739}
+{"k": "e", "t": 71.4753, "event": "object_up_axis_changed", "utc": "2026-11-21T01:24:58.300+00:00", "object_id": 1, "timestamp": 10761993, "up_axis": 6}
+{"k": "e", "t": 74.2367, "event": "object_tapped", "utc": "2026-11-21T01:25:01.061+00:00", "object_id": 1, "timestamp": 10764534}
+{"k": "e", "t": 74.4873, "event": "object_tapped", "utc": "2026-11-21T01:25:01.312+00:00", "object_id": 1, "timestamp": 10764788}
+{"k": "e", "t": 75.3719, "event": "object_tapped", "utc": "2026-11-21T01:25:02.196+00:00", "object_id": 1, "timestamp": 10765805}
+{"k": "e", "t": 75.6147, "event": "object_tapped", "utc": "2026-11-21T01:25:02.439+00:00", "object_id": 1, "timestamp": 10766058}
+{"k": "e", "t": 76.0475, "event": "object_tapped", "utc": "2026-11-21T01:25:02.872+00:00", "object_id": 1, "timestamp": 10766314}
+{"k": "e", "t": 76.6393, "event": "object_tapped", "utc": "2026-11-21T01:25:03.464+00:00", "object_id": 1, "timestamp": 10767075}
+{"k": "e", "t": 76.8205, "event": "object_tapped", "utc": "2026-11-21T01:25:03.645+00:00", "object_id": 1, "timestamp": 10767329}
+{"k": "e", "t": 77.5343, "event": "object_tapped", "utc": "2026-11-21T01:25:04.359+00:00", "object_id": 1, "timestamp": 10767837}
+{"k": "e", "t": 78.552, "event": "object_stopped_moving", "utc": "2026-11-21T01:25:05.376+00:00", "object_id": 1, "timestamp": 10769109}
+{"k": "e", "t": 93.3838, "event": "object_connection_state", "utc": "2026-11-21T01:25:20.208+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 93.3842, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 98.1314, "event": "object_tapped", "utc": "2026-11-21T01:25:24.956+00:00", "object_id": 1, "timestamp": 10788419}
+{"k": "e", "t": 101.7765, "event": "object_tapped", "utc": "2026-11-21T01:25:28.601+00:00", "object_id": 1, "timestamp": 10792231}
+{"k": "e", "t": 101.95, "event": "object_tapped", "utc": "2026-11-21T01:25:28.774+00:00", "object_id": 1, "timestamp": 10792485}
+{"k": "e", "t": 105.0705, "event": "object_tapped", "utc": "2026-11-21T01:25:31.895+00:00", "object_id": 1, "timestamp": 10795280}
+{"k": "e", "t": 108.015, "event": "object_up_axis_changed", "utc": "2026-11-21T01:25:34.839+00:00", "object_id": 1, "timestamp": 10798583, "up_axis": 2}
+{"k": "e", "t": 108.0845, "event": "object_tapped", "utc": "2026-11-21T01:25:34.909+00:00", "object_id": 1, "timestamp": 10798583}
+{"k": "e", "t": 108.1351, "event": "object_moved", "utc": "2026-11-21T01:25:34.960+00:00", "object_id": 1, "timestamp": 10798583}
+{"k": "e", "t": 109.0544, "event": "object_stopped_moving", "utc": "2026-11-21T01:25:35.879+00:00", "object_id": 1, "timestamp": 10799600}
+{"k": "e", "t": 110.4212, "event": "object_tapped", "utc": "2026-11-21T01:25:37.246+00:00", "object_id": 1, "timestamp": 10800870}
+{"k": "e", "t": 110.484, "event": "object_up_axis_changed", "utc": "2026-11-21T01:25:37.308+00:00", "object_id": 1, "timestamp": 10800870, "up_axis": 6}
+{"k": "e", "t": 110.4859, "event": "object_moved", "utc": "2026-11-21T01:25:37.310+00:00", "object_id": 1, "timestamp": 10800870}
+{"k": "e", "t": 111.68, "event": "object_stopped_moving", "utc": "2026-11-21T01:25:38.504+00:00", "object_id": 1, "timestamp": 10802142}
+{"k": "b", "t": 122.0104, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.6}
+{"k": "e", "t": 123.6243, "event": "object_connection_state", "utc": "2026-11-21T01:25:50.449+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 123.6247, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 153.6926, "event": "object_connection_state", "utc": "2026-11-21T01:26:20.517+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 153.6937, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "b", "t": 182.3218, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 2.0}
+{"k": "e", "t": 184.0426, "event": "object_connection_state", "utc": "2026-11-21T01:26:50.867+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 184.0428, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 214.2148, "event": "object_connection_state", "utc": "2026-11-21T01:27:21.039+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 214.2157, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 216.1402, "event": "object_tapped", "utc": "2026-11-21T01:27:22.965+00:00", "object_id": 1, "timestamp": 10906577}
+{"k": "b", "t": 242.3102, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.7}
+{"k": "r", "t": 250.7634, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 250.7661, "event": "object_connection_state", "utc": "2026-11-21T01:27:57.591+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "e", "t": 268.7126, "event": "object_tapped", "utc": "2026-11-21T01:28:15.537+00:00", "object_id": 1, "timestamp": 10959177}
+{"k": "e", "t": 274.8841, "event": "object_connection_state", "utc": "2026-11-21T01:28:21.709+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 274.8848, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "b", "t": 302.5109, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.8}
+{"k": "e", "t": 305.1932, "event": "object_connection_state", "utc": "2026-11-21T01:28:52.018+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 305.1955, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 335.312, "event": "object_connection_state", "utc": "2026-11-21T01:29:22.136+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 335.3127, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "b", "t": 362.9381, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 2.3}
+{"k": "e", "t": 365.5632, "event": "object_connection_state", "utc": "2026-11-21T01:29:52.388+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 365.5644, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 395.6798, "event": "object_connection_state", "utc": "2026-11-21T01:30:22.504+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 395.6805, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "b", "t": 423.277, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 1.3}
+{"k": "r", "t": 425.8795, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 425.8802, "event": "object_connection_state", "utc": "2026-11-21T01:30:52.705+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "e", "t": 456.0283, "event": "object_connection_state", "utc": "2026-11-21T01:31:22.853+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 456.0291, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 471.6291, "event": "object_tapped", "utc": "2026-11-21T01:31:38.454+00:00", "object_id": 1, "timestamp": 11161951}
+{"k": "e", "t": 472.294, "event": "object_tapped", "utc": "2026-11-21T01:31:39.118+00:00", "object_id": 1, "timestamp": 11162714}
+{"k": "e", "t": 472.3488, "event": "object_up_axis_changed", "utc": "2026-11-21T01:31:39.173+00:00", "object_id": 1, "timestamp": 11162968, "up_axis": 1}
+{"k": "e", "t": 474.206, "event": "object_tapped", "utc": "2026-11-21T01:31:41.030+00:00", "object_id": 1, "timestamp": 11164494}
+{"k": "e", "t": 476.5484, "event": "object_moved", "utc": "2026-11-21T01:31:43.373+00:00", "object_id": 1, "timestamp": 11167033}
+{"k": "e", "t": 476.6711, "event": "object_up_axis_changed", "utc": "2026-11-21T01:31:43.496+00:00", "object_id": 1, "timestamp": 11167289, "up_axis": 6}
+{"k": "e", "t": 476.8545, "event": "object_tapped", "utc": "2026-11-21T01:31:43.679+00:00", "object_id": 1, "timestamp": 11167289}
+{"k": "e", "t": 477.449, "event": "object_stopped_moving", "utc": "2026-11-21T01:31:44.273+00:00", "object_id": 1, "timestamp": 11168050}
+{"k": "e", "t": 481.5342, "event": "object_moved", "utc": "2026-11-21T01:31:48.359+00:00", "object_id": 1, "timestamp": 11172116}
+{"k": "e", "t": 481.6113, "event": "object_tapped", "utc": "2026-11-21T01:31:48.436+00:00", "object_id": 1, "timestamp": 11171862}
+{"k": "e", "t": 482.6016, "event": "object_up_axis_changed", "utc": "2026-11-21T01:31:49.426+00:00", "object_id": 1, "timestamp": 11173132, "up_axis": 3}
+{"k": "e", "t": 483.5754, "event": "object_up_axis_changed", "utc": "2026-11-21T01:31:50.400+00:00", "object_id": 1, "timestamp": 11174149, "up_axis": 6}
+{"k": "b", "t": 483.6779, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 1.6}
+{"k": "e", "t": 483.6908, "event": "object_up_axis_changed", "utc": "2026-11-21T01:31:50.515+00:00", "object_id": 1, "timestamp": 11174149, "up_axis": 3}
+{"k": "e", "t": 484.648, "event": "object_tapped", "utc": "2026-11-21T01:31:51.472+00:00", "object_id": 1, "timestamp": 11174912}
+{"k": "e", "t": 486.113, "event": "object_up_axis_changed", "utc": "2026-11-21T01:31:52.937+00:00", "object_id": 1, "timestamp": 11176182, "up_axis": 2}
+{"k": "r", "t": 486.2835, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 486.2841, "event": "object_connection_state", "utc": "2026-11-21T01:31:53.108+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "e", "t": 486.8677, "event": "object_stopped_moving", "utc": "2026-11-21T01:31:53.692+00:00", "object_id": 1, "timestamp": 11177452}
+{"k": "e", "t": 487.5906, "event": "object_up_axis_changed", "utc": "2026-11-21T01:31:54.415+00:00", "object_id": 1, "timestamp": 11178215, "up_axis": 6}
+{"k": "e", "t": 487.6545, "event": "object_moved", "utc": "2026-11-21T01:31:54.479+00:00", "object_id": 1, "timestamp": 11178215}
+{"k": "e", "t": 487.8242, "event": "object_tapped", "utc": "2026-11-21T01:31:54.649+00:00", "object_id": 1, "timestamp": 11178215}
+{"k": "e", "t": 488.2538, "event": "object_tapped", "utc": "2026-11-21T01:31:55.078+00:00", "object_id": 1, "timestamp": 11178723}
+{"k": "e", "t": 488.7275, "event": "object_stopped_moving", "utc": "2026-11-21T01:31:55.552+00:00", "object_id": 1, "timestamp": 11179231}
+{"k": "e", "t": 491.2033, "event": "object_moved", "utc": "2026-11-21T01:31:58.028+00:00", "object_id": 1, "timestamp": 11181773}
+{"k": "e", "t": 491.3942, "event": "object_tapped", "utc": "2026-11-21T01:31:58.219+00:00", "object_id": 1, "timestamp": 11181773}
+{"k": "e", "t": 491.9099, "event": "object_stopped_moving", "utc": "2026-11-21T01:31:58.734+00:00", "object_id": 1, "timestamp": 11182535}
+{"k": "e", "t": 516.4152, "event": "object_connection_state", "utc": "2026-11-21T01:32:23.240+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 516.4159, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "b", "t": 544.0088, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.6}
+{"k": "r", "t": 546.6468, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 546.6474, "event": "object_connection_state", "utc": "2026-11-21T01:32:53.472+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "e", "t": 559.3492, "event": "object_moved", "utc": "2026-11-21T01:33:06.174+00:00", "object_id": 1, "timestamp": 11249871}
+{"k": "e", "t": 559.4093, "event": "object_up_axis_changed", "utc": "2026-11-21T01:33:06.234+00:00", "object_id": 1, "timestamp": 11249871, "up_axis": 1}
+{"k": "e", "t": 559.7061, "event": "object_stopped_moving", "utc": "2026-11-21T01:33:06.530+00:00", "object_id": 1, "timestamp": 11250125}
+{"k": "e", "t": 562.5888, "event": "object_tapped", "utc": "2026-11-21T01:33:09.413+00:00", "object_id": 1, "timestamp": 11252920}
+{"k": "e", "t": 563.1954, "event": "object_up_axis_changed", "utc": "2026-11-21T01:33:10.020+00:00", "object_id": 1, "timestamp": 11253683, "up_axis": 5}
+{"k": "e", "t": 563.2506, "event": "object_tapped", "utc": "2026-11-21T01:33:10.075+00:00", "object_id": 1, "timestamp": 11253683}
+{"k": "e", "t": 566.7887, "event": "object_tapped", "utc": "2026-11-21T01:33:13.613+00:00", "object_id": 1, "timestamp": 11257239}
+{"k": "e", "t": 568.8294, "event": "object_moved", "utc": "2026-11-21T01:33:15.654+00:00", "object_id": 1, "timestamp": 11259272}
+{"k": "e", "t": 569.1321, "event": "object_up_axis_changed", "utc": "2026-11-21T01:33:15.956+00:00", "object_id": 1, "timestamp": 11259528, "up_axis": 2}
+{"k": "e", "t": 569.496, "event": "object_tapped", "utc": "2026-11-21T01:33:16.320+00:00", "object_id": 1, "timestamp": 11259780}
+{"k": "e", "t": 569.9731, "event": "object_stopped_moving", "utc": "2026-11-21T01:33:16.797+00:00", "object_id": 1, "timestamp": 11260543}
+{"k": "e", "t": 570.5682, "event": "object_tapped", "utc": "2026-11-21T01:33:17.393+00:00", "object_id": 1, "timestamp": 11261050}
+{"k": "e", "t": 572.3721, "event": "object_moved", "utc": "2026-11-21T01:33:19.197+00:00", "object_id": 1, "timestamp": 11262830}
+{"k": "e", "t": 573.2147, "event": "object_up_axis_changed", "utc": "2026-11-21T01:33:20.039+00:00", "object_id": 1, "timestamp": 11263592, "up_axis": 6}
+{"k": "e", "t": 573.6929, "event": "object_tapped", "utc": "2026-11-21T01:33:20.517+00:00", "object_id": 1, "timestamp": 11264100}
+{"k": "e", "t": 574.5323, "event": "object_stopped_moving", "utc": "2026-11-21T01:33:21.357+00:00", "object_id": 1, "timestamp": 11265116}
+{"k": "r", "t": 576.7718, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 576.7723, "event": "object_connection_state", "utc": "2026-11-21T01:33:23.597+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "e", "t": 580.7675, "event": "object_moved", "utc": "2026-11-21T01:33:27.592+00:00", "object_id": 1, "timestamp": 11271215}
+{"k": "e", "t": 584.7895, "event": "object_tapped", "utc": "2026-11-21T01:33:31.614+00:00", "object_id": 1, "timestamp": 11275281}
+{"k": "e", "t": 585.2108, "event": "object_tapped", "utc": "2026-11-21T01:33:32.035+00:00", "object_id": 1, "timestamp": 11275535}
+{"k": "e", "t": 585.7528, "event": "object_stopped_moving", "utc": "2026-11-21T01:33:32.577+00:00", "object_id": 1, "timestamp": 11276298}
+{"k": "b", "t": 604.3586, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.8}
+{"k": "r", "t": 606.9435, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 606.944, "event": "object_connection_state", "utc": "2026-11-21T01:33:53.768+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "e", "t": 637.0619, "event": "object_connection_state", "utc": "2026-11-21T01:34:23.886+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 637.063, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "b", "t": 664.7091, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 2.2}
+{"k": "r", "t": 667.6392, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 667.6399, "event": "object_connection_state", "utc": "2026-11-21T01:34:54.464+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "e", "t": 697.7257, "event": "object_connection_state", "utc": "2026-11-21T01:35:24.550+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 697.7259, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "b", "t": 724.8626, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 1.1}
+{"k": "e", "t": 727.9581, "event": "object_connection_state", "utc": "2026-11-21T01:35:54.783+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 727.9589, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 758.0879, "event": "object_connection_state", "utc": "2026-11-21T01:36:24.912+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 758.0885, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "b", "t": 785.1734, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 1.3}
+{"k": "r", "t": 788.3105, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 788.3111, "event": "object_connection_state", "utc": "2026-11-21T01:36:55.135+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 818.4499, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 818.4506, "event": "object_connection_state", "utc": "2026-11-21T01:37:25.275+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "b", "t": 845.579, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.4}
+{"k": "r", "t": 848.689, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 848.6895, "event": "object_connection_state", "utc": "2026-11-21T01:37:55.514+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "c", "t": 878.6959, "name": "held", "seconds": 877.5, "stopped_by": "SIGTERM", "utc": "2026-11-21T01:38:25.520+00:00"}
+{"k": "b", "t": 878.821, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.4}
+{"k": "c", "t": 878.8718, "name": "cube_released"}
+{"k": "c", "t": 879.2389, "name": "end", "utc": "2026-11-21T01:38:26.063+00:00"}
+{"k": "c", "t": 879.2394, "name": "lock_released"}

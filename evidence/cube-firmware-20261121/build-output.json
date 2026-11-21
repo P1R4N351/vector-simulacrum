@@ -1,0 +1,23 @@
+{
+ "stock_sha256": "f22829db489a034360e78c89c27e36eab47e4007b13eb13524485467a18b633d",
+ "out": "cube-avg1.dfu (kept out of the repository: it is Anki's app, encrypted with their key)",
+ "out_sha256": "10f5ddd8d4f087535e19753c1f5e99e48747fd646e74cbd45989d48480defb70",
+ "out_bytes": 3209,
+ "version": "cpcs-avg1-261121",
+ "image_bytes": 3192,
+ "changed": [
+  "0x20005800-0x20005804",
+  "0x20005805-0x20005808",
+  "0x20005809-0x20005810",
+  "0x20005db4-0x20005db5",
+  "0x20005db6-0x20005de0",
+  "0x20005de1-0x20005df8",
+  "0x20005df9-0x20005e14",
+  "0x20005e16-0x20005e17",
+  "0x20005e18-0x20005e1d",
+  "0x20005e1f-0x20005e3e",
+  "0x20005e3f-0x20005e6d",
+  "0x20005e6e-0x20005e73"
+ ],
+ "writes": 160
+}

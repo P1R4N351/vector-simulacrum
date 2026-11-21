@@ -37,6 +37,10 @@ Choose phases with the environment variable PHASES (comma separated, default "re
              (default 300, above the treads' top speed) for 3 s, 2 s   round; drains the battery
              rest, repeated for ENDURANCE_S (default 600, at most
              1800); stops at 3.6 V
+  liftspins  head level; spins 3 s both ways at 150 mm/s with the lift  turns on the spot; allow 100 mm all
+             down, then up, then down again; lift left down             round
+  nudge      short moves back and forth at 40 mm/s to seat a robot      under 25 mm each way
+             on its charger ramp; stops on charger contact
   dock       the robot's own drive_on_charger; must be LAST, not with  drives to its charger, which it finds
              wheelie. PHASES=dock alone on the charger commands         with its camera
              nothing (it is not driven off first)
@@ -78,8 +82,10 @@ Safety:
   while it runs it may not return: end the script with SIGTERM, which stops the motors. SIGHUP
   (an ssh connection dropping) and SIGINT stop them too; SIGKILL cannot be caught.
 - VECTOR_SERIAL picks the robot (8 hex digits; default the robot of the first recording).
+- VECTOR_IP, if set, is the robot's address, overriding the SDK config (for a robot on a daughter pod).
 - It does not try to dock. The robot is left where the sequence ends.
 """
+import datetime
 import json
 import os
 import signal
@@ -94,6 +100,10 @@ from anki_vector.util import degrees, distance_mm, speed_mmps
 
 SERIAL = os.environ.get("VECTOR_SERIAL", "00000000")
 assert len(SERIAL) == 8 and all(c in "0123456789abcdef" for c in SERIAL.lower()), "VECTOR_SERIAL is 8 hex digits"
+# VECTOR_IP: the robot's address when the SDK config's is out of date (a robot behind a daughter pod).
+IP = os.environ.get("VECTOR_IP", "")
+assert IP == "" or (IP.count(".") == 3 and all(p.isdigit() and 0 <= int(p) <= 255 for p in IP.split("."))), \
+    "VECTOR_IP is a dotted IPv4 address"
 LOCK = "/tmp/vector-%s-takeover.lock" % SERIAL
 POLL_S = 0.02
 MAX_WHEEL_MMPS = 220.0
@@ -106,7 +116,7 @@ STOP_SIGNALS = (signal.SIGTERM, signal.SIGINT, signal.SIGHUP)
 CUBE_WAIT_S = 12.0
 CUBE_POLL_S = 0.5
 KNOWN_PHASES = ("rest", "headlift", "spins", "straights", "reversal", "arcs", "actions", "repeat", "edge", "wheelstand",
-                "wheelie", "dock", "endurance")
+                "wheelie", "dock", "endurance", "liftspins", "nudge")
 # The SDK's get_battery_state: "At 3.6V, the robot is approaching low charge" (anki_vector/robot.py:765).
 ENDURANCE_LOW_V = 3.6
 ENDURANCE_SPIN_S = 3.0
@@ -263,6 +273,46 @@ def phase_spins(robot):
             return
         if not wheels_for(robot, speed, -speed, 3.0, "spin_cw_%d" % speed):
             return
+
+
+NUDGE_MMPS = 40.0
+NUDGE_TRIES = 3
+
+
+def phase_nudge(robot):
+    """Seat a robot that sits on its charger's ramp without contact (the operator: "drive it back and forth it'll fix
+    itself"). Up to NUDGE_TRIES pairs of short moves at NUDGE_MMPS, back then forward (Vector docks in
+    reverse), each a little longer than the last, ending with a final move back; stops as soon as the
+    charger contact shows. Records charger contact after every move."""
+    if robot.status.is_on_charger:
+        emit("c", name="already_on_charger")
+        return
+    for attempt in range(NUDGE_TRIES):
+        seconds = 0.4 + 0.1 * attempt
+        for way, speed in (("back", -NUDGE_MMPS), ("forward", NUDGE_MMPS)):
+            if not wheels_for(robot, speed, speed, seconds, "nudge_%s_%d" % (way, attempt), settle_s=0.5):
+                return
+            emit("c", name="nudge_contact", on_charger=bool(robot.status.is_on_charger))
+            if robot.status.is_on_charger:
+                return
+    if wheels_for(robot, -NUDGE_MMPS, -NUDGE_MMPS, 0.6, "nudge_back_final", settle_s=0.5):
+        emit("c", name="nudge_contact", on_charger=bool(robot.status.is_on_charger))
+
+
+def phase_liftspins(robot):
+    """Spins at 150 mm/s both ways with the lift down, then up, then down again (A-B-A, so a slow change
+    of battery or heat over the phase does not read as the lift's effect). Head level throughout; lift
+    left down at the end."""
+    b = robot.behavior
+    if not behaviour(robot, "head", lambda: b.set_head_angle(degrees(0.0)), deg=0.0):
+        return
+    for tag, norm in (("down_a", 0.0), ("up", 1.0), ("down_b", 0.0)):
+        if not behaviour(robot, "lift", lambda h=norm: b.set_lift_height(h), norm=norm):
+            return
+        for way, left, right in (("ccw", -150.0, 150.0), ("cw", 150.0, -150.0)):
+            if not wheels_for(robot, left, right, 3.0, "liftspin_%s_%s" % (tag, way)):
+                return
+    behaviour(robot, "lift", lambda: b.set_lift_height(0.0), norm=0.0)
 
 
 def phase_straights(robot):
@@ -467,7 +517,7 @@ def watch_after_abort():
 PHASES = {"rest": phase_rest, "headlift": phase_headlift, "spins": phase_spins, "straights": phase_straights,
           "reversal": phase_reversal, "arcs": phase_arcs, "actions": phase_actions, "repeat": phase_repeat, "edge": phase_edge,
           "wheelstand": phase_wheelstand, "wheelie": phase_wheelie, "dock": phase_dock,
-          "endurance": phase_endurance}
+          "endurance": phase_endurance, "liftspins": phase_liftspins, "nudge": phase_nudge}
 
 
 def chosen_phases():
@@ -491,12 +541,14 @@ def chosen_phases():
 
 def sequence(robot, names):
     st = robot.status
+    # utc: the host's wall clock at this row, so other recordings (a camera) can be aligned with t.
     emit("c", name="begin", phases=names, control=has_control(robot), on_charger=bool(st.is_on_charger),
-         cliff=bool(st.is_cliff_detected), note=os.environ.get("NOTE", "")[:400])
+         cliff=bool(st.is_cliff_detected), note=os.environ.get("NOTE", "")[:400],
+         utc=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds"))
     if not has_control(robot):
         emit("c", name="no_control", why="not granted at DEFAULT priority; nothing was commanded")
         return
-    if st.is_on_charger and names != ["dock"]:
+    if st.is_on_charger and names not in (["dock"], ["nudge"]):
         if not behaviour(robot, "drive_off_charger", robot.behavior.drive_off_charger):
             return
     for name in names:
@@ -530,7 +582,10 @@ def main():
     os.close(fd)
     for sig in STOP_SIGNALS:
         signal.signal(sig, on_signal)
-    robot = anki_vector.Robot(SERIAL, behavior_control_level=ControlPriorityLevel.DEFAULT_PRIORITY, cache_animation_lists=False)
+    extra = {"ip": IP} if IP else {}
+    robot = anki_vector.Robot(SERIAL, behavior_control_level=ControlPriorityLevel.DEFAULT_PRIORITY,
+                              cache_animation_lists=False, **extra)
+    emit("c", name="connect_to", serial=SERIAL, ip=IP or "from the SDK config")
     try:
         robot.connect(timeout=20)
         STATE["robot"] = robot

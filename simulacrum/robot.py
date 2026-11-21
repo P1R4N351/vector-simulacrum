@@ -10,8 +10,13 @@ the robot's own cliff reaction, with a switch for the two control levels:
 * CONTROL_OVERRIDE: the reaction is off. The robot keeps driving and falls.
 
 The treads are driven as the firmware drives them (simulacrum.drive): motor
-power from its speed loop, on speeds measured from encoder counts. Gyro,
-accelerometer and forward range carry noise drawn from a seeded generator.
+power from its speed loop, on speeds measured from encoder counts. Gyro
+and accelerometer pass through the IMU chip's low-pass filter at every
+physics step (simulacrum.imu_filter) and are read once per control tick.
+Gyro, accelerometer and forward range carry noise drawn from a seeded
+generator. With cube="lift" the robot carries a light cube, and the cube's
+own accelerometer and app (simulacrum.cube) run at every physics step on the
+specific force at its chip; the lift then starts at carry height.
 
 The pose it reports is the simulator's true pose. The real robot reports an
 estimate from odometry; that error is not modelled here.
@@ -28,7 +33,8 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 import mujoco
 import numpy as np
 
-from . import mjcf, params
+from . import cube as cube_model
+from . import imu_filter, mjcf, params
 from .drive import TreadController, TreadEncoder, whole_mmps
 from .hazards import Hazards
 from .prox import ProxReading, ProxSensor
@@ -108,21 +114,28 @@ class VectorSim:
     def __init__(self, values: Optional[Dict[str, Any]] = None, control_level: str = CONTROL_DEFAULT,
                  start_xy_mm: Tuple[float, float] = (0.0, 0.0), heading_deg: float = 0.0,
                  obstacles: Sequence[Sequence[float]] = (), head_deg: float = 0.0,
-                 lift_mm: Optional[float] = None, noise_seed: int = 0) -> None:
+                 lift_mm: Optional[float] = None, noise_seed: int = 0, cube: Optional[str] = None) -> None:
         assert control_level in (CONTROL_DEFAULT, CONTROL_OVERRIDE), "unknown control level"
         assert isinstance(noise_seed, int), "noise seed must be an int"
+        assert cube in mjcf.CUBE_MOUNTS, "a cube goes nowhere or in the lift"
         self._noise = random.Random(noise_seed)
         self.v = dict(values) if values is not None else params.values(params.load())
+        if cube == "lift" and lift_mm is None:
+            lift_mm = self.v["lift_height_max_mm"]  # FW:79 LIFT_HEIGHT_CARRY, the cube carrying height
         # The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
         self._prox_sensor = ProxSensor(self.v, noise_seed + 1)
         self._tof_hits_mm: List[float] = []
         self.d = mjcf.derive(self.v)
         self.control_level = control_level
         self.dt = self.v["control_period_ms"] * 0.001
-        self.model = mujoco.MjModel.from_xml_string(mjcf.build_mjcf(self.v, obstacles))
+        self.model = mujoco.MjModel.from_xml_string(mjcf.build_mjcf(self.v, obstacles, cube))
         self.data = mujoco.MjData(self.model)
         self._index_model()
         self._init_commands()
+        # The cube draws noise from its own stream, so carrying one does not move the robot's IMU noise.
+        self.cube = (cube_model.CubeAccelerometer(self.v, float(self.model.opt.timestep), seed=noise_seed + 2)
+                     if cube is not None else None)
+        assert (self.cube is None) == (self._cube_adr < 0), "a carried cube needs its accelerometer in the model"
         self.hazards = Hazards(self.v)
         self.states: collections.deque = collections.deque(maxlen=STATE_HISTORY)
         self._place(start_xy_mm, heading_deg)
@@ -146,6 +159,10 @@ class VectorSim:
         act = lambda name: mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
         self._cliff_adr = [sensor("cliff_" + name) for name in mjcf.CLIFF_NAMES]
         self._gyro_adr, self._accel_adr = sensor("gyro"), sensor("accel")
+        self._imu_adr = np.array([self._accel_adr + i for i in range(3)] + [self._gyro_adr + i for i in range(3)])
+        assert len(self._imu_adr) == imu_filter.CHANNELS, "the filter takes accelerometer then gyro"
+        cube_sensor = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_SENSOR, "cube_accel")
+        self._cube_adr = int(m.sensor_adr[cube_sensor]) if cube_sensor >= 0 else -1
         self._tof_site = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_SITE, "tof")
         assert self._tof_site >= 0, "time-of-flight site missing from the model"
         scene_only = [0] * 6
@@ -180,6 +197,8 @@ class VectorSim:
         self.tread_heat = [0.0, 0.0]
         self._measured = (0.0, 0.0)
         self._imu_sample: Optional[Tuple[Tuple[float, float, float], Tuple[float, float, float]]] = None
+        self._imu_filter = imu_filter.ImuFilter(v["accel_filter_cutoff_hz"], v["gyro_filter_cutoff_hz"],
+                                                v["imu_filter_second_pole"], float(self.model.opt.timestep))
         self._head_target = self._head_cmd = 0.0
         self._lift_target = self._lift_cmd = self.d["lift_angle_min"]
         self._head_speed, self._lift_speed = v["head_speed_default_radps"], v["lift_speed_default_radps"]
@@ -231,6 +250,9 @@ class VectorSim:
         for _ in range(ticks):
             mujoco.mj_step(self.model, self.data, self.d["substeps"])
         self.data.time = 0.0
+        self._reset_imu_filter()
+        if self.cube is not None:
+            self.cube.reset(self._cube_force_g(), 0.0)
         self._yaw_prev = self._yaw_total = self._yaw()
         for encoder, travel in zip(self._encoders, self._tread_travel_mm()):
             encoder.update(travel)
@@ -309,15 +331,36 @@ class VectorSim:
         lift_mm = self._reported_head_and_lift()[1]
         return self._prox_sensor.read(self._cast_tof(), lift_mm, self._pitch())
 
+    def _reset_imu_filter(self) -> None:
+        """Start the IMU filter at the present reading: the robot has been still long enough."""
+        self._imu_filter.reset(np.array(self.data.sensordata[self._imu_adr], dtype=float))
+
+    def _cube_force_g(self) -> np.ndarray:
+        """Specific force at the carried cube's chip, on the chip's axes, in g (1 g reads +1 on a vertical z)."""
+        assert self._cube_adr >= 0, "no cube in the model"
+        g = self.v["gravity_mmps2"] * mjcf.MM
+        return np.array(self.data.sensordata[self._cube_adr:self._cube_adr + 3], dtype=float) / g
+
+    def _physics_step(self) -> None:
+        """One control tick of physics: the IMU chip filters at every step, not once per tick, and so does a
+        carried cube's."""
+        for _ in range(self.d["substeps"]):
+            mujoco.mj_step(self.model, self.data)
+            self._imu_filter.update(np.array(self.data.sensordata[self._imu_adr], dtype=float))
+            if self.cube is not None:
+                self.cube.step(float(self.data.time), self._cube_force_g())
+
     def _sample_imu(self) -> None:
-        """Read gyro and accelerometer once, add this robot's bias and noise, clip to the part's range."""
-        v, sd, gauss = self.v, self.data.sensordata, self._noise.gauss
+        """Read the filtered gyro and accelerometer once, apply this robot's scale, bias and noise, clip to the
+        part's range. Scale and bias pass through the chip's filter unchanged (it is linear with unit gain at
+        rest), so applying them after it is the same; the noise is the robot's output noise as recorded."""
+        v, gauss, out = self.v, self._noise.gauss, self._imu_filter.output
         mg = 0.001 * v["gravity_mmps2"]
         a_max = v["accel_range_g"] * v["gravity_mmps2"]
         g_max = math.radians(v["gyro_range_dps"])
-        accel = tuple(_clamp(float(sd[self._accel_adr + i]) / mjcf.MM + mg * v["accel_bias_mg"][i]
+        accel = tuple(_clamp(float(out[i]) / mjcf.MM * v["accel_scale"][i] + mg * v["accel_bias_mg"][i]
                              + gauss(0.0, mg * v["accel_noise_rms_mg"]), -a_max, a_max) for i in range(3))
-        gyro = tuple(_clamp(float(sd[self._gyro_adr + i]) + math.radians(v["gyro_bias_dps"][i])
+        gyro = tuple(_clamp(float(out[3 + i]) + math.radians(v["gyro_bias_dps"][i])
                             + gauss(0.0, math.radians(v["gyro_noise_rms_dps"])), -g_max, g_max) for i in range(3))
         assert len(accel) == 3 and len(gyro) == 3, "IMU vectors have three axes"
         self._imu_sample = (accel, gyro)
@@ -515,7 +558,7 @@ class VectorSim:
         self._maybe_react()
         self._ramp_commands()
         self._write_controls()
-        mujoco.mj_step(self.model, self.data, self.d["substeps"])
+        self._physics_step()
         self.tick += 1
         yaw = self._yaw()
         self._yaw_total += math.atan2(math.sin(yaw - self._yaw_prev), math.cos(yaw - self._yaw_prev))

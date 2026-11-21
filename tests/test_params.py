@@ -18,14 +18,15 @@ class Vector2(unittest.TestCase):
         self.assertEqual(set(one), set(two))
         replaced = {n for n, e in two.items() if e.get("overrides_base")}
         self.assertEqual(replaced, {"display_resolution_px", "battery_capacity_mah", "total_mass_g", "com_x_mm",
-                                    "com_z_mm", "camera_fov_horizontal_deg", "camera_fov_vertical_deg"})
+                                    "com_z_mm", "camera_fov_horizontal_deg", "camera_fov_vertical_deg",
+                                    "accel_scale", "accel_bias_mg", "imu_pitch_offset_deg"})
         self.assertEqual((one["display_resolution_px"]["value"], two["display_resolution_px"]["value"]), ([184, 96], [160, 80]))
         for name in set(one) - replaced:
             self.assertEqual(one[name]["value"], two[name]["value"], name)
             inherited_measurement = one[name]["provenance"] in ("measured", "fitted")
             self.assertEqual("inherited" in two[name], inherited_measurement, name)
             self.assertNotIn("inherited", one[name], name)
-        self.assertEqual(params.summary(self.two)["inherited"], 28)
+        self.assertEqual(params.summary(self.two)["inherited"], 27)
         self.assertEqual(self.two["robot"], "Digital Dream Labs Vector 2.0")
 
     def test_ranges_for_what_2_0_may_change_cover_the_1_0_ranges(self) -> None:
@@ -70,7 +71,7 @@ class TableIsSound(unittest.TestCase):
 
     def test_counts_add_up_and_measured_and_fitted_cite_the_recording(self) -> None:
         counts = params.summary(self.doc)
-        self.assertEqual((counts["measured"], counts["fitted"], counts["assumed"], counts["chosen"]), (10, 18, 23, 7))
+        self.assertEqual((counts["measured"], counts["fitted"], counts["assumed"], counts["chosen"]), (10, 19, 36, 8))
         self.assertEqual(sum(counts[name] for name in params.PROVENANCE), counts["total"])
         self.assertGreater(counts["missing"], 0)
         for name, entry in self.doc["parameters"].items():
@@ -80,7 +81,8 @@ class TableIsSound(unittest.TestCase):
                 self.assertTrue("Fitted by fit_recording.py" in entry["source"]
                                 or "simulacrum/imu_fit.py" in entry["source"]
                                 or "simulacrum/motor_heat_fit.py" in entry["source"]
-                                or "simulacrum/prox_fit.py" in entry["source"], name)
+                                or "simulacrum/prox_fit.py" in entry["source"]
+                                or "simulacrum/spin_fit.py" in entry["source"], name)
                 self.assertIn("low", entry, name)
 
     def test_every_assumed_entry_has_a_range_around_its_value(self) -> None:

@@ -191,27 +191,31 @@ Each entry has a value, a unit, a provenance of exactly one of `measured`,
 and chosen values carry a low and high bound. `params.load()` refuses a table that breaks
 those rules.
 
-- `measured` (9): read directly off the recording, with no model in between.
+- `measured` (10): read directly off the recording, with no model in between.
   Each must cite the `REC` source, and `simulacrum/recording.py` recomputes
   each one from the files, so the table and the recording cannot drift apart.
-- `fitted` (10): a value chosen by a fit to the recording. Eight by
+- `fitted` (19): a value chosen by a fit to the recording. Eight by
   `fit_recording.py`, so that the model reproduces named segments; two by
   `simulacrum/imu_fit.py`, for the accelerometer alone, with no MuJoCo model
-  involved. A fit is not a measurement: it depends on the shape of what was
+  involved; six by `simulacrum/prox_fit.py` (the range sensor), two by
+  `simulacrum/motor_heat_fit.py` (tread heating) and one by
+  `simulacrum/spin_fit.py` (where the treads meet the table). A fit is not a
+  measurement: it depends on the shape of what was
   fitted and, for the eight, on every assumed value that was in place when
   it ran. Each says what it was fitted to and what was held out, and must
   carry a range.
   The validator refuses a `measured` or `fitted` entry that does not cite the
   recording, and a fitted one without a range.
 - `manual` (17): the Vector Technical Reference Manual, by section and line.
-- `sdk` (74): published in software. `source_kind` says which:
-  `vendor_firmware` (62, the robot's released source), `vendor_webots_model`
-  (8, Anki's own Webots model) or `household_code` (4, the limits in
-  `vector-slam-maze`). Cited by URL, line and SHA-256.
-- `assumed` (21): properties of the robot that no source states. Each is a
+- `sdk` (85): published in software. `source_kind` says which:
+  `vendor_firmware` (71, the robot's released source), `vendor_webots_model`
+  (8, Anki's own Webots model), `vendor_sdk` (2, the SDK's own code) or
+  `household_code` (4, the limits in `vector-slam-maze`). Cited by URL, line
+  and SHA-256.
+- `assumed` (27): properties of the robot that no source states. Each is a
   measurement still to be taken.
-- `chosen` (7): **a class added in this version.** 4 table sizes and 3 solver
-  settings. They were filed as assumed before, which made them look like
+- `chosen` (8): 4 table sizes, 3 solver settings and 1 modelling setting
+  (`tip_support_clearance_mm`). They were filed as assumed before, which made them look like
   unknowns about the robot. They are not: there is no real value to find.
   The validator refuses a robot parameter filed as chosen and a scene or
   solver setting filed as assumed.
@@ -319,6 +323,267 @@ pointing to the end of the assumed range, is not enough to change a value:
 `com_x_mm` stays -24 and assumed. The rear wheelstand decides it: -24
 predicts a balance at 64.9 degrees, -29 at 59.4.
 
+**Where the robot turns about rules out -29 (2026-11-20).** The GEMINI
+seat pointed out (the lab's coordination room turn 166) that the centre of mass also
+moves the point the robot spins about. gptpcs-01a1f1b's camera followed
+the forward end of unit 3's backpack lens through four 150 mm/s spins
+(`evidence/camera-spins` in that lane's tree, commit 33ff9ea). The lens
+sits about 36.3 mm behind the front axle. Within a spin it moves on a
+circle about the turn centre. A circle fitted to it per spin, with that
+lane's calibration and no heading or SDK data, puts the centre 7.4, 10.2,
+7.6 and 10.9 mm ahead of the lens and within 2 mm of the centreline: x =
+-28.9, -26.1, -28.7, -25.4 mm. A focal prior from 450 to 720 px, or the
+lens height 5 mm either way, moves that by at most 0.9 mm. The GEMINI seat
+found that dropping the shelf constraint moves the mean from -27.3 to
+between -24.9 and -26.3 mm (turn 216). Followed the same way in the model
+(2.0 table, CT 930), with the head and lift where unit 3's were (22.5 degrees,
+32.7 mm):
+
+| `com_x_mm` | Turn centre x | Steady rate at 146 mm/s, / unit 3's 3.24 rad/s | Mean roll, pitch rate in the spin |
+|---|---|---|---|
+| -24 (table) | -25.0, -23.7 mm | 0.79, 0.78 | 0.59 / 0.53, 0.24 / 0.23 rad/s |
+| -29 | -36.4, -37.2 mm | 0.93, 0.92 | 0.58 / 0.34, 0.30 / 0.20 rad/s |
+| unit 3 | -25.4 to -28.9 mm | 1 | 0.09 to 0.14, 0.07 to 0.10 rad/s |
+
+(A first run had the head at 0 degrees: -24 then turned about -26 mm at
+0.86 to 0.90 of unit 3's rate, and -29 about -37 mm at 1.02 to 1.05.)
+
+-24 puts the turn centre where unit 3 turns; -29 matches the rate but turns
+about a point 10 mm further back. So the missing rotation is not the
+centre of mass. It is in the contact model: see the next section. (The
+last column is not a fair comparison, and an earlier version of this
+paragraph drew the wrong conclusion from it. The robot's gyro is
+low-passed by the sensor, about 18.65 Hz; the model's is read at an
+instant. Filtered the same way, the model rocks about as much as the
+robot. See "What the rocking was".) Unit 3 turned 312 to 320 degrees per 1.5 s spin by its own
+IMU, at 3.24 and 3.23 rad/s. The head-at-0 run's 5 % difference between the
+model's two directions was chatter, not a lasting asymmetry: in unit 3's pose
+the two directions agree (2.55, 2.54 rad/s), and the GEMINI seat found the
+true yaw rates differ by 1.5 % with a sign that a solver tolerance flips.
+Caveats: one robot, with a printed
+lift and no faceplate; the lens's x comes from that lane's geometric model;
+the circle fits include the rests, and unit 3 drifted 4 to 9 mm per spin.
+The analysis scripts are not in this skill yet.
+
+### Where the treads meet the table (2026-11-20)
+
+The model's treads touched the table only under the axles, 48 mm apart. The
+further apart the contacts, the more the treads' sideways friction resists a
+spin. `tread_contact_inset_mm` moves both contacts inward: the model's four
+wheels sit that far inside the wheel base (`mjcf.wheel_x_mm`). The
+firmware's `wheel_base_mm` stays 48 for odometry.
+
+`fit_spins.py` (`simulacrum/spin_fit.py`) replays unit 1's four run E spins
+from the robot's recorded head and lift, at insets from 0 to 8 mm. It
+compares steady turn rates over the second half of each spin. Both the
+model's rate and the robot's are read through the IMU chip's filter
+("The IMU chip's own filter", below).
+
+| Inset (mm) | 0 | 1 | 2 | 3 | 4 | 5 | 8 |
+|---|---|---|---|---|---|---|---|
+| Model / unit 1, mean of 4 spins | 0.871 | 0.923 | 0.946 | 0.995 | 1.040 | 1.093 | 1.258 |
+
+The mean crosses 1 at 3.10 mm; spin by spin at 2.88, 3.44, 2.92 and 3.04.
+The table holds 3.1, fitted, with 2 to 4 as its range
+(`evidence/imu-filter-20261120/fit_spins-output.json`). Before the model's
+gyro had the chip's filter, the same fit gave 3.01 mm and the table held 3.0.
+
+That move is smaller than the fit can resolve. Between the 1 mm grid points
+the model's rate does not follow the inset smoothly.
+`evidence/imu-filter-20261120/inset_scan.py` replays both robots' spins at
+21 insets from 2.90 to 3.30 mm, 0.02 mm apart:
+
+- Unit 1's mean ratio wanders from 0.989 to 1.023 and crosses 1 five times,
+  between 3.00 and 3.22 mm. Neighbours 0.02 mm apart differ by up to 0.031.
+- A straight line through the 21 means rises 0.051 per mm and crosses 1 at
+  3.02 mm. The scatter about it, 0.008, is worth 0.16 mm of inset.
+
+So the inset is known to about 0.2 mm either way, and 3.0 and 3.1 are the
+same answer. The scatter is the treads' chatter: rigid wheels on a rigid
+table. It also sets the allowance of 1 mm either way.
+
+Held out, unit 3's four camera spins on the 2.0 table, which inherits the
+value:
+
+| | No inset | 2.90 to 3.30 mm, 21 insets | The table's 3.1 mm | unit 3 |
+|---|---|---|---|---|
+| Turn rate / unit 3's, each spin | 0.83 to 0.86 | 0.93 to 1.03 | 0.95 to 0.99 | 1 |
+| Turn centre x (mm), each spin | -21.4 to -25.2 | -20.9 to -26.8 | -22.5 to -23.6 | -25.4 to -28.9 (camera) |
+
+The rate comes closer to unit 3's at every inset of the scan. The turn centre
+is a weaker result than this section first said. One spin's centre moves by
+up to 5.7 mm between insets 0.02 mm apart. Averaged over three neighbouring
+insets (12 spins), it sits 2.4 to 4.1 mm ahead of unit 3's mean of -27.3 mm.
+The test used to check each spin at the fitted inset alone, within 4 mm.
+That passed at 3.1047 mm (-24.1 to -25.1) and would have failed at 3.10 or
+3.00. It now averages the fitted inset and 0.04 mm either side, within
+5 mm. A centre of mass moved back to -29 mm (above) put it 10 mm behind.
+
+The camera's turn centres come from `simulacrum/camera_spins.py` (needs
+scipy). It is a port of the circle fit above, with gptpcs-01a1f1b's
+calibration unchanged.
+
+gptpcs-01a1f1b fitted the other way round (the lab's coordination room turn 221). It
+used its own contact rollers with the axles kept, fitted on unit 3 and held
+out unit 1, and found 3.75 mm. Its held-out run E improves on all four spins.
+The two directions agree within a millimetre.
+
+**What the rocking was.** I reported, in this README and in the room, that
+the model's treads chattered at three to ten times the robots' roll rate.
+That compared unlike signals, and gptpcs-01a1f1b found it (turn 223). The
+robot's gyro is low-passed inside the IMU chip; the model's was read at one
+instant per 5 ms tick, so faster vibration aliased into it. A scratch
+filter at every 1 ms physics step brought the model's rocking down to the
+robots'. Filtering at the 5 ms tick instead removed almost nothing (roll
+0.39 to 0.36 rad/s), which is the aliasing. The model now has the chip's
+filter ("The IMU chip's own filter", below), and the figures there come
+from it.
+
+Moving the wheels inward would also move the edge the robot tips over. The
+wheelstand test then balanced at 61.8 degrees against the closed form's
+64.9. So the model also has body-fixed tip supports round the real axles:
+`tip_support_clearance_mm`, chosen, 0.3 mm smaller in radius than the
+wheels. They carry nothing on a flat table and in spins never touched it (0
+of 400 ticks). Once the body tilts they take over. A robot balances with its
+centre of mass above the centre of the circle it rests on, whatever the
+circle's radius, so the tipping angles are the real axles' again.
+
+Two tests had to change, and neither was weakened. "Drawn 2.0 robots spin"
+read the turn from the final heading, which wraps at 180 degrees: a draw
+that spun 349 degrees read as 11 and failed. It now adds the turn up tick by
+tick. "A spin shows on gyro x by the tangent of the head's pitch" averaged
+20 state periods, too few for the chatter to average out once the inset
+changed it (up - down 40.0 against 37.4). It now averages 120 (38.1).
+The same missing sensor filter is why it needed to.
+
+### The IMU chip's own filter (2026-11-20)
+
+The robot's gyro and accelerometer readings are low-passed inside the IMU
+chip. The model's were not. That was the rocking above, and most of the
+accelerometer's excess shake ("Measured in the model").
+
+What the firmware sets, in `robot/hal/spine/imu.c` (source `IMUC`):
+
+- accelerometer: `ACC_CONF` 0x19 (line 132, written at 241). That is
+  200 Hz output, OSR2, undersampling off.
+- gyro: `GYR_CONF` 0x09 (line 134, written at 244). That is 200 Hz output,
+  OSR4.
+- The FIFO carries the filtered data: `FIFO_DOWNS` 0x88 (lines 145 and 249).
+
+Nothing filters the readings again on the way out. `messages.cpp` (lines
+94 to 100, source `MSGCPP`) puts the latest accelerometer sample in the
+state message, and the gyro less its bias estimate (`imuFilter.cpp` line
+950).
+
+One step on that path is not modelled; GEMINI (gemini-687a56ee) pointed it
+out, and it was read in the file. On a real robot the firmware multiplies
+gyro z by 0.989 (`imuFilter.cpp` lines 953 to 958, VIC-285), because "the z
+axis gyro usually reports about a 1.03% higher rate than it is actually
+experiencing". The model's gyro has neither the chip's error nor the
+correction. For a typical unit the two cancel to 0.9992 (1.0103 x 0.989).
+How far one robot's chip departs from typical is not known.
+
+What the datasheet says those settings do:
+
+- accelerometer: 80 Hz at 200 Hz in normal mode, halved by OSR2: 40 Hz
+  (BMI160DS lines 1044 to 1080).
+- gyro: 74.6 Hz at 200 Hz in normal mode, "approximately 4 times smaller"
+  in OSR4: 18.65 Hz (lines 1143 to 1165).
+
+It also says OSR2 and OSR4 use "both stages of the digital filter", and it
+gives neither stage's shape.
+
+`simulacrum/imu_filter.py` models the two stages as one-pole sections in
+series. Their corners are placed so that the pair is -3 dB at the
+datasheet's figure. The filter runs at every 1 ms physics step. The robot
+reads it once per 5 ms tick, since the chip outputs at 200 Hz. Three new
+parameters, all assumed:
+
+| Parameter | Value | Range |
+|---|---|---|
+| `accel_filter_cutoff_hz` | 40 | 36 to 44 |
+| `gyro_filter_cutoff_hz` | 18.65 | 16.8 to 20.5 |
+| `imu_filter_second_pole` | 1: two equal sections | 0 (one section alone) to 1 |
+
+The datasheet states no tolerance, so the 10% either way on the cutoffs is
+a guess. Two equal sections is taken because nothing favours either stage.
+A stage of higher order than one is outside the range.
+
+Checked by running it (`tests/test_imu_filter.py`):
+
+- The discrete filter's gain at its cutoff is 0.709 to 0.711, against
+  0.7071, for one or two sections, at 1 ms and 0.5 ms steps.
+- A 100 Hz tone on the gyro comes out at 0.080 with two sections (0.0775
+  for the continuous filter) and 0.186 with one (0.183).
+- In the robot, the filter steps 5 times per tick, and the first reading is
+  the settled one, not a ramp from zero.
+
+Scale and offsets are still applied after the filter. That is equivalent,
+because the filter is linear with unit gain at rest. The noise is also
+added after it, at the level recorded at the robot's output. So the model's
+noise is independent from one 5 ms reading to the next, and the robot's is
+not. The recording, at one state every 60 ms, cannot tell the difference.
+
+Rocking, from `evidence/imu-filter-20261120/compare_spins.py` in CT 930.
+Mean |roll|, |pitch| in rad/s over the steady half of each spin, at the
+table's inset of 3.1 mm:
+
+| | No filter | One section | Two equal sections (table) | Robot |
+|---|---|---|---|---|
+| unit 3, four spins at 150 mm/s | 0.34 to 0.60, 0.15 to 0.17 | 0.09 to 0.14, 0.08 to 0.11 | 0.06 to 0.08, 0.07 to 0.10 | 0.09 to 0.13, 0.07 to 0.11 |
+| unit 1 run E, two spins at 150 mm/s | 0.49 to 0.53, 0.17 to 0.27 | 0.10 to 0.11, 0.06 to 0.08 | 0.07 to 0.09, 0.04 to 0.07 | 0.08, 0.08 to 0.14 |
+| unit 1 run E, two spins at 220 mm/s | 0.59 to 0.84, 0.27 to 0.45 | 0.14 to 0.24, 0.15 to 0.16 | 0.11 to 0.20, 0.12 to 0.13 | 0.09 to 0.12, 0.12 to 0.20 |
+
+Either shape takes out most of the vibration:
+
+- With two equal sections the model pitches about as much as unit 3 and rolls
+  a little less. Against unit 1 it rolls about as much at 150 mm/s and 1.3 and
+  1.7 times as much at 220, and pitches less.
+- With one section it rocks about as much as unit 3, and 1.7 and 2.0 times as
+  much in roll as unit 1 at 220 mm/s.
+
+The rocking depends on the rigid wheels as much as on the filter, and it
+moves with the inset. So these spins cannot settle the filter's shape. The
+randomised range covers both.
+
+The filter shifts each spin's measured turn rate a little: by -1.6% to
++1.9% at 3.1 mm, over the eight spins above. The robot's rate is read
+through its own filter, so the filtered model is the like-for-like
+comparison. That shift is what moved the fitted inset from 3.01 to 3.10 mm
+(above).
+
+Shake in a held spin, `evidence/imu-filter-20261120/scatter.py` (the same
+measurement as "Measured in the model"): the standard deviation of the
+axis with the most, over 21 state messages, head 22.4 degrees up.
+
+| Spin | Gyro (deg/s): no filter, one section, two | Recording, two directions | Accelerometer (mg): no filter, one section, two | Recording |
+|---|---|---|---|---|
+| 30 mm/s | 9.2, 3.4, 3.0 | 5.6 and 1.9 | 812, 214, 108 | 32 and 19 |
+| 60 mm/s | 13.5, 8.4, 8.2 | 11.3 and 3.4 | 949, 252, 144 | 71 and 52 |
+| 100 mm/s | 18.5, 10.0, 9.2 | 18.8 and 5.2 | 968, 364, 256 | 185 and 124 |
+
+The accelerometer was 5 to 43 times as rough as the robot's. With the
+table's filter it is 1.4 to 5.7 times. The gyro now sits between the two
+recorded directions.
+
+Two tests changed with this:
+
+- "The filter takes the vibration out of a spin but not the turn" first
+  compared the filtered gyro's mean rate with the unfiltered one's, within
+  2%, and failed at 2.4%. The unfiltered reading is the aliased one. Over
+  four held spins it gives 0.987 to 1.024 of the true turn rate (from the
+  change of heading); the filtered one gives 0.993 to 1.001. The test now
+  checks the filtered rate against the true one, within 1.5%.
+- "With the reaction off, the robot drives off and falls" read the fall
+  flag from the state messages. The flag holds for 5 to 7 control ticks
+  before the landing clears it, less than one 60 ms state period, so a
+  message catches it or not by phase. At an inset of 3.0 mm one did; at 3.1
+  none does, with the filter or without. The test now reads the flag at
+  every control tick. That checks less than before: that the robot's own
+  loop raises the flag, not that the SDK stream shows it. A real robot's
+  stream could miss a short fall the same way; that has not been checked
+  on the hardware.
+
 ### Vector 2.0: a separate set (2026-11-18)
 
 `parameters-vector2.json` holds the entries where Digital Dream Labs'
@@ -351,6 +616,118 @@ sustained-load run on unit 3 is the first measurement the
 2.0 set can carry. The robot's factory record says which it is: HW_VER at offset 4
 of `/dev/mmcblk0p29`, 0x20 or above for 2.0. On the body, 1.0 prints "S/N"
 near the top of the track, 2.0 an "ESN" underneath.
+
+### The first run on a Vector 2.0 (2026-11-19)
+
+Unit 3 is not a stock 2.0 body. The operator (via gptpcs-01a1f1b, the lab's coordination room
+turn 161): its lift and hubcaps are 3D-printed, its tracks are stock, and its
+faceplate is removed. Every unit 3 figure below (top speed, turn rate, the lift
+run, the accelerometer) is from that modified body, so a difference from
+unit 1 may come from the modifications as much as from the 2.0 hardware.
+
+Run G (`evidence/hw-rec-20261119/run-g-endurance-0a1b2c3d.jsonl`), on
+unit 3 (0a1b2c3d), the household's Vector 2.0, reached through its daughter
+pod with `VECTOR_IP`: the endurance phase, 300 mm/s commanded. After 9
+spins (about 52 s) control was lost. Corrected 2026-11-19 from unit 3's own
+`/var/log/messages`, as read by gptpcs-01a1f1b (the lab's coordination room turn 103,
+not checked here): an app intent `SleepCommand` reached the robot at about
+91.42 s and took control (the recorder saw the loss at 96.66 s); a genuine
+front-left cliff stop came at about 119.7 s, 17 s after the recorder's last
+sample, with the robot under its own control. The nine spins moved it only
+8.21 mm by the SDK's own estimate. So the run was ended by a sleep command
+from outside the run, not by drift, and the edge came afterwards. The dock
+phase afterwards (run H) did not reach the charger. Over the first 8 full
+spins, against unit 1 (1.0) in run F:
+
+| | unit 1 (1.0) | unit 3 (2.0) |
+|---|---|---|
+| Left tread top speed | 244.3 mm/s | 244.1 mm/s |
+| Right tread top speed | 242.1 mm/s | 236.3 mm/s |
+| Turn rate | 322.8 deg/s | 326.9 deg/s |
+| Turn rate / no-slip rate | 0.533 | 0.546 |
+| SDK battery reading | 4.08 V | 3.99 V |
+
+The 2.0's top speed is the 1.0's within 2.4 %, so inheriting the tread
+drive values in `parameters-vector2.json` fits the only 2.0 data there is
+(8 spins, one unit). The run was too short for a heat fit. Before another
+run on a robot that Home Assistant manages, its sleep cycle has to be held
+off for the run, as well as quiet mode; unit 1's run F did end at an edge
+after 150 s, so a long run still wants walls.
+
+### Lift up against lift down (2026-11-20)
+
+The operator: "try spinning with lift up versus lift down". Run J
+(`evidence/hw-rec-20261120/run-j-liftspins.jsonl`, unit 3, recorder phase
+`liftspins`): head level, 3 s spins at 150 mm/s each way with the lift down,
+up, then down again. Turn rate over the second half of each spin (n=26 each):
+
+| | Lift down (first) | Lift up | Lift down (again) | Up against the mean of the downs |
+|---|---|---|---|---|
+| Counter-clockwise | 205.2 deg/s | 206.5 | 206.2 | +0.4 % |
+| Clockwise | 200.9 deg/s | 204.4 | 203.4 | +1.1 % |
+
+The two lift-down repeats differ by 0.5 to 1.2 %, the same as the lift's
+difference, so its effect on turn rate is below about 1 % and not resolved.
+The model, asked before the run, predicted -1 to -1.6 %: not contradicted,
+direction not confirmed. The model spins at 175 deg/s here, 0.85 of unit 3's
+rate, as on unit 1. Before the run unit 3 sat on its charger ramp without
+contact; the `nudge` phase seated it on its first 16 mm move back (run I).
+
+Drift, from gptpcs-01a1f1b's calibrated camera over the same run
+(P1R4N351/vector-simulacrum PR #1, comment 7025928568; their measurement):
+leftward movement per ccw+cw pair, lift down / up / down again:
+
+| Source | Down (first) | Up | Down (again) |
+|---|---|---|---|
+| Camera | 22.8 mm | 20.1 mm | 24.6 mm |
+| Their replay, cylinder wheels | 6.6 mm | -4.5 mm | 5.1 mm |
+| Their replay, sphere wheels | -3.4 mm | -12.5 mm | -7.5 mm |
+| SDK pose | -0.3 mm | 0.5 mm | 0.3 mm |
+
+No lift effect on drift is resolved either (the three blocks also crossed
+different spots on the shelf). The robot moved 20 to 25 mm the same way
+every pair. A follow-up by gptpcs-01a1f1b (the lab's coordination room turn 133; eight
+lift-down spins at two shelf spots with opposite headings, farther from the
+dock) showed whose bias that is: a drift fixed to the shelf predicted the
+camera endpoints within 8.3 and 2.9 mm, a drift fixed to the robot's heading
+missed by 44.8 and 46.6 mm, and all eight turns went shelf-left; net leftward
+movement per pair at spot A facing 0 and 180 deg and spot B likewise: 22.7,
+14.4, 22.3 and 19.5 mm (PR #1, comment 7026442869, with footage and inputs). So the
+sideways drift is fixed to the shelf, not to the robot's heading; the operator also saw
+the robot creep back toward its charger. It is not a slope: the operator measured the
+shelf level at every position. gptpcs-01a1f1b's opposite-heading
+accelerometer rests read 0.98 and 0.91 deg (turn 137), so that reading has
+some other cause and is not a tilt measurement. Part of the head
+accelerometer's behaviour is the sensor itself (the GEMINI seat, turns 158 and
+166): the total gravity it reads changes with head angle (979 to 1001 mg),
+which no tilt can do, and a bias plus an x-axis scale of about 1.014 explains
+that head-angle excursion (reproduced here; see "The accelerometer's x
+scale" below). That does not explain the opposite-heading difference: with no tilt, about 16 mg stays
+unexplained at both spots. The chassis itself does not lean (optically -0.07
+deg at spot A, gptpcs-01a1f1b turn 163, PR #1 comment 7027738144). So the
+opposite-heading signal, like the drift, is still open. The simulacrum models
+a per-axis bias and, since 2026-11-20, a per-axis scale. What on the shelf pushes the
+robot one way is open: a surface that grips differently in different
+directions (tape strips, grain), local unevenness, or something at the dock.
+
+### How far spins move the robot: a camera measurement (2026-11-19)
+
+gptpcs-01a1f1b measured unit 3 (Vector 2.0) with a fixed camera calibrated on a
+printed glyph, over four commanded ±150 mm/s turns (P1R4N351/vector-simulacrum
+PR #1, comment 7025537786; their measurement, not repeated here):
+
+| Source | Net movement over the four turns |
+|---|---|
+| Camera | 23.6 mm (20.4 mm left, 12.0 mm away from the camera) |
+| Independent optical landmark check | 20.9 mm |
+| The robot's own SDK pose | 2.5 mm |
+| Their replays, cylinder / round contact, 42 mm span | 9.4 / 8.5 mm |
+
+The SDK pose under-reports spin drift about tenfold, so it cannot score
+drift, and the models drift less than the robot. With the model's turn rate
+at 0.85-0.90 of the robot's (runs E and F), the real treads slip more than
+the model's contacts allow. Spin drift is why both long spin runs ended near
+an edge.
 
 ### Battery, heat and the top speed (2026-11-18)
 
@@ -437,14 +814,60 @@ What this is worth, and what it is not:
   in this recording. A grid of head angles at several headings would untangle
   them ("The next recording").
 - Gravity is taken as 9806.65 mm/s^2, which leaves about 3 mg of doubt on z.
-  The y offset cannot be told from a roll of the frame. Scale errors cannot
-  be told from offsets with gravity as the only reference.
+  The y offset cannot be told from a roll of the frame. Only the x axis's
+  scale can be told from its offset, and only because the head turns that
+  axis through gravity; see the next section.
 - The 10 mg range is the author's allowance for all of that and for
   temperature. It is a fact about one robot: to train for any Vector, widen
   it to the part's 40 mg.
 
 The correlation and the bootstrap are there because GPTPCS-Astra asked for
 them (conferral of 2026-11-15, below); both confirmed its point.
+
+### The accelerometer's x scale (2026-11-20)
+
+The simulacrum multiplies each axis's reading of the true specific force by
+`accel_scale` before adding `accel_bias_mg`. The BMI160's sensitivity may sit
+anywhere from 0.960 to 1.040 of nominal (BMI160DS:390-393). As the head turns
+from -15 to 40 degrees, the x axis's share of gravity runs from -0.26 to 0.64 g,
+so an x scale shows as a slope. The z axis's share changes by only a quarter of
+g, too little to tell its scale from its offset. Nothing recorded rolls the
+robot onto its side, so y's scale is not visible either. y and z stay at 1.
+
+Unit 3 (the 2.0) carries the evidence: unit 3's stationary head sweeps from
+gptpcs-01a1f1b, analysed by the GEMINI seat (the lab's coordination room turn 166),
+copied to `evidence/head-sweep-unit3-20261120`. `python3 -m simulacrum.imu_fit
+--head-sweep evidence/head-sweep-unit3-20261120` fits spot B and scores spot A.
+The fit never sees spot A. Heading is the robot's odometry.
+
+| Fitted on B | B (24 windows) | A, headings 0 and 180 (24) | A, heading 90 (6) |
+|---|---:|---:|---:|
+| x scale fixed at 1 | 6.71 mg | 7.51 mg | 5.82 mg |
+| x scale fitted: 1.0140 | 5.31 mg | 6.49 mg | 3.95 mg |
+
+Vector error per settled window, root mean square. A 200-draw bootstrap over
+B's windows puts the scale between 1.0085 and 1.0207. With the scale fitted,
+the offsets are 13.2, 4.0, -18.1 mg and the frame's pitch is -0.05 degrees
+(-0.22 with the scale fixed). The GEMINI seat's own fit, at gravity 9810
+rather than 9806.65, gave 1.0138, 13.2, 3.9 and -18.5. These three values
+replace unit 1's in `parameters-vector2.json`, marked fitted. Before this, the
+2.0 table had inherited them from a 1.0.
+
+What it is not:
+
+- A head angle that reads 1.4 % more or less than the true angle would move
+  x in nearly the same way. This fit does not test that alternative; a
+  sweep with the angle checked optically would.
+- About 15 mg of the opposite-heading difference is still unexplained.
+- Unit 1's x scale is not settled. Over table-run1's 26 stretches,
+  `imu_fit.fit(..., free_scale=True)` gives 1.0118, standard error 0.0044.
+  The GEMINI seat's fit over table-run1 and run A gave 0.999 and no gain on
+  held-out windows. That fit gave the two runs' different surfaces one shared
+  tilt, which pulls the scale toward 1 (its author, the lab's coordination room turn
+  195). Run A cannot be fitted on its own: it has one heading,
+  so the table's tilt cannot be told from the offsets. The 1.0 table keeps
+  the nominal [1, 1, 1], marked assumed, with the part's range. A head sweep
+  of unit 1 at several headings would settle it.
 
 ### What the recording could not settle
 
@@ -479,7 +902,7 @@ Two limits of the model's shape, visible in the data:
   counter-clockwise in all three pairs of spins (for example 130 against
   109 deg/s at 100 mm/s). The model is symmetric.
 
-### Still assumed about the robot (21)
+### Still assumed about the robot (27)
 
 | Group | Parameters |
 |---|---|
@@ -489,8 +912,11 @@ Two limits of the model's shape, visible in the data:
 | Head and lift drive | `head_servo_kp/kv`, `lift_servo_kp/kv`, `servo_torque_max_mNm`, `servo_armature_gcm2` |
 | Cliff | `cliff_sensor_height_mm` 8, `cliff_detect_range_mm` 25 |
 | Control | `heading_hold_gain_mmps_per_rad`, `drive_done_mm` |
+| Battery | `battery_rest_voltage_v`, `battery_sag_v_per_power` |
+| Accelerometer | `accel_scale` 1, 1, 1 (the part's 0.960 to 1.040; unit 1's x is not settled) |
+| IMU filter | `accel_filter_cutoff_hz` 40 (36 to 44), `gyro_filter_cutoff_hz` 18.65 (16.8 to 20.5), `imu_filter_second_pole` 1 (0 to 1) |
 
-Chosen, not assumed (7): `table_length_mm`, `table_width_mm`,
+Chosen, not assumed (8): `tip_support_clearance_mm`, `table_length_mm`, `table_width_mm`,
 `table_height_mm`, `table_thickness_mm`, `sim_timestep_ms`,
 `contact_time_constant_ms`, `settle_time_ms`.
 
@@ -503,7 +929,8 @@ Cautions carried from the published-figures work of the third version:
 - The divisors 172.3, 149.7 and 366.211 in the encoder scales are not
   recorded as gear ratios. The source does not say what they are.
 - The firmware names the IMU: a comment in `imuFilter.cpp` (line 153) cites
-  the "BMI160 datasheet". The manual does not name it.
+  the "BMI160 datasheet", and `imu.c` heads its register map "BMI160
+  REGISTERS" (line 28). The manual does not name it.
 - The VL53L0X datasheet was read from a distributor's mirror.
 - Mass and outer dimensions were not found on any page that could be read.
 
@@ -782,11 +1209,19 @@ the firmware disagreements.
   "The range sensor" below). Gyro and accelerometer at the
   IMU position in the head and in the head's frame, pitched by the fitted
   `imu_pitch_offset_deg`, with the noise measured at rest, the gyro's
-  measured residual offset and the accelerometer's fitted offsets. A turn
+  measured residual offset and the accelerometer's fitted offsets. Both pass
+  through the IMU chip's low-pass filter at every physics step and are read
+  once per 5 ms tick (`simulacrum/imu_filter.py`). A turn
   therefore shows on gyro z by the cosine of the head's pitch and on gyro x
   by its sine, as on the robot.
   A camera on the head, 50 degrees vertical field of view. The noise comes
   from a seeded generator: one seed, one run.
+- **A carried light cube**, on request (`VectorSim(cube="lift")`). It sits
+  in the lift where the engine puts a carried cube. Its accelerometer
+  sends the app's messages from the force at its chip
+  (`simulacrum/cube.py`): the chip's filter, 12-bit frames every 2 ms, the
+  FIFO, the last frame per 10 ms tick, and the tap counter as shipped. A
+  cube on the floor, and the cube's lights and radio, are not modelled.
 - **Scene.** A table slab with real edges and a floor below; sizes from the
   table (600 by 600 mm, 300 mm high by default). Optional boxes.
 - **Timing.** Physics at 1 ms, control at 5 ms (200 Hz), state messages
@@ -845,8 +1280,11 @@ the firmware disagreements.
 - A roll of the IMU's frame, and scale errors of the accelerometer.
 - Noise on the cliff sensors, and any noise that changes with temperature
   or with motion. The model's gyro and accelerometer do shake while the
-  robot moves, but from its rigid contacts, not from anything measured:
-  "Measured in the model" sets that shake beside the recording's. Within one
+  robot moves, but from its rigid contacts, not from anything measured; the
+  IMU chip's filter takes most of it out ("The IMU chip's own filter").
+  "Measured in the model" sets that shake beside the recording's. The
+  sensor noise is added after the filter, so it is independent from one
+  5 ms reading to the next; the robot's is not. Within one
   turn direction the model's gyro x also carries a few deg/s that do not
   reverse with the turn; the mean of both directions is right to about a
   degree of frame pitch. Sensor readings that are refreshed less often than the
@@ -898,6 +1336,11 @@ nothing while moving, which is safe to carry over but wastes a signal the
 real robot has. Not fixed in this version. The steady offsets fitted above
 are small beside this shake, so they matter for a policy mainly when the
 robot stands still.
+
+Since 2026-11-20 the model reads its gyro and accelerometer through the IMU
+chip's filter. The accelerometer's shake is 1.4 to 5.7 times the robot's;
+without the filter, in the same tree, it is 5 to 43 times ("The IMU chip's
+own filter").
 
 ### The two disagreements with the firmware's own figures
 
@@ -1121,9 +1564,21 @@ matters for deployment: same observation, same action.
 
 ## Tests
 
-`tests/run_all.py`, 170 tests in eleven files. In CT 930: declared 170, ran 170, passed 170, skipped 0.
-On a machine without MuJoCo: 87 pass and 83 are skipped, and the runner says
-so.
+`tests/run_all.py`, 332 tests in twenty-four files. Results after the cube
+app, 2026-11-21:
+
+- In CT 930: declared 332, ran 332, passed 324, failed 0, skipped 8
+  (`evidence/cube-firmware-20261121/ct930-run_all.txt`).
+- On the Mac, with unit 3's `cube.dfu` and `key.h` given: declared 332, ran
+  332, passed 226, failed 0, skipped 106, because MuJoCo is absent.
+- On the Mac without them: passed 219, skipped 113.
+
+The eight skips in CT 930 are the cube app's image tests, which need
+Anki's file and key, and the C tick's host build, since CT 930 has no C
+compiler. Skips like these are marked "optional input" (`tests/_common.py`).
+`--require-mujoco` still fails on any other skip; `tests/test_run_all.py`
+checks that. The runner says which tests it skipped. (The 2026-11-16 version
+had 170 tests; the figures below describe what was added at that time.)
 
 What they cover: the table's rules, with the new ones (a measurement or a
 fit must cite the recording; a fit needs a range; the table describes
@@ -1170,13 +1625,40 @@ table twice gives no change; a value the task never reads changes nothing.
 For the table: scene and solver settings are `chosen`, and nothing about the
 robot is.
 
-`tests/mutate.py` breaks each property once: 95 of 95 injected faults
-caught, each by a test named in advance, 0 survived, 0 set-up errors. The
-80 tests the arms name pass on an untouched copy first, and a change of
-wording only leaves all 170 green. Output:
-`evidence/mutate-20261116-fifth-version-output.txt` (earlier runs:
-`evidence/mutate-20261116-output.txt`, 78 arms, and
-`evidence/mutate-20261115-output.txt`, 67).
+`tests/mutate.py` breaks each property once. On 2026-11-20 in CT 930, after
+the listen-only recorder: 173 of 173 injected faults caught, each by a test
+named in advance, 0 survived, 0 set-up errors. The 151 tests the arms name
+pass on an untouched copy first, and a wording-only change leaves all 275
+green. Output: `evidence/mutate-20261120-listen-output.txt`. The three new
+arms make `hardware/record_listen.py` ask for control, never put quiet mode
+back, and lift quiet mode that was off.
+
+The run before, after the IMU filter, caught 170 of 170
+(`evidence/mutate-20261120-imu-filter-output.txt`). Its nine new arms
+break the filter's corners, its second section, its units, the typed
+cutoff, the robot's reading of it, its step rate, its reset after settling,
+the wheelstand's reset, and where the model's turn centre is read. On the
+way there, the arm that types the inset in by hand still looked for 3.0
+and reported a set-up error, not a verdict; it now looks for 3.1.
+
+The run before, after the contact inset, caught 161 of 161
+(`evidence/mutate-20261120-inset-output.txt`). On the way to that one, one
+arm survived: with the wheels' friction typed in by hand, the new tip
+supports still read the table, so "every ranged parameter changes the
+model" stayed green. A test of the wheels' own friction now catches it.
+Earlier runs: `evidence/mutate-20261120-output.txt` (152 arms, before the
+inset),
+`evidence/mutate-20261116-fifth-version-output.txt` (95 arms),
+`evidence/mutate-20261116-output.txt` (78) and
+`evidence/mutate-20261115-output.txt` (67). The first 2026-11-20 run had one
+set-up error. With the x scale taken out of the accelerometer fit, the
+tests crashed on a singular matrix instead of failing, so the harness did
+not count it as caught. The fit now asserts that every number it fits
+moves the readings, and a test holds it to that.
+
+`run_in_ct.sh` holds a lock in the container for the whole run (see its
+header). Before the lock, a sibling lane's copy replaced this one in the
+middle of a suite run, and 78 tests errored.
 
 That is the second full run. In the first, 94 arms were caught and one, "IMU
 fixed to the body, not the head", was a set-up error: its search text held
@@ -1291,6 +1773,418 @@ Every value changed after that is filed `measured` (a direct reading) or
 `fitted` (a fit to these runs) with its evidence, and the ranking, replay
 and tests are rerun.
 
+### The wheelie on unit 3, and why it lost power undocking (2026-11-20)
+
+The operator gave unit 3 a new cube for the wheelie run above. Six runs, all in
+`evidence/hw-rec-20261120/`; none produced a wheelie.
+
+**Runs L and M: the undock is a power loss.** Both started on the charger,
+so `record_barriered.py` called the SDK's `drive_off_charger`. In both the
+state stream stopped 8.0 s (L) and 8.1 s (M) after the call, and the call
+failed about 78 s later with the connection reset. Unit 3's own log after
+run M's reboot names the cause. Its PMIC gave the power-on reason as
+"Triggered from SMPL (sudden momentary power loss) and 'cold' boot" and the
+power-off reason as "Triggered from UVLO (Under Voltage Lock Out)". Its
+uptime puts the boot 19 s after the stream stopped. The log shows the
+charger contact opening 8 s into a drive-off: the head browns out when the
+contacts open and the battery takes the load. The battery was full on the
+charger (Home Assistant: "full" all afternoon, 4.02 to 4.06 V after).
+
+The same robot undocks itself without losing power. At 22:31:44Z it drove
+off its own charger after an SDK session ended, with the same behaviour the
+SDK uses (`DriveOffChargerStraight`, named in `SDKDefault.json`). The SDK's
+drive-off lost power in two of three tries (runs L and M; run O kept it).
+The robot's own undock kept power all three times (22:31:44Z, the
+look-at-me intent below, run Q). The trigger is not isolated. Nothing
+upstream matches: purplOS and wire-os-victor have no fix for this.
+os-vector/wire-os (`ded117a758`) force-reflashes 2.0 body boards running
+`DevBuild9c26f10`; unit 3's body version string reads `Ws00000009c263e`, and
+whether that applies is not known.
+
+**The robot's own undock, by intent.** wire-pod's `/api-sdk/cloud_intent`
+sends an app intent. Unit 3 drops two kinds of these: an intent with no
+`app_intent` entry in its `user_intent_map.json` (`intent_imperative_forward`
+is one), and any intent while quiet mode is on, because wire-pod then
+holds the behaviour reserve. With quiet mode lifted through the pod,
+`intent_imperative_lookatme` undocked unit 3 in 9 s on the same boot (uptime
+1689 s before, 1710 s after).
+
+**Runs N and O: the SDK's wheelie.** Both connected the cube
+(`02:00:00:00:00:01`). In N, started off the charger after the look-at-me
+undock had turned the robot away, `pop_a_wheelie` returned
+`VISUAL_OBSERVATION_FAILED`. In O, which started on the charger and
+undocked through the SDK without losing power, the robot saw the cube
+132 mm ahead and `pop_a_wheelie` returned `BAD_OBJECT` at once.
+
+**Runs P and Q: the robot's own wheelie, listened to.** The wheelie
+imperative `intent_play_popawheelie` has no `app_intent` on unit 3, so the pod
+cannot send it. The engine's test runner can: a RobotTest script with one
+`cloudIntent` command, uploaded to `persistent/robotTestScripts/` and run
+with `GET 127.0.0.1:8888/robottest?run=<name>`, sets the intent pending as
+a voice answer would (`engine/robotTest.cpp`). `hardware/record_listen.py`
+records meanwhile: it connects with no behaviour control, so the robot's
+own behaviours run, and lifts quiet mode for the recording and restores it.
+Run P listened 240 s for a spoken command that never came. In run Q the
+script sent the intent. Unit 3:
+
+1. started its voice-command cube search;
+2. undocked itself (contact open at t = 25.0 s, no power loss);
+3. connected the cube;
+4. started PopAWheelie, which ended in the same tick;
+5. failed its paths (`executePath result=1`, then
+   `DrivingActionFailedWithAbort`).
+
+Over run Q's 2505 state rows, 60 ms apart, pitch stayed between -11.5
+and +9.6 degrees. A retry needs the cube on open surface with room for the
+robot to line up and tip back. The script file was deleted afterwards.
+The engine keeps the loaded copy in memory until its next restart.
+
+### The cube: held, mapped, and read directly (2026-11-21)
+
+**Holding it.** The robot connects its cube only while something asks it to.
+The SDK's `connect_cube` asks for 60 s
+(`appCubeConnectionSubscriber.cpp`). After that the connection drops to a
+background one and then goes (`cubeConnectionCoordinator.cpp`).
+`hardware/hold_cube.py` asks again every 30 s and records the cube's
+events.
+
+- **Run R:** both renewals failed, because `connect_cube` needs behaviour
+  control.
+- **Run S:** connected at `RESERVE_CONTROL`, the lowest level, and held the
+  cube for 877.5 s on unit 3's charger. All 29 renewals succeeded. It
+  recorded 40 taps, 22 up-axis changes, 11 moved and 11 stopped-moving
+  events, and 30 connection-state events. The cube cell read 1.568 V in all
+  15 battery rows.
+
+So a docked robot does hear a held cube. The files are in
+`evidence/hw-rec-20261121/`.
+
+**Its pins.** `evidence/cube-firmware-20261121/PINMAP.md` maps the cube's
+pins from the app the robot sends it, decrypted and disassembled. It also
+records the accelerometer setup: ±4 g, 250 Hz bandwidth, FIFO, no
+interrupt line.
+
+**Its battery.** The operator, 2026-11-21: "don't spend the battery until i
+establish either a supply or a bunch of rechargable ones". The cube runs on
+one N/LR1 cell, and its bootloader keeps it awake for as long as anything
+is connected. Nothing below has been run against the cube.
+
+**Reading its accelerometer: `hardware/cube_accel.py`.**
+
+The robot gets the cube's raw samples but keeps them:
+
+- the engine turns each one into mm/s² for its own listeners
+  (`cubeAccelComponent.cpp`);
+- the SDK passes on only events;
+- the engine's "cubes" debug stream carries connection state, battery and
+  scan results, not samples (`cubeCommsComponent.cpp`).
+
+So the collector runs on a host with Bluetooth (the Mac) and connects to
+the cube in the robot's place. It follows the sequence that Anki's
+`robot/cube_firmware/bletool` and the robot's own
+`cubeBleClient/bleClient/bleClient.cpp` both use:
+
+1. Read the app version.
+2. If it is not unit 3's `2018-08-14T17:40`, write the app file from byte 16
+   on, 20 bytes per write, with response. The script refuses a file whose
+   SHA-256 is not that of unit 3's `cube.dfu`.
+3. Take notifications.
+
+It never writes the lights characteristic.
+
+What the cube sends (`app/accel.c`, `adc.c`, `protocol.h`):
+
+- Every 30 ms, a 20-byte message: the tap count, then three samples of x,
+  y and z as little-endian int16. The scale is 0x2000 counts per g, from
+  the bletool; the engine's 32767/4 differs by 3e-5.
+- About once a second, the battery rail reading: volts = raw × 3.6/1024.
+
+The app reads the whole FIFO every 10 ms tick into one slot, so each
+sample is the last frame read in its tick. The 10 ms tick comes from the
+radio stack's timer, re-armed after every tick. So the sample clock has to
+be fitted from the message count, and the host's arrival times carry the
+radio's batching.
+
+How it runs:
+
+- `CUBE_MODE=scan`, the default, only listens to advertisements, which the
+  cube sends anyway.
+- `CUBE_MODE=collect` refuses unless `CUBE_POWER` is `supply` or
+  `rechargeable`. It stops after three battery readings below
+  `CUBE_LOW_V`, default 1.1 V (chosen, not derived).
+- The robot must not hold the cube during a collection. A connected cube
+  does not advertise, so the scan would not find it.
+- macOS hides Bluetooth addresses. When more than one cube is heard,
+  `CUBE_ADDRESS` takes the identifier the scan printed.
+- It needs the `bleak` package, which is not installed here. It is written
+  to bleak's documented API and has not met bleak.
+
+`tests/test_cube_accel.py` has 17 tests, run against a stand-in bleak, a
+stand-in cube and a stand-in clock. Its expected values come from Anki's
+sources, not from the script: the `protocol.h` layout packed with
+`struct`, the bletool's offsets and scale, the UUIDs as the bletool writes
+them, and the service UUID from the advertising bytes in `user_config.h`.
+The nine mutation arms are caught (`evidence/cube-accel-20261121/`).
+
+**Spin tests with the cube.** The cube held in the lift is a second
+accelerometer, rigid on the robot at a place we can work out. Spinning in
+place, it feels ω²r towards the turn centre. On spin-up it also feels αr
+along the tangent. Gravity does not change in its frame. So the difference
+between a steady spin and the stillness before it gives the vector from
+the cube to the turn centre. That is an independent check of the turn
+centre `simulacrum/spin_fit.py` and `camera_spins.py` find.
+
+In the model (below), a carried cube's chip circles 42.3 to 44.1 mm from
+the centre the robot turns about. That is from circle fits in two turns at
+±80 mm/s, CT 930. The pull that gives:
+
+| Turn rate | ω²r | 12-bit steps (1/512 g) |
+|---|---|---|
+| 2 rad/s (the planner's default) | 17 to 18 mg | about 9 |
+| 120°/s | 19 to 20 mg | about 10 |
+| 300°/s (top) | 118 to 123 mg | about 61 to 63 |
+
+That is computed on the Mac, 2026-11-21. The 12 bits are the datasheet's
+(BMA253DS:832). This replaces an earlier estimate of 54 to 59 mm, which
+used the SDK's drive centre and a guessed cube size.
+
+**The pull is small next to the vibration.** The real robot shakes in a
+turn. Unit 1's own accelerometer, behind its chip's 40 Hz filter, scattered
+by this much (`recording.py` `moving_scatter`, 13 to 22 state rows per
+spin):
+
+| Tread speed | Scatter |
+|---|---|
+| ±30 mm/s | 19 to 32 mg |
+| ±60 mm/s | 52 to 71 mg |
+| ±100 mm/s | 124 to 185 mg |
+
+The cube's chip passes up to 250 Hz, and the app keeps one frame per tick
+with no filter before it. So the vibration lands in the samples, and a
+mean's error is the scatter over the root of the sample count. With 100 mg
+of scatter, 1 mg needs 10,000 samples: 100 s of steady turning. With
+185 mg it needs 342 s. The model shows what happens otherwise ("What the
+model found", below).
+
+The order:
+
+1. Collect still for 60 s, to get the noise and the gravity vector.
+2. Turn for 20 s at each of three rates, each way, only to measure the
+   cube's scatter at each speed.
+3. From that scatter, size the long turns. Hold each until the mean's
+   error is under 1 mg, each way. The centripetal part does not change
+   sign with direction; the spin-up part does.
+4. Collect still again.
+
+Alongside, `record_listen.py`, or the spin recorder, logs the robot's gyro
+for ω. The two hosts' clocks are tied by UTC in both files, and then by
+the spin-up step, which both accelerometers see.
+
+Two things are confounded and need care:
+
+- **The robot's tilt in a turn.** It also grows with ω² and moves the
+  gravity projection: one degree is about 17 mg. The robot's own
+  accelerometer sees the same tilt, so the cube's reading is corrected
+  with it.
+- **The cube's yaw in the lift.** Gravity fixes two of the cube frame's
+  three angles. The direction of the centripetal part fixes the third.
+
+As a side benefit, the cube rings when the lift starts and stops. That is
+the first data on the lift servo's stiffness and damping, which are
+assumed today with no source.
+
+### The cube in the simulacrum (2026-11-21)
+
+`simulacrum/cube.py` is the cube's accelerometer as its chip and app make
+their messages. `VectorSim(cube="lift")` carries a cube in the lift, runs
+the chip on the specific force at its site at every physics step, and
+starts the lift at carry height. Without `cube`, the model is the same as
+before.
+
+What was read for it:
+
+- **The chip.** Bosch's BMA253 datasheet, BST-BMA253-DS000-05 rev 1.4,
+  is now the source `BMA253DS`. It says:
+  - 512 LSB/g at ±4 g in 12 bits, so 8192 per g once left-justified. That
+    agrees with Anki's tool.
+  - The bandwidth filter is "2nd order".
+  - Filtered data comes out at twice the bandwidth, so one frame every
+    2 ms at 250 Hz. The comment in `accel.c` says "1000 samples per
+    second", which is wrong.
+  - Noise density is 220 µg/√Hz, typical.
+  - The zero-g offset is ±80 mg, typical, over the chip's life.
+  - In FIFO mode the chip stops collecting when the buffer is full at 32
+    frames.
+- **The app.** `accel.c` matches the shipped binary instruction for
+  instruction: the 45 << 6 = 2880 threshold, debounce 90 and 80, and the
+  comparison quirk below.
+- **The tick.** From `user_custs1_impl.c` and the Dialog SDK: "timer
+  slots (10 ms)", re-armed after each tick.
+- **Where a carried cube sits.** `carryingComponent.cpp:245-246` puts it
+  (22 + 4, 0, −12.5) mm from the wrist. The lift pose is the wrist and is
+  kept level (`robot.cpp:1532-1541`). The cube is 44 mm across
+  (`BlockDefinitions.h`).
+
+The table gains 14 entries:
+
+- 5 from vendor source: size, carry offset, range, counts per g, tick.
+- 9 assumed, each with a range: mass, chip position, chip yaw, bandwidth,
+  frame period, filter shape, noise, offset, scale.
+- 4 missing measurements.
+
+Two consequences of the tap detector as shipped:
+
+- It counts frames as if they were milliseconds. At 500 frames a second
+  its "90 ms" debounce lasts 180 ms and its "10 ms" tap 20 ms.
+- After a sharp drop (z falls by more than 2880 counts, 0.35 g), it counts
+  a tap at the next frame that does not rise by 90 counts. So a drop alone
+  is a tap, while a rise needs a fall within 10 frames. The model keeps
+  this.
+
+**What the model found (CT 930):**
+
+1. **The modelled lift cannot hold the table's cube.** The table's
+   `servo_torque_max_mNm` is 30 mN·m, assumed with no source, and shared
+   by head and lift. With it, the lift holds a cube of up to 40 g at carry
+   height, sagging 1.8 mm. A 50 g cube drops to the bottom within 1.2 s. A
+   real Vector lifts its cube, so the assumed 50 g and the assumed
+   30 mN·m cannot both be right. Weighing the cube says which one to move.
+   Until then the cube tests use 25 g (`diagnose-output.txt`).
+2. **Two seconds of cube samples cannot find the turn centre.** Turning at
+   ±80 mm/s (2.56 rad/s), the model's chip feels 0.60 to 0.67 g RMS
+   between 95 and 270 Hz. Averaged over every physics step, the force puts
+   the turn centre 2 mm from where the chip circles. The cube's 600
+   samples of the same two seconds miss by about 90 mm. A 10.07 ms tick
+   instead of 10 ms changed the miss but not its size, so this is noise,
+   not phase lock (`alias-output.txt`). Whether the real lift shakes that
+   much is the first thing a real recording will show.
+
+Both files are in `evidence/cube-model-20261121/`, with the scripts that
+made them.
+
+**How it is tested.** `tests/test_cube_model.py` has 18 tests:
+
+- Fifteen run without MuJoCo. Their expected values are built apart from
+  the code they check:
+  - packets with `struct`;
+  - frame values coded by the time they were taken: the last frame per
+    tick, a frame due with a tick, a full FIFO keeping an old frame, a
+    tick with no frame keeping its slot;
+  - tap sequences written out from `accel.c`'s rules;
+  - the noise level from the filter's own impulse response;
+  - the collector reading the model's messages;
+  - a constructed spin that comes back through the whole chain.
+- Three need MuJoCo:
+  - the cube sits where the engine puts it;
+  - held still, it reads 1 g up;
+  - in a turn, the force fed to the chip gives the turn centre to 5 mm,
+    and the cube's own samples agree with it within four standard errors.
+    The second check is weak, since the error is tens of mg.
+
+Twelve mutation arms break the model once each; ten of them run without
+MuJoCo.
+
+### A new app on the cube: the mean of each tick (2026-11-21)
+
+The operator asked for it, to be flashed through the robot without moving it or
+making a sound. Unit 3's cube has run it since 00:46:13 by the robot's clock.
+
+**What it changes.** The shipped app keeps the last FIFO frame of each
+10 ms tick, with no filter in front, so vibration lands in the samples. The
+new app keeps the mean of the tick's frames, about five frames 2 ms apart.
+That is a 10 ms boxcar, with zeros at 100 Hz and its multiples: exactly the
+frequencies that alias onto a steady reading.
+
+Everything else is as shipped:
+
+- the message layout, so the robot reads it unchanged;
+- the tap detector, compare for compare;
+- the battery messages, lights and radio, which are untouched code.
+
+The mean is of the 12-bit values with their fraction in the four low bits,
+so samples are finer than the chip's own steps. The model has it as
+`CubeApp("mean")` / `CubeAccelerometer(app="mean")`. Its version string is
+`cpcs-avg1-261121`.
+
+**How it was built** (`cube_firmware/`):
+
+- `tick_avg.s` is hand-written Cortex-M0 Thumb, replacing the shipped
+  `hal_acc_tick` in place: 204 bytes at `0x20005db4`, exactly the old
+  function and its literal pool.
+- It uses the shipped app's own state block, SPI routines, divide and send
+  pointer at the addresses the shipped code uses. Only one call points
+  there, at `0x200063ba`.
+- `tick_avg.c` is the same tick in C, for reading and testing. GCC makes
+  256 bytes of it, too big for the place.
+- A larger image placed after the zeroed data was the other way. It would
+  need about 386 writes. The stock flash took 5.3 s for 160 writes, and the
+  robot allows 15 s for check and upload, so that was too close.
+
+`cube_firmware/dfu.py`:
+
+- decrypts unit 3's `cube.dfu` with the bootloader's own XXTEA (re-encrypting
+  gives the shipped file back byte for byte);
+- splices in the tick and sets the version;
+- encrypts, and refuses any change outside the version and the tick.
+
+The output is 3209 bytes, SHA-256 `10f5ddd8d4f0…`, 160 writes
+(`build-output.json`). The file is kept out of the repository: it is
+Anki's app, encrypted under their key.
+
+**How it was checked before flashing.** `cube_firmware/thumb.py` is a small
+ARMv6-M interpreter. `tests/test_cube_firmware.py` has 10 tests, which need
+unit 3's file and `key.h` (`CUBE_STOCK_DFU`, `CUBE_KEY`) and skip without
+them:
+
+- The shipped divide at `0x200058ba` is an unsigned divide (400 random
+  cases).
+- The shipped tick, run from the binary, matches the model of the shipped
+  app over 200 messages plus edge cases. This checks the interpreter and the
+  model, which came from the C source, against each other.
+- The new tick's exact bytes match the model of the mean app over three
+  600-tick scenarios plus edge cases.
+- Its taps equal the shipped tick's.
+- It reads only the image and its stack, and writes only its state, the
+  message and its stack.
+- It needs at most 16 bytes more stack than the shipped tick.
+- The file ends on a write the bootloader treats as the last.
+- The C tick, built on the host, matches too.
+
+The edge cases sit on each tap rule's boundary: diffs of ±2880 and ±2881,
+89 and 90 after a drop, and a fall in a window's tenth and eleventh frame.
+The shipped binary agrees with the model on all of them.
+`cube_firmware/mutate_tick.py` breaks the assembly once per arm: 12 of 12
+were caught (`mutate-tick-output.txt`). Its first runs caught 7 and then 10.
+That exposed two gaps in the checks, both now closed: writes were not
+bounded, and nothing sat on the tap rules' edges.
+
+**How it was flashed.** The robot flashes its cube when the cube's version
+differs from the version it cached from its own `cube.dfu` when the engine
+started. It re-reads the file whenever it flashes (`bleClient.cpp:213, 450`).
+
+1. `/data/cpcs/cube-avg1.dfu` was copied to unit 3 and bind-mounted over
+   `/anki/data/assets/cozmo_resources/assets/cubeFirmware/cube.dfu`.
+2. The operator took the cube's cell out for a moment. The app lives in the cube's
+   RAM, so the cube came back with none.
+3. `hold_cube.py` connected the cube at reserve control. The first attempt
+   timed out after 20 s. Then the robot saw the mismatch at 00:46:05 and
+   flashed: `@cube.firmware_flash_success … cpcs-avg1-261121` at 00:46:13
+   (`unit3-log-flash.txt`).
+
+The battery messages kept coming for the rest of the 120 s hold
+(`run-t-flash-hold.jsonl`). They are sent from the same tick, so the new
+tick returns normally. No engine restart, nothing commanded, the robot
+docked throughout.
+
+Not yet seen: the averaged samples themselves, and taps through the new
+tick, because nobody touched the cube during the hold.
+
+**What is left in place, and how to undo it.** While the mount stays,
+unit 3 keeps the new app on the cube. The mount does not survive a reboot:
+after one, the engine caches the stock version again and reflashes stock at
+the next connection. To undo it now: `umount` the path and take the cube's
+cell out for a moment.
+
 ### What hands can settle, in order
 
 No connection to the robot is needed for any of these, and each replaces an
@@ -1392,10 +2286,26 @@ except where the first recording shows it.
   `pathMotionProfile.clad`, `reactToCliff.json`, `behaviorReactToCliff.cpp`,
   `proxSensors.cpp`, `imuFilter.cpp`, `wheelController.h`, `hal_motors.cpp`,
   `wheelController.cpp`, `steeringController.cpp`, `hal.h`,
-  `headController.cpp`, `liftController.cpp`
+  `headController.cpp`, `liftController.cpp`, `robot/hal/spine/imu.c`,
+  `messages.cpp`
+- The same repository, for the light cube:
+  - from `robot/cube_firmware/`: `app/accel.c`, `app/adc.c`,
+    `app/protocol.h`, `src/user_app/user_custs1_impl.c`,
+    `src/user_app/user_custs_config.c`, `src/config/user_config.h`,
+    `sdk/app_modules/api/app_easy_timer.h`, `bletool/cube.js`,
+    `bletool/factory.js`, `bletool/index.js`, `tools/sign.py`,
+    `tools/key.h`;
+  - from the engine: `cubeBleClient/bleClient/bleClient.cpp`,
+    `cubeBleClient_vicos.cpp`, `engine/components/cubes/cubeAccelComponent.cpp`,
+    `cubeCommsComponent.cpp`, `appCubeConnectionSubscriber.cpp`,
+    `engine/components/carryingComponent.cpp`, `engine/BlockDefinitions.h`,
+    `engine/robot.cpp` (`ComputeLiftPose`), `engine/fullRobotPose.cpp`;
+  - the shipped app `cube.dfu`, decrypted and disassembled
+    (`evidence/cube-firmware-20261121/PINMAP.md`).
 - https://github.com/digital-dream-labs/vector: `simulator/protos/CozmoBot2.proto`, `CozmoIMU.proto`
-- Bosch BMI160 datasheet BST-BMI160-DS000-09 and ST VL53L0X datasheet
-  DocID029104 Rev 2 (the second from a distributor's mirror)
+- Bosch BMI160 datasheet BST-BMI160-DS000-09, Bosch BMA253 datasheet
+  BST-BMA253-DS000-05 rev 1.4, and ST VL53L0X datasheet DocID029104 Rev 2
+  (the last from a distributor's mirror)
 - https://os-vector.github.io/vector-docs/5.-Hardware/index.html, a community page
 - private repository `vector-slam-maze` at 5992b24, `movement_directives.py`
 - private repository `workspace`, branch `cpcs/vector-cliff-guard` at 17008e7, `skills/vector-sim/vectorsim/world.go`

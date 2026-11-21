@@ -133,6 +133,7 @@ def stand(sim: VectorSim, rest_qpos: Any, kind: str, closed: float) -> Dict[str,
     mujoco.mj_rnePostConstraint(sim.model, sim.data)
     mujoco.mj_sensorAcc(sim.model, sim.data)
     sim._imu_sample = None
+    sim._reset_imu_filter()  # held still: the chip's filter has settled on this reading
     sim._sample_imu()
     accel = sim._imu_sample[0]
     row = {"accel": list(accel), "head": float(sim.data.qpos[sim._q["head"]])}

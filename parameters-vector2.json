@@ -19,6 +19,11 @@
     "ANKISUP": {
       "what": "Anki/DDL support article 338, where to find Vector's serial number on 1.0 and 2.0",
       "url": "https://support.anki.bot/article/338-how-do-i-find-vectors-serial-number"
+    },
+    "REC_Unit3_SWEEP": {
+      "what": "Unit 3 (unit 0a1b2c3d, the household's Vector 2.0) standing still off the dock on the shelf, lift down, head swept over 0, 25, -15, 40, 10 and 0 degrees with the chassis uncommanded, at two spots (B, A) and headings 0 and 180, each reached from both turn directions, plus heading 90 at A. SDK samples taken by gptpcs-01a1f1b on 2026-11-20; the decomposition and the fit-on-B, score-on-A protocol are the GEMINI seat's (the lab's coordination room turn 166). Copied from that lane's publish tree, commit 94a78b1, evidence/head-sweep. Heading is the robot's odometry. Unit 3's printed lift and missing faceplate do not touch the IMU in the head.",
+      "where": "evidence/head-sweep-unit3-20261120/samples.csv (1,494 rows; 24 settled windows at B, 24 at A at headings 0 and 180, 6 at A at 90 after the gates of simulacrum/imu_fit.py) and marks.csv",
+      "sha256": "samples.csv 4d98753b8cc2bd9b07369b5fa8b4a947170dbf840586b08ba0cd69015fb71c40; marks.csv eb22808bded029d232be416b5f89c997ba0dda963ae4c30a6be99a5fd96178d0"
     }
   },
   "overrides": {
@@ -87,6 +92,60 @@
       "low": 50.0,
       "high": 90.0,
       "kind": "robot"
+    },
+    "accel_scale": {
+      "value": [
+        1.014,
+        1.0,
+        1.0
+      ],
+      "unit": "1",
+      "provenance": "fitted",
+      "source": "x 1.0140 (1.0085 to 1.0207). Fitted by simulacrum/imu_fit.py head_sweep() on REC_Unit3_SWEEP: tilt, pitch, three offsets and the x scale over spot B's 24 windows, gravity 9806.65 mm/s^2. Held out, spot A: vector error 7.51 mg with the x scale fixed at 1, 6.49 mg with it fitted (24 windows); 5.82 to 3.95 mg at heading 90 (6 windows); 6.71 to 5.31 mg on B itself. A 200-draw bootstrap over B's windows gives the bracketed 95 percent ranges. The GEMINI seat's own fit, at gravity 9810, gave x scale 1.0138 (1.0094 to 1.0190) and offsets 13.2, 3.9, -18.5 mg. y and z stay at 1 and take the part's range (BMI160DS:390-393): from -15 to 40 degrees of head the z axis's share of gravity changes by about a quarter, too little to tell its scale from its offset, and no recording rolls the robot onto its side to show y's.",
+      "low": [
+        1.008,
+        0.96,
+        0.96
+      ],
+      "high": [
+        1.021,
+        1.04,
+        1.04
+      ],
+      "kind": "robot",
+      "note": "A head-angle scale error (the encoder reading 1.4 % more or less than the true angle) would shift x in nearly the same way; this fit did not test that alternative. It also leaves the ~15 mg opposite-heading difference unexplained."
+    },
+    "accel_bias_mg": {
+      "value": [
+        13.2,
+        4.0,
+        -18.1
+      ],
+      "unit": "mg",
+      "provenance": "fitted",
+      "source": "13.2 (9.5 to 16.4), 4.0 (3.3 to 4.8), -18.1 (-18.6 to -17.8) mg, fitted with the x scale. With the scale fixed at 1 the x offset is 18.1 mg. Fitted by simulacrum/imu_fit.py head_sweep() on REC_Unit3_SWEEP: tilt, pitch, three offsets and the x scale over spot B's 24 windows, gravity 9806.65 mm/s^2. Held out, spot A: vector error 7.51 mg with the x scale fixed at 1, 6.49 mg with it fitted (24 windows); 5.82 to 3.95 mg at heading 90 (6 windows); 6.71 to 5.31 mg on B itself. A 200-draw bootstrap over B's windows gives the bracketed 95 percent ranges. The GEMINI seat's own fit, at gravity 9810, gave x scale 1.0138 (1.0094 to 1.0190) and offsets 13.2, 3.9, -18.5 mg. The range of +/-10 mg is the author's allowance for temperature and for what the fit cannot see, as in the base table.",
+      "low": [
+        3.2,
+        -6.0,
+        -28.1
+      ],
+      "high": [
+        23.2,
+        14.0,
+        -8.1
+      ],
+      "kind": "robot",
+      "note": "A fact about unit 3. Widen to +/-40 mg per axis to train for any 2.0."
+    },
+    "imu_pitch_offset_deg": {
+      "value": -0.05,
+      "unit": "deg",
+      "provenance": "fitted",
+      "source": "-0.05 (-0.22 to 0.12) deg, fitted with the x scale; -0.22 with it fixed at 1. Fitted by simulacrum/imu_fit.py head_sweep() on REC_Unit3_SWEEP: tilt, pitch, three offsets and the x scale over spot B's 24 windows, gravity 9806.65 mm/s^2. Held out, spot A: vector error 7.51 mg with the x scale fixed at 1, 6.49 mg with it fitted (24 windows); 5.82 to 3.95 mg at heading 90 (6 windows); 6.71 to 5.31 mg on B itself. A 200-draw bootstrap over B's windows gives the bracketed 95 percent ranges. The GEMINI seat's own fit, at gravity 9810, gave x scale 1.0138 (1.0094 to 1.0190) and offsets 13.2, 3.9, -18.5 mg. The range of +/-0.5 deg is the author's allowance, matching the base table's width.",
+      "low": -0.55,
+      "high": 0.45,
+      "kind": "robot",
+      "note": "As in the base table: stance on the treads, mounting and the head angle's zero, not separated."
     }
   }
 }

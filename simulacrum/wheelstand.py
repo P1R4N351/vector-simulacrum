@@ -135,7 +135,7 @@ def solve_interval(rear: Tuple[float, float], side: Tuple[float, float], v: Dict
 def up_in_body(row: Dict[str, Any], v: Dict[str, Any]) -> Tuple[float, float, float]:
     """Unit vector pointing up, in the robot's body frame, from one still accelerometer reading."""
     mg = 0.001 * v["gravity_mmps2"]
-    ax, ay, az = (float(row["accel"][i]) - mg * v["accel_bias_mg"][i] for i in range(3))
+    ax, ay, az = ((float(row["accel"][i]) - mg * v["accel_bias_mg"][i]) / v["accel_scale"][i] for i in range(3))
     angle = float(row["head"]) + math.radians(v["imu_pitch_offset_deg"])
     ux = ax * math.cos(angle) - az * math.sin(angle)
     uz = ax * math.sin(angle) + az * math.cos(angle)

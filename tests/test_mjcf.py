@@ -48,22 +48,48 @@ class GeneratedModel(unittest.TestCase):
         self.assertAlmostEqual(float(_find(changed, "geom", "wheel_fl_geom").get("size")), 0.015, places=9)
         self.assertAlmostEqual(_floats(_find(changed, "body", "wheel_fl").get("pos"))[2], 0.015, places=9)
 
+    def test_the_wheels_and_tip_supports_take_the_tread_friction(self) -> None:
+        for name in ("wheel_fl_geom", "wheel_rr_geom", "tip_front_l", "tip_rear_r"):
+            friction = _floats(_find(self.root, "geom", name).get("friction"))
+            self.assertAlmostEqual(friction[0], self.v["tread_friction"], places=9, msg=name)
+        changed = ET.fromstring(mjcf.build_mjcf(params.values(self.doc, {"tread_friction": 0.6})))
+        self.assertAlmostEqual(_floats(_find(changed, "geom", "wheel_fl_geom").get("friction"))[0], 0.6, places=9)
+
+    def test_the_contact_inset_moves_the_wheels_inward_and_keeps_the_body_level(self) -> None:
+        inset, base = self.v["tread_contact_inset_mm"], self.v["wheel_base_mm"]
+        self.assertGreater(inset, 0.0)
+        front = _floats(_find(self.root, "body", "wheel_fr").get("pos"))
+        rear = _floats(_find(self.root, "body", "wheel_rl").get("pos"))
+        self.assertAlmostEqual(front[0], -inset * 0.001, places=9)
+        self.assertAlmostEqual(rear[0], -(base - inset) * 0.001, places=9)
+        self.assertAlmostEqual(front[2], self.v["wheel_front_radius_mm"] * 0.001, places=9)
+        self.assertAlmostEqual(rear[2], self.v["wheel_rear_radius_mm"] * 0.001, places=9)
+        none = ET.fromstring(mjcf.build_mjcf(params.values(self.doc, {"tread_contact_inset_mm": 0.0})))
+        self.assertAlmostEqual(_floats(_find(none, "body", "wheel_rr").get("pos"))[0], -base * 0.001, places=9)
+        for bad in (-0.5, 0.25 * base):
+            with self.assertRaises(AssertionError):
+                mjcf.build_mjcf(params.values(self.doc, {"tread_contact_inset_mm": bad}))
+
     def test_every_ranged_robot_parameter_changes_the_model_or_is_used_by_the_layer(self) -> None:
         layer_only = {
             "cliff_detect_range_mm", "cliff_reaction_backup_mm", "cliff_reaction_backup_speed_mmps",
             "cliff_event_delay_ms", "command_delay_ms", "wheel_accel_default_mmps2",
             "wheel_decel_default_mmps2", "point_turn_accel_default_radps2", "heading_hold_gain_mmps_per_rad",
             "drive_done_mm", "wheel_speed_max_mmps", "servo_command_delay_ms", "head_speed_max_radps",
-            "lift_speed_max_radps", "cliff_reaction_pause_ms", "gyro_noise_rms_dps", "gyro_bias_dps", "accel_noise_rms_mg", "accel_bias_mg",
+            "lift_speed_max_radps", "cliff_reaction_pause_ms", "gyro_noise_rms_dps", "gyro_bias_dps", "accel_noise_rms_mg", "accel_bias_mg", "accel_scale",
+            "accel_filter_cutoff_hz", "gyro_filter_cutoff_hz", "imu_filter_second_pole",
             "tof_range_std_fraction", "battery_sag_v_per_power", "motor_reference_voltage_v",
             "tread_heat_tau_s", "tread_heat_loss_rate_per_s", "tof_quality_at_100mm", "tof_quality_distance_exponent",
-            "tof_quality_floor", "tof_weak_distance_mm", "tof_weak_distance_sd_mm", "tof_lift_quality"}
-        base = mjcf.build_mjcf(self.v)
+            "tof_quality_floor", "tof_weak_distance_mm", "tof_weak_distance_sd_mm", "tof_lift_quality",
+            # the carried cube's chip and app, run by simulacrum/cube.py
+            "cube_accel_bandwidth_hz", "cube_accel_frame_period_ms", "cube_accel_filter_second_pole",
+            "cube_accel_noise_density_ug", "cube_accel_bias_mg", "cube_accel_scale"}
         unchanged = []
         for name, entry in self.doc["parameters"].items():
             if entry["kind"] != "robot" or "low" not in entry or name in layer_only:
                 continue
-            if mjcf.build_mjcf(params.values(self.doc, {name: entry["high"]})) == base:
+            mount = "lift" if name.startswith("cube_") else None  # the cube's body is only in a model carrying it
+            if mjcf.build_mjcf(params.values(self.doc, {name: entry["high"]}), cube=mount) == mjcf.build_mjcf(self.v, cube=mount):
                 unchanged.append(name)
         self.assertEqual(unchanged, [])
 

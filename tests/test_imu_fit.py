@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import math
 import unittest
+from pathlib import Path
 
 import _common  # noqa: F401
 from simulacrum import params, recording
@@ -14,6 +15,7 @@ if HAVE_NUMPY:
     from simulacrum import imu_fit
 
 MADE_UP = (0.02, -0.01, 0.03, -400.0, 60.0, 150.0)  # tilt x, tilt y, pitch (rad), then three offsets in mm/s^2
+SWEEP = Path(__file__).resolve().parent.parent / "evidence" / "head-sweep-unit3-20261120"
 
 
 @unittest.skipUnless(HAVE_NUMPY, "numpy is not installed here")
@@ -91,6 +93,76 @@ class AccelerometerFit(unittest.TestCase):
         self.assertAlmostEqual(at_level[0], -58.6, delta=0.1)
         self.assertAlmostEqual(at_level[1], self.report["bias_mg"][1], delta=1e-6)
         self.assertAlmostEqual(at_level[2], 22.3, delta=0.1)
+
+
+@unittest.skipUnless(HAVE_NUMPY, "numpy is not installed here")
+class XScaleOnUnit3(unittest.TestCase):
+    """The x axis's scale, fitted on spot B of unit 3's head sweeps and scored at spot A."""
+    _cached = None
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.v2 = params.load(model="vector_2")["parameters"]
+        cls.spots = imu_fit.sweep_windows(SWEEP)
+
+    @property
+    def report(self) -> dict:
+        if XScaleOnUnit3._cached is None:
+            XScaleOnUnit3._cached = imu_fit.head_sweep(SWEEP)
+        return XScaleOnUnit3._cached
+
+    def test_the_gates_keep_the_windows_the_sweeps_authors_counted(self) -> None:
+        self.assertEqual(self.report["windows"], {"A": 24, "A90": 6, "B": 24})
+
+    def test_the_2_0_table_holds_the_fitted_values_and_its_ranges_cover_the_bootstrap(self) -> None:
+        free, boot = self.report["scale_x_free"], self.report["bootstrap_95"]
+        scale, bias, pitch = self.v2["accel_scale"], self.v2["accel_bias_mg"], self.v2["imu_pitch_offset_deg"]
+        self.assertEqual({scale["provenance"], bias["provenance"], pitch["provenance"]}, {"fitted"})
+        self.assertAlmostEqual(scale["value"][0], free["scale_x"], delta=0.0005)
+        self.assertEqual(scale["value"][1:], [1.0, 1.0])
+        for value, fitted in zip(bias["value"], free["bias_mg"]):
+            self.assertAlmostEqual(value, fitted, delta=0.05)
+        self.assertAlmostEqual(pitch["value"], free["pitch_deg"], delta=0.005)
+        self.assertTrue(scale["low"][0] <= boot["scale_x"][0] < boot["scale_x"][1] <= scale["high"][0])
+        self.assertTrue(pitch["low"] <= boot["pitch_deg"][0] < boot["pitch_deg"][1] <= pitch["high"])
+        for axis, name in enumerate(("bias_x_mg", "bias_y_mg", "bias_z_mg")):
+            self.assertTrue(bias["low"][axis] <= boot[name][0] < boot[name][1] <= bias["high"][axis])
+
+    def test_freeing_the_x_scale_lowers_the_error_at_the_spot_the_fit_never_saw(self) -> None:
+        fixed, free = self.report["scale_1"]["rms_mg"], self.report["scale_x_free"]["rms_mg"]
+        self.assertLess(free["A"], fixed["A"] - 0.8)
+        self.assertLess(free["A90"], fixed["A90"] - 1.5)
+        self.assertGreater(self.report["bootstrap_95"]["scale_x"][0], 1.005)
+
+    def test_a_made_up_scale_is_recovered_at_the_recorded_head_angles(self) -> None:
+        made_up = MADE_UP + (0.97,)
+        made = [(head, yaw, tuple(imu_fit.predicted(made_up, head, yaw)), 1) for head, yaw, _, _ in self.spots["B"]]
+        found = imu_fit.fit(made, free_scale=True)["values"]
+        self.assertAlmostEqual(found[imu_fit.SCALE_NAME], 0.97, delta=1e-6)
+        self.assertAlmostEqual(found["bias_x_mmps2"], -400.0, delta=0.05)
+
+    def test_rows_with_the_treads_or_the_gyro_moving_and_the_setup_sweep_are_left_out(self) -> None:
+        import tempfile
+        head = "block,target_deg,visit,rest_s,head_deg,yaw_deg,wl_mm_s,wr_mm_s,gx_rad_s,gy_rad_s,gz_rad_s,ax_mm_s2,ay_mm_s2,az_mm_s2"
+        still = "{b},0,1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,20.0,9800.0"
+        lines = [head] + [still.format(b=b) for b in ("B0cw", "A0cw", "A90ccw")]
+        lines += ["B0cw,0,1,0.2,0.0,0.0,5.0,0.0,0.0,0.0,0.0,900.0,20.0,9800.0",
+                  "B0cw,0,1,0.3,0.0,0.0,0.0,0.0,0.0,0.0,0.2,900.0,20.0,9800.0",
+                  "B0setup,0,1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,900.0,20.0,9800.0"]
+        with tempfile.TemporaryDirectory() as folder:
+            (Path(folder) / "samples.csv").write_text("\n".join(lines) + "\n", encoding="utf-8")
+            spots = imu_fit.sweep_windows(Path(folder))
+        self.assertEqual({spot: len(rows) for spot, rows in spots.items()}, {"A": 1, "A90": 1, "B": 1})
+        self.assertEqual(spots["B"][0][2], (10.0, 20.0, 9800.0))
+
+    def test_a_fit_where_some_number_cannot_move_the_readings_is_refused(self) -> None:
+        one = self.spots["B"][0]
+        with self.assertRaises(AssertionError):
+            imu_fit.fit([one] * 8, free_scale=True)
+
+    def test_six_numbers_still_mean_a_scale_of_one(self) -> None:
+        self.assertEqual(list(imu_fit.predicted(MADE_UP, 0.4, 0.3)), list(imu_fit.predicted(MADE_UP + (1.0,), 0.4, 0.3)))
+        self.assertNotIn(imu_fit.SCALE_NAME, imu_fit.fit(list(self.spots["B"]))["values"])
 
 
 if __name__ == "__main__":

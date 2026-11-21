@@ -1,0 +1,22 @@
+{"k": "c", "t": 0.0023, "name": "connect_to", "serial": "0a1b2c3d", "ip": "192.0.2.10", "control": "reserve"}
+{"k": "c", "t": 1.4991, "name": "begin", "note": "flash run 2026-11-21, unit 3 docked, cube 02:00:00:00:00:01 after the operator pulled and refitted its cell; unit 3 offers cube-avg1.dfu (cpcs-avg1-261121) through a bind mount; reserve control, nothing commanded", "utc": "2026-11-21T03:12:22.521+00:00"}
+{"k": "c", "t": 1.4995, "name": "holding", "seconds": 120.0, "renew_s": 30.0, "battery_s": 30.0, "utc": "2026-11-21T03:12:22.522+00:00"}
+{"k": "e", "t": 36.7991, "event": "object_connection_state", "utc": "2026-11-21T03:12:57.821+00:00", "object_id": 0, "connected": false, "factory_id": "", "object_type": 2}
+{"k": "r", "t": 36.7997, "success": false, "factory_id": ""}
+{"k": "b", "t": 37.0136, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 5639.6}
+{"k": "e", "t": 76.3035, "event": "object_connection_state", "utc": "2026-11-21T03:13:37.326+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 76.3288, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 76.3297, "event": "object_connection_state", "utc": "2026-11-21T03:13:37.352+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "b", "t": 76.4354, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.1}
+{"k": "r", "t": 77.026, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "e", "t": 77.0275, "event": "object_connection_state", "utc": "2026-11-21T03:13:38.050+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "b", "t": 77.1824, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.8}
+{"k": "e", "t": 107.2888, "event": "object_connection_state", "utc": "2026-11-21T03:14:08.311+00:00", "object_id": 1, "connected": true, "factory_id": "02:00:00:00:00:01", "object_type": 2}
+{"k": "r", "t": 107.2897, "success": true, "factory_id": "02:00:00:00:00:01"}
+{"k": "b", "t": 107.4078, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.3}
+{"k": "c", "t": 121.9108, "name": "held", "seconds": 120.4, "stopped_by": null, "utc": "2026-11-21T03:14:22.933+00:00"}
+{"k": "b", "t": 122.0402, "volts": 3.5875, "charging": false, "on_platform": true, "cube_volts": 1.568, "cube_level": 1, "cube_id": "02:00:00:00:00:01", "cube_age_s": 0.2}
+{"k": "c", "t": 122.1214, "name": "cube_released"}
+{"k": "c", "t": 122.4725, "name": "end", "utc": "2026-11-21T03:14:23.495+00:00"}
+{"k": "c", "t": 122.4733, "name": "lock_released"}
+{"k": "exit", "code": 0}

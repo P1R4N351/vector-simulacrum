@@ -28,7 +28,7 @@ from simulacrum import recording
 
 SCRIPT = Path(__file__).resolve().parent.parent / "hardware" / "record_barriered.py"
 ENV_KEYS = ("PHASES", "RULER_PAUSE_S", "EDGE_SPEED", "EDGE_SECONDS", "EDGE_START_MM", "ABORT_WATCH_S", "NOTE", "WHEELSTAND_S",
-            "WHEELIE_WATCH_S", "ENDURANCE_S", "ENDURANCE_MMPS")
+            "WHEELIE_WATCH_S", "ENDURANCE_S", "ENDURANCE_MMPS", "VECTOR_IP")
 TIME_TOL_S = 0.05
 MOVING = ("wheels", "head", "lift", "drive_straight", "turn_in_place", "drive_off_charger", "drive_on_charger")
 
@@ -100,6 +100,7 @@ class FakeRobot:
         self.world = FakeWorld(self)
         self.pose = fake_pose(10.0, -5.0, 0.0)
         self.volts0, self.volts_per_s = 4.05, 0.0005
+        self.seat_after_wheels: Optional[int] = None
         self.events = types.SimpleNamespace(subscribe=lambda *a: None, unsubscribe=lambda *a: None)
         self.status = self
 
@@ -145,13 +146,18 @@ class FakeRobot:
     @property
     def is_on_charger(self) -> bool:
         moves = [call[1] for call in self.calls if call[1] in ("drive_off_charger", "drive_on_charger")]
+        if self.seat_after_wheels is not None and len([c for c in self.calls if c[1] == "wheels"]) >= self.seat_after_wheels:
+            return True
         return moves[-1] == "drive_on_charger" if moves else self.on_charger
 
 
 def _fake_sdk(robot: FakeRobot) -> Dict[str, Any]:
     """Stand-ins for the four anki_vector modules the script imports."""
     top = types.ModuleType("anki_vector")
-    top.Robot = lambda *args, **kwargs: robot
+    def make(*args: Any, **kwargs: Any) -> FakeRobot:
+        robot.made_with = (args, kwargs)
+        return robot
+    top.Robot = make
     conn = types.ModuleType("anki_vector.connection")
     conn.ControlPriorityLevel = types.SimpleNamespace(DEFAULT_PRIORITY="default")
     events = types.ModuleType("anki_vector.events")
@@ -383,6 +389,17 @@ class Signals(unittest.TestCase):
         self.assertEqual([call[1] for call in robot.calls], ["stop"])
         self.assertEqual(module.STATE["abort"], "signal_%d" % signal.SIGHUP)
 
+    def test_the_address_comes_from_vector_ip_when_set_and_is_checked(self) -> None:
+        robot = FakeRobot(FakeClock())
+        run = dry_run({"PHASES": "rest", "VECTOR_IP": "192.0.2.10"}, robot)
+        self.assertEqual(robot.made_with[1].get("ip"), "192.0.2.10", "the address reaches the SDK")
+        self.assertEqual([c["ip"] for c in run["rows"] if c.get("name") == "connect_to"], ["192.0.2.10"])
+        robot = FakeRobot(FakeClock())
+        dry_run({"PHASES": "rest"}, robot)
+        self.assertNotIn("ip", robot.made_with[1])
+        with mock.patch.dict(os.environ, {"VECTOR_IP": "10.3.142"}), self.assertRaises(AssertionError):
+            _load_script(FakeRobot(FakeClock()), "/tmp/unused-lock")
+
     def test_the_serial_comes_from_the_environment_and_is_checked(self) -> None:
         with mock.patch.dict(os.environ, {"VECTOR_SERIAL": "0a1b2c3d"}):
             module = _load_script(FakeRobot(FakeClock()), "/tmp/unused-lock")
@@ -448,6 +465,47 @@ class Dock(unittest.TestCase):
             with self.assertRaises(AssertionError, msg=phases):
                 dry_run({"PHASES": phases}, robot)
             self.assertEqual(robot.calls, [], phases)
+
+
+class Nudge(unittest.TestCase):
+    def test_it_stops_as_soon_as_the_charger_contact_shows(self) -> None:
+        robot = FakeRobot(FakeClock())
+        robot.seat_after_wheels = 3
+        run = dry_run({"PHASES": "nudge"}, robot)
+        wheels = [(c[2], c[3]) for c in run["calls"] if c[1] == "wheels"]
+        self.assertEqual(wheels, [(-40.0, -40.0), (40.0, 40.0), (-40.0, -40.0)])
+        self.assertEqual([r["on_charger"] for r in named(run["rows"], "nudge_contact")], [False, False, True])
+        self.assertNotIn("drive_off_charger", [c[1] for c in run["calls"]])
+
+    def test_it_is_bounded_and_ends_with_a_move_back(self) -> None:
+        run = dry_run({"PHASES": "nudge"})
+        wheels = [(c[2], c[3]) for c in run["calls"] if c[1] == "wheels"]
+        self.assertEqual(len(wheels), 2 * 3 + 1)
+        self.assertEqual(wheels[-1], (-40.0, -40.0))
+        for got, want in zip(held_for(run["calls"]), [0.4, 0.4, 0.5, 0.5, 0.6, 0.6, 0.6]):
+            self.assertAlmostEqual(got, want, delta=TIME_TOL_S)
+
+    def test_on_the_charger_it_commands_nothing(self) -> None:
+        robot = FakeRobot(FakeClock(), on_charger=True)
+        run = dry_run({"PHASES": "nudge"}, robot)
+        self.assertEqual([c[1] for c in run["calls"] if c[1] in MOVING], [])
+
+
+class LiftSpins(unittest.TestCase):
+    def test_spins_with_the_lift_down_then_up_then_down_and_the_lift_left_down(self) -> None:
+        run = dry_run({"PHASES": "liftspins"})
+        moves = [(c[1], c[2]) if c[1] == "lift" else (c[1], c[2], c[3]) for c in run["calls"]
+                 if c[1] in ("lift", "wheels")]
+        spin = [("wheels", -150.0, 150.0), ("wheels", 150.0, -150.0)]
+        self.assertEqual(moves, [("lift", 0.0)] + spin + [("lift", 1.0)] + spin + [("lift", 0.0)] + spin
+                         + [("lift", 0.0)])
+        self.assertEqual([r["label"] for r in named(run["rows"], "wheels")],
+                         ["liftspin_down_a_ccw", "liftspin_down_a_cw", "liftspin_up_ccw", "liftspin_up_cw",
+                          "liftspin_down_b_ccw", "liftspin_down_b_cw"])
+        self.assertEqual([r["deg"] for r in named(run["rows"], "head")], [0.0])
+        self.assertRegex(named(run["rows"], "begin")[0]["utc"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}\+00:00$")
+        for seconds in held_for(run["calls"]):
+            self.assertAlmostEqual(seconds, 3.0, delta=TIME_TOL_S)
 
 
 class Endurance(unittest.TestCase):

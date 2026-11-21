@@ -13,6 +13,7 @@
 
 import { TreadController, TreadEncoder, wholeMmps } from "./drive.js";
 import { Hazards } from "./hazards.js";
+import { CHANNELS, ImuFilter } from "./imu_filter.js";
 import { ProxSensor } from "./prox.js";
 import { assert, clamp, makeGauss, profileStep, pyRound, toward } from "./util.js";
 
@@ -94,6 +95,7 @@ export class VectorSim {
     this._sceneOnly = [1, 0, 0, 0, 0, 0]; // geom group 0 is the scene; the robot's own geoms are in group 1
     this._gyroAdr = sensor("gyro");
     this._accelAdr = sensor("accel");
+    this._imuAdr = [0, 1, 2].map((i) => this._accelAdr + i).concat([0, 1, 2].map((i) => this._gyroAdr + i));
     this._q = { head: qadr("head"), lift: qadr("lift"), wrist: qadr("wrist") };
     this._dof = { wheelFl: dof("wheel_fl"), wheelFr: dof("wheel_fr") };
     this._wheelQ = [qadr("wheel_fl"), qadr("wheel_fr")];
@@ -130,6 +132,9 @@ export class VectorSim {
     this.treadHeat = [0, 0];
     this._measured = [0, 0];
     this._imuSample = null;
+    this._imuFilter = new ImuFilter(
+      v.accel_filter_cutoff_hz, v.gyro_filter_cutoff_hz, v.imu_filter_second_pole, this.model.opt.timestep,
+    );
     this._headTarget = this._headCmd = 0;
     this._liftTarget = this._liftCmd = this.d.lift_angle_min;
     this._headSpeed = v.head_speed_default_radps;
@@ -196,8 +201,10 @@ export class VectorSim {
   _settle() {
     const ticks = pyRound(this.v.settle_time_ms / this.v.control_period_ms);
     assert(ticks >= 0 && ticks <= 2000, "settle time out of range");
-    for (let i = 0; i < ticks; i++) this._physicsStep();
+    const steps = ticks * this.d.substeps;
+    for (let i = 0; i < steps; i++) this.mujoco.mj_step(this.model, this.data);
     this.data.time = 0;
+    this._resetImuFilter();
     this._yawPrev = this._yawTotal = this._yaw();
     const travel = this._treadTravelMm();
     for (let i = 0; i < 2; i++) {
@@ -208,8 +215,19 @@ export class VectorSim {
     this._publishState();
   }
 
+  _resetImuFilter() {
+    const sd = this.data.sensordata;
+    this._imuFilter.reset(this._imuAdr.map((adr) => sd[adr]));
+  }
+
   _physicsStep() {
-    for (let i = 0; i < this.d.substeps; i++) this.mujoco.mj_step(this.model, this.data);
+    const raw = [0, 0, 0, 0, 0, 0];
+    for (let i = 0; i < this.d.substeps; i++) {
+      this.mujoco.mj_step(this.model, this.data);
+      const sd = this.data.sensordata;
+      for (let ch = 0; ch < CHANNELS; ch++) raw[ch] = sd[this._imuAdr[ch]];
+      this._imuFilter.update(raw);
+    }
   }
 
   // ---- reading the model ------------------------------------------------
@@ -299,21 +317,21 @@ export class VectorSim {
     return this._proxSensor.read(this._castTof(), this._reportedHeadAndLift()[1], this._pitch());
   }
 
-  // Read gyro and accelerometer once, add this robot's bias and noise, clip to the part's range.
+  // Read filtered gyro and accelerometer once, apply scale, bias and noise, clip to range.
   _sampleImu() {
     const v = this.v;
-    const sd = this.data.sensordata;
+    const out = this._imuFilter.output;
     const mg = 0.001 * v.gravity_mmps2;
     const aMax = v.accel_range_g * v.gravity_mmps2;
     const gMax = v.gyro_range_dps * DEG;
     const accel = [0, 0, 0];
     const gyro = [0, 0, 0];
     for (let i = 0; i < 3; i++) {
-      accel[i] = clamp(sd[this._accelAdr + i] / MM + mg * v.accel_bias_mg[i]
+      accel[i] = clamp((out[i] / MM) * v.accel_scale[i] + mg * v.accel_bias_mg[i]
         + this._gauss(0, mg * v.accel_noise_rms_mg), -aMax, aMax);
     }
     for (let i = 0; i < 3; i++) {
-      gyro[i] = clamp(sd[this._gyroAdr + i] + v.gyro_bias_dps[i] * DEG
+      gyro[i] = clamp(out[3 + i] + v.gyro_bias_dps[i] * DEG
         + this._gauss(0, v.gyro_noise_rms_dps * DEG), -gMax, gMax);
     }
     this._imuSample = [accel, gyro];

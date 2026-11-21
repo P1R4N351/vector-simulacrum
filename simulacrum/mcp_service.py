@@ -56,6 +56,10 @@ PHASE_SPACE = {
                    "a soft surface", False),
     "wheelie": ("drives to its light cube and tips onto its rear (the robot's own pop_a_wheelie); the cube within "
                 "reach and the room lit, since it finds the cube with its camera; must be last", True),
+    "nudge": ("short moves back and forth at 40 mm/s, under 25 mm each way, to seat a robot on its charger "
+              "ramp; stops on charger contact", True),
+    "liftspins": ("spins on the spot at 150 mm/s both ways with the lift down, then up, then down again; "
+                  "allow 100 mm all round", True),
     "endurance": ("sustained load: spins on the spot both ways at ENDURANCE_MMPS (default 300, above the treads' top "
                   "speed) for ENDURANCE_S (default 600); allow 100 mm all round; drains the battery, stops at 3.6 V", True),
     "dock": ("drives to its charger (the robot's own drive_on_charger), which it finds with its camera; must be "

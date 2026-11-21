@@ -5,7 +5,7 @@
     python3 tests/run_all.py --only test_sim.Cliff.test_reaction_on_stops_and_backs_away
 
 Exit codes: 0 all passed, 7 a test failed or errored (or was skipped under
---require-mujoco), 3 MuJoCo or the training packages were required and are
+--require-mujoco for anything but an optional input, _common.OPTIONAL_SKIP_PREFIX), 3 MuJoCo or the training packages were required and are
 missing, 2 bad arguments. The last line is one JSON object, for the
 mutation check to read.
 """
@@ -17,7 +17,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -26,7 +26,9 @@ import _common  # noqa: E402
 
 MODULES = ("test_params", "test_mjcf", "test_drive", "test_recording", "test_imu_fit", "test_recorder", "test_sim",
            "test_replay", "test_task", "test_training", "test_rank", "test_mcp",
-           "test_wheelstand", "test_motor_heat", "test_prox")
+           "test_wheelstand", "test_motor_heat", "test_prox", "test_spin_fit", "test_camera_spins",
+           "test_imu_filter", "test_record_listen",
+           "test_hold_cube", "test_cube_accel", "test_cube_model", "test_cube_firmware", "test_run_all")
 EXIT_OK, EXIT_USAGE, EXIT_ENV, EXIT_RED = 0, 2, 3, 7
 
 
@@ -41,6 +43,13 @@ def _load(only: List[str]) -> unittest.TestSuite:
 
 def _ids(pairs: list) -> List[str]:
     return sorted(test.id() for test, _ in pairs)
+
+
+def verdict(result: unittest.TestResult, declared: int, require_mujoco: bool) -> Tuple[bool, int]:
+    """(green, skips for an optional input). Under --require-mujoco any other skip is red."""
+    optional = [s for s in result.skipped if str(s[1]).startswith(_common.OPTIONAL_SKIP_PREFIX)]
+    green = result.wasSuccessful() and result.testsRun == declared
+    return green and not (require_mujoco and len(result.skipped) > len(optional)), len(optional)
 
 
 def main(argv: List[str]) -> int:
@@ -61,11 +70,11 @@ def main(argv: List[str]) -> int:
         "failed": _ids(result.failures), "errored": _ids(result.errors),
         "skipped": len(result.skipped), "mujoco": _common.HAVE_MUJOCO, "training": _common.HAVE_TRAINING,
     }
+    green, optional = verdict(result, declared, args.require_mujoco)
+    summary["skipped_optional"] = optional
     print(f"declared {declared}, ran {result.testsRun}, passed {passed}, failed {len(result.failures)}, "
-          f"errored {len(result.errors)}, skipped {len(result.skipped)}")
+          f"errored {len(result.errors)}, skipped {len(result.skipped)} ({optional} for an optional input)")
     print("SUMMARY " + json.dumps(summary, sort_keys=True))
-    green = result.wasSuccessful() and result.testsRun == declared
-    green = green and not (args.require_mujoco and result.skipped)
     return EXIT_OK if green else EXIT_RED
 
 

@@ -1,0 +1,12 @@
+two equal sections (table):
+scatter in a spin at +-30 mm/s, largest axis: gyro 3.0 deg/s (recording 5.6 and 1.9), accelerometer 108 mg (recording 32 and 19)
+scatter in a spin at +-60 mm/s, largest axis: gyro 8.2 deg/s (recording 11.3 and 3.4), accelerometer 144 mg (recording 71 and 52)
+scatter in a spin at +-100 mm/s, largest axis: gyro 9.2 deg/s (recording 18.8 and 5.2), accelerometer 256 mg (recording 185 and 124)
+one section:
+scatter in a spin at +-30 mm/s, largest axis: gyro 3.4 deg/s (recording 5.6 and 1.9), accelerometer 214 mg (recording 32 and 19)
+scatter in a spin at +-60 mm/s, largest axis: gyro 8.4 deg/s (recording 11.3 and 3.4), accelerometer 252 mg (recording 71 and 52)
+scatter in a spin at +-100 mm/s, largest axis: gyro 10.0 deg/s (recording 18.8 and 5.2), accelerometer 364 mg (recording 185 and 124)
+no filter:
+scatter in a spin at +-30 mm/s, largest axis: gyro 9.2 deg/s (recording 5.6 and 1.9), accelerometer 812 mg (recording 32 and 19)
+scatter in a spin at +-60 mm/s, largest axis: gyro 13.5 deg/s (recording 11.3 and 3.4), accelerometer 949 mg (recording 71 and 52)
+scatter in a spin at +-100 mm/s, largest axis: gyro 18.5 deg/s (recording 18.8 and 5.2), accelerometer 968 mg (recording 185 and 124)
