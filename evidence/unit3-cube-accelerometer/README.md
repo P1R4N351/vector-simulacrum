@@ -92,3 +92,11 @@ All three runs make fork or rail contact at +2.17 s. By +6.5 s they have slid th
 The failure occurs between initial contact and capture. Changing between these camera sightings and including SDK pitch leaves the outcome unchanged. All three use the same assumed fork surface and cube shape. The SDK sightings are correlated, so these runs cannot eliminate a shared position error or identify the contacting features on hardware.
 
 [Simulated center height and tilt over the real acquisition](free-pickup.png) · [Contact and displacement traces](free-pickup.csv) · [Robot path](pickup-path.csv) · [Camera poses](pickup-sightings.csv) · [Replay script](free_pickup.py). Use the same printed-fork fixture as the support test.
+
+### Shelf slide before the raise
+
+![Cube travel and the cube's own acceleration](shelf-slide.png)
+
+The overhead marker moved about 19.3 mm by +2.59 s and 27.2 mm by +2.86 s. The three frozen free-cube replays reached 23.0–23.3 mm and 30.4–30.7 mm at those times. The real pickup therefore included a substantial push across the shelf. The largest qualitative discrepancy comes when the real fork raises the cube and the simulated fork loses it.
+
+The [corner measurements](shelf-slide.csv) are from the top glyph of the level cube in the overhead crop. A four-point perspective transform maps the first frame's outer white glyph corners to a nominal 23 mm square. Each displacement is measured from the first intersection of the diagonals to the current intersection in that plane. Absolute travel scales linearly with the assumed printed width. The largest apparent displacement before +2.10 s was 0.24 mm. The +2.34 s frame lacked a clean quadrilateral. The last plotted overhead point precedes visible tilt. Roughly 0.25 s separates camera frames, and camera and radio timestamps are host receipt times. A 3–4 mm difference during the push is insufficient on its own to fit friction. Each blue point is the measured magnitude of an XYZ sample from the cube, plotted at packet receipt time.
