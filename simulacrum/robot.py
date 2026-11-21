@@ -114,10 +114,11 @@ class VectorSim:
     def __init__(self, values: Optional[Dict[str, Any]] = None, control_level: str = CONTROL_DEFAULT,
                  start_xy_mm: Tuple[float, float] = (0.0, 0.0), heading_deg: float = 0.0,
                  obstacles: Sequence[Sequence[float]] = (), head_deg: float = 0.0,
-                 lift_mm: Optional[float] = None, noise_seed: int = 0, cube: Optional[str] = None) -> None:
+                 lift_mm: Optional[float] = None, noise_seed: int = 0, cube: Optional[str] = None,
+                 cube_app: str = "last") -> None:
         assert control_level in (CONTROL_DEFAULT, CONTROL_OVERRIDE), "unknown control level"
         assert isinstance(noise_seed, int), "noise seed must be an int"
-        assert cube in mjcf.CUBE_MOUNTS, "a cube goes nowhere or in the lift"
+        assert cube in mjcf.CUBE_MOUNTS, "unknown cube placement"
         self._noise = random.Random(noise_seed)
         self.v = dict(values) if values is not None else params.values(params.load())
         if cube == "lift" and lift_mm is None:
@@ -135,9 +136,9 @@ class VectorSim:
         self._index_model()
         self._init_commands()
         # The cube draws noise from its own stream, so carrying one does not move the robot's IMU noise.
-        self.cube = (cube_model.CubeAccelerometer(self.v, float(self.model.opt.timestep), seed=noise_seed + 2)
+        self.cube = (cube_model.CubeAccelerometer(self.v, float(self.model.opt.timestep), seed=noise_seed + 2, app=cube_app)
                      if cube is not None else None)
-        assert (self.cube is None) == (self._cube_adr < 0), "a carried cube needs its accelerometer in the model"
+        assert (self.cube is None) == (self._cube_adr < 0), "cube sensor and model must agree"
         self.hazards = Hazards(self.v)
         self.states: collections.deque = collections.deque(maxlen=STATE_HISTORY)
         self._place(start_xy_mm, heading_deg)

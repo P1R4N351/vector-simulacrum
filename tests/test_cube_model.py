@@ -176,6 +176,32 @@ class TurnCentre(unittest.TestCase):
         self.assertLess(float(np.hypot(*(np.array(got["centre_mm"]) - centre_mm))), 1.0)
 
 
+class MeanPacketPrecision(unittest.TestCase):
+    def test_mean_app_retains_signed_fractional_counts(self):
+        row = {"raw": [3, -3, 8195] * 3}
+        samples = cube.samples_g([row], 8192, app="mean")
+        np.testing.assert_equal(samples[0] * 8192, [3, -3, 8195])
+
+
+@unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
+class FreeCube(unittest.TestCase):
+    def test_push_moves_independent_cube_seen_by_both_sensors(self):
+        from simulacrum.robot import VectorSim
+        sim = VectorSim(values=QUIET, cube="free", cube_app="mean")
+        sim.advance(.5)
+        start = sim.data.body("cube").xpos.copy()
+        self.assertTrue(sim._prox().found_object)
+        before = len(sim.cube.messages)
+        self.assertTrue(sim.set_wheel_motors(40, 40))
+        sim.advance(2.3)
+        self.assertGreater(sim.data.body("cube").xpos[0] - start[0], .01)
+        messages = sim.cube.messages[before:]
+        self.assertGreaterEqual(len(messages), 75)
+        samples = cube.samples_g(cube.rows(messages), QUIET["cube_accel_counts_per_g"], app="mean")
+        self.assertGreater(np.max(np.abs(samples[:, :2])), .05)
+        self.assertTrue(any(int(c) % 16 for row in cube.rows(messages) for c in row["raw"]))
+
+
 @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
 class CarriedCube(unittest.TestCase):
     def test_the_model_carries_the_cube_where_the_engine_puts_it(self) -> None:

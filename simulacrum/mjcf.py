@@ -11,7 +11,9 @@ x forward, y left, z up. The table top is the plane z = 0.
 
 from __future__ import annotations
 
+import csv
 import math
+from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
 
 MM = 0.001
@@ -22,7 +24,7 @@ CLIFF_NAMES = ("front_left", "front_right", "back_left", "back_right")
 # sensor's rays (robot.py) can be cast at the scene alone. Contact does not use groups.
 ROBOT_GEOM_GROUP = 1
 # Where the model may carry a light cube: nowhere (the default) or in the lift.
-CUBE_MOUNTS = (None, "lift")
+CUBE_MOUNTS = (None, "lift", "free")
 
 
 def num(value: float) -> str:
@@ -226,29 +228,53 @@ def _head_xml(v: Dict[str, Any]) -> str:
     )
 
 
+def _cube_chip_xml(v: Dict[str, Any]) -> str:
+    chip = v["cube_chip_position_mm"]
+    yaw = math.radians(v["cube_chip_yaw_deg"])
+    assert len(chip) == 3 and all(abs(c) < 0.5 * v["cube_size_mm"] for c in chip)
+    return (f'<site name="cube_chip" pos="{vec([c * MM for c in chip])}" '
+            f'quat="{vec((math.cos(0.5 * yaw), 0, 0, math.sin(0.5 * yaw)))}" size="0.001"/>')
+
+
+def _free_cube_xml(v: Dict[str, Any]) -> str:
+    """SDK shell and rubber pads from the shelf-push fixture, centered 100 mm ahead of world zero."""
+    side = v["cube_size_mm"] * MM
+    mass = v["cube_mass_g"] * GRAM
+    assert side > 0 and mass > 0
+    inertia = mass * side**2 / 6
+    parts = [f'<body name="cube" pos="0.1 0 {num(side/2)}"><freejoint name="cube_root"/>',
+             f'<inertial pos="0 0 0" mass="{num(mass)}" diaginertia="{vec((inertia,)*3)}"/>']
+    with Path(__file__).with_name("cube_surface.csv").open() as source:
+        rows = csv.reader(source)
+        next(rows)
+        for i, (material, *dimensions) in enumerate(rows):
+            scaled = [float(n) * side / 44 for n in dimensions]
+            attrs = ('priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1"'
+                     if material == "rubber" else 'priority="1" friction=".5 .005 .0001" rgba=".2 .2 .2 1"')
+            parts.append(f'<geom name="cube_{material}_{i}" type="box" pos="{vec(scaled[:3])}" '
+                         f'size="{vec(scaled[3:])}" contype="1" conaffinity="1" {attrs}/>')
+    return "\n".join([*parts, _cube_chip_xml(v), "</body>"])
+
+
 def _carried_cube_xml(v: Dict[str, Any]) -> str:
     """A light cube held in the lift, as the engine places a carried cube (cube_carry_offset_mm from the
     wrist, on the level fork's axes), with a site at its accelerometer. The fork's body is the parent, so the
     two never collide with each other; the cube touches the world like the fork does."""
     half = 0.5 * v["cube_size_mm"]
-    chip = v["cube_chip_position_mm"]
-    yaw = math.radians(v["cube_chip_yaw_deg"])
     assert half > 0.0 and v["cube_mass_g"] > 0.0, "the cube must have size and mass"
-    assert len(chip) == 3 and all(abs(c) < half for c in chip), "the chip must be inside the cube"
     assert len(v["cube_carry_offset_mm"]) == 3, "the carry offset has three axes"
     return (
         f'        <body name="cube" pos="{vec([c * MM for c in v["cube_carry_offset_mm"]])}">\n'
         f'          <geom name="cube_geom" type="box" size="{vec((half * MM,) * 3)}" '
         f'mass="{num(v["cube_mass_g"] * GRAM)}" rgba="0.85 0.85 0.8 1" group="{ROBOT_GEOM_GROUP}" '
         f'{_contact_attrs(v, v["chassis_friction"])}/>\n'
-        f'          <site name="cube_chip" pos="{vec([c * MM for c in chip])}" '
-        f'quat="{vec((math.cos(0.5 * yaw), 0.0, 0.0, math.sin(0.5 * yaw)))}" size="0.001"/>\n'
+        f'          {_cube_chip_xml(v)}\n'
         f'        </body>\n'
     )
 
 
 def _lift_xml(v: Dict[str, Any], d: Dict[str, Any], cube: Any = None) -> str:
-    assert cube in CUBE_MOUNTS, "a cube goes nowhere or in the lift"
+    assert cube in CUBE_MOUNTS, "unknown cube placement"
     arm_len = v["lift_arm_length_mm"] * MM
     half_w = 0.5 * v["lift_xbar_width_mm"] * MM
     fx, fz = _fork_center_wrt_wrist(v)
@@ -398,7 +424,7 @@ def _scene_xml(v: Dict[str, Any], obstacles: Sequence[Sequence[float]]) -> str:
 
 def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cube: Any = None) -> str:
     """Return the whole model, robot and scene, as one MJCF string; cube="lift" adds a carried cube."""
-    assert cube in CUBE_MOUNTS, "a cube goes nowhere or in the lift"
+    assert cube in CUBE_MOUNTS, "unknown cube placement"
     d = derive(v)
     gravity = -v["gravity_mmps2"] * MM
     assert gravity < 0.0, "gravity must point down"
@@ -415,7 +441,7 @@ def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cub
         + _wheels_xml(v).replace("    <", "      <").replace("    </", "      </")
         + _head_xml(v).replace("    <", "      <").replace("    </", "      </")
         + _lift_xml(v, d, cube).replace("    <", "      <").replace("    </", "      </")
-        + '    </body>\n  </worldbody>\n'
+        + '    </body>\n' + (_free_cube_xml(v) if cube == 'free' else '') + '  </worldbody>\n'
         + _equality_xml(v, d) +
         '  <actuator>\n' + _actuators_xml(v, d) + '  </actuator>\n'
         '  <sensor>\n' + _sensors_xml(v, cube) + '  </sensor>\n'

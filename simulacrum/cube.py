@@ -238,16 +238,18 @@ def rows(messages: Sequence[Tuple[float, bytes]]) -> List[Dict[str, Any]]:
     return out
 
 
-def samples_g(accel_rows: Sequence[Dict[str, Any]], counts_per_g: float) -> np.ndarray:
-    """Every sample in the rows, in g, one row per sample. The four low bits are dropped first: they carry no
-    data (BMA253DS:841). Each row's three samples are 10 ms apart, the last at the row's time."""
+def samples_g(accel_rows: Sequence[Dict[str, Any]], counts_per_g: float, app: str = "last") -> np.ndarray:
+    """Every sample in the rows, in g, one row per sample. Stock frames have four padding bits (BMA253DS:841).
+    The mean app uses those bits for the fractional part of the tick average. Each row's three samples are 10 ms apart, the last at the row's time."""
     assert counts_per_g > 0.0, "counts per g must be positive"
+    assert app in APPS, "unknown cube app"
+    shift = LEFT_SHIFT if app == "last" else 0
     out = []
     for row in accel_rows:
         raw = row["raw"]
         assert len(raw) == AXES * FRAMES_PER_MESSAGE, "a row carries nine counts"
         for i in range(FRAMES_PER_MESSAGE):
-            out.append([((int(c) >> LEFT_SHIFT) << LEFT_SHIFT) / counts_per_g for c in raw[AXES * i:AXES * i + AXES]])
+            out.append([((int(c) >> shift) << shift) / counts_per_g for c in raw[AXES * i:AXES * i + AXES]])
     return np.array(out, dtype=float).reshape(-1, AXES)
 
 

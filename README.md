@@ -1226,6 +1226,14 @@ the firmware disagreements.
   by its sine, as on the robot.
   A camera on the head, 50 degrees vertical field of view. The noise comes
   from a seeded generator: one seed, one run.
+- **A free light cube** on the table at world coordinates (100, 0) mm with
+  `VectorSim(cube="free")`. Its 62 shell and rubber contact boxes come from the
+  [shelf replay fixture](evidence/p2y8-cube-contact-replay/fixture.xml).
+  The robot range sensor sees it and the cube sends accelerometer packets as it moves.
+  Mass distribution, friction and corner stiffness are estimates. Pass
+  `cube_app="mean"` to simulate the modified firmware. Decode its messages with
+  `samples_g(rows(sim.cube.messages), counts_per_g, app="mean")` to preserve
+  the mean firmware's fractional counts. The default selects shipped firmware.
 - **A carried light cube**, on request (`VectorSim(cube="lift")`). It sits
   in the lift where the engine puts a carried cube. Its accelerometer
   sends the app's messages from the force at its chip
