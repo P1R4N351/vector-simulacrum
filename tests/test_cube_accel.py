@@ -260,7 +260,7 @@ class Collector(unittest.TestCase):
         self.assertEqual(world.clients, [])
         self.assertFalse(got["lock_left"])
 
-    def test_collect_is_refused_without_a_supply_or_rechargeable_before_any_radio_use(self) -> None:
+    def test_collect_requires_an_explicit_power_source_before_radio_use(self) -> None:
         for power in ("", "battery", "alkaline"):
             env = {"CUBE_MODE": "collect", "CUBE_POWER": power} if power else {"CUBE_MODE": "collect"}
             with self.assertRaises(AssertionError, msg=power):
@@ -281,6 +281,14 @@ class Collector(unittest.TestCase):
         self.assertEqual(control(got["rows"], "collected")[0]["stopped_by"], None)
         self.assertEqual(world.disconnects, 1)
         self.assertFalse(got["lock_left"])
+
+    def test_disposable_run_can_read_the_known_averaging_app_without_writing(self) -> None:
+        world = World(version="build-avg1-261121")
+        got = run(dict(COLLECT, CUBE_POWER="disposable"), world)
+        self.assertEqual(got["code"], 0)
+        self.assertTrue(kinds(got["rows"], "a"))
+        self.assertEqual(world.writes, [])
+        self.assertEqual(control(got["rows"], "begin")[0]["power"], "disposable")
 
     def test_a_version_mismatch_uploads_the_app_from_byte_16_with_response_then_collects(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

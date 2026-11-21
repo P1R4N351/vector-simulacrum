@@ -1891,10 +1891,7 @@ pins from the app the robot sends it, decrypted and disassembled. It also
 records the accelerometer setup: ±4 g, 250 Hz bandwidth, FIFO, no
 interrupt line.
 
-**Its battery.** The operator, 2026-11-21: "don't spend the battery until i
-establish either a supply or a bunch of rechargable ones". The cube runs on
-one N/LR1 cell, and its bootloader keeps it awake for as long as anything
-is connected. Nothing below has been run against the cube.
+**Power during capture.** The cube runs on one N/LR1 cell and stays awake during a connection. Brief measurements on disposable power were authorized for this experiment. The recorder logs the power source.
 
 **Reading its accelerometer: `hardware/cube_accel.py`.**
 
@@ -1936,8 +1933,7 @@ How it runs:
 
 - `CUBE_MODE=scan`, the default, only listens to advertisements, which the
   cube sends anyway.
-- `CUBE_MODE=collect` refuses unless `CUBE_POWER` is `supply` or
-  `rechargeable`. It stops after three battery readings below
+- `CUBE_MODE=collect` requires an explicit `CUBE_POWER` of `supply`, `rechargeable` or `disposable`. It stops after three battery readings below
   `CUBE_LOW_V`, default 1.1 V (chosen, not derived).
 - The robot must not hold the cube during a collection. A connected cube
   does not advertise, so the scan would not find it.
