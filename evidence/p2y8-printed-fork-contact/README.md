@@ -63,3 +63,13 @@ The improvement depends on phase. Trial 2's settled error increased from 1.23 to
 ![Pre-lift and endpoint errors with baseline and extended reach](reach.png)
 
 Run `python reach.py ../.. /tmp/p2y8-fork.xml` after building the fixture above. The [grid and reserved trials](reach.csv) include peak cube tilt.
+
+## Which side rose during the missed lift?
+
+In the two usable raised-marker frames at 5.50 and 6.00 seconds, the **right edge of the physical top glyph was higher** than its left edge. We solved the four corners of the nominal 23 mm square and measured height differences relative to its own median pre-drive normal. The See3CAM calibration gives 13.13 and 12.40 mm; the pinhole sensitivity check gives 7.69 and 6.70 mm. Apparent lateral height differences stayed within ±0.49 mm in the six pre-drive frames under either projection. Forward-minus-rear differences were only 0.90–1.34 mm in the two raised frames. These are differences across the glyph, not cube-center rise. Left and right follow the dock coordinate system, with image-right pointing toward dock-left in this camera installation.
+
+![Direction of top-face tilt before the sideways sweep](tip-direction.png)
+
+The printed-fork replay produced less than 0.025 mm of lateral height difference throughout 5–6.5 s. During 5–5.5 s its summed positive vertical contact impulse was nearly symmetric (right 0.0151 N·s, left 0.0148 N·s). In the next half second both sides delivered less than 0.000003 N·s. The missing behavior is asymmetric tilt while the real cube remains inclined after simulated support falls away. The sparse images cannot establish the instant of first contact or identify the contacting surface.
+
+Run `python tip_direction.py ../.. /tmp/p2y8-fork.xml`. [Signed optical and simulated traces](tip-direction.csv) · [Simulated upward impulses](tip-support.csv)
