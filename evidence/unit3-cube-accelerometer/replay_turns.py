@@ -13,13 +13,13 @@ from simulacrum.cube import CubeAccelerometer
 from decode import decode
 
 
-def predicted(times, robot, quat):
+def predicted(times, robot, quat, sensor_values=None):
     def configure(root):
         fixture(root, True)
         root.find(".//body[@name='cube']").set("quat", " ".join(map(str,quat)))
         ElementTree.SubElement(root.find("sensor"),"accelerometer",name="payload",site="cube_chip")
 
-    chip = CubeAccelerometer(values, values["sim_timestep_ms"]/1000)
+    chip = CubeAccelerometer(values if sensor_values is None else sensor_values, values["sim_timestep_ms"]/1000)
     def observe(m,d,t):
         g = d.sensor("payload").data / (values["gravity_mmps2"]/1000)
         if t == times[0]:

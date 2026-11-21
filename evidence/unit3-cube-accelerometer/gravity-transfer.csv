@@ -1,0 +1,17 @@
+pose,candidate,turn,vector_rms_g,z_rms_g,mean_z_error_g
+fixed,Nominal,outward,0.2274,0.12523,0.00136
+fixed,Nominal,return,0.15146,0.0881,-0.00895
+fixed,Common gain,outward,0.22156,0.12468,-0.02309
+fixed,Common gain,return,0.1508,0.09145,-0.03315
+fixed,Z offset,outward,0.22911,0.1283,-0.02794
+fixed,Z offset,return,0.15596,0.09562,-0.03824
+fixed,Z gain,outward,0.22709,0.12467,-0.02311
+fixed,Z gain,return,0.15344,0.09146,-0.03316
+corrected,Nominal,outward,0.2274,0.12523,0.00136
+corrected,Nominal,return,0.15146,0.0881,-0.00895
+corrected,Common gain,outward,0.22156,0.12468,-0.02309
+corrected,Common gain,return,0.1508,0.09145,-0.03315
+corrected,Z offset,outward,0.19653,0.10641,0.01732
+corrected,Z offset,return,0.14817,0.11995,-0.08308
+corrected,Z gain,outward,0.25711,0.1644,0.00999
+corrected,Z gain,return,0.19562,0.12555,0.00039

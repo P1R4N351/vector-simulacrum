@@ -1,0 +1,21 @@
+capture,model,packets,gain_z,offset_z_g,mean_vector_norm_error_mg,first_half_mg,second_half_mg
+Fit (shelf),Nominal,643,1.0,0.0,-29.291,-29.346,-29.237
+Undock check,Nominal,253,1.0,0.0,-29.397,-29.582,-29.21
+Before pickup,Nominal,27,1.0,0.0,-29.031,-28.434,-29.674
+Tilted carry,Nominal,53,1.0,0.0,-22.138,-22.133,-22.143
+After place,Nominal,22,1.0,0.0,-31.663,-28.068,-35.244
+Fit (shelf),Common gain,643,0.9707087,0.0,-0.0,-0.056,0.056
+Undock check,Common gain,253,0.9707087,0.0,-0.109,-0.299,0.083
+Before pickup,Common gain,27,0.9707087,0.0,0.268,0.883,-0.394
+Tilted carry,Common gain,53,0.9707087,0.0,7.37,7.375,7.365
+After place,Common gain,22,0.9707087,0.0,-2.444,1.26,-6.132
+Fit (shelf),Z offset,643,1.0,-0.0292966,0.0,-0.055,0.055
+Undock check,Z offset,253,1.0,-0.0292966,-0.105,-0.29,0.081
+Before pickup,Z offset,27,1.0,-0.0292966,0.26,0.857,-0.383
+Tilted carry,Z offset,53,1.0,-0.0292966,2.642,2.653,2.63
+After place,Z offset,22,1.0,-0.0292966,-2.372,1.223,-5.953
+Fit (shelf),Z gain,643,0.9706982,0.0,-0.0,-0.056,0.056
+Undock check,Z gain,253,0.9706982,0.0,-0.109,-0.299,0.083
+Before pickup,Z gain,27,0.9706982,0.0,0.268,0.883,-0.395
+Tilted carry,Z gain,53,0.9706982,0.0,-1.143,-1.126,-1.16
+After place,Z gain,22,0.9706982,0.0,-2.443,1.26,-6.132
