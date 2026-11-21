@@ -43,3 +43,11 @@ def rail_paths(repo,x,y,h,l):
         px,pz=link["pivot"]
         centers.append(.001*np.column_stack((x+px*np.cos(h),y+px*np.sin(h),np.full_like(x,pz))))
     return np.stack(centers,axis=1),quat
+
+
+def require_printed_fork(tree):
+    """Disabled stock geoms may accompany the fork's active convex meshes."""
+    geoms = tree.findall(".//body[@name='fork']/geom")
+    active = [g for g in geoms if int(g.get("contype", "1")) or int(g.get("conaffinity", "1"))]
+    if not active or any(g.get("type") != "mesh" for g in active):
+        raise ValueError("Expected a printed-fork fixture with active mesh collision pieces")

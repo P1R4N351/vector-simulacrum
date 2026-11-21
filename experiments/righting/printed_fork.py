@@ -7,7 +7,8 @@ import numpy as np
 
 
 def add_printed_fork(
-    root: ET.Element, fork: ET.Element, stl: Path, prefix: str, values: dict
+    root: ET.Element, fork: ET.Element, stl: Path, prefix: str, values: dict,
+    *, threshold: float = 0.025,
 ) -> int:
     """Replace only the fork's contact surfaces, retaining its original mass and joint."""
     import coacd
@@ -35,7 +36,7 @@ def add_printed_fork(
     )
     vertices, indices = np.unique(points.reshape(-1, 3), axis=0, return_inverse=True)
     pieces = coacd.run_coacd(
-        coacd.Mesh(vertices, indices.reshape(-1, 3)), threshold=0.025, seed=0
+        coacd.Mesh(vertices, indices.reshape(-1, 3)), threshold=threshold, seed=0
     )
     if not pieces:
         raise ValueError("Fork decomposition returned no hulls")

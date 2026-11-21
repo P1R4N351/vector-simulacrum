@@ -1,0 +1,7 @@
+fixture,initialization,hull_only_mm2,over_1mm_area_mm2,slide_2p86_mm,max_center_mm,held_floor_fraction
+original,Before command,12.49,15.43,30.528,22.686,1.0
+original,Last sighting,12.49,15.43,30.421,22.613,1.0
+original,Last sighting + pitch,12.49,15.43,30.654,22.356,1.0
+finer,Before command,1.58,2.89,30.547,22.642,1.0
+finer,Last sighting,1.58,2.89,30.437,22.697,1.0
+finer,Last sighting + pitch,1.58,2.89,30.664,22.356,1.0

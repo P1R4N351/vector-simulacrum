@@ -12,7 +12,7 @@ from scipy.spatial.transform import Rotation
 here=Path(__file__).resolve().parent
 repo=here.parents[1]
 sys.path[:0]=[str(repo),str(here.parent/"unit3-printed-fork-contact")]
-from replay_links import add_links,rail_paths
+from replay_links import add_links,rail_paths, require_printed_fork
 from simulacrum import params
 import pickup_patch
 from decode import decode
@@ -21,7 +21,7 @@ from pickup_support import contact_load, save as save_support
 
 def main():
     tree=ET.parse(sys.argv[1])
-    assert len(tree.findall(".//body[@name='fork']/geom"))==58
+    require_printed_fork(tree)
     add_links(tree,repo)
     m=mj.MjModel.from_xml_string(ET.tostring(tree.getroot(),encoding="unicode"))
     path=np.genfromtxt(here/"pickup-path.csv",names=True,delimiter=",")

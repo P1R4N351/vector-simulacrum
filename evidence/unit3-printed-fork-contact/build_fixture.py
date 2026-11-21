@@ -18,6 +18,7 @@ if __name__ == "__main__":
         Path(sys.argv[1]),
         "",
         params.values(params.load(model="vector_2")),
+        threshold=float(sys.argv[3]) if len(sys.argv)>3 else 0.025,
     )
     tree.write(sys.argv[2])
     print(f"{pieces} convex parts")

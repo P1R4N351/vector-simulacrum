@@ -13,14 +13,13 @@ from scipy.spatial.transform import Rotation
 here=Path(__file__).resolve().parent
 repo=here.parents[1]
 sys.path[:0]=[str(repo),str(here.parent/"unit3-printed-fork-contact")]
-from replay_links import add_links, rail_paths
+from replay_links import add_links, rail_paths, require_printed_fork
 from simulacrum import params
 from decode import decode
 
 def main():
     tree=ET.parse(sys.argv[1])
-    fork=tree.find(".//body[@name='fork']")
-    assert len(fork.findall("geom"))==58
+    require_printed_fork(tree)
     add_links(tree,repo)
     model=mj.MjModel.from_xml_string(ET.tostring(tree.getroot(),encoding="unicode"))
     v=params.values(params.load(model="vector_2"))
