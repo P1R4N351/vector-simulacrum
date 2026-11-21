@@ -1,0 +1,5 @@
+### P2Y8 wheelstand series on the shelf
+
+One Vector 2.0 with a printed fork and one retail light cube. In the docked baseline, the cube sent 828 acceleration samples during 10.016 seconds. Its median specific-force magnitude was 0.9703 g and the 5th–95th percentiles were 0.9655–0.9748 g. The tap counter held at 18. The individual samples in stationary.csv.gz share receipt times in groups of three.
+
+**W1 stopped during undocking.** The Bluetooth connection succeeded and the native undock imperative started under continuous override. Both telemetry streams stopped about 8.4 seconds later. The last wheel reports were 33 and 30 mm/s. Robot uptime was 8,264 seconds immediately before telemetry loss and 84 seconds at the subsequent SSH check, establishing a reboot. Its cause remains undetermined. The wheelstand action never started and this attempt contributes zero wheelstand outcomes. There are 145 robot states, 729 individual cube samples and a [See3CAM recording](W1/undock.mp4). The [trace](W1/traces.png) and CSVs use seconds from the undock command.
