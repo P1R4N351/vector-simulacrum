@@ -1,0 +1,35 @@
+# metadata.yaml template — copy this into your contrib/units/<handle>-<n>/
+# folder and fill in the values. The validator reads this file and refuses
+# a submission whose fields are missing or carry a leaked identifier.
+
+# One of "1.0" or "2.0". The robot's hardware generation.
+hardware_generation: "1.0"
+
+# The firmware string your Vector reports (Settings -> About, or the SDK's
+# robot.version). A short string, for example "1.9.0".
+firmware_version: ""
+
+# What is different about this body from stock. Use "stock" if nothing is.
+body_modifications: "stock"
+
+# The day you made the recordings, ISO (YYYY-MM-DD).
+recorded_at: ""
+
+# One of "CC BY 4.0" (recommended) or another SPDX identifier.
+licence: "CC BY 4.0"
+
+# The sign-off reads back the licence choice above. Fill it in literally.
+sign_off: "I release this data under CC BY 4.0."
+
+# Everything below is optional.
+# Your name or GitHub handle, if you would like a credit. Leave blank to skip.
+contributor: ""
+
+# What the robot drove on, in a short phrase.
+surface: ""
+
+# Integer degrees Celsius, if you have a reading.
+room_temperature_c: null
+
+# Free text, anything that would help someone reading the recording later.
+notes: ""

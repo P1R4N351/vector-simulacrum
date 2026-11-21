@@ -2365,6 +2365,25 @@ except where the first recording shows it.
 
 `missing` in `parameters.json` carries the same gaps.
 
+## Contributing
+
+If you have a Vector, recordings from your own robot narrow the spread on
+the per-unit values in the parameter table. The contribution path is a
+`contrib/kit/` recorder, a privacy scrub and a validator that runs locally
+and on every pull request.
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for the step-by-step; the fastest
+first-pass command once you have the Vector SDK set up is:
+
+```bash
+python3 contrib/kit/record.py --unit-handle <handle>-1 \
+    --vector-serial <8-hex-digits> \
+    --phases rest,headlift,spins,straights,actions
+```
+
+Contributed recordings and metadata land under CC BY 4.0 by default. The
+tracker of contributed units is [`contrib/UNITS.md`](contrib/UNITS.md).
+
 ## Sources read
 
 - The recording: `evidence/hw-rec-20261115/`, made 2026-11-15 by a lane

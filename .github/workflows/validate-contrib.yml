@@ -1,0 +1,27 @@
+name: validate-contrib
+
+on:
+  pull_request:
+    paths:
+      - 'contrib/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'contrib/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validator self-test
+        run: python3 -m unittest contrib.tests.test_validator -v
+      - name: Validate every contributed unit
+        run: python3 contrib/validator.py --all

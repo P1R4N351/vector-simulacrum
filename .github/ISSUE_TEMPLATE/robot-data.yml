@@ -1,0 +1,55 @@
+name: Robot data observation
+description: A measurement or correction from your own Vector, without opening a pull request.
+title: "[data] "
+labels: ["data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for a small observation — a measurement that disagrees
+        with the parameter table, a note that one of the recorded values is
+        suspect, or a one-off reading you took by hand. For a full recording,
+        please follow [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md) and open
+        a pull request instead.
+  - type: dropdown
+    id: hardware_generation
+    attributes:
+      label: Hardware generation
+      options:
+        - "1.0"
+        - "2.0"
+        - unsure
+    validations:
+      required: true
+  - type: input
+    id: firmware_version
+    attributes:
+      label: Firmware version
+      description: The string your Vector reports, e.g. 1.9.0. "Unknown" is fine.
+      placeholder: 1.9.0
+    validations:
+      required: true
+  - type: textarea
+    id: observation
+    attributes:
+      label: Observation
+      description: What you measured or noticed, including units.
+    validations:
+      required: true
+  - type: textarea
+    id: method
+    attributes:
+      label: Method
+      description: How you measured it, and what tools or surfaces you used.
+    validations:
+      required: true
+  - type: dropdown
+    id: licence
+    attributes:
+      label: Licence for anything you paste in
+      options:
+        - "CC BY 4.0"
+        - "CC0 1.0"
+      default: 0
+    validations:
+      required: true
