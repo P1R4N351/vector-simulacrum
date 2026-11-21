@@ -21,3 +21,20 @@ The two longer sequences used opposed 80° commands followed by four alternating
 The false carry was excluded from loaded comparisons. A separate pickup ended with VISUAL_OBSERVATION_FAILED. The final place action reported BAD_OBJECT although the overhead view showed release. Action success, carry ID, and visual engagement are recorded separately.
 
 The compressed JSONL files contain robot states and action events. rotation.csv and pulses.csv contain per-action measures. The CSV beside each video lists camera timestamps. Videos pair frames by host time at 8 fps. A blank onboard pane indicates missing fresh imagery. The cameras have independent clocks and receipt latency. The raw measurements apply to this robot, fork, cube and shelf.
+
+### Wheel-speed replay with the recorded fork raised
+
+Both variants receive the same interpolated SDK left/right wheel speeds, begin at the recorded head angle and lift height, and keep the axles 48 mm apart with the previously selected 3.75 mm contact inset. Each maneuver includes the motion history starting before the first turn. One variant uses the SDK carry position and the model's assumed 50 g cube rigidly carried by the fork. The other runs empty. No parameter was fitted. SDK samples are aligned by host receipt time. The largest instantaneous wheel-speed input discrepancy during a scored action was 2.07 mm/s.
+
+| Physical condition | Gyro Z RMSE with the matching load, °/s | RMSE with the opposite load, °/s |
+| --- | --- | --- |
+| Loaded, left then right | 14.54, 17.61 | 26.69, 27.34 |
+| Empty, left then right | 10.86, 8.77 | 42.69, 39.84 |
+| Loaded, right then left | 20.24, 19.14 | 25.42, 24.12 |
+| Loaded, rapid reversals after each turn pair | 9.96, 2.77 | 6.93, 2.30 |
+
+The matching configuration tracked gyro Z better on all six turns, including the opposite-order carry, but worse on both loaded reversal sequences. This tests rotational response conditional on real wheel motion and known physical engagement. It does not predict wheel speed, pickup success, relative cube movement or grip loss. Neither cube mass nor timing lag can be inferred independently from these results. The simulated payload is attached throughout, and the initial head angle is held fixed.
+
+![Measured head gyro Z versus paired simulations for every action](replay-carry.png)
+
+[Per-action errors](replay-carry.csv) · [Replay script](replay_carry.py). Run the script in the repository's MuJoCo Python environment.
