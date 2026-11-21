@@ -53,3 +53,13 @@ Trial 1 differs. The pre-raise mismatch was 0.62 mm, within its 0.77 mm stationa
 ![Physical and simulated cube displacement before and through the lift](push-phase.png)
 
 Run `python push_phase.py` with NumPy and Matplotlib to reproduce the overlay and [per-trial values](push-phase.csv) from the frozen trajectories.
+
+## Testing the fork reach on reserved pushes
+
+Moving the modeled wrist 2 mm forward along the robot's instantaneous heading reduced mean pre-raise displacement error on trials 4–5 from 2.32 to 0.71 mm. The two settled endpoint errors also decreased, from 1.34 to 1.11 mm and 1.07 to 0.95 mm. The offset was selected using only the pre-raise error on trials 2–3 over a 0–3 mm grid at 0.5 mm intervals. Initial cube poses, shelf contacts, odometry, wrist height and timing were held fixed.
+
+The improvement depends on phase. Trial 2's settled error increased from 1.23 to 2.37 mm. Trial 1's missed sideways sweep persisted (26.57 mm endpoint error, 2.27° peak simulated tilt). A forward wrist offset could compensate for a depth registration error. These same-session trials do not distinguish the two or establish the physical fork length. The offset is an experimental replay parameter.
+
+![Pre-lift and endpoint errors with baseline and extended reach](reach.png)
+
+Run `python reach.py ../.. /tmp/p2y8-fork.xml` after building the fixture above. The [grid and reserved trials](reach.csv) include peak cube tilt.

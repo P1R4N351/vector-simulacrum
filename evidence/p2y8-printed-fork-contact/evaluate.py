@@ -28,7 +28,7 @@ observed = np.genfromtxt(
 yaws = np.genfromtxt(here / "overhead-yaw.csv", names=True, delimiter=",")
 
 
-def run(key, observer=None):
+def run(key, observer=None, *, extra_reach_mm=0):
     trial, geometry, heading, drive, depth, lateral, height = key[:7]
     xml = ET.parse(
         base / "fixture.xml" if geometry == "boxes" else Path(sys.argv[2]).resolve()
@@ -74,7 +74,7 @@ def run(key, observer=None):
         np.interp(t, r["sec"], r[k]) for k in ("x_mm", "y_mm", "yaw_deg", "lift_mm")
     )
     h = np.deg2rad(h)
-    reach = -41 + np.sqrt(66**2 - (l - 45) ** 2)
+    reach = extra_reach_mm - 41 + np.sqrt(66**2 - (l - 45) ** 2)
     path = (
         np.column_stack((x + reach * np.cos(h), y + reach * np.sin(h), l + height))
         * 0.001
