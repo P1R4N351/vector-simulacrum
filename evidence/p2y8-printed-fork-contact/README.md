@@ -117,3 +117,13 @@ We projected a 23 mm front edge from each of the four previously reconstructed o
 The physical angles come from the strongest Hough line in manually selected rectangular stripe regions of native onboard crops; the line slope is unconstrained. For time pairing we applied the earlier 0.232 s onboard receipt offset and chose the closest available overhead pick. Residual frame-time differences were 118 ms raised and 69 ms lowering. Motion during those intervals limits the precision of this comparison.
 
 Run `python front_edge.py ../.. /tmp/p2y8-fork.xml`. [Onboard measurements, overhead times and projection variants](front-edge/angles.csv)
+
+## Absolute position of the front stripe
+
+The favorable projected angle does not carry over to stripe position. With the calibrated See3CAM and shelf constraint, the median distance from the measured outer edge to the projected 23 mm segment is **5.05 px before lifting, 197.67 px raised and 77.12 px while lowering**. All four overhead solutions miss the raised stripe by at least 164 px. The outer edge is picked from a manually selected rectangular region using only dark-to-bright transitions toward increasing image row. No stripe intercept or translation is fitted for this comparison. The measured segment projects within the modeled segment's length in both moving views for all four solutions.
+
+![Measured and predicted stripe positions; white areas are outside the saved native crops](front-edge/position.png)
+
+Holding the horizontal position and orientation fixed and moving the cube vertically to minimize the front-edge error takes another 10.0–14.7 mm of height in the raised view. That is a sensitivity check, not a height measurement: depth, lateral translation, proximity to the camera and exposure timing all affect this residual. The ±millimetre fork clearances calculated from overhead alone should not be used to select a contact surface. The onboard marker position must also be reproduced at a common time.
+
+Run `python stripe_position.py ../.. /tmp/p2y8-fork.xml`. [All variants and finite-segment errors](front-edge/position.csv)

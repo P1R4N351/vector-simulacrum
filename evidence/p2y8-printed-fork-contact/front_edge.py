@@ -19,7 +19,7 @@ origin = np.r_[rotation(a) @ center + pick["state"]["xy"],22.15]
 basis = Rotation.from_euler("z", yaws["degrees"][0],degrees=True)
 
 
-def project(t,rot,delta):
+def project_pixels(t,rot,delta):
     r = states[states["trial"]==1]
     x,y,yaw,h=[np.interp(t+1.5,r["sec"],r[k]) for k in ("x_mm","y_mm","yaw_deg","head_rad")]
     world = origin + basis.apply(rot.apply(front)+delta)
@@ -30,6 +30,11 @@ def project(t,rot,delta):
     depth = rays @ [np.cos(pitch),0,np.sin(pitch)]
     u = cal["cx_px"]-cal["fx_px"]*rays[:,1]/depth
     v = cal["cy_px"]+cal["fy_px"]*(rays @ [np.sin(pitch),0,-np.cos(pitch)])/depth
+    return np.column_stack((u,v))
+
+
+def project(t,rot,delta):
+    u,v = project_pixels(t,rot,delta).T
     return np.rad2deg(np.arctan2(np.diff(v),np.diff(u)))[0]
 
 
