@@ -43,3 +43,13 @@ python support_plot.py
 ```
 
 The same collision builder is available through the rescue simulator's `--patient-fork-stl` option. Both patient orientations ran with the new surface, and compiled body mass, center of mass and inertia were identical to the original scene. This experiment scores shelf pushes. Rescue performance has no physical validation here.
+
+## Before the lift rises
+
+The frozen printed-fork replay already underpredicts forward travel in trials 2–5 before the raise. Each green window ends 0.2 s before the recorded lift first rises 1 mm above its initial height. Three See3CAM frames fall in each 0.8 s window. The replay is sampled at those same frame times. The discrepancy between the median displacement vectors is 1.14, 1.88, 2.89 and 1.76 mm in trials 2–5. The maximum apparent displacement in their preceding stationary frames (−1.5 to 0 s) was 0.06–0.09 mm. This measures repeatability near the starting pose. Scale, registration and clock error remain possible.
+
+Trial 1 differs. The pre-raise mismatch was 0.62 mm, within its 0.77 mm stationary excursion, yet the settled endpoint missed by 26.43 mm. Resolving ordinary push onset and resolving trial 1's lift engagement therefore require separate checks. Elevated marker positions in the plot include projection changes and cannot directly measure horizontal cube-center motion.
+
+![Physical and simulated cube displacement before and through the lift](push-phase.png)
+
+Run `python push_phase.py` with NumPy and Matplotlib to reproduce the overlay and [per-trial values](push-phase.csv) from the frozen trajectories.
