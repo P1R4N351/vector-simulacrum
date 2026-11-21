@@ -28,6 +28,7 @@ parser.add_argument('--nominal-only',action='store_true',help='Replay the native
 parser.add_argument('--pad-shelf-ms',type=float,help='Test rubber-to-table contact time constant in milliseconds')
 parser.add_argument('--summary-only',action='store_true',help='Print replay metrics and skip plots and files')
 parser.add_argument('--slide-summary',action='store_true',help='Append settled planar cube travel to summary-only rows')
+parser.add_argument('--camera-trace',type=Path,help='Record replay motion at the original E overhead capture times')
 args=parser.parse_args()
 if args.slide_summary and not args.summary_only:
     parser.error('--slide-summary requires --summary-only')
@@ -149,10 +150,17 @@ def replay(dx,dy):
             tilt=np.rad2deg(np.arccos(np.clip(1-2*(x1*x1+y1*y1),-1,1)))
             loads.append([round(t,6),*normals,force_g[2],tilt,chip.app.taps.count,
                           len(chip.taps.events),' '.join(sorted(parts)),*pad_load])
-        if args.slide_summary:
+        if args.slide_summary or args.camera_trace:
             centers.append(d.qpos[root:root+2].copy())
         trace.append(np.arctan2(2*(w1*z1+x1*y1),1-2*(z1*z1+y1*y1)))
     a=np.rad2deg(np.unwrap(trace))
+    if args.camera_trace:
+        cam=np.genfromtxt(out/'onset-camera.csv',delimiter=',',names=True)
+        xy=np.asarray(centers)
+        for t in cam['receipt_s']:
+            if times[0]<=t<=times[-1]:
+                j=np.searchsorted(times,t)
+                camera_rows.append([dx,dy,t,1000*np.linalg.norm(xy[j]-xy[0]),a[j]-a[0]])
     def settled(lo,hi):
         return np.median(a[(times>=lo)&(times<=hi)])
     change=settled(51.78,52.58)-settled(49.38,50.18)
@@ -191,11 +199,17 @@ def replay(dx,dy):
         after=np.median(xy[(times>=51.78)&(times<=52.58)],axis=0)
         result.append(1000*np.linalg.norm(after-before))
     return result
+camera_rows=[]
 results=[]
 offsets=(0,) if args.nominal_only else (-5,0,5)
 for dy in offsets:
     for dx in offsets:
         results.append([dx,dy,*replay(dx,dy)])
+if args.camera_trace:
+    with args.camera_trace.open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['dx_mm','dy_mm','receipt_s','travel_mm','yaw_deg'])
+        writer.writerows(camera_rows)
 if args.summary_only:
     csv.writer(sys.stdout,lineterminator='\n').writerows(results)
     sys.exit(0)
