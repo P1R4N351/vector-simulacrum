@@ -27,3 +27,13 @@ The wheel replay uses recorded shaft speeds, initial head and lift positions, th
 Errors use the Euclidean norm of the three-axis error for each packet mean, scored at host receipt time. Gravity does not specify yaw. Testing four quarter-turn orientations about vertical gave 0.194–0.246 g outward and 0.132–0.210 g on return. Each exceeded the constant baseline on its corresponding turn. Tilt accounts for much of the mean error; the rigid model still fails to predict the transient better than a constant. The simulation assumes chip position, grip and cube center. Relative grip motion, wheel interpolation and radio latency remain unresolved. These results do not justify a universal tilted mounting angle.
 
 [Packet overlay](turn-replay.png) · [Scores for all orientations](turn-replay.csv) · [Reproduce the comparison](replay_turns.py)
+
+### Packet delivery during the turns
+
+The resting capture has a median ordinary interarrival of 30 ms at the robot, interrupted by a median long interval of 260 ms roughly every 34 received packets. Long intervals here exceed 150 ms. Both the robot and pod clocks show all 38 long intervals in the pickup capture by count. The timestamps on the robot are taken by the daemon socket listener, before forwarding to the pod.
+
+A receiver-clock model fitted only to the resting capture advances by 30 ms per packet, with every 34th interval extended to 260 ms. The phase starts at zero for all recordings. For the independent pickup recording it predicts 47.98 s for 1,309 packets, against 47.34 s measured. A uniform 30 ms model predicts 39.24 s. For the undocking check it predicts 9.17 s against 9.21 s. The pickup timeline error reaches 640 ms, so the model is useful for packet-rate estimates but unsuitable for replacing measured timestamps when aligning impacts.
+
+In the pickup record, one delivery gap runs from 196 ms before the first turn command to 76 ms after it. Another spans 1.028–1.279 s after that command, during the return turn. The packets carry no per-sample sequence numbers or hardware timestamps. These recordings cannot distinguish skipped, stalled or delayed sampling from missing notifications. The simulator's internal chip clock is therefore unchanged.
+
+[Robot and pod timelines](packet-cadence.png) · [Held-out scores](packet-cadence.csv) · [Analysis](packet_cadence.py)
