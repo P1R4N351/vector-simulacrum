@@ -1,0 +1,9 @@
+receipt_s,event,object_id,origin,x_mm,y_mm
+10.38039,robot_observed_object,1,1,192.12163,57.03618
+62.58101,object_tapped,1,,,
+63.78123,object_tapped,1,,,
+63.90581,object_moved,1,,,
+66.11469,object_stopped_moving,1,,,
+89.26031,object_tapped,1,,,
+94.49869,object_tapped,1,,,
+113.94287,robot_observed_object,1,1,161.6092,-23.601192

@@ -1,0 +1,8 @@
+receipt_s,event,action,trial,reported_carry
+0.0,begin,undock,,
+15.72226,end,undock,,
+15.72243,begin,connect after undock,,
+50.95913,end,connect after undock,,
+57.18363,begin,dock,,
+91.52659,end,dock,,
+91.63583,battery,,,
