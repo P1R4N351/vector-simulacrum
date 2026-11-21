@@ -1,0 +1,6 @@
+stream,event_count,event_times_s_from_wheelstand
+SDK event,2,4.118957 4.432190
+Transmitted counter,2,3.983398 4.273996
+Counter + earlier delay,2,4.129304 4.419902
+Z only · hold,1,4.011938
+Z only · linear,1,4.039656
