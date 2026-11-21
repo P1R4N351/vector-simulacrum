@@ -100,3 +100,13 @@ The failure occurs between initial contact and capture. Changing between these c
 The overhead marker moved about 19.3 mm by +2.59 s and 27.2 mm by +2.86 s. The three frozen free-cube replays reached 23.0–23.3 mm and 30.4–30.7 mm at those times. The real pickup therefore included a substantial push across the shelf. The largest qualitative discrepancy comes when the real fork raises the cube and the simulated fork loses it.
 
 The [corner measurements](shelf-slide.csv) are from the top glyph of the level cube in the overhead crop. A four-point perspective transform maps the first frame's outer white glyph corners to a nominal 23 mm square. Each displacement is measured from the first intersection of the diagonals to the current intersection in that plane. Absolute travel scales linearly with the assumed printed width. The largest apparent displacement before +2.10 s was 0.24 mm. The +2.34 s frame lacked a clean quadrilateral. The last plotted overhead point precedes visible tilt. Roughly 0.25 s separates camera frames, and camera and radio timestamps are host receipt times. A 3–4 mm difference during the push is insufficient on its own to fit friction. Each blue point is the measured magnitude of an XYZ sample from the cube, plotted at packet receipt time.
+
+### Cube heading during the shelf push
+
+![Overhead and simulated heading changes](shelf-yaw.png)
+
+At +2.59 s the real cube had turned 7.6° clockwise. The three frozen replays gave 6.7–8.9° clockwise. By +2.86 s the camera gave 13.6° clockwise (12.8–14.8° across the four edges), and the replays gave 8.8–11.8°. Camera estimates use the direction change of each edge of the rectified top marker before visible lift. Stationary frames varied by up to 1.2°. The plotted edge range describes within-frame agreement only. Camera/robot alignment and departures from the assumed top plane also affect the comparison.
+
+A [nine-pose sensitivity check](shelf-yaw-sensitivity.csv) varied the initial cube heading from −8° to +8° in 2° increments around the last sighting, keeping the recorded pitch and fork trajectory fixed. Every run ended the physical carry interval with the simulated cube on the shelf (22.15 mm center height). The −6° case brought travel closer to the camera (28.7 vs 27.2 mm) but still under-rotated (9.2 vs 13.6°). At −8° the simulated spin reversed direction. These cases test sensitivity within this pickup only. No parameter was adopted.
+
+Run free_pickup.py with the printed-fork fixture, then shelf_yaw.py to reproduce the [simulated rotations](shelf-yaw-sim.csv) and [four-edge measurements](shelf-yaw-camera.csv).

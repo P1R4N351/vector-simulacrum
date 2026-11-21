@@ -35,6 +35,7 @@ def main():
     rails,railq=rail_paths(repo,x,y,yaw,lift)
     f=m.body('fork').mocapid[0]
     ids=[m.body(f'rail{i}').mocapid[0] for i in range(2)]
+    headings=[]
     output=[]
     fig,axes=plt.subplots(2,1,figsize=(9,6),sharex=True)
     for label,s in [('Before command',sights[sights['time_s']<0][-1]),('Last sighting',sights[-1]),('Last sighting + pitch',sights[-1])]:
@@ -73,6 +74,11 @@ def main():
                 since_contact=clock
             if i%10==0:
                 tilt=np.degrees(np.arccos(np.clip(1-2*(pose[4]**2+pose[5]**2),-1,1)))
+                if 1.0 <= clock <= 3.0:
+                    qw,qx,qy,qz=pose[3:7]
+                    heading=np.arctan2(2*(qw*qz+qx*qy),1-2*(qy*qy+qz*qz))
+                    delta=heading-h
+                    headings.append([label,round(clock,4),round(np.degrees(np.arctan2(np.sin(delta),np.cos(delta))),3)])
                 sample.append([clock,pose[2]*1000,tilt,int(floor_contact),int(fork_contact),pose[0]*1000-s["x_mm"],pose[1]*1000-s["y_mm"]])
         a=np.array(sample)
         for ax,j in zip(axes,[1,2]):
@@ -80,6 +86,10 @@ def main():
         output.extend([[label,*row] for row in sample])
         high=(a[:,0]>6.5)&(a[:,0]<8.3)
         print(label,'first contact',since_contact,'max center height',a[:,1].max(),'held pose',np.median(a[high,1:3],axis=0),'floor fraction',a[high,3].mean())
+    with (here/'shelf-yaw-sim.csv').open('w') as fobj:
+        w=csv.writer(fobj,lineterminator='\n')
+        w.writerow(['initialization','time_s','yaw_change_deg'])
+        w.writerows(headings)
     pkt,_=decode(here/'pickup.tsv')
     with (here/'action-times.csv').open() as fobj:
         zero=float(next(e["pod_unix_s"] for e in csv.DictReader(fobj) if e["action"]=="pickup"))
