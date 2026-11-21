@@ -139,3 +139,18 @@ With calibrated optics, adding the onboard upper edge at equal pixel weight redu
 At equal weight both reconstructions put the lowest corner of the bounding box above the shelf (10.0 and 14.5 mm). The held-out errors and the residual 118 ms frame-time difference preclude treating that as a measured clearance or using the compromise pose to tune a contact. Source frames independently show the tilt. A single rigid pose under this registration fails to reproduce the lifted cube precisely in both views.
 
 Run `python joint_marker.py ../.. /tmp/p2y8-fork.xml`. [All weights, errors and inferred translations](front-edge/joint.csv)
+
+### Does camera timing explain the raised stripe?
+
+Two overhead exposures at 5.264 and 5.747 s contain a readable top glyph missed by the original detector. The latter halves the bracket around the raised onboard exposure from 500 to 249 ms. Straight-line intersections on the outer white border give different corners from the original detector. Applying the per-corner difference measured at 5.498 s reproduced all four original picks at a reserved 5.998 s exposure within 0.36 px. The 5.264 s frame has visible motion blur, so that precision applies only to the control.
+
+| Raised-stripe comparison | Median distance to observed edge |
+|---|---:|
+| Nearest original overhead frame, receipt timing | 197.6 px |
+| Original frames, device capture intervals and interpolated pose | 195.7 px |
+| Recovered frames, outer-line intersections | 180.9 px |
+| Recovered frames, corners adjusted to detector convention | 196.8 px |
+
+On trials 1–2 the approach fit gives a 232 ms lag from host receipt times and 236 ms from device capture intervals. Held-out approach RMS errors for trials 3–5 change from 0.94/3.00/0.89 mm to 1.22/2.78/0.57 mm. Neither clock consistently wins. The overhead timestamps still use the host request midpoint, so absolute shutter sync remains unknown. This timing change and the extra exposure leave the raised pose unresolved. Using this frame to fit rubber friction would confound projection and contact errors.
+
+[Recovered crops and controls](front-edge/recovered-marker.png) · [Stripe errors](front-edge/clock.png) · [All position scores](front-edge/clock-position.csv) · [Approach scores](front-edge/clock-travel.csv). Reproduce with the same arguments as front_edge.py using capture_clock.py.

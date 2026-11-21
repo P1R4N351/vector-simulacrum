@@ -18,7 +18,7 @@ rows = p[p["trial"] == 1]
 quads = np.array([list(r)[2:] for r in rows]).reshape(-1,4,2)
 
 
-def reconstruct(k, focal, on_shelf):
+def reconstruct(k, focal, on_shelf, corners=quads, times=rows["sec"]):
     c = np.array([912.9463,541.1996])
     K = np.array([[focal,0,c[0]],[0,focal,c[1]],[0,0,1.]])
     def pixels(q):
@@ -29,9 +29,9 @@ def reconstruct(k, focal, on_shelf):
         if not ok:
             raise ValueError("Cube pose unavailable")
         return Rotation.from_rotvec(r.ravel()), t.ravel()
-    base, center = solve(pixels(np.median(quads[rows["sec"]<0],axis=0)))
+    base, center = solve(pixels(np.median(corners[times<0],axis=0)))
     out = []
-    for q in quads:
+    for q in corners:
         uv = pixels(q)
         absolute, pos = solve(uv)
         initial = np.r_[(base.inv()*absolute).as_rotvec(),base.inv().apply(pos-center)]
