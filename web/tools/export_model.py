@@ -408,6 +408,11 @@ def main(argv: Sequence[str]) -> int:
         "test/fixtures/hazards.json": json.dumps(hazards_fixture(v, hazards)) + "\n",
         "test/fixtures/prox.json": json.dumps(prox_fixture(v, prox)) + "\n",
     }
+    free_cube = mjcf.build_mjcf(v, SCENE_OBSTACLES, cube="free")
+    for name, scene in [("vector-free", free_cube), ("vector-contact42-free", contact_model(free_cube, v))]:
+        outputs[f"public/robot/{name}.xml"] = scene
+        model["source"][name + "_sha256"] = hashlib.sha256(scene.encode()).hexdigest()
+    outputs["public/robot/model.json"] = json.dumps(model, indent=1, sort_keys=True) + "\n"
     if args.check:
         return _check(outputs)
     for relative, text in outputs.items():

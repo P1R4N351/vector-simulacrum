@@ -65,6 +65,13 @@ has a button, including head up, level and down and lift up and down.
 Add `?look=shapes` to the address to draw the robot as its physics shapes even
 when the SDK model has been fetched.
 
+Open `?cube=free` to put a movable light cube 100 mm ahead of the front axle.
+Drive forward to push it, use Q for the robot camera, and use Backspace to reset.
+The range sensor sees the cube in both visual modes. Running `npm run sdk-model`
+with a full SDK asset folder installs the textured cube locally. The fallback
+shows the shell and rubber contact boxes. Add `&contact=42` for the experimental
+42 mm contact span.
+
 ## Wheels and tracks
 
 On the robot, each side has a motor-driven front wheel, a free-spinning rear

@@ -40,6 +40,10 @@ PINNED = {
     "vector.mtl": "902e70e2326e503829cfced9742fac863c2be9f181a0401270fb8dd5ff68ab23",
     "LICENSE.txt": "cb77eb27637896ceea9dd9c48fb123368afbe964fbbacacd60f90983f1a60d32",
 }
+CUBE_FILES = {
+    "cube.obj": "312c115cb952bcac3ad0e9c87067c4c1c6c8bfc2e712511937ff7d01f51016db",
+    "cube.jpg": "9cd40878740f1f15776b4c86e1c3851a74be4ea60585b372944efa54233f693d",
+}
 # How the SDK's viewer poses the parts (anki_vector/opengl/opengl_vector.py, Apache-2.0).
 # Lengths are in the model's units (centimetres) unless the name says mm. The viewer notes
 # these are tuned to the model file and are not measurements of the robot.
@@ -63,7 +67,10 @@ def installed_assets() -> Optional[Path]:
 def read_folder(folder: Path) -> Optional[Dict[str, bytes]]:
     if not all((folder / name).is_file() for name in PINNED):
         return None
-    return {name: (folder / name).read_bytes() for name in PINNED}
+    names = list(PINNED)
+    if all((folder / name).is_file() for name in CUBE_FILES):
+        names.extend(CUBE_FILES)
+    return {name: (folder / name).read_bytes() for name in names}
 
 
 def download_assets() -> Optional[Dict[str, bytes]]:
@@ -81,13 +88,16 @@ def download_assets() -> Optional[Dict[str, bytes]]:
             members = {name: f"{ASSET_DIR_IN_WHEEL}/{name}" for name in PINNED}
             if not all(member in names for member in members.values()):
                 return None
+            optional = {name: f"{ASSET_DIR_IN_WHEEL}/{name}" for name in CUBE_FILES}
+            if all(member in names for member in optional.values()):
+                members.update(optional)
             return {name: archive.read(member) for name, member in members.items()}
 
 
 def check_hashes(files: Dict[str, bytes]) -> Sequence[str]:
     """Names of the files whose hash is not the pinned one."""
-    assert set(files) == set(PINNED), "asset set differs from the pinned set"
-    return [name for name, data in files.items() if hashlib.sha256(data).hexdigest() != PINNED[name]]
+    expected = {**PINNED, **CUBE_FILES}
+    return [name for name, data in files.items() if hashlib.sha256(data).hexdigest() != expected[name]]
 
 
 def write_copy(files: Dict[str, bytes], source: str) -> None:
@@ -103,7 +113,7 @@ def write_copy(files: Dict[str, bytes], source: str) -> None:
 
 def remove_copy() -> int:
     removed = 0
-    for name in [*PINNED, "manifest.json"]:
+    for name in [*PINNED, *CUBE_FILES, "manifest.json"]:
         path = DEST / name
         if path.is_file():
             path.unlink()

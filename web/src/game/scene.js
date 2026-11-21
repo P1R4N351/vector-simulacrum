@@ -175,7 +175,7 @@ function hideFromRobot(object) {
 
 // sdk: the loaded SDK robot model, or null to draw the robot as its physics shapes.
 // cameraSpec: the camera block of model.json.
-export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec) {
+export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
   const { model } = sim;
   const v = sim.v;
   const nameOf = (kind, index) => mujoco.mj_id2name(model, mujoco.mjtObj[kind].value, index);
@@ -191,9 +191,12 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec) {
 
   const meshes = [];
   const robotMeshes = [];
+  const cubeId = idOf("mjOBJ_BODY", "cube");
   for (let i = 0; i < model.ngeom; i++) {
     const mesh = geomMesh(mujoco, model, i, nameOf("mjOBJ_GEOM", i));
-    if (sdk !== null && model.geom_bodyid[i] !== 0) {
+    if (model.geom_bodyid[i] === cubeId) {
+      mesh.visible = cube === null;
+    } else if (sdk !== null && model.geom_bodyid[i] !== 0) {
       mesh.material = SHAPE_OVERLAY;
       mesh.castShadow = false;
       robotMeshes.push(mesh);
@@ -201,7 +204,7 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec) {
     meshes.push(mesh);
     root.add(mesh);
   }
-  const bodies = [];
+  const bodies = cube ? [["cube", cube]] : [];
   let face = null;
   let shapeCleats = null;
   if (sdk !== null) bodies.push(["chassis", sdk.root]); // the model's frame is the robot's: origin under the front axle

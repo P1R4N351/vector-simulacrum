@@ -88,6 +88,8 @@
  "source": {
   "table_sha256": "75bf7fa8847ddb8c26eaefb895ff6613148aa7cbc876160c91d47a0dab1712ab",
   "trial_xml_sha256": "708ad7cb5d309155ee310d875bcc74fcde3c1462c69fb063f2db473b78bd4126",
+  "vector-contact42-free_sha256": "5df168f10f3d1822ea3f82cb9d46cb49a5167da6763eb4b934b9d275c5cad0b7",
+  "vector-free_sha256": "ab6c98fb418bd5cfb91fc543d1997215c00331ed2bc139b754e13c6599b50a75",
   "xml_sha256": "c669b1fa42246771fec70bf2654a019626300dccbc8567754719a6776c314cd0"
  },
  "values": {

@@ -286,3 +286,27 @@ test("42 mm contact trial keeps both stock axle pairs in place", async () => {
     compiled.delete();
   }
 });
+
+for (const scene of ["vector-free", "vector-contact42-free"]) {
+  test(`${scene} detects, pushes and resets the free cube`, async () => {
+    const runtime = await mujoco();
+    const source = readText(`public/robot/${scene}.xml`);
+    assert.equal(sha256(source), model.source[scene + "_sha256"]);
+    const sim = new VectorSim(runtime, { xml: source, values: model.values, derived: model.derived });
+    try {
+      const id = runtime.mj_name2id(sim.model, runtime.mjtObj.mjOBJ_BODY.value, "cube");
+      assert.ok(id > 0);
+      const x = () => sim.data.xpos[3 * id];
+      const start = x();
+      assert.ok(sim.state.prox_found_object);
+      assert.ok(sim.state.prox_distance_mm > 45 && sim.state.prox_distance_mm < 90);
+      assert.ok(sim.setWheelMotors(40, 40));
+      sim.tick(Math.round(2.3 / sim.dt));
+      assert.ok(x() > start + 0.008);
+      sim.reset();
+      assert.ok(Math.abs(x() - start) < 1e-6);
+    } finally {
+      sim.dispose();
+    }
+  });
+}

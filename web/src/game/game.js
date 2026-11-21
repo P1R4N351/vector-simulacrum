@@ -18,6 +18,7 @@ import { CONTROL_DEFAULT, CONTROL_OVERRIDE, VectorSim } from "../sim/robot.js";
 import { bootHalt, bootLine, gameApi, useGame } from "../store.js";
 import { HIDDEN_FROM_ROBOT } from "./headcam.js";
 import { createInput } from "./input.js";
+import { loadCubeLook } from "./cube.js";
 import { buildVisuals } from "./scene.js";
 import { loadSdkModel } from "./sdkmodel.js";
 
@@ -70,21 +71,24 @@ async function checkModel(xml, expectedHash) {
 }
 
 async function loadEverything() {
-  const trial = new URLSearchParams(location.search).get("contact") === "42";
+  const options = new URLSearchParams(location.search);
+  const trial = options.get("contact") === "42";
+  const free = options.get("cube") === "free";
+  const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "");
   const [{ default: loadMujoco }, xml, modelText] = await Promise.all([
     traced("PHYSICS RUNTIME", import("@mujoco/mujoco")),
     traced(trial ? "ROBOT MODEL · 42 MM CONTACT" : "ROBOT MODEL",
-      fetchText(trial ? "./robot/vector-contact42.xml" : "./robot/vector.xml")),
+      fetchText(`./robot/${sceneName}.xml`)),
     traced("PARAMETER TABLE", fetchText("./robot/model.json")),
   ]);
   const model = JSON.parse(modelText);
   const doneCheck = bootLine("MODEL CHECKSUM");
-  doneCheck(await checkModel(xml, trial ? model.source.trial_xml_sha256 : model.source.xml_sha256));
+  doneCheck(await checkModel(xml, free ? model.source[sceneName + "_sha256"] : (trial ? model.source.trial_xml_sha256 : model.source.xml_sha256)));
   const mujoco = await traced("WEBASSEMBLY", loadMujoco({ locateFile: (p) => (p.endsWith(".wasm") ? mujocoWasmUrl : p) }));
   const doneCompile = bootLine("COMPILE AND SETTLE");
   const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1 });
   doneCompile("OK");
-  return { mujoco, model, sim };
+  return { mujoco, model, sim, free };
 }
 
 function makeRenderer(canvas) {
@@ -321,10 +325,11 @@ export async function bootGame(canvas) {
   booted = true;
   try {
     const view = makeRenderer(canvas);
-    const { mujoco, model, sim } = await loadEverything();
+    const { mujoco, model, sim, free } = await loadEverything();
     const sdk = await loadRobotLook(model.values);
     const doneScene = bootLine("SCENE");
-    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera);
+    const cube = free && sdk ? await loadCubeLook(model.values.cube_size_mm) : null;
+    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube);
     const ctx = { ...view, sim, visuals, driver: makeDriver(sim), input: null, raf: 0 };
     const press = installApi(ctx);
     ctx.input = createInput((name) => press[name]?.());
