@@ -1,4 +1,4 @@
-### P2Y8 wheelstand series on the shelf
+### unit 3 wheelstand series on the shelf
 
 One Vector 2.0 with a printed fork and one retail light cube. In the docked baseline, the cube sent 828 acceleration samples during 10.016 seconds. Its median specific-force magnitude was 0.9703 g and the 5th–95th percentiles were 0.9655–0.9748 g. The tap counter held at 18. The individual samples in stationary.csv.gz share receipt times in groups of three.
 
@@ -14,11 +14,11 @@ The magnitude standard deviation was 2.88 mg on the shelf and 2.35 mg in simulat
 
 ### W2–W4 physical wheelstand retry
 
-P2Y8 was charging at 3.901 V before the tests. The cube stayed in its shelf placement. In W4 the native SDK PopAWheelie command started 22.330 s after the undock command. The overhead view shows the approach and tip-back. SDK chassis pitch peaked at 72.25° at +4.30 s relative to the wheelstand command. The cube's largest recorded specific-force magnitude was 4.50 g across three axes (−1.47, −2.30, +3.58 g). Its tap counter advanced from 19 to 21. W4 contains 2,247 cube samples and 782 robot state messages. Three cube samples share each packet receipt time. The reader guard interrupted the SDK action during tip-back, so the experiment records physical wheelstand contact without an SDK completion result. The raw metrics describe this single contact.
+unit 3 was charging at 3.901 V before the tests. The cube stayed in its shelf placement. In W4 the native SDK PopAWheelie command started 22.330 s after the undock command. The overhead view shows the approach and tip-back. SDK chassis pitch peaked at 72.25° at +4.30 s relative to the wheelstand command. The cube's largest recorded specific-force magnitude was 4.50 g across three axes (−1.47, −2.30, +3.58 g). Its tap counter advanced from 19 to 21. W4 contains 2,247 cube samples and 782 robot state messages. Three cube samples share each packet receipt time. The reader guard interrupted the SDK action during tip-back, so the experiment records physical wheelstand contact without an SDK completion result. The raw metrics describe this single contact.
 
 [Contact video](W4/wheelstand.mp4) · [Full overhead recording through redock](W4/overhead.mp4) · [Pitch and accelerometer overlay](W4/contact.png) · [Cube samples](W4/cube.csv.gz) · [Robot state](W4/state.csv.gz)
 
-W2 produced 3,594 cube samples, but the recorder missed the valid zero-valued object ID in a JSON conversion and returned to dock before commanding a wheelstand. W3 returned to dock after two Bluetooth connection failures. For W4 the recorder read the protobuf ID directly and verified fresh accelerometer packets on the dock before undocking. After the maneuver, SDK pitch settled near 1.4° with cliff and pickup flags clear. P2Y8 returned to the dock. Final telemetry confirmed charging at 3.811 V, and both the Home Assistant switch and pod confirmed quiet mode active.
+W2 produced 3,594 cube samples, but the recorder missed the valid zero-valued object ID in a JSON conversion and returned to dock before commanding a wheelstand. W3 returned to dock after two Bluetooth connection failures. For W4 the recorder read the protobuf ID directly and verified fresh accelerometer packets on the dock before undocking. After the maneuver, SDK pitch settled near 1.4° with cliff and pickup flags clear. 
 
 ### Held-out wheelstand tap timing
 

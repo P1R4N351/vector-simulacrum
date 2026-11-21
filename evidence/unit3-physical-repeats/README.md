@@ -25,7 +25,7 @@ The robot, range and cube CSV files are compressed with gzip. Cube axes are sign
 
 ### Side-lit shelf oval, sessions E and F
 
-[E](E/) adds 6,477 cube XYZ samples and 2,030 robot states. [F](F/) adds 2,232 cube XYZ samples and 3,114 robot states. Both recordings used the physical cube and P2Y8's printed fork. Neither reached a pickup. In E the engine saw the glyph during undocking and lost it before pickup. F connected the cube before undocking. Its second head-angle request never returned, and telemetry subsequently showed wheel motion without a matching drive request from the trial. Exclude this interval from commanded-motion fits. A separate native docking action recovered P2Y8 and charging and active quiet mode were verified.
+[E](E/) adds 6,477 cube XYZ samples and 2,030 robot states. [F](F/) adds 2,232 cube XYZ samples and 3,114 robot states. Both recordings used the physical cube and unit 3's printed fork. Neither reached a pickup. In E the engine saw the glyph during undocking and lost it before pickup. F connected the cube before undocking. Its second head-angle request never returned, and telemetry subsequently showed wheel motion without a matching drive request from the trial. Exclude this interval from commanded-motion fits. 
 
 ![Cube accelerometer and optical movement during E](E/tap-overlay.png)
 
@@ -81,7 +81,7 @@ All nine initializations (−5, 0, +5 mm along each horizontal axis) began clear
 
 ### Does the printed fork explain the first contact?
 
-Replacing the three collision boxes with the registered 58-piece forks7 mesh raised the nominal yaw prediction from 9.31° to 10.40° (camera estimates 14.15° and 18.01°). It lowered peak specific force from 1.90 to 1.68 g (recorded 1.08 g), and changed the packet tap count from one to two (recorded one). Across the nine starting cube positions the printed fork produced 3.86–13.05° of yaw and peaks of 1.34–1.99 g. The mesh had previously improved endpoint error on short pushes. This turning contact tests its transfer to a different motion. It helps two nominal metrics, worsens the third, and leaves substantial error. The exact fork file installed on P2Y8 remains unconfirmed.
+Replacing the three collision boxes with the registered 58-piece forks7 mesh raised the nominal yaw prediction from 9.31° to 10.40° (camera estimates 14.15° and 18.01°). It lowered peak specific force from 1.90 to 1.68 g (recorded 1.08 g), and changed the packet tap count from one to two (recorded one). Across the nine starting cube positions the printed fork produced 3.86–13.05° of yaw and peaks of 1.34–1.99 g. The mesh had previously improved endpoint error on short pushes. This turning contact tests its transfer to a different motion. It helps two nominal metrics, worsens the third, and leaves substantial error. The exact fork file installed on unit 3 remains unconfirmed.
 
 The comparison retains fork inertia, contact material, prescribed trajectory, cube, and sensor seed and phase. To reproduce, run the default replay, then run it with `--printed-fixture` pointing to the output of [the printed-fork fixture builder](../unit3-printed-fork-contact/build_fixture.py). Only the convex mesh assets are imported into the normal Vector 2 scene.
 
