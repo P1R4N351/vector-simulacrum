@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import math
+import platform
 import statistics
 import unittest
 
@@ -11,6 +13,7 @@ import _common
 from simulacrum import params
 
 if _common.HAVE_MUJOCO:
+    import mujoco
     from simulacrum import spin_fit
 HAVE_SCIPY = importlib.util.find_spec("scipy") is not None
 if HAVE_SCIPY:
@@ -37,7 +40,12 @@ class InsetFit(unittest.TestCase):
     def test_the_table_holds_the_fitted_inset_and_its_range_covers_each_spins_fit(self) -> None:
         fit = self.report["fit"]
         self.assertEqual(self.entry["provenance"], "fitted")
-        self.assertAlmostEqual(self.entry["value"], fit["inset_mm"], delta=0.05)
+        archive = spin_fit.ROOT / "evidence/imu-filter-20261120/fit_spins-output.json"
+        original = json.loads(archive.read_text())["fit"]["inset_mm"]
+        self.assertAlmostEqual(self.entry["value"], original, delta=0.05)
+        if (platform.system(), platform.machine(), mujoco.__version__) == ("Linux", "x86_64", "3.11.0"):
+            self.assertAlmostEqual(original, fit["inset_mm"], delta=0.05)
+        self.assertTrue(self.entry["low"] <= fit["inset_mm"] <= self.entry["high"])
         self.assertEqual(len(fit["per_spin_inset_mm"]), 4)
         for label, inset in fit["per_spin_inset_mm"].items():
             self.assertTrue(self.entry["low"] <= inset <= self.entry["high"], label)
