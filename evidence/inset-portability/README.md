@@ -114,3 +114,11 @@ We recovered the simultaneous SDK receipt log for the four 100 mm/s native stops
 | CW 2 | 4.79° | 6.84° | 5.80° |
 
 The actual frame selection and interpolation overestimated braking travel in all four cases by 1.32–3.18°. Using host receipt intervals for those same values changed the estimate by −2.04 to +0.53°. For the second CCW stop, receipt timing masked about two degrees of sampling error. The native angle over 80 ms is within 0.02° of the earlier 300 ms integral for every stop. No host-to-robot clock offset was fitted. Each clock is aligned to its own interpolated wheel crossing. [Matched-clock results](sdk-stop-clock.csv) · [SDK receipt excerpt](sdk-stop-receipts.csv) · [Reproduce](sdk_stop_clock.py)
+
+### Frozen replay against native braking angle
+
+![Cumulative yaw for measured, reported-speed, count and hybrid inputs](native-brake-angle.png)
+
+Scoring the archived 42 mm replays against native gyro on the common 80 ms interval after the measured 80% wheel crossing gives a different ranking from the earlier head-rate tail score. The count-only reconstruction (count increments timestamped at interval end) had the smallest first-pair angular RMS error: **0.088°**, versus **0.566°** for reported speed and **0.487°** for the hybrid. Its second-pair RMS was **0.188°**, versus **0.261°** and **0.341°** respectively. On the second pair it predicted **4.375° versus 4.641° measured CCW** and **4.800° versus 4.785° measured CW**. Thus one held-out direction missed the 5% angle tolerance. These four recordings share one robot, surface and session.
+
+The same ranking held for a 60% wheel crossing. At 90%, reported speed gave lower second-pair RMS than counts (0.236° versus 0.271°). All methods use the original frozen 17 ms gyro offset, observed head angle, and identical measured crossing times. Each rate series has its own post-stop median removed. The count-only replay also had a higher steady head-rate RMS than the hybrid in the original test. These tradeoffs support keeping both rate and angle in the score. [Per-spin and crossing sensitivity](native-brake-angle.csv) · [Reproduce](native_brake_angle.py) · [Original frozen replay inputs and rate scores](../hw-rec-20261119/hybrid-replay.md)
