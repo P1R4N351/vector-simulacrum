@@ -106,3 +106,11 @@ establish when the cube completed its roll.
 ![Two in-gap frames and their absolute differences](gap-frames.png)
 
 Reproduce with `python gap_frames.py`.
+
+### Could clock phase hide the late shelf impact?
+
+Replay the same prescribed printed fork, measured rolling tread and R8 trajectory at 0.25 ms. Hold physical forces, sensor orientation, gain and the noise realization fixed. Vary the chip frame phase across its 2 ms period and the app tick phase across its 10 ms period at 0.25 ms resolution. The shipped app keeps the latest available frame. For the 4.5–5.0 s packet window, all 320 phase pairs predict peaks of **4.44–6.93 g** (median 6.50 g); the nominal phase reproduces **5.32 g**. The recorded maximum is **1.11 g**. The analytic phase sweep was also checked against the ordinary byte-packet simulation at nominal and two nonzero phase pairs.
+
+Free-running phase on this simulation grid cannot reconcile the late impact. The receipt immediately before the nominal 4.83 s peak arrived at 4.815 s and the next at 4.855 s. Receiver time is distinct from chip sampling time. This test does not establish the physical impulse or identify the correct rubber stiffness. The fork/chassis trajectory and shelf landing still need independent constraints.
+
+[Phase map](impact-phase.png) · [All phases](impact-phase.csv) · [Reproduce with the same printed fork fixture as the tread-speed replay](impact_phase.py)
