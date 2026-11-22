@@ -20,7 +20,7 @@ class Vector2(unittest.TestCase):
         self.assertEqual(replaced, {"display_resolution_px", "battery_capacity_mah", "total_mass_g", "com_x_mm",
                                     "com_z_mm", "camera_resolution_px", "camera_fov_horizontal_deg", "camera_fov_vertical_deg",
                                     "accel_scale", "accel_bias_mg", "imu_pitch_offset_deg",
-                                    "cube_accel_noise_density_ug", "cube_accel_word_format"})
+                                    "cube_accel_noise_density_ug", "cube_accel_word_format", "cube_accel_scale"})
         self.assertEqual((one["display_resolution_px"]["value"], two["display_resolution_px"]["value"]), ([184, 96], [160, 80]))
         for name in set(one) - replaced:
             self.assertEqual(one[name]["value"], two[name]["value"], name)
