@@ -294,6 +294,16 @@ class Servos(unittest.TestCase):
             expected = sim.v["lift_base_position_mm"][2] + sim.v["lift_arm_length_mm"] * math.sin(low + counts * step)
             self.assertAlmostEqual(sim.reported_now()["lift_mm"], expected)
 
+    def test_lift_duration_applies_to_one_action(self) -> None:
+        sim = VectorSim()
+        timed = sim.set_lift_height(92.0, duration_s=1.4)
+        self.assertEqual(timed.result, robot.RESULT_COMPLETED)
+        self.assertGreater(timed.ticks * sim.dt, 1.2)
+        sim.advance(0.5)
+        default = sim.set_lift_height(32.0)
+        self.assertEqual(default.result, robot.RESULT_COMPLETED)
+        self.assertLess(default.ticks * sim.dt, 1.0)
+
     def test_lift_reaches_its_limits_and_is_clamped(self) -> None:
         sim = VectorSim()
         self.assertEqual(sim.set_lift_height(92.0).result, robot.RESULT_COMPLETED)

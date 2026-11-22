@@ -647,13 +647,26 @@ class VectorSim:
         self._head_target = math.radians(_clamp(angle_deg, v["head_angle_min_deg"], v["head_angle_max_deg"]))
         return True
 
-    def command_lift_height(self, height_mm: float) -> bool:
+    def _start_lift(self, height_mm: float, speed_radps: Optional[float], duration_s: float) -> None:
+        assert math.isfinite(duration_s) and duration_s >= 0.0, "bad lift duration"
+        self._lift_target = mjcf.lift_angle_of_height(self.v, height_mm)
+        self._lift_speed = abs(speed_radps) if speed_radps else self.v["lift_speed_default_radps"]
+        self._lift_accel = self.v["lift_accel_default_radps2"]
+        self._servo_rate[1] = 0.0
+        span = abs(self._lift_target - self._lift_cmd)
+        if duration_s > 0 and span > 0:
+            # Stock SetLiftHeight uses 10% acceleration, 80% cruise, 10% braking.
+            # The area under that angular velocity trapezoid is the requested span.
+            peak = span / (0.9 * duration_s)
+            self._lift_speed = min(peak, self.v["lift_speed_max_radps"])
+            self._lift_accel = min(10000.0, peak / (0.1 * duration_s))
+
+    def command_lift_height(self, height_mm: float, duration_s: float = 0.0) -> bool:
         """Set the lift target and return at once (set_lift_height waits for the lift)."""
         assert math.isfinite(height_mm), "bad lift height"
         if not self.has_control:
             return False
-        self._lift_speed, self._servo_rate[1] = self.v["lift_speed_default_radps"], 0.0
-        self._lift_target = mjcf.lift_angle_of_height(self.v, height_mm)
+        self._start_lift(height_mm, None, duration_s)
         return True
 
     def _budget_ticks(self, expected_s: float) -> int:
@@ -764,16 +777,14 @@ class VectorSim:
         return self._servo_action(self.head_angle_rad, target, math.radians(v["head_angle_tol_deg"]),
                                   span, self._head_speed)
 
-    def set_lift_height(self, height_mm: float, speed_radps: Optional[float] = None) -> ActionResult:
+    def set_lift_height(self, height_mm: float, speed_radps: Optional[float] = None, duration_s: float = 0.0) -> ActionResult:
         """Raise or lower the lift; the height is clamped to the robot's range."""
         assert math.isfinite(height_mm), "bad lift height"
         if not self.has_control:
             return ActionResult(RESULT_NO_CONTROL, 0.0, 0.0, 0)
         v = self.v
-        self._lift_speed = abs(speed_radps) if speed_radps else v["lift_speed_default_radps"]
-        self._servo_rate[1] = 0.0
-        target = mjcf.lift_angle_of_height(v, height_mm)
+        self._start_lift(height_mm, speed_radps, duration_s)
+        target = self._lift_target
         read = lambda: float(self.data.qpos[self._q["lift"]])
         span = abs(target - read())
-        self._lift_target = target
         return self._servo_action(read, target, math.radians(v["lift_angle_tol_deg"]), span, self._lift_speed)
