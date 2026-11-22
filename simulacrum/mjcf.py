@@ -422,13 +422,20 @@ def _scene_xml(v: Dict[str, Any], obstacles: Sequence[Sequence[float]]) -> str:
     return out
 
 
-def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cube: Any = None) -> str:
-    """Return the whole model, robot and scene, as one MJCF string; cube="lift" adds a carried cube."""
+def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cube: Any = None,
+               body: Any = None) -> str:
+    """Return the whole model, robot and scene, as one MJCF string; cube="lift" adds a carried cube.
+
+    body=None draws the robot as the table's boxes and cylinders. body=<manifest from
+    simulacrum.body_mesh.load> gives it the real outer shape from Anki's rig: convex collision
+    pieces and visual meshes on the chassis, head, both pairs of lift links and the fork."""
     assert cube in CUBE_MOUNTS, "unknown cube placement"
     d = derive(v)
     gravity = -v["gravity_mmps2"] * MM
     assert gravity < 0.0, "gravity must point down"
     assert v["sim_timestep_ms"] > 0.0, "timestep must be positive"
+    if body is not None:
+        return _build_mesh_body(v, d, obstacles, cube, body)
     return (
         '<mujoco model="vector_simulacrum">\n'
         '  <compiler angle="radian" autolimits="true"/>\n'
@@ -443,6 +450,113 @@ def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cub
         + _lift_xml(v, d, cube).replace("    <", "      <").replace("    </", "      </")
         + '    </body>\n' + (_free_cube_xml(v) if cube == 'free' else '') + '  </worldbody>\n'
         + _equality_xml(v, d) +
+        '  <actuator>\n' + _actuators_xml(v, d) + '  </actuator>\n'
+        '  <sensor>\n' + _sensors_xml(v, cube) + '  </sensor>\n'
+        '</mujoco>\n'
+    )
+
+
+# ---- the real outer shape (simulacrum/body_mesh.py) -------------------------------------------
+
+MESH_PARTS = ("chassis", "head", "lift_upper", "lift_lower", "fork")
+# A mass-carrying primitive that no longer touches anything: the rig's pieces take its contact.
+_CARRIER = 'contype="0" conaffinity="0" group="3" rgba="0 0 0 0"'
+
+
+def _mesh_assets_xml(body: Dict[str, Any]) -> str:
+    folder = Path(body["dir"])
+    assert folder.is_dir() and set(body["parts"]) == set(MESH_PARTS), "body manifest is incomplete"
+    out = "  <asset>\n"
+    for part in MESH_PARTS:
+        entry = body["parts"][part]
+        for k, item in enumerate(entry["collision"]):
+            out += f'    <mesh name="{part}_hull_{k}" file="{folder / item["file"]}" scale="0.001 0.001 0.001"/>\n'
+        out += (f'    <mesh name="{part}_visual" file="{folder / entry["visual"][0]["file"]}" '
+                f'scale="0.001 0.001 0.001" inertia="shell"/>\n')
+    return out + "  </asset>\n"
+
+
+def _mesh_geoms_xml(v: Dict[str, Any], body: Dict[str, Any], part: str, indent: str) -> str:
+    """One part's collision pieces (massless, contact as the table says) and its visual mesh."""
+    entry = body["parts"][part]
+    friction = {"chassis": v["chassis_friction"], "tread": v["tread_friction"]}
+    out = ""
+    for k, item in enumerate(entry["collision"]):
+        assert item["friction"] in friction, "unknown friction class in the body manifest"
+        out += (f'{indent}<geom name="{part}_hull_{k}" type="mesh" mesh="{part}_hull_{k}" mass="0" '
+                f'rgba="0.4 0.4 0.45 0.25" group="{ROBOT_GEOM_GROUP}" '
+                f'{_contact_attrs(v, friction[item["friction"]])}/>\n')
+    out += (f'{indent}<geom name="{part}_visual" type="mesh" mesh="{part}_visual" mass="0" contype="0" '
+            f'conaffinity="0" group="2" rgba="0.18 0.18 0.2 1"/>\n')
+    return out
+
+
+def _as_carrier(xml: str, geom: str) -> str:
+    """Strip a primitive geom's contact and drawing, keeping its mass and its name."""
+    start = xml.index(f'<geom name="{geom}"')
+    end = xml.index("/>", start)
+    tag = xml[start:end]
+    for attr in ("contype", "conaffinity", "priority", "condim", "friction", "solref", "group", "rgba"):
+        idx = tag.find(f' {attr}="')
+        if idx >= 0:
+            tag = tag[:idx] + tag[tag.index('"', tag.index('"', idx) + 1) + 1:]
+    return xml[:start] + tag + " " + _CARRIER + xml[end:]
+
+
+def _lower_link_xml(v: Dict[str, Any], d: Dict[str, Any], body: Dict[str, Any]) -> str:
+    """The lift's lower pair of links: a second hinge below the first, held at the lift's angle by an
+    equality (the real lift is a parallelogram). It carries half the arm mass; the upper pair the rest."""
+    origin = body["frames"]["lift_lower"]["origin_mm"]
+    arm_len = v["lift_arm_length_mm"] * MM
+    assert len(origin) == 3 and arm_len > 0.0, "lower link frame missing"
+    return (
+        f'      <body name="lift_lower" pos="{vec([c * MM for c in origin])}">\n'
+        f'        <joint name="lift_lower_joint" type="hinge" axis="0 -1 0" '
+        f'range="{num(d["lift_angle_min"])} {num(d["lift_angle_max"])}"/>\n'
+        f'        <geom name="lift_lower_geom" type="box" pos="{vec((0.5 * arm_len, 0, 0))}" '
+        f'size="{vec((0.5 * arm_len, 0.5 * v["lift_xbar_width_mm"] * MM, 0.002))}" '
+        f'mass="{num(0.5 * d["masses_g"]["arm"] * GRAM)}" {_CARRIER}/>\n'
+        + _mesh_geoms_xml(v, body, "lift_lower", "        ")
+        + '      </body>\n'
+    )
+
+
+def _build_mesh_body(v: Dict[str, Any], d: Dict[str, Any], obstacles: Sequence[Sequence[float]],
+                     cube: Any, body: Dict[str, Any]) -> str:
+    """The parametric model with the rig's shape swapped in for the robot's contact and drawing."""
+    chassis = _as_carrier(_chassis_xml(v, d), "chassis_geom") + _mesh_geoms_xml(v, body, "chassis", "      ")
+    head = _as_carrier(_head_xml(v), "head_geom")
+    head = head.replace("    </body>\n", _mesh_geoms_xml(v, body, "head", "      ") + "    </body>\n")
+    lift = _lift_xml(v, d, cube)
+    # The splices below anchor on text the primitive builders write; a changed builder must fail here.
+    assert head.count("    </body>\n") == 1, "head builder changed shape"
+    assert lift.count('      <body name="lift_fork"') == 1, "lift builder changed shape"
+    lift = lift[:lift.index('        <geom name="fork_side_left"')] + "      </body>\n    </body>\n"
+    assert lift.count(f'mass="{num(d["masses_g"]["arm"] * GRAM)}"') >= 1, "arm mass not found in the lift"
+    lift = _as_carrier(_as_carrier(lift, "lift_fork_geom"), "lift_arm_geom")
+    lift = lift.replace(f'mass="{num(d["masses_g"]["arm"] * GRAM)}"', f'mass="{num(0.5 * d["masses_g"]["arm"] * GRAM)}"', 1)
+    lift = lift.replace('      <body name="lift_fork"', _mesh_geoms_xml(v, body, "lift_upper", "      ")
+                        + '      <body name="lift_fork"', 1)
+    lift = lift.replace("      </body>\n    </body>\n", _mesh_geoms_xml(v, body, "fork", "        ")
+                        + "      </body>\n    </body>\n", 1)
+    stiff = f'solref="{num(2.0 * v["sim_timestep_ms"] * 0.001)} 1"'
+    equality = _equality_xml(v, d).replace(
+        "  </equality>\n", f'    <joint name="lift_lower_follow" joint1="lift_lower_joint" joint2="lift_joint" '
+        f'polycoef="0 1 0 0 0" {stiff}/>\n  </equality>\n')
+    indent = lambda xml: xml.replace("    <", "      <").replace("    </", "      </")
+    return (
+        '<mujoco model="vector_simulacrum">\n'
+        '  <compiler angle="radian" autolimits="true"/>\n'
+        f'  <option timestep="{num(v["sim_timestep_ms"] * 0.001)}" gravity="0 0 {num(-v["gravity_mmps2"] * MM)}" '
+        'integrator="implicitfast" cone="elliptic">\n    <flag multiccd="enable"/>\n  </option>\n'
+        + _mesh_assets_xml(body) +
+        '  <worldbody>\n'
+        + _scene_xml(v, obstacles)
+        + '    <body name="chassis" pos="0 0 0">\n'
+        + chassis + _sites_xml(v) + indent(_wheels_xml(v)) + indent(head) + indent(lift)
+        + _lower_link_xml(v, d, body)
+        + '    </body>\n' + (_free_cube_xml(v) if cube == 'free' else '') + '  </worldbody>\n'
+        + equality +
         '  <actuator>\n' + _actuators_xml(v, d) + '  </actuator>\n'
         '  <sensor>\n' + _sensors_xml(v, cube) + '  </sensor>\n'
         '</mujoco>\n'

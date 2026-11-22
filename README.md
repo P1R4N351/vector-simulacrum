@@ -33,6 +33,7 @@ most sensitive to, by a wide margin ("The assumed values, ranked" below).
 | `parameters.json` | The single source of every physical number, with provenance |
 | `simulacrum/params.py` | Loads and checks the table; draws randomised robots from a seed |
 | `simulacrum/mjcf.py` | Generates the MJCF (robot and table scene) from the table |
+| `simulacrum/body_mesh.py` | The robot's real outer shape from Anki's animation rig, fetched at a pinned hash and cut into convex collision pieces and visual meshes; `VectorSim(body=...)` uses it. See [evidence/body-shape](evidence/body-shape/README.md) |
 | `simulacrum/drive.py` | The firmware's tread encoder arithmetic and speed control law |
 | `simulacrum/robot.py` | `VectorSim`: SDK-shaped commands and state, sensor noise, cliff reaction |
 | `simulacrum/hazards.py` | Cliff, falling and picked-up flags |

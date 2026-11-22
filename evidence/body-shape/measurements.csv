@@ -1,0 +1,29 @@
+section,item,parametric_value,rig_value,reference_value,unit,notes
+envelope,length,86.1,100.9,99.8,mm,collision_vs_retail_length; visual_rig=100.6
+envelope,width,56.0,60.9,59.9,mm,collision_vs_retail_width; visual_rig=60.3
+envelope,height,66.0,69.7,69.3,mm,collision_vs_retail_height; visual_rig=69.3
+joint,front_axle_z,14.50,14.51,14.5,mm,FW:23
+joint,rear_axle_x,-48.00,-47.99,-48.0,mm,FW:28
+joint,rear_axle_z,10.75,10.77,10.75,mm,WEBOTS:32
+joint,neck_x,-13.00,-12.92,-13.0,mm,FW:117
+joint,neck_z,49.00,49.71,49.0,mm,FW:117
+joint,upper_lift_pivot_x,-41.00,-41.26,-41.0,mm,FW:123
+joint,upper_lift_pivot_z,45.00,45.04,45.0,mm,FW:123
+joint,lower_link_length,66.00,65.39,66.0,mm,FW:84; upper_link=65.05
+joint,camera_offset_from_neck_x,18.84,18.91,18.84,mm,FW:120 optical centre
+joint,camera_offset_from_neck_z,-7.96,-8.02,-7.96,mm,FW:120 optical centre
+printed,front_wheel_rim_dia,26.0,26.0,26.0,mm,Dauler 3764077 / 3298622
+printed,rear_wheel_rim_dia,18.5,18.5,18.5,mm,Dauler 3764077 / FabioDB 4444528
+printed,tread_width,10.0,11.5,11.6,mm,Dauler 3241305 / madizmo 4287628
+printed,tread_outer_loop,,175.7,175.9,mm,ring 56.0 mm across
+printed,fork_width,47.0,48.2,48.0,mm,Dauler 3731746 forks7
+printed,lower_rear_width,32.2,32.9,32.4,mm,Steve/M 3964462 butt plate
+printed,light_cube_size,44.0,42.2,45.0,mm,rig cube under-sized vs printed/Webots 45.0
+dimension,tread_spacing_as_built,46.0,47.9,47.9,mm,left_y=+23.90 right_y=-23.98; FW odo keeps 46
+dimension,head_box_length,34.0,39.7,,mm,head width=46.4 height=38.8
+dimension,chassis_ground_clearance,3.0,1.2,1.2,mm,WEBOTS:97_185 gave 1.2
+fidelity,chassis,26,0.20,1.40,mm,protrusion_p99=0.20 excess_p95=1.40 max_protr=0.60 max_excess=4.71
+fidelity,head,10,0.00,1.00,mm,protrusion_p99=0.00 excess_p95=1.00 max_protr=0.16 max_excess=1.91
+fidelity,lift_upper,8,0.00,1.93,mm,protrusion_p99=0.00 excess_p95=1.93 max_protr=0.00 max_excess=2.47
+fidelity,lift_lower,12,0.00,1.82,mm,protrusion_p99=0.00 excess_p95=1.82 max_protr=0.07 max_excess=2.48
+fidelity,fork,8,0.09,1.59,mm,protrusion_p99=0.09 excess_p95=1.59 max_protr=0.59 max_excess=2.88

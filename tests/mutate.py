@@ -57,6 +57,7 @@ SPIN_CUBE = TCB + "test_the_force_at_the_chip_gives_the_turn_centre_and_the_samp
 TIF, TRK = "test_imu_fit.AccelerometerFit.", "test_rank."
 TD, TRC, TRP = "test_drive.", "test_recording.RecordingFiles.", "test_replay.Replay."
 TP, TM, TS, TT, TG = "test_params.", "test_mjcf.GeneratedModel.", "test_sim.", "test_task.", "test_training."
+BM, TBM = "simulacrum/body_mesh.py", "test_body_mesh."
 FALL_TEST = TT + "Episode.test_a_fall_ends_the_episode_as_a_failure_with_a_penalty"
 VARIED_TEST = TT + "Randomisation.test_every_assumed_parameter_but_the_timestep_is_varied"
 NO_TORCH_TEST = TG + "Pipeline.test_onnx_runs_without_torch_and_reproduces_the_recorded_closed_loop"
@@ -622,6 +623,27 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
      (TSVC + "test_it_refuses_an_output_folder_that_already_holds_anything",), False),
     ("saver accepts a repeated image id", SVC, ' or row.get("id") in ids:', ":",
      (TSVC + "test_frames_before_begin_or_a_repeated_image_id_stop_the_save",), False),
+    ("fill needs all six directions", BM, "min_votes: int = 5) -> np.ndarray:", "min_votes: int = 6) -> np.ndarray:",
+     (TBM + "Solids.test_fill_closes_a_shell_with_a_large_hole",), False),
+    ("fill takes four directions", BM, "min_votes: int = 5) -> np.ndarray:", "min_votes: int = 4) -> np.ndarray:",
+     (TBM + "Solids.test_fill_leaves_a_pocket_open_on_two_sides_empty",), False),
+    ("tread hulls rest on the table", BM, "spaces = np.vstack((h.equations, [[0.0, 0.0, -1.0, floor_mm]]))",
+     "spaces = np.vstack((h.equations, [[0.0, 0.0, -1.0, -1.0]]))",
+     (TBM + "Solids.test_clipped_hull_stands_on_its_floor",), False),
+    ("hinge turn sign flipped", BM, "return np.column_stack((c * x - s * z, points[:, 1], s * x + c * z))",
+     "return np.column_stack((c * x + s * z, points[:, 1], -s * x + c * z))",
+     (TBM + "Geometry.test_hinge_turn_raises_the_front_and_undoes",), False),
+    ("fidelity sees no rig surface outside the pieces", BM, "    outside = ~inside_any(ref, planes)\n",
+     "    outside = np.zeros(len(ref), dtype=bool)\n", (TBM + "Fidelity.test_a_missing_piece_shows_as_protrusion",), False),
+    ("lower links not held to the lift", M, 'polycoef="0 1 0 0 0"', 'polycoef="0 0 0 0 0"',
+     (TBM + "MeshModeModel.test_lower_links_are_a_body_held_to_the_lift",), False),
+    ("mesh mode keeps the chassis box's contact", M, '    chassis = _as_carrier(_chassis_xml(v, d), "chassis_geom") + ',
+     "    chassis = _chassis_xml(v, d) + ", (TBM + "MeshModeModel.test_primitives_keep_mass_but_lose_contact",), False),
+    ("loose scraps kept in the solid", BM, "    return np.isin(labels, 1 + np.flatnonzero(sizes >= MIN_COMPONENT_FRACTION * sizes.max()))",
+     "    return solid", (TBM + "Solids.test_clean_keeps_the_body_and_drops_scraps",), False),
+    ("mesh mode counts the arm mass twice", M,
+     "lift = lift.replace(f'mass=\"{num(d[\"masses_g\"][\"arm\"] * GRAM)}\"', f'mass=\"{num(0.5 * d[\"masses_g\"][\"arm\"] * GRAM)}\"', 1)",
+     "lift = lift", (TBM + "MeshModeModel.test_primitives_keep_mass_but_lose_contact",), False),
 )
 NEUTRAL = ("docstring reworded", R, '"""A simulated Vector on a table. One instance is one robot and one scene."""',
            '"""A simulated Vector on a table: one instance is one robot and one scene."""')
