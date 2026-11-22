@@ -22,7 +22,9 @@ def initial_state(axis, angle):
     data = mujoco.MjData(model)
     j = model.joint('cube_root').qposadr.item()
     half = np.deg2rad(angle)/2
-    data.qpos[j+3:j+7] = [np.cos(half), *(np.sin(half)*np.eye(3)[axis])]
+    direction = np.eye(3)[axis] if np.isscalar(axis) else np.asarray(axis)
+    assert direction.shape == (3,) and np.isclose(np.linalg.norm(direction), 1.)
+    data.qpos[j+3:j+7] = [np.cos(half), *(np.sin(half)*direction)]
     mujoco.mj_forward(model, data)
     cube = model.body('cube').id
     geoms = np.flatnonzero(model.geom_bodyid == cube)
