@@ -89,3 +89,11 @@ Immediately beforehand, 50 paired exchanges bracketed each remote clock against 
 Across six further shelf sessions with 6,672 received acceleration packets, assuming one packet per 30 ms shortened the reconstructed recording by 17.0–17.7%. Using the previously estimated normal interval, pause interval and pause period from resting.tsv brought endpoint errors to +0.18% through +1.60%. Each session starts at the first observed packet with phase zero. No timing parameters were estimated on these sessions. B, C, D and W3 contained no usable packets and have no score.
 
 The largest within-session timing error was 0.92 s. For individual impacts use the actual packet receipt timestamps. Matching overall delivery rate does not establish the physical time of a particular sample or how many measurements the link may have omitted. This checks the timing of data available to the robot on this cube and pod; it does not score grip or impact dynamics. [All six overlays](cadence-holdout.png) · [per-session results](cadence-holdout.csv) · [reproduction](cadence_holdout.py).
+
+### R5 inward transport, operator-observed improper engagement
+
+The SDK sighted the cube at 113 mm and the native pickup raised it. The operator identified the engagement as improper during this run. The overhead view shows the cube clear of the shelf during transport. P2Y8 commanded four 15 mm reverse moves and set the cube down farther inward. The 60 mm is commanded tread travel, not measured cube displacement. Placement returned VISUAL_OBSERVATION_FAILED although the overhead view shows the cube released. P2Y8 returned to his dock.
+
+During pickup the maximum reported cube acceleration was 2.01 g and the tap counter advanced three times. During reverse transport the peak was 1.58 g with zero increments. Set-down reached 4.02 g with two increments. These windows follow SDK action boundaries on the receiving pod. Exact fork seating remains unmeasured. [Carry video](R5/carry.mp4) · [sensor traces](R5/sensor-traces.png) · [cube packets](R5/cube.csv.gz) · [SDK actions](R5/actions.csv).
+
+On retry W5, P2Y8 undocked and searched but never obtained a recent cube glyph sighting. No wheelstand command was issued. [Search actions](W5/actions.csv).

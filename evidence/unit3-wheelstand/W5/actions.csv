@@ -1,0 +1,155 @@
+sec,kind,action,response
+-21.269114,begin,connect on dock,
+-0.000385,end,connect on dock,"status {
+  code: RESPONSE_RECEIVED
+}
+success: true"
+0.0,begin,undock,
+15.534491,end,undock,"{'ok': True, 'stopped_reason': 'goal', 'prox_mm': 30.0, 'actual_delta': {'x': 0.0542, 'y': 0.1025, 'theta': 0.28582}, 'clamped': False, 'chunks_executed': 1, 'motion_result': {'ok': True, 'reason': 'completed', 'moved_mm': 0.0, 'turned_rad': 0.0, 'detail': 'goal', 'chunks': 1, 'clamped': False, 'prox_mm': 131.0}}"
+15.534655,begin,look,
+16.387518,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+16.937947,begin,look,
+17.700382,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+18.250719,begin,look,
+20.160541,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+20.711107,begin,aim,
+22.518629,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+22.518936,begin,look,
+23.358356,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+23.910383,begin,look,
+24.844332,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+25.395268,begin,look,
+26.507252,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+27.057888,begin,aim,
+29.15766,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+29.157971,begin,look,
+30.060773,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+30.611156,begin,look,
+31.624133,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+32.174821,begin,look,
+33.113196,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+33.664229,begin,aim,
+34.981763,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+34.981929,begin,look,
+35.864659,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+36.415253,begin,look,
+37.269925,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+37.820175,begin,look,
+38.824149,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+39.374846,begin,aim,
+41.666078,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+41.666251,begin,look,
+42.422182,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+42.973166,begin,look,
+43.664502,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+44.214931,begin,look,
+44.988013,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+45.538269,begin,aim,
+47.528035,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+47.529076,begin,look,
+49.929667,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+50.480517,begin,look,
+51.241712,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+51.792098,begin,look,
+52.668929,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+53.294288,begin,disconnect,
+53.376569,end,disconnect,"status {
+  code: REQUEST_PROCESSING
+}"
+53.37686,begin,dock,
+87.539586,end,dock,"status {
+  code: RESPONSE_RECEIVED
+}
+result: BEHAVIOR_COMPLETE_STATE"

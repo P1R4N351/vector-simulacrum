@@ -1,0 +1,90 @@
+sec,kind,action,response
+-16.519209,begin,connect on dock,
+-0.000266,end,connect on dock,"status {
+  code: RESPONSE_RECEIVED
+}
+success: true"
+0.0,begin,undock,
+15.644776,end,undock,"{'ok': True, 'stopped_reason': 'goal', 'prox_mm': 50.0, 'actual_delta': {'x': 0.0577, 'y': 0.1027, 'theta': 0.1387}, 'clamped': False, 'chunks_executed': 1, 'motion_result': {'ok': True, 'reason': 'completed', 'moved_mm': 0.0, 'turned_rad': 0.0, 'detail': 'goal', 'chunks': 1, 'clamped': False, 'prox_mm': 64.0}}"
+15.644959,begin,look,
+16.502345,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+17.052547,begin,look,
+17.752422,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+18.302737,begin,look,
+19.13363,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+19.684639,begin,aim,
+20.934477,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+20.934893,begin,look,
+21.650892,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+22.201159,begin,look,
+22.984952,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+23.535502,begin,pickup for inward transport,
+31.96806,end,pickup for inward transport,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+31.96841,begin,reverse inward,
+33.23982,end,reverse inward,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+33.240033,begin,reverse inward,
+34.601612,end,reverse inward,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+34.601937,begin,reverse inward,
+35.852686,end,reverse inward,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+35.853549,begin,reverse inward,
+37.127058,end,reverse inward,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+37.127701,begin,set cube down,
+46.487196,end,set cube down,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+  code: VISUAL_OBSERVATION_FAILED
+}"
+49.594455,begin,disconnect,
+49.682791,end,disconnect,"status {
+  code: REQUEST_PROCESSING
+}"
+49.682925,begin,dock,
+84.341763,end,dock,"status {
+  code: RESPONSE_RECEIVED
+}
+result: BEHAVIOR_COMPLETE_STATE"
