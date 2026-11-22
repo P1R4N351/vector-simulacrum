@@ -19,6 +19,7 @@ from simulacrum import params
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("fixture")
 mode = parser.add_mutually_exclusive_group()
+mode.add_argument("--shell-entry", action="store_true", help="Find rigid-shell contact with corners omitted")
 mode.add_argument("--entry-scan", action="store_true", help="Locate first contact approaching horizontally")
 mode.add_argument("--depth-sweep", action="store_true",
                     help="Test deeper, centered seats at several heights, omitting initially overlapping poses")
@@ -26,6 +27,12 @@ args = parser.parse_args()
 tree = ElementTree.parse(args.fixture)
 require_printed_fork(tree)
 add_links(tree, repo)
+if args.shell_entry:
+    cube_body = tree.find(".//body[@name='cube']")
+    pads = [geom for geom in cube_body.findall("geom") if geom.get("name", "").startswith("cube_rubber_")]
+    assert len(pads) > 0
+    for pad in pads:
+        cube_body.remove(pad)
 model = mj.MjModel.from_xml_string(ElementTree.tostring(tree.getroot(), encoding="unicode"))
 v = params.values(params.load(model="vector_2"))
 robot = np.genfromtxt(here/"state.csv.gz", delimiter=",", names=True)
@@ -40,9 +47,9 @@ up = np.array([float(row[f"mean_{axis}_g"]) for axis in "xyz"])
 up /= np.linalg.norm(up)
 z = np.array([0., 0., 1.])
 attitude = Rotation.from_quat(np.r_[np.cross(up, z), 1 + up@z])
-if args.entry_scan:
+if args.entry_scan or args.shell_entry:
     from entry_scan import scan
-    scan(here, model, wrist, rails, rq, attitude, v["cube_carry_offset_mm"])
+    scan(here, model, wrist, rails, rq, attitude, v["cube_carry_offset_mm"], shell_only=args.shell_entry)
     sys.exit(0)
 floor = model.geom("table").id
 filename = "static-depth.csv" if args.depth_sweep else "static-support.csv"
