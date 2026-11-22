@@ -27,7 +27,7 @@ def add_front(root, parts):
             mount.append(copy.deepcopy(wheel.find(f"geom[@name='{side}_geom']")))
 
 
-def replay(pose, clearance, dt, parts=()):
+def replay(pose, clearance, dt, parts=(), trajectory=path, end=5.85, observe=None):
     root = copy.deepcopy(tree.getroot())
     if parts:
         add_front(root, parts)
@@ -46,8 +46,8 @@ def replay(pose, clearance, dt, parts=()):
     d = mj.MjData(m)
     d.qpos[:3] = [*center,.02215]
     d.qpos[3:] = [np.cos(pose["cube_yaw"]/2),0,0,np.sin(pose["cube_yaw"]/2)]
-    t = np.arange(4.8,5.85,dt)
-    x,y,angle,pitch,h = [np.interp(t,path["sec"],path[k]) for k in ("x","y","yaw","pitch","lift")]
+    t = np.arange(4.8,end,dt)
+    x,y,angle,pitch,h = [np.interp(t,trajectory["sec"],trajectory[k]) for k in ("x","y","yaw","pitch","lift")]
     reach = -41+np.sqrt(66**2-(h-45)**2)
     along = -48+(reach+48)*np.cos(pitch)-(h-10.75)*np.sin(pitch)
     height = 10.75+(reach+48)*np.sin(pitch)+(h-10.75)*np.cos(pitch)
@@ -66,6 +66,8 @@ def replay(pose, clearance, dt, parts=()):
         mj.mj_step(m,d)
         displacement = (d.qpos[:2]-center)*1000
         trace.append((sec+dt,displacement@forward,displacement@[-forward[1],forward[0]],d.qpos[2]*1000))
+        if observe is not None and i % round(.01/dt) == 0:
+            observe(sec, m, d, trace[-1][1]-extent*1000-clearance)
         if d.qpos[2]<-.02215:
             break
     return np.array(trace)
