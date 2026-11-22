@@ -12,6 +12,7 @@
 // tick per tick() call, so a frame loop can run it. The tick order is the same.
 
 import { TreadController, TreadEncoder, wholeMmps } from "./drive.js";
+import { CubeSensor } from "./cube_sensor.js";
 import { Hazards } from "./hazards.js";
 import { CHANNELS, ImuFilter } from "./imu_filter.js";
 import { ProxSensor } from "./prox.js";
@@ -71,6 +72,9 @@ export class VectorSim {
     this._place(opts.startXyMm ?? [0, 0], opts.headingDeg ?? 0);
     this._poseServos(opts.headDeg ?? 0, opts.liftMm ?? null);
     this._settle();
+    this.cubeSensor = this._cubeAdr < 0 ? null : new CubeSensor(
+      this.v, this.model.opt.timestep, opts.noiseSeed ?? 0, this._cubeForce(),
+    );
   }
 
   dispose() {
@@ -93,6 +97,8 @@ export class VectorSim {
     this._cliffAdr = CLIFF_NAMES.map((name) => sensor(`cliff_${name}`));
     this._tofSite = id("mjOBJ_SITE", "tof");
     this._sceneOnly = [1, 0, 0, 0, 0, 0]; // geom group 0 is the scene; the robot's own geoms are in group 1
+    const cubeId = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR.value, "cube_accel");
+    this._cubeAdr = cubeId < 0 ? -1 : model.sensor_adr[cubeId];
     this._gyroAdr = sensor("gyro");
     this._accelAdr = sensor("accel");
     this._imuAdr = [0, 1, 2].map((i) => this._accelAdr + i).concat([0, 1, 2].map((i) => this._gyroAdr + i));
@@ -220,6 +226,11 @@ export class VectorSim {
     this._imuFilter.reset(this._imuAdr.map((adr) => sd[adr]));
   }
 
+  _cubeForce() {
+    const gravity = this.v.gravity_mmps2 * MM;
+    return [0, 1, 2].map(axis => this.data.sensordata[this._cubeAdr + axis] / gravity);
+  }
+
   _physicsStep() {
     const raw = [0, 0, 0, 0, 0, 0];
     for (let i = 0; i < this.d.substeps; i++) {
@@ -227,6 +238,7 @@ export class VectorSim {
       const sd = this.data.sensordata;
       for (let ch = 0; ch < CHANNELS; ch++) raw[ch] = sd[this._imuAdr[ch]];
       this._imuFilter.update(raw);
+      if (this.cubeSensor) this.cubeSensor.step(this.data.time, this._cubeForce());
     }
   }
 

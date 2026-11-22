@@ -60,6 +60,7 @@ function Readouts({ t }) {
     ["range sensor", `${fmt(t.prox_mm)} mm \u00b7 ${rangeVerdict(t)}`], ["range signal", fmt(t.prox_quality, 3)],
     ["robot time", `${fmt(t.time_s, 1)} s`], ["speed", `${fmt(t.rate, 2)}× real time`],
   ];
+  if (t.cube_slot_g) rows.push(["cube acceleration", t.cube_slot_g.map(g => fmt(g, 2)).join(" / ") + " g"]);
   return (
     <dl className="readouts">
       {rows.map(([label, value]) => (
