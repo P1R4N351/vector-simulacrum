@@ -14,6 +14,11 @@ from simulacrum import mjcf,params
 from simulacrum.cube import CubeAccelerometer
 from simulacrum.drive import TreadController
 
+held_out="--w8" in sys.argv[2:]
+if held_out and '--firmware' not in sys.argv[2:]:
+    raise ValueError('Use --firmware for the W8 transfer test')
+if held_out:
+    here=here.parent/"W8"
 v=params.values(params.load(model='vector_2'))
 tree=ET.fromstring(mjcf.build_mjcf(v,(),cube='free'))
 fixture=ET.parse(sys.argv[1])
@@ -33,7 +38,15 @@ dt=sensor_dt/4
 m.opt.timestep=dt
 approach=np.genfromtxt(here/'approach.csv',names=True,delimiter=',')
 state=np.genfromtxt(here/'state.csv.gz',names=True,delimiter=',')
-zero=22.330433
+with (here/'actions.csv').open() as f:
+    zero=next(float(r['sec']) for r in csv.DictReader(f) if r['action']=='pop_a_wheelie')
+# Time relative to the last raised-lift observation; the internal action timestamp is unavailable.
+late_onset=4.015283
+early_onset=3.950686
+if held_out:
+    drop=np.flatnonzero((approach['lift_mm'][1:]-approach['lift_mm'][:-1]) < -10)[0]+1
+    early_onset,late_onset=approach['s'][drop-2:drop]
+shift=late_onset-4.015283
 target=json.loads((here/'initial-cube.json').read_text())
 w,x,y,z=[target['q'+str(i)] for i in range(4)]
 angle=np.arctan2(2*(w*z+x*y),1-2*(y*y+z*z))
@@ -67,7 +80,16 @@ def run(start,limit,onset=None):
         d.joint(name+'_joint').qpos[0]=val
     d.ctrl[m.actuator('head').id]=obs(start,'head')
     d.ctrl[m.actuator('lift').id]=lift
+    if held_out:
+        mj.mj_forward(m,d)
+        depths=[-contact.dist*1000 for contact in d.contact
+                if cube_id in m.geom_bodyid[contact.geom] and contact.dist<0
+                and 0 not in m.geom_bodyid[contact.geom]]
+        initial_xy=d.qpos[cube:cube+2].copy()
     for _ in range(round(.20/dt)):mj.mj_step(m,d)
+    if held_out:
+        initial_checks.append([start,onset,max(depths,default=0.),
+                               np.linalg.norm(d.qpos[cube:cube+2]-initial_xy)*1000])
     center=d.qpos[cube:cube+2].copy()
     speed=np.mean([obs(start,'left'),obs(start,'right')])
     d.qvel[:2]=.001*speed*np.array([np.cos(yaw),np.sin(yaw)])
@@ -79,7 +101,7 @@ def run(start,limit,onset=None):
     trace=[];peak_load=0
     drive_ended=False
     lowering_start=mjcf.lift_angle_of_height(v,obs(onset,"lift_mm")) if onset is not None else lift
-    for i,t in enumerate(np.arange(start,5.8,dt)):
+    for i,t in enumerate(np.arange(start,5.8+shift,dt)):
         if i%round(.001*v['control_period_ms']/dt)==0:
             lowering=onset is not None and t>=onset
             if lowering:
@@ -88,7 +110,7 @@ def run(start,limit,onset=None):
                 drive_ended |= pitch_rad>1.2 or t-onset>.5
             for controller,side in zip(controllers,['left','right']):
                 measured=d.joint('wheel_f'+side[0]+'_joint').qvel[0]*v['wheel_front_radius_mm']
-                requested=obs(t,side) if t<4.84 else 0
+                requested=obs(t,side) if t<4.84+shift else 0
                 if lowering:requested=0 if drive_ended else 150
                 duty=controller.update(requested,measured)
                 d.actuator(side+'_wheel').ctrl[0]=duty*3.92/v['motor_reference_voltage_v']
@@ -114,29 +136,37 @@ def run(start,limit,onset=None):
     packets=np.array([[start+t,np.linalg.norm(a)/8192] for t,p in sensor.messages for a in np.frombuffer(p[2:],'<i2').reshape(3,3)])
     return np.array(trace),packets,len(sensor.taps.events),peak_load
 
+initial_checks=[]
 firmware='--firmware' in sys.argv[2:]
 fig,axes=plt.subplots(4 if firmware else 3,1,sharex=True,figsize=(9,9 if firmware else 7),layout='constrained')
 if firmware:axes[3].plot(approach['s'],approach['lift_mm'],color='black')
 axes[0].plot(approach['s'],np.rad2deg(approach['pitch']),color='black',label='Physical')
-opt=np.genfromtxt(here/'optical-travel.csv',delimiter=',',names=True)
-ok=opt['correlation']>.7
-axes[1].scatter(opt['s_after_command'][ok],opt['travel_mm'][ok],color='black',s=9)
+if not held_out:
+    opt=np.genfromtxt(here/'optical-travel.csv',delimiter=',',names=True)
+    ok=opt['correlation']>.7
+    axes[1].scatter(opt['s_after_command'][ok],opt['travel_mm'][ok],color='black',s=9)
 force=np.genfromtxt(here/'cube.csv.gz',delimiter=',',names=True)
 axes[2].scatter(force['sec']-zero,np.linalg.norm([force[k] for k in 'xyz'],axis=0)/8192,color='black',s=4)
 stem='firmware-drive' if firmware else 'free-chassis'
 with (here/(stem+'.csv')).open('w') as f:
     writer=csv.writer(f,lineterminator='\n')
     writer.writerow((['onset_s'] if firmware else [])+['release_s','limit_mNm','peak_pitch_deg','settled_travel_mm','settled_yaw_deg','peak_g','taps','peak_downward_fork_N'])
-    cases=([(start,30,onset) for start in (3.5,3.8) for onset in (3.950686,4.015283)] if firmware
+    cases=([(start+shift,30,onset) for start in (3.5,3.8) for onset in (early_onset,late_onset)] if firmware
            else [(3.5,30,None),(3.8,30,None),(3.8,10,None),(3.8,80,None)])
     for start,limit,onset in cases:
         tr,pk,taps,load=run(start,limit,onset)
-        writer.writerow(([onset] if firmware else [])+[start,limit,tr[:,1].max(),*np.median(tr[tr[:,0]>5.5,2:4],axis=0),pk[:,1].max(),taps,load])
+        writer.writerow(([onset] if firmware else [])+[start,limit,tr[:,1].max(),*np.median(tr[tr[:,0]>5.5+shift,2:4],axis=0),pk[:,1].max(),taps,load])
         if limit==30:
             for ax,j in zip(axes[:2],[1,2]):ax.plot(tr[:,0],tr[:,j],label=(f'{start:.1f} s release, {onset:.3f} s command' if firmware else f'Free from {start} s'))
             axes[2].plot(pk[:,0],pk[:,1])
             if firmware:axes[3].plot(tr[:,0],tr[:,4])
 for ax,label in zip(axes,['Chassis pitch (°)','Top glyph travel (mm)','Cube specific force (g)','Lift height (mm)']):
-    ax.set(xlim=(3.45,5.75),ylabel=label)
+    ax.set(xlim=(3.45+shift,5.75+shift),ylabel=label)
 axes[0].legend();axes[-1].set_xlabel('Seconds after wheelstand command')
 fig.savefig(here/(stem+'.png'),dpi=155)
+
+if held_out:
+    with (here/'initial-contact-check.csv').open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['release_s','onset_s','initial_robot_cube_overlap_mm','cube_settling_displacement_mm'])
+        writer.writerows(initial_checks)
