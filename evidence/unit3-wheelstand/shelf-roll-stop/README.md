@@ -59,3 +59,9 @@ The SDK exposed the aggregate flag, without the four optical readings. Replaying
 A 16.5 mm threshold, selected on Sunday by minimizing receipt disagreements (ties favor the existing threshold), matched all 217 Sunday receipts. With the threshold frozen, disagreements dropped from one to zero in each of two earlier wheelstands (W4: 98 receipts, W8: 94). This improves four aggregate observations across these three maneuvers. Unknown chassis height, roll, optical reflectivity and SDK receipt timing limit inference of an actual sensor distance. The test does not reconstruct the later shelf departure. Keep the production threshold pending an independent distance or drop-height measurement.
 
 ![Pose-only replay of front and rear ranges with recorded and simulated cliff flags](cliff-pitch.png)
+
+### Browser free-cube replay
+
+The two shipped free-cube scenes take 41.73 ms to settle from 90% to 10% tilt from a 15.76° release on each of four edges. The S22B camera estimate is 54.3 ms with frame brackets of 27.6–84.0 ms. The simulated release begins at rest with a 1 nm numerical clearance. At exactly zero clearance the two runtimes can disagree about whether the first contact exists. The browser regression checks every physics step against native MuJoCo for 150 ms, including all three raw accelerometer channels (0.01 m/s² tolerance). Physical Bluetooth packets additionally depend on chip sampling and app timing.
+
+![Camera and browser-verified free-cube releases](browser-landing.png)
