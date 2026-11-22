@@ -115,7 +115,7 @@ class VectorSim:
                  start_xy_mm: Tuple[float, float] = (0.0, 0.0), heading_deg: float = 0.0,
                  obstacles: Sequence[Sequence[float]] = (), head_deg: float = 0.0,
                  lift_mm: Optional[float] = None, noise_seed: int = 0, cube: Optional[str] = None,
-                 cube_app: str = "last") -> None:
+                 cube_app: str = "last", *, body_range_clock: bool = False, charger_contact: bool = False) -> None:
         assert control_level in (CONTROL_DEFAULT, CONTROL_OVERRIDE), "unknown control level"
         assert isinstance(noise_seed, int), "noise seed must be an int"
         assert cube in mjcf.CUBE_MOUNTS, "unknown cube placement"
@@ -125,6 +125,11 @@ class VectorSim:
             lift_mm = self.v["lift_height_max_mm"]  # FW:79 LIFT_HEIGHT_CARRY, the cube carrying height
         # The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
         self._prox_sensor = ProxSensor(self.v, noise_seed + 1)
+        self.body_range_clock = body_range_clock
+        self.charger_contact = charger_contact
+        self._range_body_phase_us = 0
+        self._range_body_ticks = 0
+        self._range_sample: Optional[Tuple[float, float]] = None
         self._tof_hits_mm: List[float] = []
         self.d = mjcf.derive(self.v)
         self.control_level = control_level
@@ -332,7 +337,22 @@ class VectorSim:
     def _prox(self) -> ProxReading:
         """What the time-of-flight sensor reports now (simulacrum/prox.py), from the lift height the robot reports."""
         lift_mm = self._reported_head_and_lift()[1]
-        return self._prox_sensor.read(self._cast_tof(), lift_mm, self._pitch())
+        if not self.body_range_clock:
+            return self._prox_sensor.read(self._cast_tof(), lift_mm, self._pitch())
+        if self._range_sample is None:
+            self._range_sample = self._prox_sensor.acquire(self._cast_tof(), lift_mm)
+        return self._prox_sensor.report(self._range_sample, lift_mm, self._pitch())
+
+    def _advance_range_clock(self) -> None:
+        """Syscon keeps the elapsed body ticks when tread drive or charger contact changes."""
+        ticks, self._range_body_phase_us = divmod(self._range_body_phase_us + round(self.dt * 1e6), 5120)
+        driven = any(abs(controller.power) > 0.1 for controller in self._controllers)
+        target = 6 if driven else (200 if self.charger_contact else 12)
+        for _ in range(ticks):
+            self._range_body_ticks += 1
+            if self._range_body_ticks >= target:
+                self._range_body_ticks = 0
+                self._range_sample = self._prox_sensor.acquire(self._cast_tof(), self._reported_head_and_lift()[1])
 
     def _reset_imu_filter(self) -> None:
         """Start the IMU filter at the present reading: the robot has been still long enough."""
@@ -566,6 +586,8 @@ class VectorSim:
         self._write_controls()
         self._physics_step()
         self.tick += 1
+        if self.body_range_clock:
+            self._advance_range_clock()
         yaw = self._yaw()
         self._yaw_total += math.atan2(math.sin(yaw - self._yaw_prev), math.cos(yaw - self._yaw_prev))
         self._yaw_prev = yaw

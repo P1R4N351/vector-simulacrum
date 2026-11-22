@@ -338,6 +338,33 @@ class Servos(unittest.TestCase):
 
 @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
 class RangeSensors(unittest.TestCase):
+    def test_body_range_clock_holds_sample_across_lift_and_charger_changes(self) -> None:
+        sim = VectorSim(values=params.values(params.load(model="vector_2")), cube="free",
+                        body_range_clock=True, charger_contact=True)
+        initial = sim.state.prox_distance_mm
+        self.assertTrue(sim.command_lift_height(45))
+        sim.step(150)
+        self.assertTrue(sim.state.prox_is_lift_in_fov)
+        self.assertEqual(sim.state.prox_distance_mm, initial)
+        changes = []
+        publications = []
+        sample = published = sim._range_sample
+        for _ in range(480):
+            state = sim.state
+            sim.step()
+            if sample is not sim._range_sample:
+                changes.append(sim.tick)
+                sample = sim._range_sample
+            if sim.state is not state and published is not sample:
+                publications.append(sim.tick)
+                published = sample
+        self.assertEqual(changes, [205, 410, 615])
+        self.assertEqual(publications, [216, 420, 624])
+        self.assertEqual(sim.state.prox_distance_mm, 30)
+        sim.charger_contact = False
+        sim.step(2)
+        self.assertIsNot(sim._range_sample, sample)
+
     def test_cliff_sensors_read_their_height_on_the_table(self) -> None:
         sim = _quiet_sim()
         sim.advance(0.2)
