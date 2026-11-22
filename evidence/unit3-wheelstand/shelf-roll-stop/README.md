@@ -115,3 +115,36 @@ The browser timestamps tap candidates at simulated packet delivery.
 
 [Packet and callback counts](browser-tap-counts.csv) · [Matched timing](browser-tap-times.csv).
 Reproduce with `python browser_taps.py`.
+
+### Does the softer shelf contact transfer to landings?
+
+[Pickup E](../../unit3-physical-repeats/E/pad-shelf.csv) favored a change in the
+rubber contact time constant from 8 to 32 ms. We froze that candidate and
+replayed R5 (31.5°) and S22B (15.76°) on all four bottom edges, starting at
+rest at either zero clearance or the earlier R5-selected 8 mm clearance.
+The sensor still integrates at 1 ms. Each physical trajectory is sampled at
+ten app phases, two chip phases and three packet alignments, with a fixed
+noise seed. These are grid counts, not independent observed landings.
+
+At 0.125 ms physics steps and 8 mm clearance, the observed low-force pair
+followed by a peak within 5% occurred in 24/240 R5 cases with the original
+pads and 60/240 with the softer pads. On S22B the same counts were 24/240
+and 54/240. At 0.25 ms, S22B gave 24 and 60. The S22B tilt transition
+took 27.7 ms with the original contact and 31.2 ms with the softer one;
+the camera frame brackets were 27.6–84.0 ms. Neither setting matched both
+sensor criteria on S22B at zero initial clearance. The physical clearance and
+initial velocity remain unknown.
+
+For the positive-X edge rotation in S22B at 8 mm clearance and 0.125 ms
+steps, we also summed positive contact-normal impulses over the first 150 ms.
+The plastic shell carried 5.2% with the original setting and 92.7% with the
+softer setting. In the latter replay it began carrying force 0.5 ms after
+the first pad load. Its largest force-bearing solver overlap grew from 0.39
+to 2.40 mm. Thus the apparent sensor improvement depends on substantial load
+through the shell in this geometry. That load sharing and overlap have no
+physical measurement here. The production pads retain the original setting.
+
+![Peak magnitude over release edges and sampling phases; bars span the 5th–95th percentiles](pad-landing.png)
+
+[Landing scores and tilt times](pad-landing.csv) · [Pad and shell forces integrated over contact](pad-contact.csv).
+Reproduce with `python pad_landing.py` and `python pad_contact.py`.
