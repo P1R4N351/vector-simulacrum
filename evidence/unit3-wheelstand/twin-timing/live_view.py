@@ -20,11 +20,16 @@ def capture(serial):
     if frame is None:
         raise ValueError(f'No frame from {serial}')
     panel = ShelfView(serial,frame).apply(frame)
-    return cv2.resize(panel,(600,264),interpolation=cv2.INTER_AREA)
+    return panel
 
 
 if __name__=='__main__':
     with ThreadPoolExecutor(2) as pool:
         panels = list(pool.map(capture,SERIALS))
-    if not cv2.imwrite(str(Path(sys.argv[2])),np.hstack(panels)):
+    if '--mirror' in sys.argv[3:]:
+        from mirror_view import comparison
+        preview = comparison(*panels)
+    else:
+        preview = np.hstack([cv2.resize(panel,(600,264),interpolation=cv2.INTER_AREA) for panel in panels])
+    if not cv2.imwrite(str(Path(sys.argv[2])),preview):
         raise OSError('Could not save shelf preview')
