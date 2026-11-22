@@ -53,12 +53,15 @@ class RescuePipelineTests(unittest.TestCase):
     @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
     def test_scene_xml_excludes_robot_contacts_when_requested(self) -> None:
         rp = _load_rescue_pipeline()
-        boxes = rp.collision_boxes(SDK_CUBE_PATH) if SDK_CUBE_PATH.is_file() else [("shell", [0.0, 0.0, 0.0], [0.022, 0.022, 0.022])]
-        xml_on = rp.scene_xml(boxes, 50.0, 0.5, 0.9, False, with_cube=True)
-        xml_off = rp.scene_xml(boxes, 50.0, 0.5, 0.9, True, with_cube=True)
-        self.assertIn("carry_weld", xml_on)
-        self.assertNotIn('body1="chassis" body2="patient_chassis"', xml_on)
-        self.assertIn('body1="chassis" body2="patient_chassis"', xml_off)
+        candidates = [[[[0.0, 0.0, 0.0], [0.022, 0.022, 0.022]]]]
+        if SDK_CUBE_PATH.is_file():
+            candidates.append(rp.collision_boxes(SDK_CUBE_PATH))
+        for boxes in candidates:
+            xml_on = rp.scene_xml(boxes, 50.0, 0.5, 0.9, False, with_cube=True)
+            xml_off = rp.scene_xml(boxes, 50.0, 0.5, 0.9, True, with_cube=True)
+            self.assertIn("carry_weld", xml_on)
+            self.assertNotIn('body1="chassis" body2="patient_chassis"', xml_on)
+            self.assertIn('body1="chassis" body2="patient_chassis"', xml_off)
 
     @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
     def test_continuous_nocube_arm_contact_on_vs_off_diverges(self) -> None:
