@@ -9,21 +9,25 @@ from yaw_transfer import cube_rotation, here, load_rows, run
 
 
 def replay(case):
-    name,enabled,path=case
+    name,enabled,path,*extra=case
+    pieces=extra[0] if extra else None
     directory=here.parent/name
     view='Before roll' if name=='R8' else 'Next approach'
     yaw=next(float(r['grid_yaw_minus_sdk_deg']) for r in load_rows('optical-registration.csv',here)
              if r['calibration']=='Dock and first cube' and r['view']==view)
     contacts=[]
+    surface_ids=set()
     def observe(model,data):
         if enabled:
-            chassis=model.geom('chassis_geom').id
+            if not surface_ids:
+                names=['chassis_geom'] if pieces is None else [f'apron_{i}' for i in range(len(pieces))]
+                surface_ids.update(model.geom(key).id for key in names)
             cid=model.body('cube').id
-            if any(chassis in c.geom and cid in model.geom_bodyid[c.geom] for c in data.contact):
+            if any(surface_ids.intersection(c.geom) and cid in model.geom_bodyid[c.geom] for c in data.contact):
                 contacts.append(data.time)
     t,tilt,_,_,sensor=run(path,.00025,True,directory,cube_rotation(directory,yaw),
         {'cube_chip_yaw_deg':180,'cube_accel_scale':[.970709]*3},observer=observe,
-        articulated=True,shelf_support=True,chassis_contact=enabled)
+        articulated=True,shelf_support=True,chassis_contact=enabled is True,apron_pieces=pieces)
     samples=[np.frombuffer(b[2:],'<i2').reshape(3,3)/8192 for s,b in sensor.messages if s>2.5]
     stamps=[s for s,b in sensor.messages if s>2.5]
     counts=np.array(samples)

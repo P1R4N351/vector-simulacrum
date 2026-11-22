@@ -89,3 +89,11 @@ On the frozen fork-and-tread trajectory, we checked the viewer's photo-derived f
 In R8 the apron intersects at every sampled time from +3.28 through +4.46 s (60 samples). The SDK body intersects from +3.38 through +4.28 s (46 samples). Neither fixed track base intersects. On this trajectory, the interference therefore survives replacing the chassis box with curved surfaces. It ends before the +4.60 to +5.208 s late sensor comparison. Physical positions may diverge as soon as the first contact is missed. All four tested surfaces stayed clear on held-out R9. Shading on the region map marks entire triangles touched at any sampled instant, so it overstates the area of contact; triangle counts depend on tessellation.
 
 [Contact region in top and side views](shell-regions.png) · [Timing](shell-overlap.png) · [Per-part samples](shell-overlap.csv). Run shell_overlap.py with the printed fixture XML and the viewer's locally installed SDK geometry.
+
+### Dynamic contact with the curved front apron
+
+The registered viewer apron was decomposed into three convex collision pieces (CoACD threshold 0.025, seed 0). The paired run enables these pieces on the prescribed chassis with the existing chassis contact material. The other two variants use the original fork-and-tread setup or add the chassis box. Cube pose, lift torque, motor trajectory, shelf support and tread input are identical across variants. The apron-only variant isolates that surface; it omits the rest of the SDK shell.
+
+Apron contact starts at +3.271 s and lasts a cumulative 0.654 s during R8. The cube tilts at most 0.126° and the packet tap counter changes three times. The first contact agrees to one 20 ms sample with the earlier triangle-intersection check. Earlier geometric overlap did not imply that the apron would supply sufficient leverage. Compared with the two physical taps and measured 1.43 g peak, the apron replay gives an extra tap and 1.81 g. All held-out R9 variants stay at zero taps and 0.98 g. These results do not support adopting the apron alone as a roll correction. Full shell shape, fork purchase and the reaction of an independently moving chassis remain open.
+
+[Cube tilt and Y acceleration](apron-contact.png) · [Six replay results](apron-contact.csv) · [Reproduce with fixture XML and CoACD](apron_contact.py)
