@@ -27,3 +27,11 @@ The native opposite-camera frames resolve the fast return that the subsampled ov
 The production Vector 2 free-cube model released from rest at 15.76° takes **41.7 ms** for the corresponding fraction of true tilt on each of its four bottom edges. The calculation places the lowest collision geometry at the tabletop before release. No coefficients were fitted. The point estimate is 12.6 ms faster than the camera estimate, inside the frame brackets. The real fork's release velocity and residual support are unknown, and the camera angle is projected. This trial cannot distinguish a contact damping error from those effects.
 
 ![Normalized settling curves aligned at the 90 percent crossing](release.png)
+
+### Cube accelerometer through landing
+
+The recorded magnitude reached 3.825 g. Immediately before the packet containing that peak, two consecutive slots in a single packet read **0.022 and 0.012 g**. Their ordering within the packet is known. The horizontal axis estimates slot times from host receipt and nominal 10 ms ticks, so spacing across packet boundaries is less certain.
+
+Releasing the unchanged model from 15.76° on each bottom edge and running its production Vector 2 accelerometer and default last-frame app yielded peaks of 1.63–5.43 g across 160 cases (four edges, ten app tick phases, four frame phases; fixed noise seed). The smallest sampled magnitude across those cases was **0.095 g**. The peak alone is a poor calibration target because it varies substantially with sampling phase. The much lower measured trough is a separate discrepancy. The unknown fork release and physical chip position limit attribution to any one model parameter. Near-zero specific force at the chip alone does not establish loss of external contact.
+
+![Cube accelerometer magnitude through impact, aligned on each trace's peak](impact-sensor.png)

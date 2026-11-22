@@ -16,7 +16,7 @@ def crossing(t, y, level):
     return t[i] + (level-y[i]) * (t[i+1]-t[i]) / (y[i+1]-y[i])
 
 
-def replay(axis, angle):
+def initial_state(axis, angle):
     v = params.values(params.load(model='vector_2'))
     model = mujoco.MjModel.from_xml_string(mjcf.build_mjcf(v, cube='free'))
     data = mujoco.MjData(model)
@@ -28,6 +28,11 @@ def replay(axis, angle):
     geoms = np.flatnonzero(model.geom_bodyid == cube)
     low = min(data.geom_xpos[g,2] - abs(data.geom_xmat[g].reshape(3,3)[2]) @ model.geom_size[g] for g in geoms)
     data.qpos[j+2] -= low
+    return model, data, cube, v
+
+
+def replay(axis, angle):
+    model, data, cube, _ = initial_state(axis, angle)
     times, tilts = [], []
     while data.time < .25:
         mujoco.mj_forward(model, data)
