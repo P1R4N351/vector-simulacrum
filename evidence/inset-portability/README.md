@@ -78,3 +78,16 @@ For each of the four recordings we kept its head/lift start, stop time and two s
 Reversing only the four auxiliary roller bodies' XML order reproduced the gyro asymmetries to within 0.000001 percentage points. Giving both treads the mean of the two configured heat-loss rates reduced the −7.80% case to −2.95%. Across the two recorded hold-out directions, equalizing those rates improved the shifted model's physical yaw RMS from 2.92% to 1.57%, but worsened the centered model from 1.61% to 2.54%. These are sensitivity results on a previously examined pair. They show an interaction between drive and contact assumptions. A physical temperature difference was never measured in these recordings.
 
 [All mirrored runs and heading slopes](mirror-spins.csv) · [Reproduce](mirror_spins.py)
+
+### Braking at the robot's wheel-speed crossing
+
+![Gyro on stop-dispatch and wheel-crossing clocks, with steady yaw sensitivity](heat-transient.png)
+
+For the shifted model at measured steady targets, the original heat parameters reduced simulated motor torque by at most 0.185% during the steady scoring window. Mean absolute PWM duty was about 0.69. Moving the two heat-loss rates toward their common mean produced a nonmonotonic response in steady CCW yaw. Earlier mirrored-run yaw percentages score steady turns. The braking measurements below use the next 300 ms of gyro samples.
+
+| Held-out repeat | Time to 80% wheel speed, robot / sim | Angle after stop dispatch, robot / sim | Angle after 80% crossing, robot / sim |
+|---|---:|---:|---:|
+| CCW | 210 / 92 ms | 45.6° / 29.2° | 3.6° / 9.7° |
+| CW | 146 / 81 ms | 40.4° / 30.4° | 11.4° / 12.9° |
+
+Wheel alignment reverses the sign of the integrated error for both repeats. A blanket increase in braking travel would worsen the CCW wheel-aligned result. Equalizing motor heat-loss rates moves the wheel-aligned sim values to 8.6° CCW and 11.6° CW. These timings combine command delivery, encoder filtering and SDK receipt timing. The threshold interpolates the first descending crossing of 80% of the recorded steady mean absolute wheel speed, using the same threshold in hardware and sim. The roughly 60 ms SDK sampling period limits timing precision. [All ablations and both clocks](heat-transient.csv) · [Reproduce](heat_transient.py)
