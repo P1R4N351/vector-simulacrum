@@ -7,8 +7,9 @@ import numpy as np
 from release import here, initial_state
 from simulacrum.cube import CubeAccelerometer
 
-def simulated(axis, sign, phase_fraction, frame_fraction):
-    model, data, body, v = initial_state(axis, sign*15.76)
+def simulated(axis, sign, phase_fraction, frame_fraction, angle=15.76, gap_mm=0.):
+    model, data, body, v = initial_state(axis, sign*angle)
+    data.qpos[model.joint("cube_root").qposadr.item()+2] += gap_mm/1000
     dt = model.opt.timestep
     chip = CubeAccelerometer(v, dt, frame_phase_s=frame_fraction*v["cube_accel_frame_period_ms"]/1000, tick_phase_s=phase_fraction*v['cube_tick_ms']/1000)
     mujoco.mj_forward(model,data)

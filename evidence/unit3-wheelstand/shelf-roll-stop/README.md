@@ -43,3 +43,11 @@ A scan of 83,508 decoded slots in 21 nonempty shelf recordings found two runs wi
 This gives two separately recorded landing events against which to check a model of fork release. They have different starting geometries. A shared trough is evidence for repeatability of the sensor signature, but does not uniquely identify free flight, rubber compliance, or the fork trajectory.
 
 ![Cube acceleration around two consecutive low-force readings](low-force.png)
+
+### Release-clearance transfer
+
+A gap beneath the lowest corner can generate the two very low samples. To test whether it also predicts the impact, release the cube from rest with its measured preceding tilt (R5 approximately 31.5°, Sunday 15.76°). Sweep 0, 1, 2, 3, 4, 6, 8 and 10 mm on R5. Each clearance has 240 combinations of edge, chip sampling phase and position in the three-slot packet. Score an adjacent same-packet pair below 0.05 g followed by a maximum within 5% of the recorded peak over the following samples through 100 ms from the first slot. All fractions describe this finite grid.
+
+R5 selects 8 mm: all 240 cases produce the pair and 24 also match the 4.02 g peak. At zero clearance neither run produces the pair. With 8 mm frozen on Sunday, all 240 cases again produce the pair but **none matches the 3.83 g peak**. Clearance and release velocity were not measured. The grid used zero initial velocity and discrete sampling phases. This result provides no basis for adding a fixed clearance to the simulator or inferring that either cube actually dropped 8 mm.
+
+![Set-down clearance sweep and held-out landing](clearance.png)
