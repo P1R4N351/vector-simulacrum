@@ -146,12 +146,35 @@ def run(start,limit,onset=None,clear_cube=False):
         top=d.xpos[cube_id,:2]+.022*rot[:2,2]
         pitch=np.rad2deg(np.arcsin(np.clip(d.xmat[m.jnt_bodyid[m.joint('root').id]].reshape(3,3)[2,0],-1,1)))
         trace.append([t,pitch,np.linalg.norm(top-center)*1000,np.rad2deg(np.arctan2(rot[1,0],rot[0,0])-angle),
-                      mjcf.lift_height_of_angle(v,float(d.joint("lift_joint").qpos[0]))])
+                      mjcf.lift_height_of_angle(v,float(d.joint("lift_joint").qpos[0])),
+                      1000*d.actuator("lift").force[0],downward])
     packets=np.array([[start+t,np.linalg.norm(a)/8192] for t,p in sensor.messages for a in np.frombuffer(p[2:],'<i2').reshape(3,3)])
     return np.array(trace),packets,len(sensor.taps.events),peak_load
 
 initial_checks=[]
 firmware='--firmware' in sys.argv[2:]
+if '--effort' in sys.argv:
+    fig,axes=plt.subplots(2,1,figsize=(8,5),sharex=True,layout='constrained')
+    with (here/'lift-effort.csv').open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['cap_mNm','onset_s','loaded_samples_first_160ms','lowering_saturated_samples','mean_downward_torque_mNm','first_load_ms'])
+        for cap in (30,80):
+            for onset in (early_onset,late_onset):
+                tr,*_=run(3.5+shift,cap,onset)
+                t=tr[:,0]-onset
+                loaded=(t>=0)&(t<.160)&(tr[:,6]>.05)
+                effort=-tr[loaded,5]
+                writer.writerow([cap,onset,len(effort),sum(effort>=.99*cap),
+                                 np.mean(effort) if len(effort) else '',
+                                 1000*t[loaded][0] if len(effort) else ''])
+                label=f'{cap} mN m, onset {onset:.3f} s'
+                axes[0].plot(t,-tr[:,5],label=label)
+                axes[1].plot(t,tr[:,6])
+    axes[0].set(ylabel='Lowering torque (mN m)')
+    axes[0].legend(fontsize=8)
+    axes[1].set(xlim=(-.02,.32),xlabel='Seconds from assumed command',ylabel='Downward fork load (N)')
+    fig.savefig(here/'lift-effort.png',dpi=150)
+    sys.exit(0)
 if '--clear-cube' in sys.argv:
     fig,ax=plt.subplots(figsize=(8,4),layout='constrained')
     with (here/'clear-cube.csv').open('w') as f:
