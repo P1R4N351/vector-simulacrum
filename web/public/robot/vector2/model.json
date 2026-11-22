@@ -1,0 +1,371 @@
+{
+ "camera": {
+  "cx_px": 404.559357,
+  "cy_px": 295.485,
+  "documents": {
+   "anki_simulator_horizontal_deg": 94.22,
+   "anki_simulator_source": "simulator/protos/CozmoCamera.proto, fieldOfView 1.6445 rad at 640 x 360",
+   "manual_deg": [
+    89.102623,
+    73.0123444
+   ],
+   "model_fovy_deg": 73.0123444
+  },
+  "edge_angles_deg": {
+   "down": 36.91631817480569,
+   "left": 44.87598633083812,
+   "right": 44.222973165284245,
+   "up": 36.0916317185519
+  },
+  "fov_horizontal_deg": 89.09895949612238,
+  "fov_vertical_deg": 73.00794989335759,
+  "fx_px": 406.314453,
+  "fy_px": 405.335419,
+  "height_px": 600,
+  "name": "head_cam",
+  "near_mm": 5.0,
+  "optics_limits": "One unit and stream mode. GetCameraConfig does not report distortion coefficients. This describes the active pinhole calibration.",
+  "optics_source": "unit 3 (Vector 2.0) camera intrinsics returned by the SDK GetCameraConfig RPC. Read directly from unit 3 on 2026-11-21. Dimensions from the recorded CameraFeed JPEGs.",
+  "pitch_down_deg": 4.0,
+  "pitch_down_in_model": true,
+  "pitch_down_source": "parameter table",
+  "position_from_neck_mm": [
+   18.84,
+   0.0,
+   -7.96
+  ],
+  "width_px": 800
+ },
+ "cliff_names": [
+  "front_left",
+  "front_right",
+  "back_left",
+  "back_right"
+ ],
+ "derived": {
+  "chassis_com_mm": [
+   -29.978027405651037,
+   0.0,
+   15.7625
+  ],
+  "chassis_height_mm": 24.2,
+  "chassis_inertia": [
+   1.6224800000000004e-05,
+   3.7216400000000005e-05,
+   4.1728400000000005e-05
+  ],
+  "lift_angle_max": 0.7925150244593042,
+  "lift_angle_min": -0.1982661014310845,
+  "masses_g": {
+   "arm": 6.0,
+   "chassis": 120.0,
+   "fork": 6.0,
+   "head": 30.0,
+   "wheel": 2.0
+  },
+  "rear_gear": 1.3488372093023255,
+  "substeps": 5
+ },
+ "obstacles": [
+  [
+   190.0,
+   60.0,
+   22.0,
+   44.0,
+   44.0,
+   44.0
+  ]
+ ],
+ "provenance_counts": {
+  "assumed": 36,
+  "chosen": 8,
+  "fitted": 23,
+  "manual": 14,
+  "measured": 11,
+  "sdk": 93
+ },
+ "robot_model": "vector_2",
+ "source": {
+  "table_sha256": "eb094719d225a1278844cf461c27939925e648be80eeeedc0eb655d9909ff43f",
+  "trial_xml_sha256": "eaa151ec2860668e83df6d4a8306d1f6d90227393fc741f4ba4d06dd53b489fa",
+  "vector-contact42-free_sha256": "a052d3f49852472fe1a5228979ba72263fcbd69de4e4e830d3f76f90031cff0d",
+  "vector-free_sha256": "a35f55028fcbcb0e0a722681f0d663d9cbc82243ec0c07e34e2caacd563ce1cf",
+  "xml_sha256": "1d333bf896284dd498d75b6aab0390136625df8c2950f8696ec21eed7ed1b890"
+ },
+ "values": {
+  "accel_bias_mg": [
+   13.2,
+   4.0,
+   -18.1
+  ],
+  "accel_filter_cutoff_hz": 40.0,
+  "accel_noise_rms_mg": 1.26,
+  "accel_range_g": 2.0,
+  "accel_scale": [
+   1.014,
+   1.0,
+   1.0
+  ],
+  "battery_capacity_mah": 416.0,
+  "battery_rest_voltage_v": 4.03,
+  "battery_sag_v_per_power": 0.0,
+  "battery_voltage_v": 3.7,
+  "body_rotation_speed_max_dps": 300.0,
+  "body_rotation_speed_observed_dps": 360.0,
+  "camera_fov_horizontal_deg": 89.102623,
+  "camera_fov_vertical_deg": 73.0123444,
+  "camera_resolution_px": [
+   800,
+   600
+  ],
+  "chassis_center_x_mm": -15.0,
+  "chassis_friction": 0.3,
+  "chassis_ground_clearance_mm": 3.0,
+  "chassis_length_mm": 56.0,
+  "chassis_top_z_mm": 27.2,
+  "chassis_width_mm": 32.2,
+  "cliff_detect_range_mm": 25.0,
+  "cliff_event_delay_ms": 500.0,
+  "cliff_front_x_mm": 2.0,
+  "cliff_reaction_backup_mm": 29.0,
+  "cliff_reaction_backup_speed_mmps": 205.0,
+  "cliff_reaction_pause_ms": 1220.0,
+  "cliff_rear_x_mm": -50.0,
+  "cliff_sensor_height_mm": 8.0,
+  "cliff_sensor_order": [
+   "front_left",
+   "front_right",
+   "back_left",
+   "back_right"
+  ],
+  "cliff_values_exposed": false,
+  "cliff_y_mm": 14.0,
+  "com_x_mm": -24.0,
+  "com_z_mm": 22.0,
+  "command_delay_ms": 75.0,
+  "contact_time_constant_ms": 4.0,
+  "control_period_ms": 5.0,
+  "cube_accel_bandwidth_hz": 250.0,
+  "cube_accel_bias_mg": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "cube_accel_counts_per_g": 8192.0,
+  "cube_accel_filter_second_pole": 1.0,
+  "cube_accel_frame_period_ms": 2.0,
+  "cube_accel_noise_axis_scale": [
+   0.8467741935483871,
+   0.9919354838709677,
+   1.1370967741935485
+  ],
+  "cube_accel_noise_density_ug": 124.0,
+  "cube_accel_range_g": 4.0,
+  "cube_accel_scale": [
+   1.0,
+   0.970709,
+   0.970709
+  ],
+  "cube_accel_word_format": [
+   2,
+   1
+  ],
+  "cube_carry_offset_mm": [
+   26.0,
+   0.0,
+   -12.5
+  ],
+  "cube_chip_position_mm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "cube_chip_yaw_deg": 0.0,
+  "cube_mass_g": 50.0,
+  "cube_size_mm": 44.0,
+  "cube_tick_ms": 10.0,
+  "directive_forward_speed_max_mmps": 160.0,
+  "directive_forward_speed_min_mmps": 20.0,
+  "directive_turn_speed_max_dps": 120.0,
+  "directive_turn_speed_min_dps": 15.0,
+  "display_resolution_px": [
+   160,
+   80
+  ],
+  "drive_center_offset_mm": -25.0,
+  "drive_done_mm": 1.0,
+  "encoder_tread_direction_sensed": false,
+  "encoder_zero_speed_ticks": 5,
+  "fall_accel_high_mmps2": 9000.0,
+  "fall_accel_low_mmps2": 6000.0,
+  "fall_detect_time_ms": 150.0,
+  "gravity_mmps2": 9810.0,
+  "gyro_bias_dps": [
+   0.001,
+   0.009,
+   -0.001
+  ],
+  "gyro_filter_cutoff_hz": 18.65,
+  "gyro_noise_rms_dps": 0.034,
+  "gyro_range_dps": 500.0,
+  "head_accel_default_radps2": 10.0,
+  "head_angle_max_deg": 45.0,
+  "head_angle_min_deg": -22.0,
+  "head_angle_tol_deg": 2.0,
+  "head_box_mm": [
+   34.0,
+   40.0,
+   34.0
+  ],
+  "head_camera_pitch_down_deg": 4.0,
+  "head_camera_position_mm": [
+   18.84,
+   0.0,
+   -7.96
+  ],
+  "head_mass_g": 30.0,
+  "head_power_gains": [
+   4.0,
+   0.03,
+   4000.0
+  ],
+  "head_rad_per_encoder_count": 0.0021447,
+  "head_servo_kp_mNm_per_rad": 300.0,
+  "head_servo_kv_mNms_per_rad": 4.0,
+  "head_speed_default_radps": 10.0,
+  "head_speed_max_radps": 10.0,
+  "heading_hold_gain_mmps_per_rad": 200.0,
+  "imu_filter_second_pole": 1.0,
+  "imu_part": "BMI160",
+  "imu_pitch_offset_deg": -0.05,
+  "imu_position_mm": [
+   5.8,
+   0.0,
+   -13.5
+  ],
+  "lift_accel_default_radps2": 10.0,
+  "lift_angle_tol_deg": 1.5,
+  "lift_arm_length_mm": 66.0,
+  "lift_arm_mass_fraction": 0.5,
+  "lift_back_wrt_wrist_mm": -1.0,
+  "lift_base_position_mm": [
+   -41.0,
+   0.0,
+   45.0
+  ],
+  "lift_fork_side_center_mm": [
+   2,
+   22,
+   -10
+  ],
+  "lift_fork_side_size_mm": [
+   3,
+   3,
+   21
+  ],
+  "lift_front_wrt_wrist_mm": 4.0,
+  "lift_height_above_prox_mm": 59.0,
+  "lift_height_max_mm": 92.0,
+  "lift_height_min_mm": 32.0,
+  "lift_mass_g": 12.0,
+  "lift_power_gains": [
+   3.0,
+   0.1,
+   3000.0
+  ],
+  "lift_rad_per_encoder_count": 0.0052465,
+  "lift_servo_kp_mNm_per_rad": 600.0,
+  "lift_servo_kv_mNms_per_rad": 12.0,
+  "lift_speed_default_radps": 10.0,
+  "lift_speed_max_radps": 10.0,
+  "lift_xbar_height_mm": 8.5,
+  "lift_xbar_top_wrt_wrist_mm": -20.0,
+  "lift_xbar_width_mm": 30.0,
+  "motor_power_max": 1.0,
+  "motor_reference_voltage_v": 4.03,
+  "motor_stall_limit_s": 15.0,
+  "neck_joint_position_mm": [
+   -13.0,
+   0.0,
+   49.0
+  ],
+  "odometry_wheel_factor": 0.96,
+  "pickup_cliff_sensor_count": 3,
+  "pickup_detect_ticks": 40,
+  "point_turn_accel_default_radps2": 10.0,
+  "point_turn_speed_default_radps": 2.0,
+  "servo_armature_gcm2": 50.0,
+  "servo_command_delay_ms": 105.0,
+  "servo_torque_max_mNm": 30.0,
+  "settle_time_ms": 200.0,
+  "sim_timestep_ms": 1.0,
+  "spin_rate_fraction_measured": 0.5,
+  "state_period_firmware_ms": 30.0,
+  "state_period_ms": 60.0,
+  "table_height_mm": 300.0,
+  "table_length_mm": 600.0,
+  "table_thickness_mm": 20.0,
+  "table_width_mm": 600.0,
+  "tip_support_clearance_mm": 0.3,
+  "tof_found_pitch_limit_deg": 5.0,
+  "tof_fov_deg": 25.0,
+  "tof_lift_clear_ms": 90.0,
+  "tof_lift_distance_mm": 15.0,
+  "tof_lift_occluding_max_mm": 56.0,
+  "tof_lift_occluding_min_mm": 34.0,
+  "tof_lift_quality": 11.7,
+  "tof_position_mm": [
+   10.0,
+   0.0,
+   16.0
+  ],
+  "tof_quality_at_100mm": 0.139,
+  "tof_quality_distance_exponent": -2.71,
+  "tof_quality_floor": 0.0034,
+  "tof_quality_min": 0.01,
+  "tof_range_max_mm": 1200.0,
+  "tof_range_min_mm": 30.0,
+  "tof_range_std_fraction": 0.022,
+  "tof_report_max_mm": 400.0,
+  "tof_report_min_mm": 30.0,
+  "tof_tilt_up_deg": 6.5,
+  "tof_useful_max_mm": 300.0,
+  "tof_weak_distance_mm": 69.0,
+  "tof_weak_distance_sd_mm": 22.2,
+  "total_mass_g": 170.0,
+  "tread_contact_inset_mm": 3.1,
+  "tread_friction": 0.9,
+  "tread_friction_power_fraction": 0.1573,
+  "tread_heat_loss_rate_per_s": [
+   0.0,
+   0.00207
+  ],
+  "tread_heat_tau_s": 85.0,
+  "tread_mm_per_encoder_count": 0.126904,
+  "tread_noload_speed_mmps": 305.0,
+  "tread_spacing_mm": 46.0,
+  "tread_width_mm": 10.0,
+  "turn_tolerance_deg": 2.0,
+  "wheel_accel_default_mmps2": 200.0,
+  "wheel_accel_zero_is_immediate": true,
+  "wheel_armature_gcm2": 2380.0,
+  "wheel_base_mm": 48.0,
+  "wheel_command_stopped_mmps": 2.0,
+  "wheel_decel_default_mmps2": 500.0,
+  "wheel_error_sum_max": 5000.0,
+  "wheel_ff_low_slope_power_per_mmps": 0.00666667,
+  "wheel_ff_low_speed_mmps": 30.0,
+  "wheel_ff_offset_power": 0.057,
+  "wheel_ff_slope_power_per_mmps": 0.00313,
+  "wheel_front_radius_mm": 14.5,
+  "wheel_ki_power_per_mmps_tick": 5e-05,
+  "wheel_kp_power_per_mmps": 0.0005,
+  "wheel_mass_g": 2.0,
+  "wheel_rear_radius_mm": 10.75,
+  "wheel_speed_cliff_safe_mmps": 170.0,
+  "wheel_speed_max_mmps": 220.0,
+  "wheel_speed_reported_whole_mmps": true,
+  "wheel_stall_torque_mNm": 156.25,
+  "wheel_stopped_threshold_mmps": 2.0
+ }
+}

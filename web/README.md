@@ -63,6 +63,13 @@ has a button, including head up, level and down and lift up and down.
 Add `?look=shapes` to the address to draw the robot as its physics shapes even
 when the SDK model has been fetched.
 
+Open `?robot=2&cube=free` for the Vector 2.0 shelf configuration. This loads
+the unit 3 head-camera calibration (800 × 600), head IMU mounting and
+accelerometer calibration, display aspect, battery capacity and shelf cube
+sensor profile. Add `&contact=42` to try the experimental tread contacts. The
+default robot is Vector 1.0. Either generation accepts an explicit shell
+override for visual comparisons.
+
 Open `?cube=free` to put a movable light cube 100 mm ahead of the front axle.
 Drive forward to push it, use Q for the robot camera, and use Backspace to reset.
 The range sensor sees the cube in both visual modes. Running `npm run sdk-model`

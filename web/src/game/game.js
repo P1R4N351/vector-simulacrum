@@ -75,12 +75,13 @@ async function loadEverything() {
   const options = new URLSearchParams(location.search);
   const trial = options.get("contact") === "42";
   const free = options.get("cube") === "free";
+  const directory = options.get("robot") === "2" ? "./robot/vector2" : "./robot";
   const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "");
   const [{ default: loadMujoco }, xml, modelText] = await Promise.all([
     traced("PHYSICS RUNTIME", import("@mujoco/mujoco")),
     traced(trial ? "ROBOT MODEL · 42 MM CONTACT" : "ROBOT MODEL",
-      fetchText(`./robot/${sceneName}.xml`)),
-    traced("PARAMETER TABLE", fetchText("./robot/model.json")),
+      fetchText(`${directory}/${sceneName}.xml`)),
+    traced("PARAMETER TABLE", fetchText(`${directory}/model.json`)),
   ]);
   const model = JSON.parse(modelText);
   if (free && options.get("cubeSensor") === "unit3") Object.assign(model.values, shelfCube);
@@ -300,7 +301,7 @@ function startLoop(ctx) {
 }
 
 // The SDK's robot model if it has been fetched and is usable; otherwise null (the robot is drawn as shapes).
-async function loadRobotLook(values) {
+async function loadRobotLook(model) {
   const done = bootLine("SDK ROBOT MODEL");
   const options = new URLSearchParams(window.location.search);
   if (options.get("look") === "shapes") {
@@ -308,7 +309,7 @@ async function loadRobotLook(values) {
     return null;
   }
   try {
-    const sdk = await loadSdkModel(values, { faceplate: options.get("faceplate") !== "off", shellVersion: options.get("shell") === "2" ? 2 : 1 });
+    const sdk = await loadSdkModel(model.values, { faceplate: options.get("faceplate") !== "off", shellVersion: (options.get("shell") ?? (model.robot_model === "vector_2" ? "2" : "1")) === "2" ? 2 : 1 });
     done(sdk === null ? "NOT FETCHED: DRAWING SHAPES" : "OK");
     return sdk;
   } catch (err) {
@@ -330,7 +331,7 @@ export async function bootGame(canvas) {
   try {
     const view = makeRenderer(canvas);
     const { mujoco, model, sim, free } = await loadEverything();
-    const sdk = await loadRobotLook(model.values);
+    const sdk = await loadRobotLook(model);
     const doneScene = bootLine("SCENE");
     const cube = free && sdk ? await loadCubeLook(model.values.cube_size_mm) : null;
     const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube);
