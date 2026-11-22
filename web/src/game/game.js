@@ -92,7 +92,8 @@ async function loadEverything() {
   doneCheck(await checkModel(xml, free ? model.source[sceneName + "_sha256"] : (trial ? model.source.trial_xml_sha256 : model.source.xml_sha256)));
   const mujoco = await traced("WEBASSEMBLY", loadMujoco({ locateFile: (p) => (p.endsWith(".wasm") ? mujocoWasmUrl : p) }));
   const doneCompile = bootLine("COMPILE AND SETTLE");
-  const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1 });
+  const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
+    bodyRangeClock: options.get("rangeClock") === "body", chargerContact: options.get("chargerContact") === "1" });
   doneCompile("OK");
   return { mujoco, model, sim, free };
 }

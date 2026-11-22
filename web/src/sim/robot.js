@@ -65,6 +65,11 @@ export class VectorSim {
     this._gauss = makeGauss(opts.noiseSeed ?? 0);
     // The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
     this._proxSensor = new ProxSensor(this.v, (opts.noiseSeed ?? 0) + 1);
+    this.bodyRangeClock = opts.bodyRangeClock ?? this.bodyRangeClock ?? false;
+    this.chargerContact = opts.chargerContact ?? this.chargerContact ?? false;
+    this._rangeBodyTicks = 0;
+    this._rangeBodyPhaseUs = 0;
+    this._rangeSample = null;
     this._tofHitsMm = [];
     this.mujoco.mj_resetData(this.model, this.data);
     this._initCommands();
@@ -326,7 +331,25 @@ export class VectorSim {
 
   // What the time-of-flight sensor reports now (prox.js), from the lift height the robot reports.
   _prox() {
-    return this._proxSensor.read(this._castTof(), this._reportedHeadAndLift()[1], this._pitch());
+    const lift = this._reportedHeadAndLift()[1];
+    if (!this.bodyRangeClock) return this._proxSensor.read(this._castTof(), lift, this._pitch());
+    if (this._rangeSample === null) this._rangeSample = this._proxSensor.acquire(this._castTof(), lift);
+    return this._proxSensor.report(this._rangeSample, lift, this._pitch());
+  }
+
+  _advanceRangeClock() {
+    // Syscon timer.h and opto.cpp: 5.12 ms per body tick. Preserve phase on mode changes.
+    this._rangeBodyPhaseUs += Math.round(this.dt * 1e6);
+    const ticks = Math.floor(this._rangeBodyPhaseUs / 5120);
+    this._rangeBodyPhaseUs %= 5120;
+    const driven = this._controllers.some(controller => Math.abs(controller.power) > 0.1);
+    const target = driven ? 6 : (this.chargerContact ? 200 : 12);
+    for (let i = 0; i < ticks; i++) {
+      if (++this._rangeBodyTicks >= target) {
+        this._rangeBodyTicks = 0;
+        this._rangeSample = this._proxSensor.acquire(this._castTof(), this._reportedHeadAndLift()[1]);
+      }
+    }
   }
 
   // Read filtered gyro and accelerometer once, apply scale, bias and noise, clip to range.
@@ -598,6 +621,7 @@ export class VectorSim {
     this._writeControls();
     this._physicsStep();
     this.tick_ += 1;
+    if (this.bodyRangeClock) this._advanceRangeClock();
     const yaw = this._yaw();
     this._yawTotal += Math.atan2(Math.sin(yaw - this._yawPrev), Math.cos(yaw - this._yawPrev));
     this._yawPrev = yaw;
