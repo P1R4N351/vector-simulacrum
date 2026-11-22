@@ -47,3 +47,30 @@ test("the browser free cube publishes three stationary samples and reset clears 
     sim.dispose();
   }
 });
+
+test("cube callbacks carry the last supervisor timestamp across calm and awake periods", async () => {
+  const sim = new VectorSim(await mujoco(), {
+    xml: readText("public/robot/vector-free.xml"), values: quietChip, derived, calmMode: true,
+  });
+  function nextCandidate() {
+    // Force a counter change without introducing a motion-dependent timing assumption.
+    sim.cubeSensor.taps++;
+    sim.tick(6);
+    return sim.cubeSensor.packet.events.find(event => "tap_count" in event);
+  }
+  try {
+    sim.tick(6);
+    assert.equal(nextCandidate().timestamp, 0);
+    sim.tick(36);
+    const calm = nextCandidate();
+    assert.equal(calm.timestamp, 250);
+    assert.ok(Math.abs(calm.time_s - .27) < 1e-8);
+    sim.calmMode = false;
+    assert.equal(nextCandidate().timestamp, 280);
+    sim.reset();
+    sim.tick(6);
+    assert.equal(nextCandidate().timestamp, 30);
+  } finally {
+    sim.dispose();
+  }
+});
