@@ -1,0 +1,5 @@
+fork,dt_ms,fork_contact_steps,tread_contact_steps,peak_tilt_deg,peak_packet_g,tap_changes
+Prescribed fork,0.5,0,0,2.05970127328611e-05,0.9786433138501088,0
+Prescribed fork,0.25,0,0,1.142271288210643e-05,0.9771768926075874,0
+Torque-limited lift,0.5,0,0,2.05970127328611e-05,0.9786433138501088,0
+Torque-limited lift,0.25,0,0,1.142271288210643e-05,0.9771768926075874,0
