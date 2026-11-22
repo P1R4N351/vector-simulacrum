@@ -45,3 +45,11 @@ The four R5 candidates without an SDK callback were bracketed by robot states wi
 The simulator now exposes movement.broadcast_events on the cube alongside movement.events. The former records eligible broadcasts at packet time. The latter retains every listener transition. VectorSim marks the cube mounted on the lift as handled. A caller with a dynamic carry/docking state can set cube.handling_cube when that particular cube is acquired or released. The packet filter and movement score continue to evolve while handled. Releasing a cube does not synthesize a movement transition. SDK transport delay is separate.
 
 [Four candidate rules](movement-status.png) · [Bracketing states and SDK matches](movement-status.csv). Run movement_status.py to replay both collections and verify emitted events against the SDK.
+
+### Independent pickup and release check
+
+On the earlier pickup recording, passing the last reported carry ID before each packet into the new movement broadcast filter suppresses the middle two of four listener transitions. The first start at 3.710 s still comes through before acquisition, producing one extra event. On release the simulated listener broadcasts a stop at 12.645 s. The SDK delivered its sole callback 20.7 ms later, while its payload was stamped 21 ms before the radio monitor receipt on the robot clock. All four event times have the same reported carry ID on either side of the packet.
+
+Stock firmware also checks whether this particular cube is the docking target. As a retrospective sensitivity check, marking it as handled while the pickup command is active suppresses the early start and reproduces the single delivered stop. Command lifetime is only a proxy for the unlogged docking target. Extending suppression through the whole placement command would incorrectly remove the real stop, which preceded command completion by 0.39 s. The earlier seven-event carry-only result therefore does not generalize to the pre-acquisition part of pickup.
+
+[Physical episode](release-broadcast.png) · [Carry-only and pickup-target predictions](release-broadcast.csv). Run release_broadcast.py.
