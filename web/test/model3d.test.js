@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
-import { repairMeshNormals } from "../src/game/cube.js";
+import { CUBE_FACE_ATLAS, repairCubeUVs, repairMeshNormals } from "../src/game/cube.js";
 import { printFork } from "../src/game/printparts.js";
 import { assemble } from "../src/game/sdkmodel.js";
 import { addShellTrim } from "../src/game/shell.js";
@@ -231,6 +231,55 @@ test("printFork centers symmetric print geometry on robot Y=0 and repairMeshNorm
   assert.equal(inspectMesh(new THREE.Mesh(cubeGeo)).inverted, 0);
 });
 
+function verifyCubeMarkerLayout(geo, label) {
+  const pos = geo.attributes.position, uv = geo.attributes.uv, idx = geo.index;
+  const count = idx ? idx.count : pos.count;
+  const facesHit = new Map();
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), n = new THREE.Vector3();
+  for (let t = 0; t + 2 < count; t += 3) {
+    const k = [idx ? idx.getX(t) : t, idx ? idx.getX(t + 1) : t + 1, idx ? idx.getX(t + 2) : t + 2];
+    if (!k.every((i) => uv.getX(i) < 0.51 && uv.getY(i) < 0.73)) continue;
+    a.fromBufferAttribute(pos, k[0]); b.fromBufferAttribute(pos, k[1]); c.fromBufferAttribute(pos, k[2]);
+    n.crossVectors(b.clone().sub(a), c.clone().sub(a));
+    if (n.lengthSq() < 1e-18) continue;
+    const key = ["negX", "posX", "negY", "posY", "posZ", "negZ"].reduce((best, id) => {
+      const f = CUBE_FACE_ATLAS[id];
+      const dot = n.x * f.n[0] + n.y * f.n[1] + n.z * f.n[2];
+      return dot > best.dot ? { id, dot, f } : best;
+    }, { id: "", dot: -1, f: null });
+    const f = key.f;
+    const p3 = [a, b, c].map((v) => v.x * f.right[0] + v.y * f.right[1] + v.z * f.right[2]);
+    const q3 = [a, b, c].map((v) => v.x * f.up[0] + v.y * f.up[1] + v.z * f.up[2]);
+    const area3d = (p3[1] - p3[0]) * (q3[2] - q3[0]) - (q3[1] - q3[0]) * (p3[2] - p3[0]);
+    const du1 = uv.getX(k[1]) - uv.getX(k[0]), dv1 = -(uv.getY(k[1]) - uv.getY(k[0]));
+    const du2 = uv.getX(k[2]) - uv.getX(k[0]), dv2 = -(uv.getY(k[2]) - uv.getY(k[0]));
+    const areaUv = du1 * dv2 - dv1 * du2;
+    assert.ok(area3d * areaUv > 0, `${label}/${key.id}: UV orientation mirrored or inverted`);
+    const uAvg = (uv.getX(k[0]) + uv.getX(k[1]) + uv.getX(k[2])) / 3;
+    const vAvg = (uv.getY(k[0]) + uv.getY(k[1]) + uv.getY(k[2])) / 3;
+    assert.ok(Math.abs(uAvg - f.cx) <= f.h * 1.1 && Math.abs(vAvg - f.cy) <= f.h * 1.1,
+      `${label}/${key.id}: UV escaped cell center (${uAvg.toFixed(3)}, ${vAvg.toFixed(3)})`);
+    facesHit.set(key.id, (facesHit.get(key.id) ?? 0) + 1);
+  }
+  assert.equal(facesHit.size, 6, `${label}: expected all 6 distinct cube faces mapped, got ${facesHit.size}`);
+}
+
+test("repairCubeUVs assigns six distinct un-mirrored, upright atlas faces", () => {
+  // 23 mm marker quads embedded inside a 44 mm outer cube envelope (matches cube.obj layout).
+  const marker = new THREE.BoxGeometry(23, 23, 23).toNonIndexed();
+  const shell = new THREE.BoxGeometry(44, 44, 44).toNonIndexed();
+  const mUv = marker.attributes.uv, sUv = shell.attributes.uv;
+  for (let i = 0; i < mUv.count; i++) mUv.setXY(i, 0.1 + 0.1 * (i % 2), 0.2 + 0.1 * ((i + 1) % 2));
+  for (let i = 0; i < sUv.count; i++) sUv.setXY(i, 0.85, 0.85);
+  const pos = new Float32Array([...marker.attributes.position.array, ...shell.attributes.position.array]);
+  const uv = new Float32Array([...mUv.array, ...sUv.array]);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+  repairCubeUVs(geo);
+  verifyCubeMarkerLayout(geo, "synthetic-cube");
+});
+
 const HAVE_SDK = existsSync(join(ROOT, "public/robot/sdk/vector.obj"))
   && existsSync(join(ROOT, "public/robot/sdk/cube.obj"))
   && existsSync(join(ROOT, "public/robot/sdk/manifest.json"));
@@ -255,7 +304,9 @@ test("optional SDK vector.obj and cube.obj pass 3D geometry and normal checks", 
   cubeGroup.traverse((node) => {
     if (node.isMesh) {
       repairMeshNormals(node.geometry);
+      repairCubeUVs(node.geometry);
       assert.equal(inspectMesh(node).inverted, 0);
+      verifyCubeMarkerLayout(node.geometry, "sdk-cube");
     }
   });
 });

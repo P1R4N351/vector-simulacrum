@@ -40,3 +40,19 @@ The next discriminating observation is whether a sideways patient's fork can ret
 For the follow-up with an already-engaged patient, use the [leverage control and morning close-up protocol](morning-grip.md).
 
 For a patient equipped with Dauler's printed lifting fork, supply `--patient-fork-stl /path/to/forks7.stl` with CoACD 1.0.14 installed. The run builds the wrist collision surface from convex parts using the web model's registration. It retains the wrist mass and placement reference. The shelf replay documents where this geometry transfers to unit 3 and where the grip still slips. [Printed fork shelf trials](../../evidence/unit3-printed-fork-contact/README.md)
+
+## Continuous three-stage free-body chain (`rescue_pipeline.py`)
+
+`experiments/righting/rescue_pipeline.py` runs an uninterrupted free-body episode without teleporting the rescuer or applying artificial external forces after weld release (`carry_weld`). Stage A carries the cube to the sideways patient's fork lane, lowers to drop height, releases the weld, and reverses out (`~3.1 mm` XY drop-target placement error). Stage B raises the patient's lift toward the dropped cube. Stage C drives the rescuer around the patient via clearance waypoints to the belly/fork-side lever pose (`yaw = ±168.7°`, `h0 = 0.23`), executes the contact-triggered lift-and-push stroke, and backs clear.
+
+Four comparison arms discriminate direct robot leverage from cube-mediated force transmission (`--self-check <contact_run.json> <nocontact_run.json>` verifies non-identical contact-allowed vs contact-excluded outcomes):
+- Cube chain with robot contacts allowed vs `--exclude-robot-contacts`: when direct robot-to-robot contact is excluded, the rescuer fork presses the free cube against the patient fork (`rescuer_fork_cube_steps > 0`, `both_forks_on_cube_steps > 0`), and the unconstrained cube slips without righting the sideways patient (`90.02°` final tilt vs `0.00°` when direct contacts are allowed).
+- Matching `--no-cube` continuous approach with contacts allowed vs `--exclude-robot-contacts`: rights both sides (`0.00°` final tilt vs `90.01°` excluded).
+
+```sh
+python experiments/righting/rescue_pipeline.py /tmp/chain-cube --cube-obj "$VECTOR_SDK_ASSETS/cube.obj"
+python experiments/righting/rescue_pipeline.py /tmp/chain-cube-nocontact --cube-obj "$VECTOR_SDK_ASSETS/cube.obj" --exclude-robot-contacts
+python experiments/righting/rescue_pipeline.py --self-check /tmp/chain-cube/run.json /tmp/chain-cube-nocontact/run.json
+python experiments/righting/rescue_pipeline.py /tmp/chain-nocube --no-cube
+node experiments/righting/render.cjs /tmp/chain-cube
+```

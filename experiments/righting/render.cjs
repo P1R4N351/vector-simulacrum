@@ -55,11 +55,13 @@ async function main() {
     });
     const page = await b.newPage();
     await page.goto(server.resolvedUrls.local[0] + "robot/model.json");
+    const runMeta = JSON.parse(fs.readFileSync(path.join(dir, "run.json")));
     await page.evaluate(
-      async ({ boxes, useSdkCube, fixedGrip }) => {
+      async ({ boxes, useSdkCube, fixedGrip, banner }) => {
         history.replaceState(null, "", "/");
         const T = await import("/node_modules/three/build/three.module.js"),
-          { loadSdkModel } = await import("/src/game/sdkmodel.js");
+          { loadSdkModel } = await import("/src/game/sdkmodel.js"),
+          { loadCubeLook } = await import("/src/game/cube.js");
         const v = (await (await fetch("/robot/model.json")).json()).values;
         const rigs = await Promise.all([loadSdkModel(v), loadSdkModel(v)]);
         const r = new T.WebGLRenderer({
@@ -94,28 +96,11 @@ async function main() {
         const cube = new T.Group();
         scene.add(cube);
         if (boxes.length && useSdkCube) {
-          const { OBJLoader } =
-            await import("/node_modules/three/examples/jsm/loaders/OBJLoader.js");
-          const shape = await new OBJLoader().loadAsync(
-            "/replay-assets/cube.obj",
-          );
-          const texture = await new T.TextureLoader().loadAsync(
-            "/replay-assets/cube.jpg",
-          );
-          texture.colorSpace = T.SRGBColorSpace;
-          const material = new T.MeshStandardMaterial({
-            map: texture,
-            roughness: 0.62,
+          const loadedCube = await loadCubeLook(44, "/replay-assets/", {
+            requireManifest: false,
           });
-          shape.traverse((mesh) => {
-            if (mesh.isMesh) mesh.material = material;
-          });
-          const bounds = new T.Box3().setFromObject(shape);
-          const extent = bounds.getSize(new T.Vector3()),
-            center = bounds.getCenter(new T.Vector3());
-          shape.scale.set(0.044 / extent.x, 0.044 / extent.y, 0.044 / extent.z);
-          shape.position.copy(center).multiply(shape.scale).negate();
-          cube.add(shape);
+          if (!loadedCube) throw Error("Failed to load SDK cube from /replay-assets/");
+          cube.add(loadedCube);
         } else
           for (const [pos, half] of boxes) {
             const mesh = new T.Mesh(
@@ -150,11 +135,12 @@ async function main() {
           ctx.fillStyle = "white";
           ctx.font = "bold 26px sans-serif";
           ctx.fillText(
-            boxes.length
-              ? fixedGrip
-                ? "Patient already engaged / rescuer leverage test"
-                : "Cube-assisted righting / adjacent-face approach"
-              : "Belly-side approach / lift-assisted righting",
+            banner ??
+              (boxes.length
+                ? fixedGrip
+                  ? "Patient already engaged / rescuer leverage test"
+                  : "Cube-assisted righting / adjacent-face approach"
+                : "Belly-side approach / lift-assisted righting"),
             18,
             33,
           );
@@ -196,12 +182,10 @@ async function main() {
         };
       },
       {
-        boxes:
-          JSON.parse(fs.readFileSync(path.join(dir, "run.json"))).cube_boxes ??
-          [],
+        boxes: runMeta.cube_boxes ?? [],
         useSdkCube: !!useSdkCube,
-        fixedGrip: JSON.parse(fs.readFileSync(path.join(dir, "run.json")))
-          .fixed_grip,
+        fixedGrip: runMeta.fixed_grip,
+        banner: runMeta.banner ?? null,
       },
     );
     const video = path.join(temp, "video.mp4");
