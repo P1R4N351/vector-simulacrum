@@ -37,3 +37,13 @@ The SDK cube center also appears 6–7 mm below its nominal resting height relat
 Alternatively, retaining lateral position and using the optical yaw, a fore–aft shift of 4.51 mm toward the robot in R8 and 6.58 mm away in R9 matches each reported range by construction. This produces four simulated tap changes and 1.98 g in R8, still without a flip. Between-run displacement then differs from the overhead estimate by 10.9 mm versus 1.4 mm for SDK XY, assuming coincident dock odometry origins. A single range observation cannot independently establish cube center. These results give no basis to adopt a common depth shift.
 
 [Yaw and range replay](yaw-transfer.png) · [Ten replay results](yaw-transfer.csv) · [Range observations](pre-roll-ranging.csv) · [Range model](range-check.csv). Run range_check.py first and yaw_transfer.py with the printed fixture path to regenerate.
+
+### Lift torque and chassis support during the roll
+
+The recorded pitch, applied about the original fixed front pivot, places the rear tread up to 24.2 mm below shelf level in R8 and 0.4 mm in R9. A paired replay moves the chassis vertically until the lower of the two nominal wheel envelopes touches the shelf. It preserves measured XY and attitude and assumes at least one tread remains supported. Chassis height was not independently measured.
+
+At the nominal 30 mN·m limit this reduces peak lift tracking error (expressed as wrist height in chassis coordinates) from 19.4 to 6.1 mm. Simulated cube tilt increases from 0.16° to 0.47°. The two simulated taps persist and peak acceleration rises from 1.57 to 1.71 g, farther from the observed 1.43 g. The recorded cube rolled 91.6°, but chassis telemetry ends before it settles. Held-out R9 still gives zero taps. Raising the torque ceiling alone from 10 to 80 mN·m with the original pivot leaves peak tilt at 0.16°. Actual lift torque was not recorded.
+
+The lower panel compares the quasi-static support required to balance gravity and robot contact with the cube footprint. Crossing its edge briefly does not establish a tip. Force and actuator summaries use +3.00 to +5.21 seconds, clipped to available replay time. Run lift_leverage.py with the printed fixture XML to reproduce.
+
+[Contact force and lift tracking](lift-leverage.png) · [Eight replay results](lift-leverage.csv)

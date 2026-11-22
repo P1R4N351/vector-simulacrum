@@ -42,7 +42,7 @@ def compose_fixture(path, values):
     return root,center,radius
 
 
-def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False, initial_xy_mm=None):
+def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False, initial_xy_mm=None, shelf_support=False):
     values = params.values(params.load(model="vector_2"))
     values.update(sensor_overrides or {})
     root,center,radius = compose_fixture(path,values)
@@ -83,6 +83,15 @@ def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrid
     rot = Rotation.from_euler('ZY',np.column_stack((yaw,-pitch)))
     pivot = np.array([0.,0.,.016])
     origin = np.column_stack((x,y,np.zeros_like(x)))/1000 + pivot - rot.apply(pivot)
+    if shelf_support:
+        # Constrain one tread to the shelf while preserving the measured XY and pitch.
+        offsets = []
+        for axle_x, radius_key in [(0., 'wheel_front_radius_mm'),
+                                   (-values['wheel_base_mm'], 'wheel_rear_radius_mm')]:
+            r = values[radius_key] / 1000
+            axle_z = origin[:,2] + rot.apply([axle_x / 1000, 0., r])[:,2]
+            offsets.append(r - axle_z)
+        origin[:,2] += np.maximum(*offsets)
     wrist = -41+np.sqrt(66**2-(lift-45)**2)
     forkpos = origin + rot.apply(np.column_stack((wrist,np.zeros_like(x),lift))/1000)
     treadpos = origin + rot.apply(center)

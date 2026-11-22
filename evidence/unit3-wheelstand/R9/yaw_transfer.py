@@ -11,9 +11,8 @@ here=Path(__file__).resolve().parent
 sys.path.insert(0,str(here.parent/'R8'))
 from tread_speed import run,load_rows
 
-def replay(case):
-    fixture,name,label,delta=case
-    directory=here.parent/name
+def cube_rotation(directory,delta):
+    name=directory.name
     sighting=next(r for r in load_rows('roll-poses.csv',directory)
                   if r['source']=='robot_observed_object' and float(r['sec'])<0)
     if name=='R8':
@@ -27,6 +26,12 @@ def replay(case):
     registered=Rotation.from_euler('z',delta,degrees=True)*initial
     if delta==0:
         registered=None if name=="R8" else initial
+    return registered
+
+def replay(case):
+    fixture,name,label,delta=case
+    directory=here.parent/name
+    registered=cube_rotation(directory,delta)
     rest=np.genfromtxt(here.parents[1]/'unit3-cube-accelerometer/resting.csv',names=True,delimiter=',')
     gain=np.linalg.norm([rest[k+'_counts'].mean() for k in 'xyz'])/8192
     xy=None
