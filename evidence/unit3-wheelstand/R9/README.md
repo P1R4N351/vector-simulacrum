@@ -97,3 +97,11 @@ The registered viewer apron was decomposed into three convex collision pieces (C
 Apron contact starts at +3.271 s and lasts a cumulative 0.654 s during R8. The cube tilts at most 0.126° and the packet tap counter changes three times. The first contact agrees to one 20 ms sample with the earlier triangle-intersection check. Earlier geometric overlap did not imply that the apron would supply sufficient leverage. Compared with the two physical taps and measured 1.43 g peak, the apron replay gives an extra tap and 1.81 g. All held-out R9 variants stay at zero taps and 0.98 g. These results do not support adopting the apron alone as a roll correction. Full shell shape, fork purchase and the reaction of an independently moving chassis remain open.
 
 [Cube tilt and Y acceleration](apron-contact.png) · [Six replay results](apron-contact.csv) · [Reproduce with fixture XML and CoACD](apron_contact.py)
+
+### Resting output through the normal free-cube simulator
+
+The unit 3 shelf-cube profile now uses the previously fitted effective gain of 0.970709 on Y and Z. X remains nominal because neither recorded gravity direction constrains its sensitivity. The fit used 1,929 upright samples. Four other physical windows cover two positive-gravity faces. The post-roll window and the next approach share one resting orientation, so they do not constitute independent orientations.
+
+We placed a free cube upright or sideways in VectorSim, let it settle and decoded three seconds of its normal packets with the standard noise and word format. Across the four windows the absolute error in the magnitude of the mean acceleration vector drops from 29.66–30.32 mg to 0.37–1.03 mg. The generic Vector 1 profile retains nominal gain. This transfer validates resting magnitude for this cube; negative faces, X gain and impact response still need separate measurements. A bias could account for part of the apparent gain.
+
+[Free-cube output comparison](free-sensor.png) · [Window errors](free-sensor.csv) · [Simulator entry-point check](free_sensor.py)

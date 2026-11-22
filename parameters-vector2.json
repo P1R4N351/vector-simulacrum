@@ -39,6 +39,16 @@
       "kind": "robot",
       "note": "Empirical packet format for this particular cube. It does not establish the chip identity or its effective analog resolution."
     },
+    "cube_accel_scale": {
+      "value": [1.0, 0.970709, 0.970709],
+      "unit": "1",
+      "provenance": "fitted",
+      "low": [0.97, 0.97, 0.97],
+      "high": [1.03, 1.03, 1.03],
+      "source": "REC: evidence/unit3-cube-accelerometer/resting.csv. Effective gain from 1929 upright samples, transferred to the sideways cube in evidence/unit3-wheelstand/R8/settled.csv.gz and the independent R9 pre-command capture.",
+      "kind": "robot",
+      "note": "Shelf cube only. The shared Y/Z gain describes the two observed positive-gravity faces. X retains nominal gain. Opposite faces are needed to separate bias from gain. Bounds retain the original sensitivity range."
+    },
     "cube_accel_noise_density_ug": {
       "value": 124.0,
       "unit": "ug/sqrt(Hz)",
