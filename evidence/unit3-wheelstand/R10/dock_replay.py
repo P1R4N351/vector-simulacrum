@@ -21,6 +21,23 @@ summary=[]
 angles=np.unwrap(R.from_quat(np.column_stack([poses[k] for k in ['qx','qy','qz','qw']])).as_euler('ZYX')[:,0])
 heading=np.interp(registration,poses['sec'],angles)
 xy=np.array([np.interp(registration,poses['sec'],poses[k]) for k in ['x_mm','y_mm']])
+camera_path='--camera-path' in sys.argv[3:]
+if camera_path:
+ trace=np.genfromtxt(folder/'chassis-path.csv',names=True,delimiter=',')
+ knots=dock+trace['dock_s']
+ new_xy=xy+R.from_euler('z',heading).apply(np.column_stack([trace['opt_forward_mm'],trace['opt_left_mm'],np.zeros(len(trace))]))[:,:2]
+ new_yaw=heading+np.radians(trace['opt_ccw_deg'])
+ old_end=np.array([np.interp(knots[-1],poses['sec'],poses[k]) for k in ('x_mm','y_mm')])
+ correction=new_yaw[-1]-np.interp(knots[-1],poses['sec'],angles)
+ after=poses['sec']>knots[-1]
+ delta=np.column_stack([poses[k][after]-v for k,v in zip(('x_mm','y_mm'),old_end)])
+ continuation=new_xy[-1]+R.from_euler('z',correction).apply(np.column_stack([delta,np.zeros(len(delta))]))[:,:2]
+ during=(poses['sec']>=knots[0]) & ~after
+ for col,k in enumerate(('x_mm','y_mm')):
+  poses[k][during]=np.interp(poses['sec'][during],knots,new_xy[:,col])
+  poses[k][after]=continuation[:,col]
+ angles[during]=np.interp(poses['sec'][during],knots,new_yaw)
+ angles[after]+=correction
 for reg in csv.DictReader((folder/'hub-registration.csv').open()):
  with tempfile.TemporaryDirectory() as td:
   d=Path(td);(d/'state.csv.gz').symlink_to(folder/'state.csv.gz');(d/'actions.csv').write_text('action,sec\nroll cube,'+str(zero)+'\n')
@@ -54,7 +71,7 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    if dt==.00025:
     ax[0].plot(t+start_offset,travel,label='Camera '+reg['view']+' initialization')
     ax[1].plot(t+start_offset,turn)
-with (folder/('dock-replay.csv' if start_offset==3.75 else 'dock-late-start.csv')).open('w') as f:
+with (folder/('camera-path-replay.csv' if camera_path else 'dock-replay.csv' if start_offset==3.75 else 'dock-late-start.csv')).open('w') as f:
  w=csv.writer(f,lineterminator='\n')
  w.writerow('view dt_ms travel_mm ccw_deg peak_tilt_deg taps first_contact_from_init_s first_contact_gap_mm initial_pair'.split())
  w.writerows(summary)
@@ -65,4 +82,4 @@ ax[0].set_ylabel('Net displacement (mm)')
 ax[1].set(xlabel='Seconds after dock command',ylabel='Cube yaw (degrees CCW)')
 ax[0].legend()
 if start_offset==3.75:
- fig.savefig(folder/'dock-replay.png',dpi=150)
+ fig.savefig(folder/('camera-path-replay.png' if camera_path else 'dock-replay.png'),dpi=150)
