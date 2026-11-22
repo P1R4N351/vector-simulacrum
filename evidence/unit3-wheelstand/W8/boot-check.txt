@@ -1,0 +1,3 @@
+Uptime 98.91 112.74
+IDX BOOT ID                          FIRST ENTRY                 LAST ENTRY
+[    0.388063] qcom,qpnp-power-on qpnp-power-on-1: PMIC@SID0: Power-off reason: Triggered from UVLO (Under Voltage Lock Out)

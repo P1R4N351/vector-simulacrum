@@ -1,0 +1,25 @@
+sec,kind,action,response
+-19.739054,begin,connect on dock,
+-0.000179,end,connect on dock,"status {
+  code: RESPONSE_RECEIVED
+}
+success: true"
+0.0,begin,undock,
+15.647761,end,undock,"{'ok': True, 'stopped_reason': 'goal', 'prox_mm': 67.0, 'actual_delta': {'x': 0.0591, 'y': 0.1041, 'theta': 0.03736}, 'clamped': False, 'chunks_executed': 1, 'motion_result': {'ok': True, 'reason': 'completed', 'moved_mm': 0.0, 'turned_rad': 0.0, 'detail': 'goal', 'chunks': 1, 'clamped': False, 'prox_mm': 92.0}}"
+15.648644,begin,aim,
+19.510478,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+19.510846,begin,look,
+20.59604,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+21.147429,begin,pop_a_wheelie,
+25.089639,begin,disconnect,
+25.212112,end,disconnect,"status {
+  code: REQUEST_PROCESSING
+}"

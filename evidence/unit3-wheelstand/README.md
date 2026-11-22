@@ -99,3 +99,9 @@ During pickup the maximum reported cube acceleration was 2.01 g and the tap coun
 On retry W5, P2Y8 undocked and searched but never obtained a recent cube glyph sighting. No wheelstand command was issued. [Search actions](W5/actions.csv).
 
 The [four-stage photo and telemetry overlay](R5/rectified-carry.jpg) uses CPCS's feed-annotator rectifier on the original 1920 × 1080 See3CAM frames. It uses the provisional equidistant lens and a 130° horizontal view tipped 10°. Time is seconds from the undock command. Lift comes from the closest SDK report, acceleration from the peak reported magnitude in the preceding 300 ms. No arena-anchor registration was available for this run.
+
+### W8 wheelstand and wedged landing
+
+After relocation and an unsuccessful close-range search, W6 lost its SDK event stream around undocking and W7 searched from a wider position without a fresh sighting. W8 acquired the native glyph, invoked the wheelstand under override and recorded 2,142 cube acceleration samples over the full session. Peak recorded chassis pitch was 72.50° against W4's 72.25°. Peak cube specific force was 3.06 g with three tap increments, against 4.50 g and two increments in W4. The two contacts have different starting placements. The operator observed P2Y8 land wedged on the cube in W8 and reported that basal behavior freed him once he came back online. The action stop guard fired, so there is no SDK action-success result.
+
+After the maneuver, robot uptime reset from 3,641.47 s at the final packet to 98.91 s at the boot check. The new kernel recorded PMIC undervoltage lockout. This confirms a reboot; there is no voltage waveform across the landing to identify its cause. The last robot state is only 4.60 s after the action command. [Contact and landing video](W8/wheelstand.mp4) · [two physical pitch and cube traces](W8/physical-repeat.png) · [action and sensor data](W8/) · [boot check](W8/boot-check.txt).
