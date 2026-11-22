@@ -5,7 +5,7 @@ import { replayCsv } from "../tools/replay-cube-listeners.mjs";
 
 test("the physical roll produces both starts and stops at the reference packet times", () => {
   const path = new URL("../../evidence/unit3-wheelstand/shelf-roll-stop/S22B/cube.csv.gz", import.meta.url);
-  assert.deepEqual(replayCsv(path), [
+  assert.deepEqual(replayCsv(path).filter(event => "moving" in event), [
     { moving: true, time_s: 37.122122 }, { moving: false, time_s: 37.82005 },
     { moving: true, time_s: 55.207216 }, { moving: false, time_s: 56.437308 },
   ]);
@@ -14,10 +14,20 @@ test("the physical roll produces both starts and stops at the reference packet t
 test("up-axis initializes silently and crosses from +Z to -X on slot 23 of a quarter turn", () => {
   const listener = new CubeListeners();
   function feed(time_s, sample) {
-    return listener.receive({time_s, slots: [sample, sample, sample]});
+    return listener.receive({time_s, taps: 0, slots: [sample, sample, sample]});
   }
   for (let i = 1; i <= 10; i++) assert.deepEqual(feed(i*.03, [0,0,8192]), []);
   assert.equal(listener.axis, 6);
   for (let i = 11; i <= 17; i++) assert.deepEqual(feed(i*.03, [-8192,0,0]), []);
   assert.deepEqual(feed(.54, [-8192,0,0]), [{axis: 1, time_s: .54}]);
+});
+
+test("a changed wrapping tap counter emits one candidate per packet", () => {
+  const listener = new CubeListeners();
+  const slots = Array.from({length: 3}, () => [0, 0, 8192]);
+  const send = (time_s, taps) => listener.receive({time_s, taps, slots});
+  assert.deepEqual(send(.03, 255), []);
+  assert.deepEqual(send(.06, 0), [{time_s: .06, tap_count: 0}]);
+  assert.deepEqual(send(.09, 0), []);
+  assert.deepEqual(send(.12, 3), [{time_s: .12, tap_count: 3}]);
 });

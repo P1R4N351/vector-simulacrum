@@ -9,8 +9,8 @@ export function replayCsv(path) {
   const listeners = new CubeListeners(), events = [];
   let packet;
   for (const line of text.slice(1)) {
-    const [time_s, , slot, , x, y, z] = line.split(",").map(Number);
-    if (slot === 0) packet = { time_s, slots: [] };
+    const [time_s, , slot, taps, x, y, z] = line.split(",").map(Number);
+    if (slot === 0) packet = { time_s, taps, slots: [] };
     assert.equal(slot, packet.slots.length);
     assert.equal(time_s, packet.time_s);
     packet.slots.push([x, y, z]);
