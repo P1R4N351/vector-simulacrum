@@ -88,3 +88,30 @@ from predicting forces at the cube.
 ![SDK receipts relative to the triggering cube packets](browser-events.png)
 
 [Per-run counts](browser-events.csv). Reproduce with `python browser_events.py`.
+
+### Did a counter change reach the SDK as a tap?
+
+The browser emits a tap candidate when the decoded counter changes between
+packets. A new stream initializes silently. A wrap from 255 to 0 counts once,
+and a jump across missing counts produces one candidate at the observed packet.
+The latest packet exposes it as a `tap_count` event.
+
+Sixteen shelf captures contain 31 counter changes. Within radio coverage
+(including a 50 ms boundary margin), the SDK logged 30 taps. Pairing on robot
+uptime, allowing 50 ms and minimizing total absolute distance after maximizing
+the number of pairs, matches all 30 callbacks. A 100 ms pairing threshold
+gives the same count. R10 contains the extra counter change. The timestamps
+cannot establish why it lacked a recorded callback.
+
+The prior host-receipt delay of 145.906 ms, estimated on an earlier pickup,
+gave a median absolute error of 11.92 ms. 28 of 30 callbacks arrived within
+50 ms of the prediction. Both exceptions were in R10. Their host residuals
+were −107 and +171 ms even though their SDK payload stamps were within 11 ms
+of the corresponding radio changes on robot uptime. A fixed delay captures
+typical receipt timing, while individual host arrivals can vary substantially.
+The browser timestamps tap candidates at simulated packet delivery.
+
+![Tap timing by run](browser-taps.png)
+
+[Packet and callback counts](browser-tap-counts.csv) · [Matched timing](browser-tap-times.csv).
+Reproduce with `python browser_taps.py`.
