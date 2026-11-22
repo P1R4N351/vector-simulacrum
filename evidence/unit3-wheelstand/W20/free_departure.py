@@ -27,7 +27,7 @@ def add_front(root, parts):
             mount.append(copy.deepcopy(wheel.find(f"geom[@name='{side}_geom']")))
 
 
-def replay(pose, clearance, dt, parts=(), trajectory=path, end=5.85, observe=None):
+def replay(pose, clearance, dt, parts=(), trajectory=path, end=5.85, observe=None, drive=None):
     root = copy.deepcopy(tree.getroot())
     if parts:
         add_front(root, parts)
@@ -41,11 +41,13 @@ def replay(pose, clearance, dt, parts=(), trajectory=path, end=5.85, observe=Non
     origin = center + (extent + clearance*.001 - .75)*forward
     table.set("pos",f"{origin[0]} {origin[1]} -0.01")
     table.set("quat",f"{np.cos(yaw/2)} 0 0 {np.sin(yaw/2)}")
+    if drive is not None:
+        drive.build(root, forward)
     m = mj.MjModel.from_xml_string(ET.tostring(root,encoding="unicode"))
     m.opt.timestep = dt
     d = mj.MjData(m)
     d.qpos[:3] = [*center,.02215]
-    d.qpos[3:] = [np.cos(pose["cube_yaw"]/2),0,0,np.sin(pose["cube_yaw"]/2)]
+    d.qpos[3:7] = [np.cos(pose["cube_yaw"]/2),0,0,np.sin(pose["cube_yaw"]/2)]
     t = np.arange(4.8,end,dt)
     x,y,angle,pitch,h = [np.interp(t,trajectory["sec"],trajectory[k]) for k in ("x","y","yaw","pitch","lift")]
     reach = -41+np.sqrt(66**2-(h-45)**2)
@@ -56,13 +58,17 @@ def replay(pose, clearance, dt, parts=(), trajectory=path, end=5.85, observe=Non
     quat = np.stack([a*c,b*s,-a*s,b*c],axis=1)
     trace=[]
     for i,sec in enumerate(t):
-        d.mocap_pos[0],d.mocap_quat[0] = pos[i],quat[i]
+        if drive is None:
+            d.mocap_pos[0],d.mocap_quat[0] = pos[i],quat[i]
         if parts:
             # Rotate chassis origin about the same rear axle as the fork.
             offset = -48 + 48*np.cos(pitch[i]) + 10.75*np.sin(pitch[i])
             z = 10.75 + 48*np.sin(pitch[i]) - 10.75*np.cos(pitch[i])
-            d.mocap_pos[1] = .001*np.array([x[i]+offset*np.cos(angle[i]),y[i]+offset*np.sin(angle[i]),z])
-            d.mocap_quat[1] = quat[i]
+            base = .001*np.array([x[i]+offset*np.cos(angle[i]),y[i]+offset*np.sin(angle[i]),z])
+            if drive is None:
+                d.mocap_pos[1], d.mocap_quat[1] = base, quat[i]
+            else:
+                drive.step(m, d, base, pos[i], quat[i], i, dt)
         mj.mj_step(m,d)
         displacement = (d.qpos[:2]-center)*1000
         trace.append((sec+dt,displacement@forward,displacement@[-forward[1],forward[0]],d.qpos[2]*1000))
