@@ -22,6 +22,7 @@ fig,ax=plt.subplots(2,1,figsize=(8,6),sharex=True,layout='constrained')
 summary=[]
 early_path="--early-path" in sys.argv[3:]
 early_rows=[]
+onset_rows=[]
 pose_grid="--pose-grid" in sys.argv[3:]
 if pose_grid and not early_path:
  raise ValueError("pose grid requires --early-path --face-test")
@@ -157,6 +158,14 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
        initial_xy_mm=pos+R.from_euler("z",heading).apply([df,dl,0])[:2] if pose_grid else None)
    if impulse_test:
     wrench_recorder.save(reg['view'],start_offset,dt)
+    path=np.asarray(out)[:,:2]
+    distance=np.linalg.norm(path-path[0],axis=1)*1000
+    for level in (1,2,4):
+     indices=np.flatnonzero(distance>=level)
+     if len(indices):
+      j=indices[0]
+      onset_rows.append([reg['view'],level,t[j-1]+start_offset,t[j]+start_offset])
+
     continue
    if tilt_trace or early_path:
     samples=np.asarray(out)
@@ -195,6 +204,10 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
     ax[0].plot(t+start_offset,travel,label=reg['view']+' · '+(layout if face_test else ','.join(omitted) or 'all contacts'))
     ax[1].plot(t+start_offset,turn)
 if impulse_test:
+ with (folder/'sim-onset.csv').open('w') as f:
+  w=csv.writer(f,lineterminator='\n')
+  w.writerow(['registration','displacement_mm','last_below_s','first_above_s'])
+  w.writerows(onset_rows)
  sys.exit(0)
 if early_path:
  with (folder/('pose-grid.csv' if pose_grid else 'impact-path-candidates.csv')).open('w') as f:
