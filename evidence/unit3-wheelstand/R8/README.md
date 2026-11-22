@@ -128,3 +128,9 @@ In the 4.600–4.78125 s interval before the simulated peak raw impact, 10–13 
 The mismatch therefore precedes the simulated shelf impact. This favors testing how long the cube remains supported and the path it follows as it rolls. Hardware receipt time differs from chip time, and packet gaps can hide physical motion. The readings alone cannot identify a supporting contact or exclude a short unobserved airborne interval. No physical test was run for this comparison.
 
 [Measured and simulated slots](unloading.png) · [All clock phases](unloading.csv) · [Reproduce](impact_phase.py)
+
+### Does rotating an off-center accelerometer explain the unload?
+
+The accelerometer site is assumed to be at the cube center. Repeated the identical trajectory at nominal clock phase with the site at the center and all eight vertices of the model's ±15 mm per-axis uncertainty box. The entire tilt trace was identical in every run. At the eight offsets the minimum pre-impact packet magnitudes ranged from 0.032 to 0.175 g; seven to fourteen of the eighteen slots fell below 0.5 g. Landing peaks ranged from 4.08 to 6.82 g. Physical pre-impact slots stayed above 0.914 g and the landing-window maximum was 1.11 g. These discrete positions test sensitivity; they do not bound every interior position or identify the physical mounting. The tested offsets leave the pre-impact discrepancy intact.
+
+[Location sensitivity](chip-offset.png) · [Nine replay results](chip-offset.csv) · [Reproduce](chip_offset.py)
