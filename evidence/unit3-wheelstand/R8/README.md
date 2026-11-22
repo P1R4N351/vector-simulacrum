@@ -91,3 +91,18 @@ If the cube had kept its starting attitude, its changing Y specific force would 
 The result rules against sliding with constant attitude as the sole explanation. It does not identify the tip axis, instantaneous angle, angular acceleration or fork contact point. A rotating cube can also slide. Sensor timestamps are receiver times, with linear interpolation between packet means.
 
 [Marked video frames](slide-check.png) · [Midpoint deviations](slide-check.csv) · [Reproduce](slide_check.py)
+
+### What the camera resolves during the cube packet gap
+
+The 272 ms gap between cube packet receipts covers camera frames at 64.250 and
+64.333 s under the full previously estimated clock-offset range. Between those
+frames the mean absolute grayscale change in the fork/cube crop is 24.30 counts
+on an 8-bit scale, versus 0.49 on the fixed dock glyph. More of the bright top
+marking becomes visible as the fork moves. The changing occlusion prevents a
+cube-only angle measurement here. These frames therefore constrain the timing
+of visible interaction but cannot supply a missing accelerometer sample or
+establish when the cube completed its roll.
+
+![Two in-gap frames and their absolute differences](gap-frames.png)
+
+Reproduce with `python gap_frames.py`.
