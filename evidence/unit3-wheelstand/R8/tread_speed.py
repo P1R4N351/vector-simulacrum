@@ -42,10 +42,28 @@ def compose_fixture(path, values):
     return root,center,radius
 
 
-def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None):
+def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False):
     values = params.values(params.load(model="vector_2"))
     values.update(sensor_overrides or {})
     root,center,radius = compose_fixture(path,values)
+    if articulated:
+        robot=ET.fromstring(mjcf.build_mjcf(values))
+        ET.SubElement(root,'compiler',angle='radian')
+        original=root.find(".//body[@name='fork']")
+        arm=robot.find(".//body[@name='lift_arm']")
+        wrist_body=arm.find("body")
+        wrist_body.set('name','fork')
+        for geom in wrist_body.findall('geom'):
+            wrist_body.remove(geom)
+        for geom in original.findall('geom'):
+            original.remove(geom)
+            wrist_body.append(geom)
+        ET.SubElement(wrist_body,'inertial',pos='0 0 -.010',mass='.006',diaginertia='2e-6 1e-6 2e-6')
+        original.set('name','carrier')
+        original.append(arm)
+        ET.SubElement(root,'actuator').append(robot.find(".//position[@name='lift']"))
+        equality=ET.SubElement(root,'equality')
+        equality.append(robot.find(".//equality/joint[@joint1='wrist_joint']"))
     root.find('option').set('timestep',str(dt))
     m = mj.MjModel.from_xml_string(ET.tostring(root,encoding='unicode'))
     d = mj.MjData(m)
@@ -84,8 +102,15 @@ def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrid
     cube_id,tread_id = m.body('cube').id,m.body('tread').id
     sensor = CubeAccelerometer(values,dt)
     tilt, hit = [],[]
+    if articulated:
+        target=np.array([mjcf.lift_angle_of_height(values,h) for h in lift])
+        d.joint('lift_joint').qpos[0]=target[0]
+        d.joint('wrist_joint').qpos[0]=-target[0]
     for i in range(len(t)-1):
         d.mocap_pos[0],d.mocap_quat[0] = forkpos[i],quat[i]
+        if articulated:
+            d.mocap_pos[0]=origin[i]
+            d.actuator('lift').ctrl[0]=target[i]
         joint.qpos[:] = qref[i]
         next_q = d.qpos.copy()
         next_q[qadr:qadr+7] = qref[i+1]
@@ -93,6 +118,8 @@ def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrid
         joint.qvel[:] = vel[dof:dof+6]
         mj.mj_step(m,d)
         sensor.step(d.time,d.sensor('chip').data/9.81)
+        if observer is not None:
+            observer(m,d)
         hit.append(any({ids[c.geom1],ids[c.geom2]}=={cube_id,tread_id} for c in d.contact))
         tilt.append(np.degrees(np.arccos(np.clip(d.body('cube').xmat.reshape(3,3)[2]@up,-1,1))))
     return t[:-1],np.array(tilt),np.array(hit),speed[:-1]*1000,sensor
