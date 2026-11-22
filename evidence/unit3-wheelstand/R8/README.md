@@ -52,3 +52,13 @@ At 0.25 ms the control reaches 170.3° peak tilt and the rolling tread reaches 1
 The replay uses the existing accelerometer, packet format, and filter on the MuJoCo cube chip site with a fixed seed. The robot's pose and fork motion remain prescribed. The several-fold acceleration error and different indicated face argue against adopting this driver as a calibrated model.
 
 [Tread-speed overlay](tread-speed.png) · [All six runs](tread-speed.csv) · [Reproduce with printed fixture XML](tread_speed.py)
+
+### Recovering the settling time from the overhead camera
+
+The shelf recording continues after the receiver stops. At 65.25 s on the camera clock the visible cube top is still changing. At 65.333 s its normalized patch correlation with the exposed post-withdrawal cube reaches 0.955, then 0.987 at 65.417 s. Every remaining frame of the published 74 s crop stays above 0.98 from 65.417 s onward, including the robot backing away. The patch covers the far two corners and upper portion of the top glyph. The near face is partly occluded until the robot withdraws. This measures the time at which the visible portion matches the later resting pose; it does not determine a continuous 3D angle or first crossing of 45°.
+
+Two motion onsets provide an independent clock check. First visible lift motion at camera 60.167 s corresponds to receiver +0.413 s. First visible chassis drive at 61.667 s corresponds to +1.791 s. The two offsets place command zero at camera 59.754–59.875 s. Combining those offsets with the two correlation thresholds gives an approximate **+5.46 to +5.66 s** for the first persistent match to the later appearance, about **0.19–0.40 s after the last cube packet**. These bounds describe threshold and landmark sensitivity, not statistical confidence. Video sampling is 12 Hz and SDK timing uses message receipt. The later gravity observation supplies the +Y face identification.
+
+The prescribed chassis trajectory ends at +5.208 s, before this visual endpoint. A replay stopped there cannot be scored as a final-face failure solely because it has yet to settle; discrepancies in earlier impact, sensor response, and timing remain measurable.
+
+[Settling frames and correlation](optical-settle.png) · [Frame scores](optical-settle.csv) · [Losslessly cropped camera sequence](cube-settling.mkv) · [Reproduce the measurement](optical_settle.py)
