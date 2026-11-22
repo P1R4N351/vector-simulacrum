@@ -2,6 +2,10 @@
 // centres come from the rig. The intermediate sections follow the photos.
 import * as THREE from "three";
 
+export function lowerLinkPivot(shoulder, pose) {
+  return shoulder.map((value, i) => value + pose.lower_arm_pivot[i] - pose.upper_arm_pivot[i]);
+}
+
 function linkSurface(stations) {
   const centre = new THREE.CatmullRomCurve3(stations.map(([x, y, z]) => new THREE.Vector3(x, y, z)));
   const radii = new THREE.CatmullRomCurve3(stations.map((s, i) => new THREE.Vector3(i, s[3], s[4])));

@@ -1,6 +1,6 @@
 // Export convex strips of the viewer's photo-derived links, relative to each rear pin.
 import fs from "node:fs";
-import { liftLink } from "../../web/src/game/liftlinks.js";
+import { liftLink, lowerLinkPivot } from "../../web/src/game/liftlinks.js";
 import { OBJLoader } from "../../web/node_modules/three/examples/jsm/loaders/OBJLoader.js";
 const sdk = new URL("../../web/public/robot/sdk/",import.meta.url);
 const groups = new OBJLoader().parse(fs.readFileSync(new URL("vector.obj",sdk),"utf8"));
@@ -11,8 +11,9 @@ const spec=JSON.parse(fs.readFileSync(new URL("manifest.json",sdk))).viewer_pose
 const [ux,uz,length]=process.argv.slice(2).map(Number);
 const angle=spec.lift_angle_in_default_pose_rad;
 const links=[];
+const shoulder=[ux/10+axle,uz/10];
 for(const lower of [false,true]){
-  const [x,z]=lower?spec.lower_arm_pivot:[ux/10+axle,uz/10];
+  const [x,z]=lower?lowerLinkPivot(shoulder,spec):shoulder;
   const end=[x+length/10*Math.cos(angle),z+length/10*Math.sin(angle)];
   const strips=[];
   for(const side of [-1,1]){

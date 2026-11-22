@@ -30,7 +30,7 @@
 
 import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
-import { liftLink } from "./liftlinks.js";
+import { liftLink, lowerLinkPivot } from "./liftlinks.js";
 import { addShellTrim } from "./shell.js";
 import { loadPrintParts, outerWheel, printFork } from "./printparts.js";
 import { beltGeometry, makeBeltPath, makeCleats, makeSpokes } from "./tracks.js";
@@ -186,10 +186,7 @@ export function assemble(meshes, pose, v, parts = [null, null, null], shellVersi
   const wrist = [shoulder[0] + arm * Math.cos(drawnAngle), shoulder[1] + arm * Math.sin(drawnAngle)];
   const head = pivotGroup(neck, take(PARTS.head));
   const eyes = take(["eye_L_geo", "eye_R_geo"]);
-  const lowerPivot = [
-    shoulder[0] + pose.lower_arm_pivot[0] - pose.upper_arm_pivot[0],
-    shoulder[1] + pose.lower_arm_pivot[1] - pose.upper_arm_pivot[1],
-  ];
+  const lowerPivot = lowerLinkPivot(shoulder, pose);
   // The parallelogram keeps both front pins at the spacing of the rear pins.
   const lowerWrist = wrist.map((n, i) => n + lowerPivot[i] - shoulder[i]);
   const links = (pivot, end, lower) => [-1, 1].map(side => liftLink(side, pivot, end, lower));
