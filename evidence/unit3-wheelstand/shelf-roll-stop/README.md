@@ -148,3 +148,35 @@ physical measurement here. The production pads retain the original setting.
 
 [Landing scores and tilt times](pad-landing.csv) · [Pad and shell forces integrated over contact](pad-contact.csv).
 Reproduce with `python pad_landing.py` and `python pad_contact.py`.
+
+### Can the release video resolve 8 mm of clearance?
+
+The opposite camera sees a side glyph and both lower corners before release.
+We fitted lines to the four straight outer glyph edges in the lens-corrected
+native frames, intersected them, and reconstructed the 23 mm square using the
+corrected view's 465 px focal length and cropped principal point. The shelf
+normal comes from the upright glyph's vertical direction at rest. We project
+all eight corners of the 44.3 mm envelope onto that normal and take the lowest.
+The estimate assumes a square glyph centered on the face and an upright,
+shelf-supported reference pose. No simulated landing trajectory enters the fit.
+
+![Corrected crops and detected outer glyph corners](landing-height-frames.jpg)
+
+In the three frames from 5.15–5.23 s, the median inferred clearance was
+**2.24–2.56 mm** across three brightness thresholds using the pre-roll rest
+reference. Repeating the registration against the settled post-roll pose gave
+**−0.74 to −0.32 mm**. The negative estimates show the scale of reference
+error. Varying focal length by ±5%, threshold and reference gave medians from
+**−1.05 to +2.81 mm**. These are sensitivity results, not confidence limits.
+Neither reference supports 8 mm of clearance sustained through these three
+frames. The precise instant of release remains unresolved: the two subsequent
+frames are motion-blurred and the bright LED can merge with the marker outline.
+The plotted trace omits poses above 0.4 px returned reprojection error. The
+CSV retains both planar-pose solutions and their errors; the primary estimate
+uses the solution with lower reprojection error.
+
+![Lowest modeled corner inferred from the video before and through release](landing-height.png)
+
+[Picked corners](landing-corners.csv) · [Pose solutions](landing-height.csv) · [Reference and focal sensitivity](landing-height-sensitivity.csv).
+Run `python landing_height.py` from the checked-in corners. The optional
+`landing_corners.py` takes the native corrected crop NPZ (image and time arrays).
