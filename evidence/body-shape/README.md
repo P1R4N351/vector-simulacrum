@@ -211,7 +211,7 @@ With the real shape the robot stops where the rig's rear body meets the table. I
 
 ## Tests
 
-`tests/test_body_mesh.py` has 24 cases. None needs the rig: every shape is made up in the test. They cover:
+`tests/test_body_mesh.py` has 29 cases. None needs the rig: every shape is made up in the test. They cover:
 
 - circle and end-cap fits;
 - the hinge sign;
@@ -220,15 +220,21 @@ With the real shape the robot stops where the rig's rear body meets the table. I
 - a shell with an 8-voxel hole filled, and a pocket open on two sides left empty;
 - scrap removal;
 - the clipped tread hull and its inward shrink, and the clip of a piece to a hull;
+- each triangle's look from its material, a split by look that keeps every triangle, and an unknown material refused;
 - the rear touchdown angle of a known shape;
 - the fidelity measure on known shapes;
-- the mesh-mode MJCF from a body of boxes. It has the lower-link equality, carrier geoms without contact, the arm mass split, and the table friction on pieces; it compiles to the primitive model's mass and the table's centre of mass, and the lower links follow the lift in `VectorSim`.
+- the mesh-mode MJCF from a body of boxes. It has the lower-link equality, carrier geoms without contact, the arm mass split, and the table friction on pieces; it compiles to the primitive model's mass and the table's centre of mass, and the lower links follow the lift in `VectorSim`, and its visual meshes take their looks as materials.
 
 `tests/test_mjcf.py` checks the treads at the built spacing, the head box offset and the cube's outer size.
 
-`tests/mutate.py` has 16 body-shape arms, one per property. Run through the harness's own control, swap and verdict logic on a clean archive of this change: 16 of 16 caught, 0 survived, 0 set-up errors.
+`tests/mutate.py` has 19 body-shape arms, one per property. Run through the harness's own control, swap and verdict logic on the merged commit, MuJoCo 4.0.1 through `run_in_ct.sh`: 19 of 19 caught, 0 survived, 0 set-up errors.
 
-Full suite on that container (MuJoCo 3.11.0), on the same archive: 403 declared, 403 ran, 396 passed, 0 failed, 7 skipped for optional inputs. `web/tools/export_model.py --check`: 14 files up to date; `robot.json` was made on MuJoCo 4.0.1, which `web/test/robot.test.js` requires. The browser tests themselves (`npm test`) were not run.
+Full suite there: 445 declared, 445 ran, 435 passed, 8 skipped for optional inputs, 2 failed. Both pass on `main` itself, so this change causes them:
+
+- `test_printed_parts.SyntheticParts.test_tread_masses_follow_the_wheel_bodies_not_the_table` computed its expected inertia change from `tread_spacing_mm` (23.0 mm a side) while the wheels are built at `tread_center_spacing_mm` (23.95 mm). The test now starts from where the wheels are; the printed-parts module then passes 27 of 27 and its mutation arm is caught.
+- `test_replay.Replay.test_contact_trial_medium_ccw_trace_and_fast_turn_rates`, segment `spin_cw_220`: the 42 mm contact trial (`contact_trial.py`, the browser's `?contact=42`) turns 2.16 % off the robot against a 2 % limit. That trial places its own contact patches, so the table's inset does not enter it; it was tuned with the treads 46 mm apart, and with the treads where the rig has them it misses by 0.16 points. **Not fixed here.** The trial needs retuning by its owner, and the limit is not loosened.
+
+`web/tools/export_model.py --check`: 14 files up to date; `robot.json` is made on MuJoCo 4.0.1, as `web/test/robot.test.js` requires. The browser tests themselves (`npm test`) were not run.
 
 ## What the checks caught while this was built
 
@@ -265,3 +271,4 @@ The build needs numpy, scipy and CoACD (`pip install coacd`; built with 1.0.14).
 - `com_x_mm` is assumed, and the inset fit trades against it.
 - The lift-link length (65.05 to 65.39 mm in the rig, 66 in firmware) is the one rig dimension a printed part could still settle. TheDimensionalForge's replacement upper arms are on Cults3D only, behind a Cloudflare check, and were not read.
 - The cube's outer size rests on two printed parts; no caliper reading of a real cube was taken.
+- The 42 mm contact trial's `spin_cw_220` test fails with the corrected geometry (2.16 % against 2 %); see Tests.
