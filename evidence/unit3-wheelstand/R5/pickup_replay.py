@@ -26,7 +26,7 @@ def read(name):
 parser = argparse.ArgumentParser()
 parser.add_argument("fixture")
 parser.add_argument("--output", type=Path, help="Directory for this replay’s generated evidence")
-parser.add_argument("--substeps", type=int, default=1, choices=(1,2,4))
+parser.add_argument("--substeps", type=int, default=1, choices=(1,2,4,8))
 parser.add_argument("--sighting", type=int, help="Camera sighting row (zero-based) for a fresh stationary cube start")
 parser.add_argument("--shelf-friction-scale", type=float, choices=(0.25, 0.5, 1., 2.),
                     help="Scale only sliding friction at cube-to-table contacts")
