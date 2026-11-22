@@ -47,3 +47,11 @@ At the nominal 30 mN·m limit this reduces peak lift tracking error (expressed a
 The lower panel compares the quasi-static support required to balance gravity and robot contact with the cube footprint. Crossing its edge briefly does not establish a tip. Force and actuator summaries use +3.00 to +5.21 seconds, clipped to available replay time. Run lift_leverage.py with the printed fixture XML to reproduce.
 
 [Contact force and lift tracking](lift-leverage.png) · [Eight replay results](lift-leverage.csv)
+
+### The roll discrepancy is visible before chassis telemetry ends
+
+The successful roll's cube packets show median Y–Z acceleration direction changes of 20.4° from +4.60 to +5.00 s and 28.8° from +5.00 to +5.208 s, relative to the pre-command rest face. The nominal shelf-supported replay gives 0.02° in each window. Median physical packet norms are 0.966 and 0.962 g (rest about 0.971 g). An accelerometer responds to both orientation and translation, so these directions measure a sensor discrepancy directly but do not independently measure geometric tilt. Receiver timestamps include Bluetooth delivery jitter. The held-out missed approach stays within 0.06° of its initial direction in both windows, measured and simulated.
+
+The last three physical packets after the R8 chassis cutoff have median direction change 41.3°. The overhead view reaches its final appearance at approximately +5.46–5.66 s. Extending the replay might capture the endpoint, but the earlier packet discrepancy already exists while measured drive inputs are available. The discrete up-face indicator masks this gradual change.
+
+[Packet direction overlay](roll-onset.png) · [Window medians and counts](roll-onset.csv) · [Reproduce with printed fixture](roll_onset.py)
