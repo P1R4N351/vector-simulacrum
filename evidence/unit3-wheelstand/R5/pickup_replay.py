@@ -156,6 +156,7 @@ weight = m.body_mass[cube_id] * np.linalg.norm(m.opt.gravity)
 link_bodies = [m.body(f"rail{j}").id for j in range(2)]
 link_geoms = np.isin(m.geom_bodyid, link_bodies)
 link_patch = []
+cube_heading = []
 normals = []
 tool_rates = []
 contact_materials = set()
@@ -220,6 +221,7 @@ for i, tick in enumerate(t):
         speed = twist[3:] + np.cross(twist[:3], wrist[i] - origin)
         commanded = (wrist[min(i+1, len(t)-1)]-wrist[i])/m.opt.timestep
         tool_rates.append([tick, *commanded, *speed])
+        cube_heading.append([tick, np.arctan2(2*(cube[3]*cube[6]+cube[4]*cube[5]), 1-2*(cube[5]**2+cube[6]**2))])
         normals.append([tick, *Rotation.from_quat(cube[3:7], scalar_first=True).as_matrix()[:, 2]])
         lean = np.degrees(np.arccos(np.clip(1-2*np.sum(cube[4:6]**2),-1,1)))
         traces.append([tick,cube[2]*1000,lean,any(floor in c.geom for c in d.contact),
@@ -235,6 +237,7 @@ with (output/"fork-materials.csv").open("w") as stream:
     writer.writerows(sorted(contact_materials))
 np.savetxt(output/"tool-velocity.csv", tool_rates, delimiter=",", comments="",
            header="s,path_x,path_y,path_z,solver_x,solver_y,solver_z")
+np.savetxt(output/"cube-heading.csv", cube_heading, delimiter=",", comments="", header="sec,yaw_rad")
 np.savetxt(output/"top-normal.csv", normals, delimiter=",", comments="", header="sec,nx,ny,nz")
 with (output/"link-patch.csv").open("w") as stream:
     writer = csv.writer(stream, lineterminator="\n")
