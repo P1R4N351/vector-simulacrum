@@ -1,0 +1,67 @@
+event_zero_based,action,clock,samples,measured_clear,clear_hits,false_clear,missed_clear,lift_span_mm
+0,stop,dispatch,9,2,2,1,0,0.0
+0,stop,response,9,2,1,3,1,0.0
+0,stop,direct hold + dispatch,9,2,1,0,1,0.0
+0,stop,direct hold + response,9,2,1,1,1,0.0
+0,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+1,sham,control,13,0,0,0,0,0.0
+2,stop,dispatch,10,2,2,3,0,0.0
+2,stop,response,10,2,0,3,2,0.0
+2,stop,direct hold + dispatch,10,2,1,2,1,0.0
+2,stop,direct hold + response,10,2,0,1,2,0.0
+2,stop,direct hold + first-session phase,10,2,2,0,0,0.0
+3,stop,dispatch,9,2,2,2,0,0.0
+3,stop,response,9,2,1,3,1,0.0
+3,stop,direct hold + dispatch,9,2,1,1,1,0.0
+3,stop,direct hold + response,9,2,1,1,1,0.0
+3,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+4,stop,dispatch,9,2,2,2,0,0.0
+4,stop,response,9,2,1,2,1,0.0
+4,stop,direct hold + dispatch,9,2,1,1,1,0.0
+4,stop,direct hold + response,9,2,1,0,1,0.0
+4,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+5,sham,control,9,0,0,0,0,0.0
+6,sham,control,9,0,0,0,0,0.0
+7,stop,dispatch,9,2,2,1,0,0.3385581970214844
+7,stop,response,9,2,1,3,1,0.3385581970214844
+7,stop,direct hold + dispatch,9,2,1,0,1,0.3385581970214844
+7,stop,direct hold + response,9,2,1,1,1,0.3385581970214844
+7,stop,direct hold + first-session phase,9,2,2,0,0,0.3385581970214844
+8,stop,dispatch,9,2,2,1,0,0.0
+8,stop,response,9,2,2,2,0,0.0
+8,stop,direct hold + dispatch,9,2,1,0,1,0.0
+8,stop,direct hold + response,9,2,2,0,0,0.0
+8,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+9,sham,control,9,0,0,0,0,0.0
+10,stop,dispatch,9,2,2,1,0,0.0
+10,stop,response,9,2,1,3,1,0.0
+10,stop,direct hold + dispatch,9,2,1,0,1,0.0
+10,stop,direct hold + response,9,2,1,1,1,0.0
+10,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+11,stop,dispatch,9,2,2,2,0,0.0
+11,stop,response,9,2,1,1,1,0.0
+11,stop,direct hold + dispatch,9,2,1,1,1,0.0
+11,stop,direct hold + response,9,2,1,0,1,0.0
+11,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+12,stop,dispatch,9,1,1,2,0,0.0
+12,stop,response,9,1,1,2,0,0.0
+12,stop,direct hold + dispatch,9,1,0,1,1,0.0
+12,stop,direct hold + response,9,1,1,1,0,0.0
+12,stop,direct hold + first-session phase,9,1,1,1,0,0.0
+13,sham,control,10,0,0,0,0,0.0
+14,stop,dispatch,9,2,2,1,0,0.0
+14,stop,response,9,2,0,3,2,0.0
+14,stop,direct hold + dispatch,9,2,2,0,0,0.0
+14,stop,direct hold + response,9,2,0,1,2,0.0
+14,stop,direct hold + first-session phase,9,2,1,0,1,0.0
+15,sham,control,9,0,0,0,0,0.0
+16,stop,dispatch,9,2,2,2,0,0.0
+16,stop,response,9,2,2,3,0,0.0
+16,stop,direct hold + dispatch,9,2,0,1,2,0.0
+16,stop,direct hold + response,9,2,2,1,0,0.0
+16,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+17,stop,dispatch,9,2,2,2,0,0.0
+17,stop,response,9,2,1,3,1,0.0
+17,stop,direct hold + dispatch,9,2,2,0,0,0.0
+17,stop,direct hold + response,9,2,1,1,1,0.0
+17,stop,direct hold + first-session phase,9,2,2,0,0,0.0
