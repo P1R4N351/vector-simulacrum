@@ -248,3 +248,11 @@ Back-project each tracked crown patch through the calibrated See3CAM division mo
 Forward displacement at the raised frame ranges from −11.63 to +11.69 mm relative to SDK, depending on the patch and assumed height. This wider sensitivity revises the preceding linear-calibration result: even the sign of the inferred extra forward travel lacks independent confirmation. Across the six lateral-only and six two-axis replays, maximum simulated tilt is 2.30° and maximum rightward travel is 0.49 mm. The 26.72 mm physical sweep remains unexplained.
 
 [Plane-height and landmark sensitivity](chassis-plane.png) · [Checks and replay scores](chassis-plane.csv). Run chassis_plane.py with the same repository and printed-fork fixture arguments as evaluate.py after producing chassis-track.csv.
+
+### Battery location from the opened cube
+
+The open-cube photo and the exploded drawing show the cylindrical cell entering perpendicular to the removable glyph face, positive terminal toward the cover. Rectifying each access face to the nominal 44 mm square and fitting the visible bore arc gives a center roughly 0.7 mm from the square center in each view. The short arcs, hand-selected face corners and drawing proportions limit precision. Neither view locates the seated cell's ends along its axis, the electronics' mass center, or the accelerometer chip.
+
+We used the [Energizer E90 reference](https://energizer.com/wp-content/uploads/2025/02/e90.pdf) for a 9 g cylinder 12 mm across and 30.2 mm long. These are surrogate properties for the pictured Kendal cell. The other 41 g are centered with uniform 44 mm cube inertia. With the cell centered laterally, we tested seated midpoint offsets of −6, 0 and +6 mm along each possible replay axis, a 1.08 mm maximum shift of the overall center. All 45 five-trial cases retain the original fork, cube collision surfaces and motion. Trial 1 reaches 2.16–2.35° and moves at most 0.43 mm right. This photo-informed battery model does not recover the physical lift.
+
+[Rectified bore outlines](battery-well.png) · [Reference measurements](battery-well.csv) · [Paired replays](battery-axis-replay.csv). Run battery_well.py with the same arguments as evaluate.py.
