@@ -181,13 +181,48 @@ def _tip_supports_xml(v: Dict[str, Any]) -> str:
     half, half_w = 0.5 * v["tread_spacing_mm"] * MM, 0.5 * v["tread_width_mm"] * MM
     rf, rr, base = v["wheel_front_radius_mm"], v["wheel_rear_radius_mm"], v["wheel_base_mm"]
     assert gap < min(rf, rr), "tip supports would have no size"
+    driven = _tip_supports_driven(v)
     out = ""
     for name, x_mm, radius_mm in (("tip_front", 0.0, rf), ("tip_rear", -base, rr)):
         for side, y in (("l", half), ("r", -half)):
+            if driven:
+                # Its own hinge, geared to the tread (tip_supports_driven): the surface moves with the tread.
+                out += (f'      <body name="{name}_{side}_body" pos="{vec((x_mm * MM, y, radius_mm * MM))}">\n'
+                        f'        <joint name="{name}_{side}_joint" type="hinge" axis="0 1 0" armature="1e-09"/>\n'
+                        f'        <geom name="{name}_{side}" type="cylinder" fromto="0 {num(-half_w)} 0 0 {num(half_w)} 0" '
+                        f'size="{num((radius_mm - gap) * MM)}" mass="1e-05" rgba="0.15 0.15 0.15 0.3" '
+                        f'group="{ROBOT_GEOM_GROUP}" {_contact_attrs(v, v["tread_friction"])}/>\n'
+                        f'      </body>\n')
+                continue
             out += (f'      <geom name="{name}_{side}" type="cylinder" fromto="{num(x_mm * MM)} {num(y - half_w)} '
                     f'{num(radius_mm * MM)} {num(x_mm * MM)} {num(y + half_w)} {num(radius_mm * MM)}" '
                     f'size="{num((radius_mm - gap) * MM)}" mass="0" rgba="0.15 0.15 0.15 0.3" '
                     f'group="{ROBOT_GEOM_GROUP}" {_contact_attrs(v, v["tread_friction"])}/>\n')
+    return out
+
+
+def _tip_supports_driven(v: Dict[str, Any]) -> bool:
+    """True when the tip supports turn with their tread (parameter tip_supports_driven, 0 or 1).
+
+    The real tread wraps each axle, so where it meets the table round an axle it is driven: a robot
+    tipped back onto its rear axle can still push itself along. Fixed to the body, a support is a
+    brake with tread friction, and above about 5.5 degrees of pitch it carries the rear of the robot."""
+    flag = v.get("tip_supports_driven", 0)
+    assert flag in (0, 1), "tip_supports_driven is 0 or 1"
+    return flag == 1 and v["tread_contact_inset_mm"] > 0.0
+
+
+def _tip_equality_xml(v: Dict[str, Any], stiff: str) -> str:
+    """Gear each driven tip support to its tread's front wheel joint, at equal surface speed."""
+    if not _tip_supports_driven(v):
+        return ""
+    gap = v["tip_support_clearance_mm"]
+    out = ""
+    for name, radius_mm in (("tip_front", v["wheel_front_radius_mm"]), ("tip_rear", v["wheel_rear_radius_mm"])):
+        gear = num(v["wheel_front_radius_mm"] / (radius_mm - gap))
+        for side, wheel in (("l", "wheel_fl_joint"), ("r", "wheel_fr_joint")):
+            out += (f'    <joint name="{name}_{side}_tread" joint1="{name}_{side}_joint" joint2="{wheel}" '
+                    f'polycoef="0 {gear} 0 0 0" {stiff}/>\n')
     return out
 
 
@@ -389,6 +424,7 @@ def _equality_xml(v: Dict[str, Any], d: Dict[str, Any]) -> str:
         f'    <joint name="right_tread" joint1="wheel_rr_joint" joint2="wheel_fr_joint" '
         f'polycoef="0 {gear} 0 0 0" {stiff}/>\n'
         f'    <joint name="lift_level" joint1="wrist_joint" joint2="lift_joint" polycoef="0 -1 0 0 0" {stiff}/>\n'
+        + _tip_equality_xml(v, stiff) +
         '  </equality>\n'
     )
 

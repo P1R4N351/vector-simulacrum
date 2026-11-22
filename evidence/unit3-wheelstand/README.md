@@ -181,3 +181,9 @@ filter during contact.
 ![Recorded and simulated within-packet differences](rest-lags.png)
 
 Reproduce with `python rest_lags.py`. Full values are in [rest-lags.csv](rest-lags.csv).
+
+### Reproducing W4 and W8 with the full model
+
+The rear tip supports were found to cap simulated pitch below 47° at every lift torque from 30 to 250 mN m, because they are fixed to the body and do not turn with the tread. A new option, `tip_supports_driven`, gears them to the tread. With it, and with a 60 mN m lift cap chosen on W4, median pitch RMSE falls from 52.9° to 18.4° on W4 and from 53.8° to 30.0° on the held-out W8. Peak pitch, time to peak, the held stand near 70° and cube travel remain unmatched: nothing in the model arrests the stand. Replays are byte-reproducible run to run and across two hosts. The regression test holds this state and carries the physical tolerances as an expected failure. [Details, tables and the test](reproduction/README.md).
+
+Re-running `W4/free_chassis.py --firmware` on the current model gives 32.53° peak pitch in all four cases, not the 16.4–28.9° in the table above; the table was produced on an earlier model.
