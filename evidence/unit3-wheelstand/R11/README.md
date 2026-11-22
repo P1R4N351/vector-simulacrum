@@ -19,3 +19,11 @@ Two eight-second passive windows each contain 217 complete packets. Acceleration
 An upright, motionless virtual sensor with the earlier resting gain and frozen noise parameters gave 2.37–2.50 mg magnitude standard deviation across duration-matched windows. Its mean magnitude was within 0.001 g of each recording. The physical excess during the miss warrants testing for shelf vibration or light contact. These recordings cannot distinguish them. Increasing stationary noise to match this maneuver would overstate variation in both idle recordings.
 
 [Axis comparison](noise-transfer.png) · [Window statistics](noise-transfer.csv) · [Analysis](noise_transfer.py)
+
+### Does wheel motion predict the excess?
+
+Using only R10, we fixed the resting mean and variance from passive windows, then fitted one nonnegative slope relating excess cube acceleration variance to squared wheel speed during search turns. Each quarter-second window needed at least 12 received acceleration slots. Speed uses the faster tread in absolute value, interpolated at packet receipt. The coefficient was 0.0190 mg²/(mm/s)² above a 7.38 mg² resting variance. This is a shelf-specific empirical prediction of signal magnitude.
+
+On the five eligible R11 search-turn windows, RMS prediction error fell from 2.20 to 0.62 mg. Across 14 windows of the R11 missed roll it fell from 2.68 to 2.16 mg. Two lift-motion windows with zero reported wheel speed still measured 9.00 and 7.32 mg against 2.72 mg predicted. The two moving-wheel windows measured 5.29 and 8.36 mg against 6.77 and 7.28 mg predicted. Windows within a maneuver share a robot and shelf and do not constitute independent trials. The simulator's defaults remain frozen pending repeat trials and a second surface.
+
+[Wheel speed and cube acceleration](wheel-vibration.png) · [Per-window measurements and predictions](wheel-vibration.csv) · [Reproduce](wheel_vibration.py)
