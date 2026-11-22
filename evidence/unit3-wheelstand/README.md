@@ -159,3 +159,25 @@ This hold tilted predominantly toward sensor +X, while the earlier independent t
 **R5 head gyro cross-check.** We sampled the head-site gyro from the same tilted rigid-load wheel replay at the physical SDK state times, using the model's IMU filter and subtracting each series' pre-motion mean. The synthetic trace includes no added noise. Held-out moves 3 and 4 gave physical pitch-axis (Y) RMS of 2.46 and 3.43°/s, against 0.106 and 0.103°/s simulated. The physical pre-motion Y scatter was 0.041°/s. The reported head and lift encoders held constant throughout both commands, while SDK chassis pitch spanned 0.30° and 0.51°. On move 1 the lift did dip 4.68 mm and recover, a motion omitted by the fixed-height replay. These results rule against excess simulated head pitch rate as a simple explanation for the excess simulated cube acceleration on moves 3–4. Head gyro does not measure linear acceleration, and the two sensors occupy different locations. [Head gyro overlay](R5/reverse-gyro.png) · [per-axis comparison](R5/reverse-gyro.csv) · [replay](R5/reverse_gyro.py).
 
 **R6 attempted autonomous cube roll.** The cube connected and returned 699 individual acceleration samples. The native undock started under continuous behavior override. SDK state delivery stopped 8.434 s into undocking with wheel reports of 31 and 26 mm/s. The 488 robot states cover connection and undock. The overhead recording shows the robot still at the dock lip afterward. The roll imperative was never reached; this run provides zero physical cube flips. No boot cause was measured for this attempt. [Undock clip](R6/undock.mp4) · [SDK actions and sensor recordings](R6/).
+
+### Stationary noise across the three samples in a packet
+
+Each of two held-out recordings contains 276 three-sample packets. For each
+axis, divide the RMS difference between the outer two samples by the RMS
+difference between adjacent samples in the same packet. A value near one
+means that doubling the separation barely changes the RMS difference. This
+comparison avoids receiver timestamp jitter. The simulation uses the frozen
+Vector 2 profile with the resting direction estimated separately for each
+capture, 276 packets per trial and 32 seeds.
+
+The first recording gives X/Y/Z ratios of 1.011/0.991/1.026. On the repeat
+they drop together to 0.960/0.958/0.958. All six values fall within the
+corresponding simulated seed ranges. The Z ratio on the repeat is 5.8%
+above the observation in the simulation mean. The ranges describe
+Monte Carlo variability and are not confidence limits on hardware behavior.
+These stationary recordings alone provide little basis for changing the
+filter during contact.
+
+![Recorded and simulated within-packet differences](rest-lags.png)
+
+Reproduce with `python rest_lags.py`. Full values are in [rest-lags.csv](rest-lags.csv).
