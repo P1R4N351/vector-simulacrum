@@ -42,7 +42,7 @@ def compose_fixture(path, values):
     return root,center,radius
 
 
-def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False, initial_xy_mm=None, shelf_support=False, lift_velocity_feedforward=False, chassis_contact=False, apron_pieces=None, omit_contacts=()):
+def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False, initial_xy_mm=None, shelf_support=False, lift_velocity_feedforward=False, chassis_contact=False, apron_pieces=None, omit_contacts=(), fixed_shoulder_mm=None):
     values = params.values(params.load(model="vector_2"))
     values.update(sensor_overrides or {})
     root,center,radius = compose_fixture(path,values)
@@ -75,9 +75,18 @@ def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrid
             chassis.set('contype','0')
             chassis.set('conaffinity','4')
             original.append(chassis)
-        ET.SubElement(root,'actuator').append(robot.find(".//position[@name='lift']"))
+        if fixed_shoulder_mm is None:
+            ET.SubElement(root,'actuator').append(robot.find(".//position[@name='lift']"))
+        else:
+            angle=mjcf.lift_angle_of_height(values,fixed_shoulder_mm)
+            arm.remove(arm.find("joint[@name='lift_joint']"))
+            arm.set('quat',mjcf.vec(Rotation.from_rotvec([0.,-angle,0.]).as_quat(scalar_first=True)))
         equality=ET.SubElement(root,'equality')
-        equality.append(robot.find(".//equality/joint[@joint1='wrist_joint']"))
+        level=robot.find(".//equality/joint[@joint1='wrist_joint']")
+        if fixed_shoulder_mm is not None:
+            del level.attrib['joint2']
+            level.set('polycoef',f'{-angle} 0 0 0 0')
+        equality.append(level)
     for body_name in omit_contacts:
         body = root.find(f".//body[@name='{body_name}']")
         geoms = body.findall("geom")
@@ -141,13 +150,17 @@ def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrid
             velocity = np.r_[0., np.diff(target)] / dt
             lo, hi = m.actuator('lift').ctrlrange
             target = np.clip(target + kd_over_kp * velocity, lo, hi)
-        d.joint('lift_joint').qpos[0]=target[0]
+        if fixed_shoulder_mm is None:
+            d.joint('lift_joint').qpos[0]=target[0]
+        else:
+            assert np.allclose(lift,fixed_shoulder_mm,rtol=0,atol=1e-5), 'fixed shoulder requires constant encoder height'
         d.joint('wrist_joint').qpos[0]=-target[0]
     for i in range(len(t)-1):
         d.mocap_pos[0],d.mocap_quat[0] = forkpos[i],quat[i]
         if articulated:
             d.mocap_pos[0]=origin[i]
-            d.actuator('lift').ctrl[0]=target[i]
+            if fixed_shoulder_mm is None:
+                d.actuator('lift').ctrl[0]=target[i]
         joint.qpos[:] = qref[i]
         next_q = d.qpos.copy()
         next_q[qadr:qadr+7] = qref[i+1]
