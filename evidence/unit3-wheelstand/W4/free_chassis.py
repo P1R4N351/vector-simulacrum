@@ -79,7 +79,7 @@ def lowering_goal(elapsed, start_angle):
     if elapsed<ramp+cruise:return start_angle-.5*vmax*ramp-vmax*(elapsed-ramp)
     return goal+100.*max(0.,end-elapsed)**2
 
-def run(start,limit,onset=None,clear_cube=False):
+def run(start,limit,onset=None,clear_cube=False,drive_during_descent=True):
     d=mj.MjData(m)
     m.actuator('lift').forcerange[:]=[-limit*.001,limit*.001]
     yaw=obs(start,'yaw')
@@ -125,7 +125,7 @@ def run(start,limit,onset=None,clear_cube=False):
             for controller,side in zip(controllers,['left','right']):
                 measured=d.joint('wheel_f'+side[0]+'_joint').qvel[0]*v['wheel_front_radius_mm']
                 requested=obs(t,side) if t<4.84+shift else 0
-                if lowering:requested=0 if drive_ended else 150
+                if lowering:requested=0 if drive_ended or not drive_during_descent else 150
                 duty=controller.update(requested,measured)
                 d.actuator(side+'_wheel').ctrl[0]=duty*3.92/v['motor_reference_voltage_v']
             d.actuator('lift').ctrl[0]=(lowering_goal(t-onset,lowering_start) if lowering
@@ -147,12 +147,46 @@ def run(start,limit,onset=None,clear_cube=False):
         pitch=np.rad2deg(np.arcsin(np.clip(d.xmat[m.jnt_bodyid[m.joint('root').id]].reshape(3,3)[2,0],-1,1)))
         trace.append([t,pitch,np.linalg.norm(top-center)*1000,np.rad2deg(np.arctan2(rot[1,0],rot[0,0])-angle),
                       mjcf.lift_height_of_angle(v,float(d.joint("lift_joint").qpos[0])),
-                      1000*d.actuator("lift").force[0],downward,float(d.sensor("gyro").data[1])])
+                      1000*d.actuator("lift").force[0],downward,float(d.sensor("gyro").data[1]),
+                      *[float(d.joint('wheel_f'+side+'_joint').qvel[0])*v['wheel_front_radius_mm']
+                        for side in ('l','r')]])
     packets=np.array([[start+t,np.linalg.norm(a)/8192] for t,p in sensor.messages for a in np.frombuffer(p[2:],'<i2').reshape(3,3)])
     return np.array(trace),packets,len(sensor.taps.events),peak_load
 
 initial_checks=[]
 firmware='--firmware' in sys.argv[2:]
+if '--descent-drive' in sys.argv:
+    fig,axes=plt.subplots(3,1,sharex=True,figsize=(9,7),layout='constrained')
+    def score(label,t,left,right,pitch):
+        style='.-' if label=='Recorded' else '-'
+        for ax,series in zip(axes,(left,right,pitch)):
+            ax.plot(t,series,style,label=label)
+        # Compare simulated shaft travel and reported encoder travel on the same time window.
+        times=np.r_[0.,t[(t>0)&(t<.3)],.3]
+        paths=[np.trapezoid(np.interp(times,t,speed),times) for speed in (left,right)]
+        sdk_time=state['sec']-zero-late_onset
+        use=(sdk_time>=0)&(sdk_time<=.3)
+        rms=[np.sqrt(np.mean((np.interp(sdk_time[use],t,speed)-state[key][use])**2))
+             for speed,key in ((left,'left'),(right,'right'))]
+        writer.writerow([label,*paths,max(np.interp(times,t,pitch)),max(pitch[t>=0]),sum(use),*rms])
+    with (here/'descent-drive.csv').open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['case','left_mm_300ms','right_mm_300ms','peak_pitch_300ms_deg','peak_pitch_deg',
+                         'sdk_samples_300ms','left_rmse_mm_s','right_rmse_mm_s'])
+        score('Recorded',state['sec']-zero-late_onset,state['left'],state['right'],np.degrees(state['pitch']))
+        for cap in (30,80):
+            for powered in (True,False):
+                tr,*_=run(3.5+shift,cap,late_onset,drive_during_descent=powered)
+                label=f'{cap} mN m, '+('drive' if powered else 'coast')
+                score(label,tr[:,0]-late_onset,tr[:,8],tr[:,9],tr[:,1])
+    for ax,label in zip(axes,('Left wheel (mm/s)','Right wheel (mm/s)','Pitch (°)')):
+        ax.set(ylabel=label,xlim=(-.15,.6))
+        ax.axvline(0,color='0.7',lw=.8)
+        ax.relim(visible_only=True)
+    axes[0].legend(ncol=2,fontsize=8)
+    axes[-1].set_xlabel('Seconds from last raised-lift sample')
+    fig.savefig(here/'descent-drive.png',dpi=150)
+    sys.exit(0)
 if '--tip-rate' in sys.argv:
     fig,axes=plt.subplots(2,1,sharex=True,figsize=(8,5),layout='constrained')
     def compare_rate(label,t,height,pitch,rate):
