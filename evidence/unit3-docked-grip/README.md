@@ -71,3 +71,18 @@ The simulator now clears the bit when stopping all motors and lets the usual set
 The frozen model clears the bit for 215 ms after a stationary stop. The physical clear interval was at most 178, 195, 144 and 107 ms, respectively (rounded conservative upper bounds from the surrounding set samples). A constant clock shift cannot repair the pulse width. Bypassing the simulated lift command queue on stop reduces the pulse to 110 ms, still slightly longer than the last trial's receipt-time upper bound. Reply-anchored direct hold captures four of six clear samples and falsely clears two set samples. A firmware timestamp or independently measured observation jitter is needed to resolve the remaining edge differences. The counterfactual is isolated to the replay. These four stops come from one docked Vector 2.0 session with stationary encoders.
 
 Run from the repo root with `PYTHONPATH=. python evidence/unit3-docked-grip/stop_clock.py`.
+
+### Second docked stop recording
+
+P2Y8 received twelve stop-only calls interleaved with six sham events under one SDK override. Both wheel speeds stayed zero. Eleven stop windows had constant lift height. Event 8 spanned 0.339 mm. All stops produced a clear lift bit and all shams stayed set. The end-of-test battery response reported docked, level 3, charging false, and Home Assistant reported quiet on before and after.
+
+[Per-event overlays](stop-holdout.png) · [Counts by event](stop-holdout.csv) · [Monotonic callback recording](stop-holdout.jsonl.gz). Score window −100 to +450 ms. Of 109 stop-window SDK samples, 23 had the bit clear.
+
+| Stop prediction | Correct clear | False clear | Missed clear | Overall correct |
+|---|---:|---:|---:|---:|
+| Existing 215 ms pulse, dispatch anchor | 23 | 20 | 0 | 89/109 |
+| Direct 110 ms hold, dispatch anchor | 12 | 7 | 11 | 91/109 |
+| Direct 110 ms hold, reply anchor | 12 | 9 | 11 | 89/109 |
+| Direct 110 ms hold, first-session phase | 22 | 1 | 1 | 107/109 |
+
+The last row is exploratory. After reviewing the second-session errors, we tested a stop-specific observation phase. Its numeric value (146.86 ms from dispatch) comes exclusively from the first session, using the median of its interval-midpoint onset estimates and its return-edge midpoint estimates minus 110 ms. Selection of this variant occurred after inspecting the second session. A prospective third session should test it as frozen. It predicts the received SDK flag on a docked P2Y8. The SDK descriptor carries an image timestamp but no lift-controller timestamp, so the relative contributions of command, controller and observation delay remain unresolved. No runtime parameters changed.
