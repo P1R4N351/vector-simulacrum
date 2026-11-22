@@ -264,3 +264,11 @@ Across the two exposures at 4.985 and 5.498 s, even the least-moving point in th
 We minimize the Euclidean endpoint displacement of the same material point over each face, allowing even the empty space between rubber pads. The bounds come from the two lens models with free or shelf-constrained height. Stationary-frame repeatability excludes systematic pose error during tilt. The half-second exposure gap permits a sequence of contacts or a changing pivot. These measurements do not locate first fork contact or prove the upper face was held.
 
 [Frame-pair overlay](bottom-pivot.png) · [All displacement bounds](bottom-pivot.csv). Run bottom_pivot.py ../.. using the optical reconstruction dependencies.
+
+### Could a single fork contact have stuck throughout the rise?
+
+At 4.985, 5.264 and 5.498 s we expressed the optically reconstructed cube in the wrist frame driven by measured odometry and lift. The middle exposure uses the recovered, control-adjusted glyph corners and has motion blur. For each reconstruction a bounded least-squares solve finds the same material point anywhere inside the cube's bounding box whose wrist-relative coordinates change least from the first exposure. Allowing interior points and arbitrary positions on the wrist makes this an optimistic lower bound for any physical contact point.
+
+The minimum RMS displacement across the two later views ranges from 8.49 to 16.56 mm at the recorded alignment. Shifting the wrist trajectory in 10 ms steps from −200 to +200 ms gave a best value of 6.25 mm. That fit missed the middle exposure by 8.52 mm and the final exposure by 2.38 mm. Within the tested registration and timing models, keeping the same cube point fixed to the fork over the full interval fails. Shorter periods of sticking, sliding or changing contacts remain possible. The sweep is a sensitivity analysis rather than an error bar.
+
+[Timing sweep](wrist-pivot.png) · [Displacements and best point for each reconstruction](wrist-pivot.csv). Run wrist_pivot.py ../.. from this directory.
