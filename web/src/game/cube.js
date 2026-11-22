@@ -27,6 +27,33 @@ function stockCubeTexture(image) {
   return texture;
 }
 
+// These three adjacent faces were rectified from a stock cube photograph.
+// Local orientations describe the photographed upright pose; the robot approaches -X.
+export function makeCubeMarks(sizeMm) {
+  const group = new THREE.Group();
+  const loader = new THREE.TextureLoader();
+  const faces = [
+    [new URL("./cube-marks/front.png", import.meta.url), [-1, 0, 0], [0, 0, 1]],
+    [new URL("./cube-marks/side.png", import.meta.url), [0, -1, 0], [0, 0, 1]],
+    [new URL("./cube-marks/top.png", import.meta.url), [0, 0, 1], [1, 0, 0]],
+  ];
+  const width = (23 / 44) * sizeMm * .001 * 272 / 256;
+  const geometry = new THREE.PlaneGeometry(width, width);
+  for (const [url, normal, up] of faces) {
+    const map = loader.load(url.href);
+    map.colorSpace = THREE.SRGBColorSpace;
+    const material = new THREE.MeshStandardMaterial({
+      map, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, roughness: .8,
+    });
+    const mark = new THREE.Mesh(geometry, material);
+    mark.up.fromArray(up);
+    mark.lookAt(new THREE.Vector3(...normal));
+    mark.position.fromArray(normal).multiplyScalar(sizeMm * .0005);
+    group.add(mark);
+  }
+  return group;
+}
+
 export function repairMeshNormals(geometry) {
   geometry.computeVertexNormals();
   return geometry;
