@@ -48,7 +48,7 @@ We froze the previous bench candidate at 6 mN·m with the same stiff friction co
 
 The Python and browser simulators now expose lift_in_pos in the robot state. A fresh target clears it. Once the commanded profile ends and measured joint angle stays within the configured firmware tolerance for more than 100 ms, the bit latches. Repeating an already reached target preserves it. This adds a sensor-state output and does not change actuation.
 
-On 266 and 269 SDK receipts from the two unloaded P2Y8 staircases, agreement was 80.5% and 87.7%; a constant set bit scored 48.9% and 56.1%. In the independent failed-grip recording, first clear and set were observed at +0.185 and +1.431 s versus +0.133 and +1.211 s predicted when sampled at those same receipts. The physical bit then cleared and set again after the failed action and stop command. The nominal one-command replay produces only the first pair. Receipt latency, action handling and contact physics still limit agreement. Run status_transfer.py from the repository environment to reproduce.
+On 266 and 269 SDK receipts from the two unloaded unit 3 staircases, agreement was 80.5% and 87.7%; a constant set bit scored 48.9% and 56.1%. In the independent failed-grip recording, first clear and set were observed at +0.185 and +1.431 s versus +0.133 and +1.211 s predicted when sampled at those same receipts. The physical bit then cleared and set again after the failed action and stop command. The nominal one-command replay produces only the first pair. Receipt latency, action handling and contact physics still limit agreement. Run status_transfer.py from the repository environment to reproduce.
 
 ### Does a common receipt-time offset transfer?
 
@@ -74,7 +74,7 @@ Run from the repo root with `PYTHONPATH=. python evidence/unit3-docked-grip/stop
 
 ### Second docked stop recording
 
-P2Y8 received twelve stop-only calls interleaved with six sham events under one SDK override. Both wheel speeds stayed zero. Eleven stop windows had constant lift height. Event 8 spanned 0.339 mm. All stops produced a clear lift bit and all shams stayed set. The end-of-test battery response reported docked, level 3, charging false, and Home Assistant reported quiet on before and after.
+Unit 3 received twelve stop-only calls interleaved with six sham events under one SDK override. Both wheel speeds stayed zero. Eleven stop windows had constant lift height. Event 8 spanned 0.339 mm. All stops produced a clear lift bit and all shams stayed set. The end-of-test battery response reported docked, level 3, charging false, and Home Assistant reported quiet on before and after.
 
 [Per-event overlays](stop-holdout.png) · [Counts by event](stop-holdout.csv) · [Monotonic callback recording](stop-holdout.jsonl.gz). Score window −100 to +450 ms. Of 109 stop-window SDK samples, 23 had the bit clear.
 
@@ -85,11 +85,11 @@ P2Y8 received twelve stop-only calls interleaved with six sham events under one 
 | Direct 110 ms hold, reply anchor | 12 | 9 | 11 | 89/109 |
 | Direct 110 ms hold, first-session phase | 22 | 1 | 1 | 107/109 |
 
-The last row is exploratory. After reviewing the second-session errors, we tested a stop-specific observation phase. Its numeric value (146.86 ms from dispatch) comes exclusively from the first session, using the median of its interval-midpoint onset estimates and its return-edge midpoint estimates minus 110 ms. Selection of this variant occurred after inspecting the second session. A prospective third session should test it as frozen. It predicts the received SDK flag on a docked P2Y8. The SDK descriptor carries an image timestamp but no lift-controller timestamp, so the relative contributions of command, controller and observation delay remain unresolved. No runtime parameters changed.
+The last row is exploratory. After reviewing the second-session errors, we tested a stop-specific observation phase. Its numeric value (146.86 ms from dispatch) comes exclusively from the first session, using the median of its interval-midpoint onset estimates and its return-edge midpoint estimates minus 110 ms. Selection of this variant occurred after inspecting the second session. A prospective third session should test it as frozen. It predicts the received SDK flag on a docked unit 3. The SDK descriptor carries an image timestamp but no lift-controller timestamp, so the relative contributions of command, controller and observation delay remain unresolved. No runtime parameters changed.
 
 ### Prospective validation of the stationary pulse
 
-Before the third physical run, the vector-navigation room recorded the exact prediction and scoring window. We reversed the event order from session two and varied the inter-event spacing. Neither clock nor pulse duration was adjusted. Black dots in the [overlays](stop-prospective.png) are SDK receipts on the pod's monotonic clock. All twelve stops cleared the bit with constant lift height. All 54 samples in the six sham windows stayed set.
+Before the third physical run, the project coordination room recorded the exact prediction and scoring window. We reversed the event order from session two and varied the inter-event spacing. Neither clock nor pulse duration was adjusted. Black dots in the [overlays](stop-prospective.png) are SDK receipts on the pod's monotonic clock. All twelve stops cleared the bit with constant lift height. All 54 samples in the six sham windows stayed set.
 
 | Prediction | Correct samples | Clear precision | Clear recall | Stops with any correctly predicted clear |
 |---|---:|---:|---:|---:|
@@ -98,7 +98,7 @@ Before the third physical run, the vector-navigation room recorded the exact pre
 
 This supports the shorter pulse for predicting pod receipts during a stationary docked stop on this unit. It also gives a concrete limit on transferring the rule to a loaded fork. In the earlier [failed-grip data](dock-status.csv), the post-stop clear samples extend from 1.675 to 1.985 s, spanning at least 310 ms on the receipt clock. The encoder rose from 30.31 to 31.32 mm during that interval. A single 110 ms pulse cannot cover those observations at any offset. We retain the stationary rule in the replay and the settling criterion for moving or loaded stops.
 
-P2Y8 finished docked, battery level 3, charging false, with quiet mode on. [Raw capture](stop-prospective.jsonl.gz) · [Per-event scores](stop-prospective.csv). Reproduce with `python evidence/unit3-docked-grip/stop_holdout.py --prospective`.
+Unit 3 finished docked, battery level 3, charging false, with quiet mode on. [Raw capture](stop-prospective.jsonl.gz) · [Per-event scores](stop-prospective.csv). Reproduce with `python evidence/unit3-docked-grip/stop_holdout.py --prospective`.
 
 ### Can the runtime distinguish a stationary stop from the failed grip?
 

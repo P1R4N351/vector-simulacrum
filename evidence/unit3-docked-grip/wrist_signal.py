@@ -81,7 +81,7 @@ def main():
     heights = interp('encoder.csv', 1)
     pitches = interp('dock-pitch.csv', 1)
     source = np.loadtxt(root/'cube.csv', delimiter=',', skiprows=1).reshape(-1,3,5)
-    packets = {'P2Y8': [(p[0,0], packet(0, p[:,2:].astype(int).tolist())) for p in source]}
+    packets = {'unit 3': [(p[0,0], packet(0, p[:,2:].astype(int).tolist())) for p in source]}
     for name, path in [('Boxes',root.parent/'unit3-cube-contact-replay/fixture.xml'),
                        ('Printed',args.printed_fixture)]:
         for pitched in [False, True]:
@@ -92,7 +92,7 @@ def main():
     for name, signal in packets.items():
         trace = compare([(t,p) for t,p in signal if -.21 <= t <= 2.45])
         t, score = trace[trace[:,0]>=0,:2].T
-        ax.plot(t,score,'.' if name=='P2Y8' else '-',ms=3,label=name)
+        ax.plot(t,score,'.' if name=='unit 3' else '-',ms=3,label=name)
         rows.append([name,score.max(),t[score.argmax()],score[t>=1.35].max()])
     ax.axhline(10000,ls=':',color='grey',label='Movement start')
     ax.set(xlabel='Seconds from lift command',ylabel='Movement listener score')

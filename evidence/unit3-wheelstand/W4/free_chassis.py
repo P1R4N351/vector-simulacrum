@@ -275,7 +275,7 @@ if '--tip-rate' in sys.argv:
         following=pitch[(t>=crossing)&(t<=crossing+.30)]
         writer.writerow([label,t[i+1]-t[i],rate[i],rate[i+1],angle_at_crossing,
                          max(following)-angle_at_crossing])
-        style='.-' if label=='P2Y8' else '-'
+        style='.-' if label=='unit 3' else '-'
         axes[0].plot(t-crossing,rate,style,label=label)
         axes[1].plot(t-crossing,pitch,style)
     with (here/'tip-rate.csv').open('w') as f:
@@ -283,7 +283,7 @@ if '--tip-rate' in sys.argv:
         writer.writerow(['case','crossing_bracket_s','gyro_before_deg_s','gyro_after_deg_s',
                          'pitch_at_35mm_deg','additional_peak_pitch_in_300ms_deg'])
         take=(state['sec']-zero>=late_onset-.1)
-        compare_rate('P2Y8',state['sec'][take]-zero,state['lift'][take],
+        compare_rate('unit 3',state['sec'][take]-zero,state['lift'][take],
                      np.degrees(state['pitch'][take]),-np.degrees(state['gy'][take]))
         for cap in (30,80):
             tr,*_=run(3.5+shift,cap,late_onset)

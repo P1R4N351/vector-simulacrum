@@ -31,7 +31,7 @@ def compare(packets):
 
 def main():
     data = np.loadtxt(root/'cube.csv', delimiter=',', skiprows=1).reshape(-1, 3, 5)
-    series = {'P2Y8': [(p[0, 0], packet(0, p[:, 2:].astype(int).tolist())) for p in data]}
+    series = {'unit 3': [(p[0, 0], packet(0, p[:, 2:].astype(int).tolist())) for p in data]}
     for gap in (0, 1, 2):
         sim, _ = start_raise(gap)
         start = sim.data.time
@@ -42,9 +42,9 @@ def main():
     for label, packets in series.items():
         trace = compare([(t, p) for t, p in packets if -.21 <= t <= 2.45])
         trace = trace[trace[:, 0] >= 0]
-        axes[0].plot(trace[:, 0], trace[:, 1], '.' if label == 'P2Y8' else '-', ms=3, label=label)
+        axes[0].plot(trace[:, 0], trace[:, 1], '.' if label == 'unit 3' else '-', ms=3, label=label)
         for i, component in enumerate(('Full signal', 'Magnitude only', 'Direction only'), 1):
-            if label == 'P2Y8':
+            if label == 'unit 3':
                 axes[1].plot(trace[:, 0], trace[:, i], '.', ms=3, label=component)
             peak = np.argmax(trace[:, i])
             rows.append([label, component, trace[peak, i], trace[peak, 0],

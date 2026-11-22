@@ -34,7 +34,7 @@ with (here/"status-transfer.csv").open("w") as stream:
         metrics=[int(mask.sum()),np.mean(predicted==observed),np.mean(observed),np.mean(~predicted[~observed]),np.mean(predicted[observed])]
         w.writerow([cycle+1,*metrics])
         print(cycle+1,metrics)
-        ax.step(t[mask]-start,observed.astype(int),where="post",label="P2Y8")
+        ax.step(t[mask]-start,observed.astype(int),where="post",label="unit 3")
         ax.step(t[mask]-start,predicted.astype(int)+.06,where="post",label="Simulation")
         ax.set(yticks=[0,1],yticklabels=["Clear","Set"],title=f"Sweep {cycle+1}")
 axes[0].legend();axes[1].set_xlabel("Seconds since first raise")
