@@ -1,0 +1,881 @@
+run,seconds,part,intersecting_triangles
+R8,3.02,body_geo,0
+R8,3.02,trackBase_L_geo,0
+R8,3.02,trackBase_R_geo,0
+R8,3.02,front apron,0
+R8,3.04,body_geo,0
+R8,3.04,trackBase_L_geo,0
+R8,3.04,trackBase_R_geo,0
+R8,3.04,front apron,0
+R8,3.06,body_geo,0
+R8,3.06,trackBase_L_geo,0
+R8,3.06,trackBase_R_geo,0
+R8,3.06,front apron,0
+R8,3.08,body_geo,0
+R8,3.08,trackBase_L_geo,0
+R8,3.08,trackBase_R_geo,0
+R8,3.08,front apron,0
+R8,3.1,body_geo,0
+R8,3.1,trackBase_L_geo,0
+R8,3.1,trackBase_R_geo,0
+R8,3.1,front apron,0
+R8,3.12,body_geo,0
+R8,3.12,trackBase_L_geo,0
+R8,3.12,trackBase_R_geo,0
+R8,3.12,front apron,0
+R8,3.14,body_geo,0
+R8,3.14,trackBase_L_geo,0
+R8,3.14,trackBase_R_geo,0
+R8,3.14,front apron,0
+R8,3.16,body_geo,0
+R8,3.16,trackBase_L_geo,0
+R8,3.16,trackBase_R_geo,0
+R8,3.16,front apron,0
+R8,3.18,body_geo,0
+R8,3.18,trackBase_L_geo,0
+R8,3.18,trackBase_R_geo,0
+R8,3.18,front apron,0
+R8,3.2,body_geo,0
+R8,3.2,trackBase_L_geo,0
+R8,3.2,trackBase_R_geo,0
+R8,3.2,front apron,0
+R8,3.22,body_geo,0
+R8,3.22,trackBase_L_geo,0
+R8,3.22,trackBase_R_geo,0
+R8,3.22,front apron,0
+R8,3.24,body_geo,0
+R8,3.24,trackBase_L_geo,0
+R8,3.24,trackBase_R_geo,0
+R8,3.24,front apron,0
+R8,3.26,body_geo,0
+R8,3.26,trackBase_L_geo,0
+R8,3.26,trackBase_R_geo,0
+R8,3.26,front apron,0
+R8,3.28,body_geo,0
+R8,3.28,trackBase_L_geo,0
+R8,3.28,trackBase_R_geo,0
+R8,3.28,front apron,16
+R8,3.3,body_geo,0
+R8,3.3,trackBase_L_geo,0
+R8,3.3,trackBase_R_geo,0
+R8,3.3,front apron,36
+R8,3.32,body_geo,0
+R8,3.32,trackBase_L_geo,0
+R8,3.32,trackBase_R_geo,0
+R8,3.32,front apron,25
+R8,3.34,body_geo,0
+R8,3.34,trackBase_L_geo,0
+R8,3.34,trackBase_R_geo,0
+R8,3.34,front apron,46
+R8,3.36,body_geo,0
+R8,3.36,trackBase_L_geo,0
+R8,3.36,trackBase_R_geo,0
+R8,3.36,front apron,60
+R8,3.38,body_geo,1
+R8,3.38,trackBase_L_geo,0
+R8,3.38,trackBase_R_geo,0
+R8,3.38,front apron,68
+R8,3.4,body_geo,6
+R8,3.4,trackBase_L_geo,0
+R8,3.4,trackBase_R_geo,0
+R8,3.4,front apron,76
+R8,3.42,body_geo,9
+R8,3.42,trackBase_L_geo,0
+R8,3.42,trackBase_R_geo,0
+R8,3.42,front apron,86
+R8,3.44,body_geo,15
+R8,3.44,trackBase_L_geo,0
+R8,3.44,trackBase_R_geo,0
+R8,3.44,front apron,90
+R8,3.46,body_geo,19
+R8,3.46,trackBase_L_geo,0
+R8,3.46,trackBase_R_geo,0
+R8,3.46,front apron,90
+R8,3.48,body_geo,20
+R8,3.48,trackBase_L_geo,0
+R8,3.48,trackBase_R_geo,0
+R8,3.48,front apron,91
+R8,3.5,body_geo,20
+R8,3.5,trackBase_L_geo,0
+R8,3.5,trackBase_R_geo,0
+R8,3.5,front apron,91
+R8,3.52,body_geo,20
+R8,3.52,trackBase_L_geo,0
+R8,3.52,trackBase_R_geo,0
+R8,3.52,front apron,88
+R8,3.54,body_geo,20
+R8,3.54,trackBase_L_geo,0
+R8,3.54,trackBase_R_geo,0
+R8,3.54,front apron,88
+R8,3.56,body_geo,20
+R8,3.56,trackBase_L_geo,0
+R8,3.56,trackBase_R_geo,0
+R8,3.56,front apron,88
+R8,3.58,body_geo,20
+R8,3.58,trackBase_L_geo,0
+R8,3.58,trackBase_R_geo,0
+R8,3.58,front apron,88
+R8,3.6,body_geo,20
+R8,3.6,trackBase_L_geo,0
+R8,3.6,trackBase_R_geo,0
+R8,3.6,front apron,88
+R8,3.62,body_geo,20
+R8,3.62,trackBase_L_geo,0
+R8,3.62,trackBase_R_geo,0
+R8,3.62,front apron,88
+R8,3.64,body_geo,20
+R8,3.64,trackBase_L_geo,0
+R8,3.64,trackBase_R_geo,0
+R8,3.64,front apron,88
+R8,3.66,body_geo,20
+R8,3.66,trackBase_L_geo,0
+R8,3.66,trackBase_R_geo,0
+R8,3.66,front apron,88
+R8,3.68,body_geo,20
+R8,3.68,trackBase_L_geo,0
+R8,3.68,trackBase_R_geo,0
+R8,3.68,front apron,88
+R8,3.7,body_geo,20
+R8,3.7,trackBase_L_geo,0
+R8,3.7,trackBase_R_geo,0
+R8,3.7,front apron,88
+R8,3.72,body_geo,20
+R8,3.72,trackBase_L_geo,0
+R8,3.72,trackBase_R_geo,0
+R8,3.72,front apron,88
+R8,3.74,body_geo,20
+R8,3.74,trackBase_L_geo,0
+R8,3.74,trackBase_R_geo,0
+R8,3.74,front apron,88
+R8,3.76,body_geo,20
+R8,3.76,trackBase_L_geo,0
+R8,3.76,trackBase_R_geo,0
+R8,3.76,front apron,88
+R8,3.78,body_geo,20
+R8,3.78,trackBase_L_geo,0
+R8,3.78,trackBase_R_geo,0
+R8,3.78,front apron,88
+R8,3.8,body_geo,20
+R8,3.8,trackBase_L_geo,0
+R8,3.8,trackBase_R_geo,0
+R8,3.8,front apron,88
+R8,3.82,body_geo,20
+R8,3.82,trackBase_L_geo,0
+R8,3.82,trackBase_R_geo,0
+R8,3.82,front apron,88
+R8,3.84,body_geo,20
+R8,3.84,trackBase_L_geo,0
+R8,3.84,trackBase_R_geo,0
+R8,3.84,front apron,88
+R8,3.86,body_geo,20
+R8,3.86,trackBase_L_geo,0
+R8,3.86,trackBase_R_geo,0
+R8,3.86,front apron,88
+R8,3.88,body_geo,20
+R8,3.88,trackBase_L_geo,0
+R8,3.88,trackBase_R_geo,0
+R8,3.88,front apron,88
+R8,3.9,body_geo,20
+R8,3.9,trackBase_L_geo,0
+R8,3.9,trackBase_R_geo,0
+R8,3.9,front apron,88
+R8,3.92,body_geo,20
+R8,3.92,trackBase_L_geo,0
+R8,3.92,trackBase_R_geo,0
+R8,3.92,front apron,88
+R8,3.94,body_geo,20
+R8,3.94,trackBase_L_geo,0
+R8,3.94,trackBase_R_geo,0
+R8,3.94,front apron,88
+R8,3.96,body_geo,20
+R8,3.96,trackBase_L_geo,0
+R8,3.96,trackBase_R_geo,0
+R8,3.96,front apron,88
+R8,3.98,body_geo,20
+R8,3.98,trackBase_L_geo,0
+R8,3.98,trackBase_R_geo,0
+R8,3.98,front apron,88
+R8,4.0,body_geo,20
+R8,4.0,trackBase_L_geo,0
+R8,4.0,trackBase_R_geo,0
+R8,4.0,front apron,88
+R8,4.02,body_geo,20
+R8,4.02,trackBase_L_geo,0
+R8,4.02,trackBase_R_geo,0
+R8,4.02,front apron,88
+R8,4.04,body_geo,20
+R8,4.04,trackBase_L_geo,0
+R8,4.04,trackBase_R_geo,0
+R8,4.04,front apron,88
+R8,4.06,body_geo,20
+R8,4.06,trackBase_L_geo,0
+R8,4.06,trackBase_R_geo,0
+R8,4.06,front apron,88
+R8,4.08,body_geo,20
+R8,4.08,trackBase_L_geo,0
+R8,4.08,trackBase_R_geo,0
+R8,4.08,front apron,88
+R8,4.1,body_geo,20
+R8,4.1,trackBase_L_geo,0
+R8,4.1,trackBase_R_geo,0
+R8,4.1,front apron,88
+R8,4.12,body_geo,20
+R8,4.12,trackBase_L_geo,0
+R8,4.12,trackBase_R_geo,0
+R8,4.12,front apron,88
+R8,4.14,body_geo,20
+R8,4.14,trackBase_L_geo,0
+R8,4.14,trackBase_R_geo,0
+R8,4.14,front apron,88
+R8,4.16,body_geo,15
+R8,4.16,trackBase_L_geo,0
+R8,4.16,trackBase_R_geo,0
+R8,4.16,front apron,86
+R8,4.18,body_geo,14
+R8,4.18,trackBase_L_geo,0
+R8,4.18,trackBase_R_geo,0
+R8,4.18,front apron,111
+R8,4.2,body_geo,14
+R8,4.2,trackBase_L_geo,0
+R8,4.2,trackBase_R_geo,0
+R8,4.2,front apron,129
+R8,4.22,body_geo,14
+R8,4.22,trackBase_L_geo,0
+R8,4.22,trackBase_R_geo,0
+R8,4.22,front apron,131
+R8,4.24,body_geo,5
+R8,4.24,trackBase_L_geo,0
+R8,4.24,trackBase_R_geo,0
+R8,4.24,front apron,124
+R8,4.26,body_geo,3
+R8,4.26,trackBase_L_geo,0
+R8,4.26,trackBase_R_geo,0
+R8,4.26,front apron,116
+R8,4.28,body_geo,2
+R8,4.28,trackBase_L_geo,0
+R8,4.28,trackBase_R_geo,0
+R8,4.28,front apron,96
+R8,4.3,body_geo,0
+R8,4.3,trackBase_L_geo,0
+R8,4.3,trackBase_R_geo,0
+R8,4.3,front apron,80
+R8,4.32,body_geo,0
+R8,4.32,trackBase_L_geo,0
+R8,4.32,trackBase_R_geo,0
+R8,4.32,front apron,56
+R8,4.34,body_geo,0
+R8,4.34,trackBase_L_geo,0
+R8,4.34,trackBase_R_geo,0
+R8,4.34,front apron,31
+R8,4.36,body_geo,0
+R8,4.36,trackBase_L_geo,0
+R8,4.36,trackBase_R_geo,0
+R8,4.36,front apron,23
+R8,4.38,body_geo,0
+R8,4.38,trackBase_L_geo,0
+R8,4.38,trackBase_R_geo,0
+R8,4.38,front apron,20
+R8,4.4,body_geo,0
+R8,4.4,trackBase_L_geo,0
+R8,4.4,trackBase_R_geo,0
+R8,4.4,front apron,18
+R8,4.42,body_geo,0
+R8,4.42,trackBase_L_geo,0
+R8,4.42,trackBase_R_geo,0
+R8,4.42,front apron,17
+R8,4.44,body_geo,0
+R8,4.44,trackBase_L_geo,0
+R8,4.44,trackBase_R_geo,0
+R8,4.44,front apron,13
+R8,4.46,body_geo,0
+R8,4.46,trackBase_L_geo,0
+R8,4.46,trackBase_R_geo,0
+R8,4.46,front apron,8
+R8,4.48,body_geo,0
+R8,4.48,trackBase_L_geo,0
+R8,4.48,trackBase_R_geo,0
+R8,4.48,front apron,0
+R8,4.5,body_geo,0
+R8,4.5,trackBase_L_geo,0
+R8,4.5,trackBase_R_geo,0
+R8,4.5,front apron,0
+R8,4.52,body_geo,0
+R8,4.52,trackBase_L_geo,0
+R8,4.52,trackBase_R_geo,0
+R8,4.52,front apron,0
+R8,4.54,body_geo,0
+R8,4.54,trackBase_L_geo,0
+R8,4.54,trackBase_R_geo,0
+R8,4.54,front apron,0
+R8,4.56,body_geo,0
+R8,4.56,trackBase_L_geo,0
+R8,4.56,trackBase_R_geo,0
+R8,4.56,front apron,0
+R8,4.58,body_geo,0
+R8,4.58,trackBase_L_geo,0
+R8,4.58,trackBase_R_geo,0
+R8,4.58,front apron,0
+R8,4.6,body_geo,0
+R8,4.6,trackBase_L_geo,0
+R8,4.6,trackBase_R_geo,0
+R8,4.6,front apron,0
+R8,4.62,body_geo,0
+R8,4.62,trackBase_L_geo,0
+R8,4.62,trackBase_R_geo,0
+R8,4.62,front apron,0
+R8,4.64,body_geo,0
+R8,4.64,trackBase_L_geo,0
+R8,4.64,trackBase_R_geo,0
+R8,4.64,front apron,0
+R8,4.66,body_geo,0
+R8,4.66,trackBase_L_geo,0
+R8,4.66,trackBase_R_geo,0
+R8,4.66,front apron,0
+R8,4.68,body_geo,0
+R8,4.68,trackBase_L_geo,0
+R8,4.68,trackBase_R_geo,0
+R8,4.68,front apron,0
+R8,4.7,body_geo,0
+R8,4.7,trackBase_L_geo,0
+R8,4.7,trackBase_R_geo,0
+R8,4.7,front apron,0
+R8,4.72,body_geo,0
+R8,4.72,trackBase_L_geo,0
+R8,4.72,trackBase_R_geo,0
+R8,4.72,front apron,0
+R8,4.74,body_geo,0
+R8,4.74,trackBase_L_geo,0
+R8,4.74,trackBase_R_geo,0
+R8,4.74,front apron,0
+R8,4.76,body_geo,0
+R8,4.76,trackBase_L_geo,0
+R8,4.76,trackBase_R_geo,0
+R8,4.76,front apron,0
+R8,4.78,body_geo,0
+R8,4.78,trackBase_L_geo,0
+R8,4.78,trackBase_R_geo,0
+R8,4.78,front apron,0
+R8,4.8,body_geo,0
+R8,4.8,trackBase_L_geo,0
+R8,4.8,trackBase_R_geo,0
+R8,4.8,front apron,0
+R8,4.82,body_geo,0
+R8,4.82,trackBase_L_geo,0
+R8,4.82,trackBase_R_geo,0
+R8,4.82,front apron,0
+R8,4.84,body_geo,0
+R8,4.84,trackBase_L_geo,0
+R8,4.84,trackBase_R_geo,0
+R8,4.84,front apron,0
+R8,4.86,body_geo,0
+R8,4.86,trackBase_L_geo,0
+R8,4.86,trackBase_R_geo,0
+R8,4.86,front apron,0
+R8,4.88,body_geo,0
+R8,4.88,trackBase_L_geo,0
+R8,4.88,trackBase_R_geo,0
+R8,4.88,front apron,0
+R8,4.9,body_geo,0
+R8,4.9,trackBase_L_geo,0
+R8,4.9,trackBase_R_geo,0
+R8,4.9,front apron,0
+R8,4.92,body_geo,0
+R8,4.92,trackBase_L_geo,0
+R8,4.92,trackBase_R_geo,0
+R8,4.92,front apron,0
+R8,4.94,body_geo,0
+R8,4.94,trackBase_L_geo,0
+R8,4.94,trackBase_R_geo,0
+R8,4.94,front apron,0
+R8,4.96,body_geo,0
+R8,4.96,trackBase_L_geo,0
+R8,4.96,trackBase_R_geo,0
+R8,4.96,front apron,0
+R8,4.98,body_geo,0
+R8,4.98,trackBase_L_geo,0
+R8,4.98,trackBase_R_geo,0
+R8,4.98,front apron,0
+R8,5.0,body_geo,0
+R8,5.0,trackBase_L_geo,0
+R8,5.0,trackBase_R_geo,0
+R8,5.0,front apron,0
+R8,5.02,body_geo,0
+R8,5.02,trackBase_L_geo,0
+R8,5.02,trackBase_R_geo,0
+R8,5.02,front apron,0
+R8,5.04,body_geo,0
+R8,5.04,trackBase_L_geo,0
+R8,5.04,trackBase_R_geo,0
+R8,5.04,front apron,0
+R8,5.06,body_geo,0
+R8,5.06,trackBase_L_geo,0
+R8,5.06,trackBase_R_geo,0
+R8,5.06,front apron,0
+R8,5.08,body_geo,0
+R8,5.08,trackBase_L_geo,0
+R8,5.08,trackBase_R_geo,0
+R8,5.08,front apron,0
+R8,5.1,body_geo,0
+R8,5.1,trackBase_L_geo,0
+R8,5.1,trackBase_R_geo,0
+R8,5.1,front apron,0
+R8,5.12,body_geo,0
+R8,5.12,trackBase_L_geo,0
+R8,5.12,trackBase_R_geo,0
+R8,5.12,front apron,0
+R8,5.14,body_geo,0
+R8,5.14,trackBase_L_geo,0
+R8,5.14,trackBase_R_geo,0
+R8,5.14,front apron,0
+R8,5.16,body_geo,0
+R8,5.16,trackBase_L_geo,0
+R8,5.16,trackBase_R_geo,0
+R8,5.16,front apron,0
+R8,5.18,body_geo,0
+R8,5.18,trackBase_L_geo,0
+R8,5.18,trackBase_R_geo,0
+R8,5.18,front apron,0
+R8,5.2,body_geo,0
+R8,5.2,trackBase_L_geo,0
+R8,5.2,trackBase_R_geo,0
+R8,5.2,front apron,0
+R9,3.02,body_geo,0
+R9,3.02,trackBase_L_geo,0
+R9,3.02,trackBase_R_geo,0
+R9,3.02,front apron,0
+R9,3.04,body_geo,0
+R9,3.04,trackBase_L_geo,0
+R9,3.04,trackBase_R_geo,0
+R9,3.04,front apron,0
+R9,3.06,body_geo,0
+R9,3.06,trackBase_L_geo,0
+R9,3.06,trackBase_R_geo,0
+R9,3.06,front apron,0
+R9,3.08,body_geo,0
+R9,3.08,trackBase_L_geo,0
+R9,3.08,trackBase_R_geo,0
+R9,3.08,front apron,0
+R9,3.1,body_geo,0
+R9,3.1,trackBase_L_geo,0
+R9,3.1,trackBase_R_geo,0
+R9,3.1,front apron,0
+R9,3.12,body_geo,0
+R9,3.12,trackBase_L_geo,0
+R9,3.12,trackBase_R_geo,0
+R9,3.12,front apron,0
+R9,3.14,body_geo,0
+R9,3.14,trackBase_L_geo,0
+R9,3.14,trackBase_R_geo,0
+R9,3.14,front apron,0
+R9,3.16,body_geo,0
+R9,3.16,trackBase_L_geo,0
+R9,3.16,trackBase_R_geo,0
+R9,3.16,front apron,0
+R9,3.18,body_geo,0
+R9,3.18,trackBase_L_geo,0
+R9,3.18,trackBase_R_geo,0
+R9,3.18,front apron,0
+R9,3.2,body_geo,0
+R9,3.2,trackBase_L_geo,0
+R9,3.2,trackBase_R_geo,0
+R9,3.2,front apron,0
+R9,3.22,body_geo,0
+R9,3.22,trackBase_L_geo,0
+R9,3.22,trackBase_R_geo,0
+R9,3.22,front apron,0
+R9,3.24,body_geo,0
+R9,3.24,trackBase_L_geo,0
+R9,3.24,trackBase_R_geo,0
+R9,3.24,front apron,0
+R9,3.26,body_geo,0
+R9,3.26,trackBase_L_geo,0
+R9,3.26,trackBase_R_geo,0
+R9,3.26,front apron,0
+R9,3.28,body_geo,0
+R9,3.28,trackBase_L_geo,0
+R9,3.28,trackBase_R_geo,0
+R9,3.28,front apron,0
+R9,3.3,body_geo,0
+R9,3.3,trackBase_L_geo,0
+R9,3.3,trackBase_R_geo,0
+R9,3.3,front apron,0
+R9,3.32,body_geo,0
+R9,3.32,trackBase_L_geo,0
+R9,3.32,trackBase_R_geo,0
+R9,3.32,front apron,0
+R9,3.34,body_geo,0
+R9,3.34,trackBase_L_geo,0
+R9,3.34,trackBase_R_geo,0
+R9,3.34,front apron,0
+R9,3.36,body_geo,0
+R9,3.36,trackBase_L_geo,0
+R9,3.36,trackBase_R_geo,0
+R9,3.36,front apron,0
+R9,3.38,body_geo,0
+R9,3.38,trackBase_L_geo,0
+R9,3.38,trackBase_R_geo,0
+R9,3.38,front apron,0
+R9,3.4,body_geo,0
+R9,3.4,trackBase_L_geo,0
+R9,3.4,trackBase_R_geo,0
+R9,3.4,front apron,0
+R9,3.42,body_geo,0
+R9,3.42,trackBase_L_geo,0
+R9,3.42,trackBase_R_geo,0
+R9,3.42,front apron,0
+R9,3.44,body_geo,0
+R9,3.44,trackBase_L_geo,0
+R9,3.44,trackBase_R_geo,0
+R9,3.44,front apron,0
+R9,3.46,body_geo,0
+R9,3.46,trackBase_L_geo,0
+R9,3.46,trackBase_R_geo,0
+R9,3.46,front apron,0
+R9,3.48,body_geo,0
+R9,3.48,trackBase_L_geo,0
+R9,3.48,trackBase_R_geo,0
+R9,3.48,front apron,0
+R9,3.5,body_geo,0
+R9,3.5,trackBase_L_geo,0
+R9,3.5,trackBase_R_geo,0
+R9,3.5,front apron,0
+R9,3.52,body_geo,0
+R9,3.52,trackBase_L_geo,0
+R9,3.52,trackBase_R_geo,0
+R9,3.52,front apron,0
+R9,3.54,body_geo,0
+R9,3.54,trackBase_L_geo,0
+R9,3.54,trackBase_R_geo,0
+R9,3.54,front apron,0
+R9,3.56,body_geo,0
+R9,3.56,trackBase_L_geo,0
+R9,3.56,trackBase_R_geo,0
+R9,3.56,front apron,0
+R9,3.58,body_geo,0
+R9,3.58,trackBase_L_geo,0
+R9,3.58,trackBase_R_geo,0
+R9,3.58,front apron,0
+R9,3.6,body_geo,0
+R9,3.6,trackBase_L_geo,0
+R9,3.6,trackBase_R_geo,0
+R9,3.6,front apron,0
+R9,3.62,body_geo,0
+R9,3.62,trackBase_L_geo,0
+R9,3.62,trackBase_R_geo,0
+R9,3.62,front apron,0
+R9,3.64,body_geo,0
+R9,3.64,trackBase_L_geo,0
+R9,3.64,trackBase_R_geo,0
+R9,3.64,front apron,0
+R9,3.66,body_geo,0
+R9,3.66,trackBase_L_geo,0
+R9,3.66,trackBase_R_geo,0
+R9,3.66,front apron,0
+R9,3.68,body_geo,0
+R9,3.68,trackBase_L_geo,0
+R9,3.68,trackBase_R_geo,0
+R9,3.68,front apron,0
+R9,3.7,body_geo,0
+R9,3.7,trackBase_L_geo,0
+R9,3.7,trackBase_R_geo,0
+R9,3.7,front apron,0
+R9,3.72,body_geo,0
+R9,3.72,trackBase_L_geo,0
+R9,3.72,trackBase_R_geo,0
+R9,3.72,front apron,0
+R9,3.74,body_geo,0
+R9,3.74,trackBase_L_geo,0
+R9,3.74,trackBase_R_geo,0
+R9,3.74,front apron,0
+R9,3.76,body_geo,0
+R9,3.76,trackBase_L_geo,0
+R9,3.76,trackBase_R_geo,0
+R9,3.76,front apron,0
+R9,3.78,body_geo,0
+R9,3.78,trackBase_L_geo,0
+R9,3.78,trackBase_R_geo,0
+R9,3.78,front apron,0
+R9,3.8,body_geo,0
+R9,3.8,trackBase_L_geo,0
+R9,3.8,trackBase_R_geo,0
+R9,3.8,front apron,0
+R9,3.82,body_geo,0
+R9,3.82,trackBase_L_geo,0
+R9,3.82,trackBase_R_geo,0
+R9,3.82,front apron,0
+R9,3.84,body_geo,0
+R9,3.84,trackBase_L_geo,0
+R9,3.84,trackBase_R_geo,0
+R9,3.84,front apron,0
+R9,3.86,body_geo,0
+R9,3.86,trackBase_L_geo,0
+R9,3.86,trackBase_R_geo,0
+R9,3.86,front apron,0
+R9,3.88,body_geo,0
+R9,3.88,trackBase_L_geo,0
+R9,3.88,trackBase_R_geo,0
+R9,3.88,front apron,0
+R9,3.9,body_geo,0
+R9,3.9,trackBase_L_geo,0
+R9,3.9,trackBase_R_geo,0
+R9,3.9,front apron,0
+R9,3.92,body_geo,0
+R9,3.92,trackBase_L_geo,0
+R9,3.92,trackBase_R_geo,0
+R9,3.92,front apron,0
+R9,3.94,body_geo,0
+R9,3.94,trackBase_L_geo,0
+R9,3.94,trackBase_R_geo,0
+R9,3.94,front apron,0
+R9,3.96,body_geo,0
+R9,3.96,trackBase_L_geo,0
+R9,3.96,trackBase_R_geo,0
+R9,3.96,front apron,0
+R9,3.98,body_geo,0
+R9,3.98,trackBase_L_geo,0
+R9,3.98,trackBase_R_geo,0
+R9,3.98,front apron,0
+R9,4.0,body_geo,0
+R9,4.0,trackBase_L_geo,0
+R9,4.0,trackBase_R_geo,0
+R9,4.0,front apron,0
+R9,4.02,body_geo,0
+R9,4.02,trackBase_L_geo,0
+R9,4.02,trackBase_R_geo,0
+R9,4.02,front apron,0
+R9,4.04,body_geo,0
+R9,4.04,trackBase_L_geo,0
+R9,4.04,trackBase_R_geo,0
+R9,4.04,front apron,0
+R9,4.06,body_geo,0
+R9,4.06,trackBase_L_geo,0
+R9,4.06,trackBase_R_geo,0
+R9,4.06,front apron,0
+R9,4.08,body_geo,0
+R9,4.08,trackBase_L_geo,0
+R9,4.08,trackBase_R_geo,0
+R9,4.08,front apron,0
+R9,4.1,body_geo,0
+R9,4.1,trackBase_L_geo,0
+R9,4.1,trackBase_R_geo,0
+R9,4.1,front apron,0
+R9,4.12,body_geo,0
+R9,4.12,trackBase_L_geo,0
+R9,4.12,trackBase_R_geo,0
+R9,4.12,front apron,0
+R9,4.14,body_geo,0
+R9,4.14,trackBase_L_geo,0
+R9,4.14,trackBase_R_geo,0
+R9,4.14,front apron,0
+R9,4.16,body_geo,0
+R9,4.16,trackBase_L_geo,0
+R9,4.16,trackBase_R_geo,0
+R9,4.16,front apron,0
+R9,4.18,body_geo,0
+R9,4.18,trackBase_L_geo,0
+R9,4.18,trackBase_R_geo,0
+R9,4.18,front apron,0
+R9,4.2,body_geo,0
+R9,4.2,trackBase_L_geo,0
+R9,4.2,trackBase_R_geo,0
+R9,4.2,front apron,0
+R9,4.22,body_geo,0
+R9,4.22,trackBase_L_geo,0
+R9,4.22,trackBase_R_geo,0
+R9,4.22,front apron,0
+R9,4.24,body_geo,0
+R9,4.24,trackBase_L_geo,0
+R9,4.24,trackBase_R_geo,0
+R9,4.24,front apron,0
+R9,4.26,body_geo,0
+R9,4.26,trackBase_L_geo,0
+R9,4.26,trackBase_R_geo,0
+R9,4.26,front apron,0
+R9,4.28,body_geo,0
+R9,4.28,trackBase_L_geo,0
+R9,4.28,trackBase_R_geo,0
+R9,4.28,front apron,0
+R9,4.3,body_geo,0
+R9,4.3,trackBase_L_geo,0
+R9,4.3,trackBase_R_geo,0
+R9,4.3,front apron,0
+R9,4.32,body_geo,0
+R9,4.32,trackBase_L_geo,0
+R9,4.32,trackBase_R_geo,0
+R9,4.32,front apron,0
+R9,4.34,body_geo,0
+R9,4.34,trackBase_L_geo,0
+R9,4.34,trackBase_R_geo,0
+R9,4.34,front apron,0
+R9,4.36,body_geo,0
+R9,4.36,trackBase_L_geo,0
+R9,4.36,trackBase_R_geo,0
+R9,4.36,front apron,0
+R9,4.38,body_geo,0
+R9,4.38,trackBase_L_geo,0
+R9,4.38,trackBase_R_geo,0
+R9,4.38,front apron,0
+R9,4.4,body_geo,0
+R9,4.4,trackBase_L_geo,0
+R9,4.4,trackBase_R_geo,0
+R9,4.4,front apron,0
+R9,4.42,body_geo,0
+R9,4.42,trackBase_L_geo,0
+R9,4.42,trackBase_R_geo,0
+R9,4.42,front apron,0
+R9,4.44,body_geo,0
+R9,4.44,trackBase_L_geo,0
+R9,4.44,trackBase_R_geo,0
+R9,4.44,front apron,0
+R9,4.46,body_geo,0
+R9,4.46,trackBase_L_geo,0
+R9,4.46,trackBase_R_geo,0
+R9,4.46,front apron,0
+R9,4.48,body_geo,0
+R9,4.48,trackBase_L_geo,0
+R9,4.48,trackBase_R_geo,0
+R9,4.48,front apron,0
+R9,4.5,body_geo,0
+R9,4.5,trackBase_L_geo,0
+R9,4.5,trackBase_R_geo,0
+R9,4.5,front apron,0
+R9,4.52,body_geo,0
+R9,4.52,trackBase_L_geo,0
+R9,4.52,trackBase_R_geo,0
+R9,4.52,front apron,0
+R9,4.54,body_geo,0
+R9,4.54,trackBase_L_geo,0
+R9,4.54,trackBase_R_geo,0
+R9,4.54,front apron,0
+R9,4.56,body_geo,0
+R9,4.56,trackBase_L_geo,0
+R9,4.56,trackBase_R_geo,0
+R9,4.56,front apron,0
+R9,4.58,body_geo,0
+R9,4.58,trackBase_L_geo,0
+R9,4.58,trackBase_R_geo,0
+R9,4.58,front apron,0
+R9,4.6,body_geo,0
+R9,4.6,trackBase_L_geo,0
+R9,4.6,trackBase_R_geo,0
+R9,4.6,front apron,0
+R9,4.62,body_geo,0
+R9,4.62,trackBase_L_geo,0
+R9,4.62,trackBase_R_geo,0
+R9,4.62,front apron,0
+R9,4.64,body_geo,0
+R9,4.64,trackBase_L_geo,0
+R9,4.64,trackBase_R_geo,0
+R9,4.64,front apron,0
+R9,4.66,body_geo,0
+R9,4.66,trackBase_L_geo,0
+R9,4.66,trackBase_R_geo,0
+R9,4.66,front apron,0
+R9,4.68,body_geo,0
+R9,4.68,trackBase_L_geo,0
+R9,4.68,trackBase_R_geo,0
+R9,4.68,front apron,0
+R9,4.7,body_geo,0
+R9,4.7,trackBase_L_geo,0
+R9,4.7,trackBase_R_geo,0
+R9,4.7,front apron,0
+R9,4.72,body_geo,0
+R9,4.72,trackBase_L_geo,0
+R9,4.72,trackBase_R_geo,0
+R9,4.72,front apron,0
+R9,4.74,body_geo,0
+R9,4.74,trackBase_L_geo,0
+R9,4.74,trackBase_R_geo,0
+R9,4.74,front apron,0
+R9,4.76,body_geo,0
+R9,4.76,trackBase_L_geo,0
+R9,4.76,trackBase_R_geo,0
+R9,4.76,front apron,0
+R9,4.78,body_geo,0
+R9,4.78,trackBase_L_geo,0
+R9,4.78,trackBase_R_geo,0
+R9,4.78,front apron,0
+R9,4.8,body_geo,0
+R9,4.8,trackBase_L_geo,0
+R9,4.8,trackBase_R_geo,0
+R9,4.8,front apron,0
+R9,4.82,body_geo,0
+R9,4.82,trackBase_L_geo,0
+R9,4.82,trackBase_R_geo,0
+R9,4.82,front apron,0
+R9,4.84,body_geo,0
+R9,4.84,trackBase_L_geo,0
+R9,4.84,trackBase_R_geo,0
+R9,4.84,front apron,0
+R9,4.86,body_geo,0
+R9,4.86,trackBase_L_geo,0
+R9,4.86,trackBase_R_geo,0
+R9,4.86,front apron,0
+R9,4.88,body_geo,0
+R9,4.88,trackBase_L_geo,0
+R9,4.88,trackBase_R_geo,0
+R9,4.88,front apron,0
+R9,4.9,body_geo,0
+R9,4.9,trackBase_L_geo,0
+R9,4.9,trackBase_R_geo,0
+R9,4.9,front apron,0
+R9,4.92,body_geo,0
+R9,4.92,trackBase_L_geo,0
+R9,4.92,trackBase_R_geo,0
+R9,4.92,front apron,0
+R9,4.94,body_geo,0
+R9,4.94,trackBase_L_geo,0
+R9,4.94,trackBase_R_geo,0
+R9,4.94,front apron,0
+R9,4.96,body_geo,0
+R9,4.96,trackBase_L_geo,0
+R9,4.96,trackBase_R_geo,0
+R9,4.96,front apron,0
+R9,4.98,body_geo,0
+R9,4.98,trackBase_L_geo,0
+R9,4.98,trackBase_R_geo,0
+R9,4.98,front apron,0
+R9,5.0,body_geo,0
+R9,5.0,trackBase_L_geo,0
+R9,5.0,trackBase_R_geo,0
+R9,5.0,front apron,0
+R9,5.02,body_geo,0
+R9,5.02,trackBase_L_geo,0
+R9,5.02,trackBase_R_geo,0
+R9,5.02,front apron,0
+R9,5.04,body_geo,0
+R9,5.04,trackBase_L_geo,0
+R9,5.04,trackBase_R_geo,0
+R9,5.04,front apron,0
+R9,5.06,body_geo,0
+R9,5.06,trackBase_L_geo,0
+R9,5.06,trackBase_R_geo,0
+R9,5.06,front apron,0
+R9,5.08,body_geo,0
+R9,5.08,trackBase_L_geo,0
+R9,5.08,trackBase_R_geo,0
+R9,5.08,front apron,0
+R9,5.1,body_geo,0
+R9,5.1,trackBase_L_geo,0
+R9,5.1,trackBase_R_geo,0
+R9,5.1,front apron,0
+R9,5.12,body_geo,0
+R9,5.12,trackBase_L_geo,0
+R9,5.12,trackBase_R_geo,0
+R9,5.12,front apron,0
+R9,5.14,body_geo,0
+R9,5.14,trackBase_L_geo,0
+R9,5.14,trackBase_R_geo,0
+R9,5.14,front apron,0
+R9,5.16,body_geo,0
+R9,5.16,trackBase_L_geo,0
+R9,5.16,trackBase_R_geo,0
+R9,5.16,front apron,0
+R9,5.18,body_geo,0
+R9,5.18,trackBase_L_geo,0
+R9,5.18,trackBase_R_geo,0
+R9,5.18,front apron,0
+R9,5.2,body_geo,0
+R9,5.2,trackBase_L_geo,0
+R9,5.2,trackBase_R_geo,0
+R9,5.2,front apron,0

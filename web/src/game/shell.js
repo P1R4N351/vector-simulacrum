@@ -84,7 +84,7 @@ function earCap(side) {
 
 // Rounded front apron between the two wheel housings. Profile in the
 // SDK's x/z plane, swept across the chassis, from the stock front view.
-function frontApron() {
+export function frontApron() {
   const profile = new THREE.Shape();
   profile.moveTo(0.3, 0.44);
   profile.lineTo(1.48, 0.44);
