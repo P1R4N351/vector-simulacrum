@@ -49,6 +49,18 @@ if held_out:
 shift=late_onset-4.015283
 target=json.loads((here/'initial-cube.json').read_text())
 w,x,y,z=[target['q'+str(i)] for i in range(4)]
+camera_xy='--camera-xy' in sys.argv[2:]
+if camera_xy:
+    if not held_out:
+        raise ValueError('Camera XY registration is available for W8 only')
+    with (here/'camera-pose.csv').open() as f:
+        ref=next(r for r in csv.DictReader(f) if r['case']=='geometry' and
+                 [float(r[k]) for k in ('focal_px','lens_height_mm','fork_height_mm')]==[498.4,65.5,93.])
+    image_time=3.065  # host frame receipt relative to wheelstand command
+    x,y,yaw=[np.interp(image_time,approach['s'],approach[k]) for k in ('x_mm','y_mm','yaw')]
+    forward,left=float(ref['forward_mm']),float(ref['left_mm'])
+    target['x']=x+forward*np.cos(yaw)-left*np.sin(yaw)
+    target['y']=y+forward*np.sin(yaw)+left*np.cos(yaw)
 angle=np.arctan2(2*(w*z+x*y),1-2*(y*y+z*z))
 cube_id=m.body('cube').id
 cube=m.joint('cube_root').qposadr[0]
@@ -148,6 +160,7 @@ if not held_out:
 force=np.genfromtxt(here/'cube.csv.gz',delimiter=',',names=True)
 axes[2].scatter(force['sec']-zero,np.linalg.norm([force[k] for k in 'xyz'],axis=0)/8192,color='black',s=4)
 stem='firmware-drive' if firmware else 'free-chassis'
+if camera_xy:stem='camera-xy-drive'
 with (here/(stem+'.csv')).open('w') as f:
     writer=csv.writer(f,lineterminator='\n')
     writer.writerow((['onset_s'] if firmware else [])+['release_s','limit_mNm','peak_pitch_deg','settled_travel_mm','settled_yaw_deg','peak_g','taps','peak_downward_fork_N'])
@@ -166,7 +179,7 @@ axes[0].legend();axes[-1].set_xlabel('Seconds after wheelstand command')
 fig.savefig(here/(stem+'.png'),dpi=155)
 
 if held_out:
-    with (here/'initial-contact-check.csv').open('w') as f:
+    with (here/('camera-xy-contact-check.csv' if camera_xy else 'initial-contact-check.csv')).open('w') as f:
         writer=csv.writer(f,lineterminator='\n')
         writer.writerow(['release_s','onset_s','initial_robot_cube_overlap_mm','cube_settling_displacement_mm'])
         writer.writerows(initial_checks)
