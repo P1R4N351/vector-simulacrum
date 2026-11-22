@@ -55,3 +55,11 @@ The successful roll's cube packets show median Y–Z acceleration direction chan
 The last three physical packets after the R8 chassis cutoff have median direction change 41.3°. The overhead view reaches its final appearance at approximately +5.46–5.66 s. Extending the replay might capture the endpoint, but the earlier packet discrepancy already exists while measured drive inputs are available. The discrete up-face indicator masks this gradual change.
 
 [Packet direction overlay](roll-onset.png) · [Window medians and counts](roll-onset.csv) · [Reproduce with printed fixture](roll_onset.py)
+
+### Does the position servo lag account for the missing roll?
+
+A second replay adds the encoder trajectory's angular velocity times the existing damping-to-stiffness ratio (0.020 s) to the servo target. This compensates the actuator's velocity-dependent force when the simulated lift follows the reference. Both variants have the same 30 mN·m limit, joint travel, shelf support, initial pose and contact geometry. The interpolated encoder trajectory is known offline. The real motor target was not logged.
+
+At the encoder sample times from +4.00 to +5.208 s within replay coverage, successful-roll height RMS error drops from 3.43 to 3.42 mm. Peak cube tilt drops from 0.47° to 0.16°. Peak acceleration is 1.71 g and two taps in both cases. The held-out missed approach stays at 1.41 mm RMS error and zero taps. The real encoder drops below the 32 mm model travel limit in both recordings. Compensating nominal servo damping explains little of the loaded tracking error and does not recover the physical roll. The default replay still uses the original servo.
+
+[Encoder tracking overlay](lift-tracking.png) · [Four replay scores](lift-tracking.csv) · [Reproduce with fixture XML](lift_tracking.py)
