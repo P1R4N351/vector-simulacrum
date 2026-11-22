@@ -59,3 +59,9 @@ The SDK exposed the aggregate flag, without the four optical readings. Replaying
 A 16.5 mm threshold, selected on Sunday by minimizing receipt disagreements (ties favor the existing threshold), matched all 217 Sunday receipts. With the threshold frozen, disagreements dropped from one to zero in each of two earlier wheelstands (W4: 98 receipts, W8: 94). This improves four aggregate observations across these three maneuvers. Unknown chassis height, roll, optical reflectivity and SDK receipt timing limit inference of an actual sensor distance. The test does not reconstruct the later shelf departure. Keep the production threshold pending an independent distance or drop-height measurement.
 
 ![Pose-only replay of front and rear ranges with recorded and simulated cliff flags](cliff-pitch.png)
+
+### Cliff threshold on additional off-dock maneuvers
+
+Freezing the Sunday candidate at 16.5 mm and excluding both previously examined wheelstands gives 11 other runs with a logged successful undock and subsequent disconnect or docking start. Score the interval between those boundaries. Across 8,472 receipts there were six positive readings, all during R8. The 25 mm setting missed three of those six, while the 16.5 mm candidate caught all six. Neither threshold raised an extra flag on the 8,466 negative receipts. The six positive receipts come from one additional maneuver on the same unit and surface. These observations test the effective pitch response; predicting actual surface departures still requires shelf geometry.
+
+![Extra and missed cliff flags by held-out run](cliff-transfer.png)
