@@ -22,6 +22,9 @@ fig,ax=plt.subplots(2,1,figsize=(8,6),sharex=True,layout='constrained')
 summary=[]
 early_path="--early-path" in sys.argv[3:]
 early_rows=[]
+pose_grid="--pose-grid" in sys.argv[3:]
+if pose_grid and not early_path:
+ raise ValueError("pose grid requires --early-path --face-test")
 impulse_test="--impact-impulse" in sys.argv[3:]
 if impulse_test and not early_path:
  raise ValueError("impact impulse requires --face-test --early-path")
@@ -71,7 +74,7 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    w.writerow([-.01,'robot_observed_object',*pos,yaw,0,0])
    for r,a in zip(poses,angles):
     t=r['sec']
-    if -.1<t-zero<(5.0 if early_path else 7.05)-start_offset:w.writerow([t-zero,'robot_state',r['x_mm'],r['y_mm'],a,np.interp(t,s['sec'],s['pitch']),np.interp(t,s['sec'],s['lift'])])
+    if -.1<t-zero<(5.0 if early_path and not pose_grid else 7.05)-start_offset:w.writerow([t-zero,'robot_state',r['x_mm'],r['y_mm'],a,np.interp(t,s['sec'],s['pitch']),np.interp(t,s['sec'],s['lift'])])
   conditions=[(),('fork',),('tread',),('carrier',),('fork','tread','carrier')] if ablation else [()]
   fixture=sys.argv[1]
   if current_surface:
@@ -106,7 +109,10 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    layouts=[item for item in layouts if item[0]=='4' or (reg['view']=='B' and item[0]=='1')]
   if solver_check and tight_solver and reg['view']=='B':
    timesteps=(*timesteps,.0000625)
-  for dt,omitted,(layout,asset_rotation) in product(timesteps,conditions,layouts):
+  offsets=list(product((-2,0,2),(-3,0,3))) if pose_grid else [(0,0)]
+  if pose_grid:
+   layouts=[item for item in layouts if item[0]=='2']
+  for dt,omitted,(layout,asset_rotation),(df,dl) in product(timesteps,conditions,layouts,offsets):
    if dt==.0000625 and layout!='4':
     continue
    if impulse_test:
@@ -147,7 +153,8 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    initial=R.from_euler('z',yaw)
    if layout!='upright':
     initial=initial*asset_rotation
-   t,tilt,hit,speed,sensor=run(fixture,dt,True,d,initial,observer=observe,articulated=True,shelf_support=True,chassis_contact=True,omit_contacts=omitted)
+   t,tilt,hit,speed,sensor=run(fixture,dt,True,d,initial,observer=observe,articulated=True,shelf_support=True,chassis_contact=True,omit_contacts=omitted,
+       initial_xy_mm=pos+R.from_euler("z",heading).apply([df,dl,0])[:2] if pose_grid else None)
    if impulse_test:
     wrench_recorder.save(reg['view'],start_offset,dt)
     continue
@@ -159,10 +166,10 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
     trajectory='impact-path-'+('reverse' if reverse_boxes else 'original')+'.csv'
     xy_body=R.from_euler('z',-heading).apply(np.column_stack([offset_xy,np.zeros(len(t))]))[:,:2]
     if early_path:
-     for frame in range(74,81):
+     for frame in range(74,102 if pose_grid else 81):
       clock=frame/12-2
       vals=[np.interp(clock,t+start_offset,v) for v in (*xy_body.T,yaw_trace)]
-      early_rows.append([reg['view'],layout,frame,clock,*vals])
+      early_rows.append([reg['view'],layout,frame,clock,*vals]+([df,dl] if pose_grid else []))
      continue
     np.savetxt(folder/trajectory,np.column_stack([t+start_offset,xy_body,yaw_trace])[::stride],
                delimiter=',',header='dock_s,forward_mm,left_mm,ccw_deg',comments='',fmt='%.6f')
@@ -190,9 +197,9 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
 if impulse_test:
  sys.exit(0)
 if early_path:
- with (folder/'impact-path-candidates.csv').open('w') as f:
+ with (folder/('pose-grid.csv' if pose_grid else 'impact-path-candidates.csv')).open('w') as f:
   w=csv.writer(f,lineterminator='\n')
-  w.writerow('view layout frame dock_s forward_mm left_mm ccw_deg'.split())
+  w.writerow('view layout frame dock_s forward_mm left_mm ccw_deg'.split()+(['offset_forward_mm','offset_left_mm'] if pose_grid else []))
   w.writerows(early_rows)
  sys.exit(0)
 if '--tilt-trace' in sys.argv[3:]:

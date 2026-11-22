@@ -119,3 +119,15 @@ For orientation 2 we integrated every solver contact wrench on the cube about it
 ![Angular impulse by contact, vertical loading, and physical versus simulated yaw rate](impact-impulse.png)
 
 [View A wrenches integrated through time](impact-impulse-A.csv.gz) · [View B](impact-impulse-B.csv.gz). Add `--impact-impulse` to the `--face-test --early-path` replay and run `impulse_plot.py`.
+
+### Can the camera registration error explain the turn?
+
+We held the cube's orientation at optical candidate 2 and simulated nine initial translations for each camera registration. The grid offsets are −2, 0, +2 mm forward and −3, 0, +3 mm left, each within the corresponding published marginal 5th–95th percentile range from perturbed image picks. Those ranges do not define a joint probability distribution. Shape, contact materials, measured robot trajectory, registration-specific edge yaw, solver settings and the 0.25 ms step were fixed.
+
+For each candidate we compared displacement and yaw at frames 76 and 77 against **both cameras**. The score is the RMS planar displacement error of the four corresponding corners of a centered 23 mm square. This puts rotation and translation in millimeters without fitting weights. We selected the lowest early score across all 18 cases and evaluated it on subsequent camera A frames. Frames 78–84 cover the main movement; frames 78–101 also include settling. These are withheld times from a single impact. Optical orientation 2 was chosen after earlier work on the same recording.
+
+[Selected trajectory and controls](pose-grid.png) · [All per-frame predictions](pose-grid.csv) · [Selection and later errors](pose-grid-scores.csv). Run the R10 fork replay with `3.75 --face-test --early-path --pose-grid`, followed by `pose_grid.py`.
+
+The original A pose (zero adjustment) won on the two early frames, with 3.09 mm RMS corner error. Its translation RMS error over the next seven moving frames was 3.44 mm, but its yaw RMS error there was 61.1°. At +4.58 s **all 18 cases** lay between 17.7° clockwise and 4.7° counterclockwise, versus 40° counterclockwise in camera A. Across all 24 held-out times the selected pose gave 41.7 mm RMS corner error. The lowest corner error available in hindsight on those 24 frames was 19.8 mm; using it would leak the held-out observations. Both zero-offset controls exactly reproduced all previously published early frame predictions.
+
+Position uncertainty matters to the final outcome, but these translations within the two registration ranges do not explain the observed early turn for orientation 2. No fitted offset was applied to the simulator.
