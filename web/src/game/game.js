@@ -75,7 +75,10 @@ async function loadEverything() {
   const options = new URLSearchParams(location.search);
   const trial = options.get("contact") === "42";
   const free = options.get("cube") === "free";
-  const directory = options.get("robot") === "2" ? "./robot/vector2" : "./robot";
+  const vector2 = options.get("robot") === "2";
+  const printedFork = options.get("fork") === "printed";
+  if (printedFork && !vector2) throw new Error("Printed fork calibration requires robot=2");
+  const directory = vector2 ? "./robot/vector2" + (printedFork ? "/printed" : "") : "./robot";
   const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "");
   const [{ default: loadMujoco }, xml, modelText] = await Promise.all([
     traced("PHYSICS RUNTIME", import("@mujoco/mujoco")),

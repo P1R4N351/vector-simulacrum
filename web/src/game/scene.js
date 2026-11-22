@@ -1,6 +1,6 @@
 // Everything drawn: the model's own geoms, plus labelled cosmetics..
 //
-// The physics model is boxes and cylinders: one mesh per MuJoCo geom, placed
+// The viewer builds one mesh per MuJoCo geom, placed
 // each frame from the solver's geom poses. The scenery is always drawn that
 // way. The robot is drawn with the Vector SDK's 3D model when it has been
 // fetched (sdkmodel.js), with the physics shapes available as an overlay;
@@ -53,6 +53,17 @@ function geomMesh(mujoco, model, index, name) {
   else if (type === kinds.mjGEOM_CYLINDER.value) {
     geometry = new THREE.CylinderGeometry(size[0], size[0], 2 * size[1], 40);
     geometry.rotateX(Math.PI / 2); // three's cylinder runs along y, MuJoCo's along z
+  }
+  if (type === kinds.mjGEOM_MESH.value) {
+    const asset = model.geom_dataid[index];
+    const vertex = 3 * model.mesh_vertadr[asset];
+    const face = 3 * model.mesh_faceadr[asset];
+    geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(
+      model.mesh_vert.slice(vertex, vertex + 3 * model.mesh_vertnum[asset]), 3));
+    geometry.setIndex(new THREE.Uint32BufferAttribute(
+      model.mesh_face.subarray(face, face + 3 * model.mesh_facenum[asset]), 1));
+    geometry.computeVertexNormals();
   }
   if (geometry === null) throw new Error(`geom ${name} has a type this viewer does not draw (${type})`);
   const rgba = model.geom_rgba.subarray(4 * index, 4 * index + 4);
@@ -197,7 +208,9 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
   const cubeId = idOf("mjOBJ_BODY", "cube");
   for (let i = 0; i < model.ngeom; i++) {
     const mesh = geomMesh(mujoco, model, i, nameOf("mjOBJ_GEOM", i));
-    if (model.geom_bodyid[i] === cubeId) {
+    if (model.geom_rgba[4 * i + 3] === 0) {
+      mesh.visible = false;
+    } else if (model.geom_bodyid[i] === cubeId) {
       mesh.visible = cube === null;
     } else if (sdk !== null && model.geom_bodyid[i] !== 0) {
       mesh.material = SHAPE_OVERLAY;
