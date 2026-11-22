@@ -1,0 +1,7 @@
+sec,kind,action,response
+-20.71293,begin,connect on dock,
+-0.000154,end,connect on dock,"status {
+  code: RESPONSE_RECEIVED
+}
+success: true"
+0.0,begin,undock,
