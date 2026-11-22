@@ -42,3 +42,13 @@ Adding just the driven front-right cylinder to the free-cube fork replay yields 
 Run early_contact.py for the clearance plot (requires the viewer SDK assets and web dependencies used by replay_links.py). Pass --front-right to replay_roll.py for the free-cube experiment, using the same printed fixture as above.
 
 [Part clearance](early-contact.png) · [Geometry and distances](early-contact.csv) · [Free cube with tread contact](front-right-replay.png)
+
+### Does the tread surface speed explain the roll?
+
+The paired replays use the same translating, pitching front-right tread cylinder, printed fork, cube, and contact material. A free joint is driven from consecutive axle poses with explicit linear and angular velocity. One replay locks the tread rotation relative to the chassis; the other applies measured right-wheel speed divided by cylinder radius. Both impose the trajectory every step. The proxy has assumed 180 g inertia mass and diagonal inertia of 0.0001 kg m² per axis. This change of driving method matters: the stationary-rotation control now also rolls the cube. Comparing these two cases isolates the effect of rotation within this fixture.
+
+At 0.25 ms the control reaches 170.3° peak tilt and the rolling tread reaches 154.8°. Both end at 90° by the last recorded chassis pose. At 0.5 ms the peaks are 170.1° and 155.2°. The rolling case first touches the cube at 3.086 s across all three step sizes. It predicts four packet counter changes at the two finer steps versus two observed from 2.5 s onward. Its packet acceleration magnitude peaks at 5.39 g at the finest step versus 1.43 g measured in the common interval; individual axes can saturate. Packet peak magnitude is timestep sensitive. At the final simulated packet the rolling case reports −Y up, while the physical receiver still reports +Z and the later physical rest window measures +Y up. The comparison uses the model's nominal sensor mounting and assumes the SDK cube yaw registers the same sensor frame.
+
+The replay uses the existing accelerometer, packet format, and filter on the MuJoCo cube chip site with a fixed seed. The robot's pose and fork motion remain prescribed. The several-fold acceleration error and different indicated face argue against adopting this driver as a calibrated model.
+
+[Tread-speed overlay](tread-speed.png) · [All six runs](tread-speed.csv) · [Reproduce with printed fixture XML](tread_speed.py)
