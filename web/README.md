@@ -278,3 +278,12 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 | `tools/fetch_sdk_model.py` | The SDK's robot model, into `public/robot/sdk/` |
 | `test/` | Ten test files (53 tests), `mutate.mjs`, the fixtures |
 | `demo.sh`, `Dockerfile` | One command to a running page; a static container on port 8080 |
+
+To use the measured shelf cube with the free scene, open
+`?cube=free&cubeSensor=p2y8`. This selects its chip scale, noise and word format
+from the Vector 2 parameter table. The robot model is selected separately.
+The stationary median is 0.97083 g with the shelf profile and 1.00002 g with
+the generic chip. Two physical recordings gave 0.97034 and 0.97038 g.
+The timestamps exposed by the simulator are cube send times. The hardware
+recordings include Bluetooth delivery and collector timing.
+[Stationary distributions](../evidence/unit3-wheelstand/shelf-roll-stop/browser-rest-p2y8.png)
