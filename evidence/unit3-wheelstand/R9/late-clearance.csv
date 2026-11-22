@@ -1,0 +1,721 @@
+run,seconds,group,nearest_robot_geom,gap_mm
+R8,4.02,chassis,chassis_geom,-5.222689654511708
+R8,4.02,head,head_geom,3.8595353086140345
+R8,4.02,Upper links,rail0_13,25.666596990459222
+R8,4.02,Lower links,rail1_13,13.362798423053988
+R8,4.02,Other tread supports,tip_front_l,10.431609607210175
+R8,4.02,Inset wheels,wheel_fr_geom,2.839490993114004
+R8,4.04,chassis,chassis_geom,-5.231828642199166
+R8,4.04,head,head_geom,3.8267868370634375
+R8,4.04,Upper links,rail0_13,25.730375512982395
+R8,4.04,Lower links,rail1_13,13.42598932893941
+R8,4.04,Other tread supports,tip_front_l,10.429485832284536
+R8,4.04,Inset wheels,wheel_fr_geom,2.8379802022173917
+R8,4.06,chassis,chassis_geom,-5.2427083556744405
+R8,4.06,head,head_geom,3.7952321460854805
+R8,4.06,Upper links,rail0_13,25.75258518120535
+R8,4.06,Lower links,rail1_13,13.447656303125147
+R8,4.06,Other tread supports,tip_front_l,10.428474837634667
+R8,4.06,Inset wheels,wheel_fr_geom,2.836810969356439
+R8,4.08,chassis,chassis_geom,-5.252874610126785
+R8,4.08,head,head_geom,3.7680606260184857
+R8,4.08,Upper links,rail0_13,25.760849615125153
+R8,4.08,Lower links,rail1_13,13.455467725851149
+R8,4.08,Other tread supports,tip_front_l,10.426943299774983
+R8,4.08,Inset wheels,wheel_fr_geom,2.836935641751504
+R8,4.1,chassis,chassis_geom,-5.242377095008912
+R8,4.1,head,head_geom,3.7868192114797505
+R8,4.1,Upper links,rail0_13,25.786905974900886
+R8,4.1,Lower links,rail1_13,13.481969955501773
+R8,4.1,Other tread supports,tip_front_l,10.415384489038761
+R8,4.1,Inset wheels,wheel_fr_geom,2.8460441957171585
+R8,4.12,chassis,chassis_geom,-5.233184509058098
+R8,4.12,head,head_geom,3.8083545407239647
+R8,4.12,Upper links,rail0_13,25.78732243333762
+R8,4.12,Lower links,rail1_13,13.482863582352204
+R8,4.12,Other tread supports,tip_front_l,10.404700312749602
+R8,4.12,Inset wheels,wheel_fr_geom,2.8570803262869378
+R8,4.14,chassis,chassis_geom,-5.119686832495719
+R8,4.14,head,head_geom,4.09784953015695
+R8,4.14,Upper links,rail0_13,25.783832016923792
+R8,4.14,Lower links,rail1_13,13.484380561280636
+R8,4.14,Other tread supports,tip_front_l,10.401519779050327
+R8,4.14,Inset wheels,wheel_fr_geom,2.897379572592817
+R8,4.16,chassis,chassis_geom,-5.207405421719783
+R8,4.16,head,head_geom,5.207755786926446
+R8,4.16,Upper links,rail0_13,25.733481734989727
+R8,4.16,Lower links,rail1_13,13.45197339223599
+R8,4.16,Other tread supports,tip_front_l,10.413219536236166
+R8,4.16,Inset wheels,wheel_fr_geom,2.993246290570814
+R8,4.18,chassis,chassis_geom,-5.28076836777659
+R8,4.18,head,head_geom,6.272816643749552
+R8,4.18,Upper links,rail0_13,25.68892004431859
+R8,4.18,Lower links,rail1_13,13.431473424604919
+R8,4.18,Other tread supports,tip_front_l,10.425577076429803
+R8,4.18,Inset wheels,wheel_fr_geom,3.0873270017476604
+R8,4.2,chassis,chassis_geom,-5.359959858121449
+R8,4.2,head,head_geom,7.262787686878602
+R8,4.2,Upper links,rail0_13,25.5336106920836
+R8,4.2,Lower links,rail1_13,13.303358961166277
+R8,4.2,Other tread supports,tip_front_l,10.459201830054933
+R8,4.2,Inset wheels,wheel_fr_geom,3.226913815695104
+R8,4.22,chassis,chassis_geom,-4.9471759796819175
+R8,4.22,head,head_geom,8.029011812091271
+R8,4.22,Upper links,rail0_13,25.61806841658626
+R8,4.22,Lower links,rail1_13,13.398312999466736
+R8,4.22,Other tread supports,tip_front_l,10.64191810205236
+R8,4.22,Inset wheels,wheel_fr_geom,3.6697572940638126
+R8,4.24,chassis,chassis_geom,-4.538958046332622
+R8,4.24,head,head_geom,8.794424944378429
+R8,4.24,Upper links,rail0_13,25.598104492422294
+R8,4.24,Lower links,rail1_13,13.389524604158415
+R8,4.24,Other tread supports,tip_front_l,10.846821481121593
+R8,4.24,Inset wheels,wheel_fr_geom,4.113604796328761
+R8,4.26,chassis,chassis_geom,-4.162455368495302
+R8,4.26,head,head_geom,9.479106508085817
+R8,4.26,Upper links,rail0_13,25.60287173530227
+R8,4.26,Lower links,rail1_13,13.39837397221893
+R8,4.26,Other tread supports,tip_front_l,11.047977411864814
+R8,4.26,Inset wheels,wheel_fr_geom,4.529546281656781
+R8,4.28,chassis,chassis_geom,-3.8828983521457343
+R8,4.28,head,head_geom,9.884868743127646
+R8,4.28,Upper links,rail0_13,25.604120942615808
+R8,4.28,Lower links,rail1_13,13.393116323629974
+R8,4.28,Other tread supports,tip_front_l,11.17471481991778
+R8,4.28,Inset wheels,wheel_fr_geom,4.845365411309673
+R8,4.3,chassis,chassis_geom,-3.6082728144236795
+R8,4.3,head,head_geom,10.284504784824373
+R8,4.3,Upper links,rail0_13,25.686319023705366
+R8,4.3,Lower links,rail1_13,13.462306584803766
+R8,4.3,Other tread supports,tip_front_l,11.3063798844265
+R8,4.3,Inset wheels,wheel_fr_geom,5.157268962328081
+R8,4.32,chassis,chassis_geom,-3.3185819085552906
+R8,4.32,head,head_geom,11.158118515319789
+R8,4.32,Upper links,rail0_13,25.681949633461446
+R8,4.32,Lower links,rail1_13,13.434048662350444
+R8,4.32,Other tread supports,tip_front_l,11.480993162125674
+R8,4.32,Inset wheels,wheel_fr_geom,5.601541032501076
+R8,4.34,chassis,chassis_geom,-2.3553079276791844
+R8,4.34,head,head_geom,13.220360370978746
+R8,4.34,Upper links,rail0_13,25.76859888653733
+R8,4.34,Lower links,rail1_13,13.488326988685193
+R8,4.34,Other tread supports,tip_front_l,11.890149305710027
+R8,4.34,Inset wheels,wheel_fr_geom,6.387337325797522
+R8,4.36,chassis,chassis_geom,-0.30729015286606803
+R8,4.36,head,head_geom,15.1792639410447
+R8,4.36,Upper links,rail0_13,25.837346193206407
+R8,4.36,Lower links,rail1_13,13.54498264809582
+R8,4.36,Other tread supports,tip_front_l,12.21778822191877
+R8,4.36,Inset wheels,wheel_fr_geom,7.169416163856695
+R8,4.38,chassis,chassis_geom,0.6248177912857888
+R8,4.38,head,head_geom,16.34732408206473
+R8,4.38,Upper links,rail0_13,25.93335198957222
+R8,4.38,Lower links,rail1_13,13.641677176942066
+R8,4.38,Other tread supports,tip_front_l,12.205084065501762
+R8,4.38,Inset wheels,wheel_fr_geom,7.668250270678313
+R8,4.4,chassis,chassis_geom,0.9127303701068809
+R8,4.4,head,head_geom,17.333643013712898
+R8,4.4,Upper links,rail0_13,26.01248509359266
+R8,4.4,Lower links,rail1_13,13.726226180831924
+R8,4.4,Other tread supports,tip_front_l,12.20119696356664
+R8,4.4,Inset wheels,wheel_fr_geom,8.108050848993816
+R8,4.42,chassis,chassis_geom,1.206144913036334
+R8,4.42,head,head_geom,18.28552952263421
+R8,4.42,Upper links,rail0_13,26.103711401429607
+R8,4.42,Lower links,rail1_13,13.825351633045248
+R8,4.42,Other tread supports,tip_front_l,12.211256593710665
+R8,4.42,Inset wheels,wheel_fr_geom,8.546949514869533
+R8,4.44,chassis,chassis_geom,1.505252708005673
+R8,4.44,head,head_geom,19.202752270530457
+R8,4.44,Upper links,rail0_13,26.203911238048033
+R8,4.44,Lower links,rail1_13,13.932944683928303
+R8,4.44,Other tread supports,tip_front_l,12.234385462818553
+R8,4.44,Inset wheels,wheel_fr_geom,8.985135594349597
+R8,4.46,chassis,chassis_geom,1.809930879658534
+R8,4.46,head,head_geom,20.084525606146393
+R8,4.46,Upper links,rail0_13,26.311075266311178
+R8,4.46,Lower links,rail1_13,14.052855680154623
+R8,4.46,Other tread supports,tip_front_l,12.27041213805638
+R8,4.46,Inset wheels,wheel_fr_geom,9.422371717215327
+R8,4.48,chassis,chassis_geom,2.1199576668128914
+R8,4.48,head,head_geom,20.9301130077723
+R8,4.48,Upper links,rail0_13,26.41981448995811
+R8,4.48,Lower links,rail1_13,14.176568952445455
+R8,4.48,Other tread supports,tip_front_l,12.318274740241426
+R8,4.48,Inset wheels,wheel_fr_geom,9.85847230116354
+R8,4.5,chassis,chassis_geom,3.253090431767234
+R8,4.5,head,head_geom,22.535689641863954
+R8,4.5,Upper links,rail0_13,26.841273077660393
+R8,4.5,Lower links,rail1_13,14.654479481538779
+R8,4.5,Other tread supports,tip_front_l,12.626438208583279
+R8,4.5,Inset wheels,wheel_fr_geom,11.054514311622768
+R8,4.52,chassis,chassis_geom,4.4507636448515635
+R8,4.52,head,head_geom,24.315653142536686
+R8,4.52,Upper links,rail0_13,27.422601552389196
+R8,4.52,Lower links,rail1_13,15.329619471186193
+R8,4.52,Other tread supports,tip_front_l,13.010852033485552
+R8,4.52,Inset wheels,wheel_fr_geom,12.445135420793154
+R8,4.54,chassis,chassis_geom,6.93839023217517
+R8,4.54,head,head_geom,26.860692858742215
+R8,4.54,Upper links,rail0_13,28.18659712779763
+R8,4.54,Lower links,rail1_13,16.369538078536767
+R8,4.54,Other tread supports,tip_front_l,13.97361093787912
+R8,4.54,Inset wheels,wheel_fr_geom,14.938838447477481
+R8,4.56,chassis,chassis_geom,7.7734364583693365
+R8,4.56,head,head_geom,27.786475187524776
+R8,4.56,Upper links,rail0_13,29.116899403735836
+R8,4.56,Lower links,rail1_13,17.379924262576445
+R8,4.56,Other tread supports,tip_front_l,14.419179501234638
+R8,4.56,Inset wheels,wheel_fr_geom,15.826738777869995
+R8,4.58,chassis,chassis_geom,7.974308015378314
+R8,4.58,head,head_geom,28.233349023656498
+R8,4.58,Upper links,rail0_13,29.304628033684498
+R8,4.58,Lower links,rail1_13,17.60007173019823
+R8,4.58,Other tread supports,tip_front_l,14.579859857753668
+R8,4.58,Inset wheels,wheel_fr_geom,16.11667224939983
+R8,4.6,chassis,chassis_geom,8.109581686773017
+R8,4.6,head,head_geom,28.58348745134203
+R8,4.6,Upper links,rail0_13,29.43733397270724
+R8,4.6,Lower links,rail1_13,17.751938553829113
+R8,4.6,Other tread supports,tip_front_l,14.721986099262526
+R8,4.6,Inset wheels,wheel_fl_geom,16.3071353558542
+R8,4.62,chassis,chassis_geom,8.239054799659632
+R8,4.62,head,head_geom,28.92954508038783
+R8,4.62,Upper links,rail0_27,29.520022143081132
+R8,4.62,Lower links,rail1_13,17.90245928389546
+R8,4.62,Other tread supports,tip_front_l,14.866128437476716
+R8,4.62,Inset wheels,wheel_fl_geom,16.4693019248951
+R8,4.64,chassis,chassis_geom,8.221610603074334
+R8,4.64,head,head_geom,29.11428036968652
+R8,4.64,Upper links,rail0_27,29.546347021360916
+R8,4.64,Lower links,rail1_13,17.944410122506707
+R8,4.64,Other tread supports,tip_front_l,14.931914046600841
+R8,4.64,Inset wheels,wheel_fl_geom,16.535602039395897
+R8,4.66,chassis,chassis_geom,8.10584840765305
+R8,4.66,head,head_geom,29.190205554999466
+R8,4.66,Upper links,rail0_27,29.53876588105876
+R8,4.66,Lower links,rail1_13,17.916610475762
+R8,4.66,Other tread supports,tip_front_l,14.944583386084553
+R8,4.66,Inset wheels,wheel_fl_geom,16.53746803758675
+R8,4.68,chassis,chassis_geom,7.8056164194864435
+R8,4.68,head,head_geom,29.328463259176566
+R8,4.68,Upper links,rail0_27,29.41919303188074
+R8,4.68,Lower links,rail1_13,17.78798635383767
+R8,4.68,Other tread supports,tip_front_l,14.945705423079511
+R8,4.68,Inset wheels,wheel_fl_geom,16.514153141961508
+R8,4.7,chassis,chassis_geom,6.880740646337219
+R8,4.7,head,head_geom,29.65783881040714
+R8,4.7,Upper links,rail0_27,29.290378890375965
+R8,4.7,Lower links,rail1_13,17.683555596308043
+R8,4.7,Other tread supports,tip_front_l,14.863711775740567
+R8,4.7,Inset wheels,wheel_fl_geom,16.437387777252617
+R8,4.72,chassis,chassis_geom,5.8903689330157505
+R8,4.72,head,head_geom,29.977416037715166
+R8,4.72,Upper links,rail0_27,29.07863961853378
+R8,4.72,Lower links,rail1_13,17.488764846521384
+R8,4.72,Other tread supports,tip_front_l,14.729438429543922
+R8,4.72,Inset wheels,wheel_fl_geom,16.304218703481006
+R8,4.74,chassis,chassis_geom,5.730247878727773
+R8,4.74,head,head_geom,30.000948794610135
+R8,4.74,Upper links,rail0_27,28.651588439591634
+R8,4.74,Lower links,rail1_13,17.05282326569873
+R8,4.74,Other tread supports,tip_front_l,14.696161199691376
+R8,4.74,Inset wheels,wheel_fl_geom,16.254056095692366
+R8,4.76,chassis,chassis_geom,5.748906630848375
+R8,4.76,head,head_geom,29.893444569114077
+R8,4.76,Upper links,rail0_27,28.75451201388102
+R8,4.76,Lower links,rail1_13,17.134174856738372
+R8,4.76,Other tread supports,tip_front_l,14.67328151274213
+R8,4.76,Inset wheels,wheel_fl_geom,16.231803569463796
+R8,4.78,chassis,chassis_geom,5.821347203841552
+R8,4.78,head,head_geom,29.85027437029633
+R8,4.78,Upper links,rail0_27,28.794145994512853
+R8,4.78,Lower links,rail1_13,17.178647078853984
+R8,4.78,Other tread supports,tip_front_l,14.676264710315275
+R8,4.78,Inset wheels,wheel_fl_geom,16.241753799039348
+R8,4.8,chassis,chassis_geom,5.90345235718479
+R8,4.8,head,head_geom,29.810885613052257
+R8,4.8,Upper links,rail0_27,28.81258413441069
+R8,4.8,Lower links,rail1_13,17.20322546389928
+R8,4.8,Other tread supports,tip_front_l,14.68091268726945
+R8,4.8,Inset wheels,wheel_fl_geom,16.253724388502658
+R8,4.82,chassis,chassis_geom,5.594133165398326
+R8,4.82,head,head_geom,30.066866455975507
+R8,4.82,Upper links,rail0_27,28.97771031747584
+R8,4.82,Lower links,rail1_13,17.41573402357494
+R8,4.82,Other tread supports,tip_front_l,14.670869447757525
+R8,4.82,Inset wheels,wheel_fl_geom,16.213704964203362
+R8,4.84,chassis,chassis_geom,5.314013160028169
+R8,4.84,head,head_geom,30.32135678605089
+R8,4.84,Upper links,rail0_27,28.897661314058716
+R8,4.84,Lower links,rail1_13,17.32032962461969
+R8,4.84,Other tread supports,tip_front_l,14.623377487177763
+R8,4.84,Inset wheels,wheel_fl_geom,16.097046340790055
+R8,4.86,chassis,chassis_geom,5.15520854298084
+R8,4.86,head,head_geom,30.606849506599445
+R8,4.86,Upper links,rail0_27,29.61327357470404
+R8,4.86,Lower links,rail1_13,18.04067784474516
+R8,4.86,Other tread supports,tip_front_l,14.598787676433409
+R8,4.86,Inset wheels,wheel_fl_geom,16.012010288033036
+R8,4.88,chassis,chassis_geom,5.240656059162712
+R8,4.88,head,head_geom,30.43284372954221
+R8,4.88,Upper links,rail0_27,28.559158955201127
+R8,4.88,Lower links,rail1_13,16.965830775295377
+R8,4.88,Other tread supports,tip_front_l,14.614633625135697
+R8,4.88,Inset wheels,wheel_fl_geom,16.058761902815434
+R8,4.9,chassis,chassis_geom,5.319625404252248
+R8,4.9,head,head_geom,30.25095893716942
+R8,4.9,Upper links,rail0_27,28.193896372335715
+R8,4.9,Lower links,rail1_13,16.592577516828143
+R8,4.9,Other tread supports,tip_front_l,14.620103099215058
+R8,4.9,Inset wheels,wheel_fl_geom,16.10124898660869
+R8,4.92,chassis,chassis_geom,5.396377181104318
+R8,4.92,head,head_geom,30.068495912767652
+R8,4.92,Upper links,rail0_27,28.343095418530147
+R8,4.92,Lower links,rail1_13,16.710514000917954
+R8,4.92,Other tread supports,tip_front_l,14.631936045408098
+R8,4.92,Inset wheels,wheel_fl_geom,16.139093720959018
+R8,4.94,chassis,chassis_geom,5.649705220714534
+R8,4.94,head,head_geom,30.139685369583145
+R8,4.94,Upper links,rail0_27,28.628581378910102
+R8,4.94,Lower links,rail1_13,17.00380893762442
+R8,4.94,Other tread supports,tip_front_l,14.768265168084934
+R8,4.94,Inset wheels,wheel_fl_geom,16.303673011906312
+R8,4.96,chassis,chassis_geom,5.992381708690803
+R8,4.96,head,head_geom,30.310802702237783
+R8,4.96,Upper links,rail0_27,28.824408740178114
+R8,4.96,Lower links,rail1_13,17.25203894809962
+R8,4.96,Other tread supports,tip_front_l,14.940246552185489
+R8,4.96,Inset wheels,wheel_fl_geom,16.513103043684897
+R8,4.98,chassis,chassis_geom,6.618844984261181
+R8,4.98,head,head_geom,30.863719208683502
+R8,4.98,Upper links,rail0_27,29.202760836371144
+R8,4.98,Lower links,rail1_13,17.850225110297124
+R8,4.98,Other tread supports,tip_front_l,15.236011289912781
+R8,4.98,Inset wheels,wheel_fl_geom,16.88246829940803
+R8,5.0,chassis,chassis_geom,7.768774877176558
+R8,5.0,head,head_geom,31.878309886276373
+R8,5.0,Upper links,rail0_27,29.689673920041404
+R8,5.0,Lower links,rail1_13,18.51774235343185
+R8,5.0,Other tread supports,tip_front_l,15.992055947004202
+R8,5.0,Inset wheels,wheel_fl_geom,17.73768218376021
+R8,5.02,chassis,chassis_geom,8.972881548066356
+R8,5.02,head,head_geom,32.94834646811887
+R8,5.02,Upper links,rail0_27,29.598081301595386
+R8,5.02,Lower links,rail1_13,18.635510428729045
+R8,5.02,Other tread supports,tip_front_l,16.833196252978734
+R8,5.02,Inset wheels,wheel_fl_geom,18.66949345451844
+R8,5.04,chassis,chassis_geom,10.03889094016635
+R8,5.04,head,head_geom,33.97775230334738
+R8,5.04,Upper links,rail0_27,29.137532148328006
+R8,5.04,Lower links,rail1_13,18.423050359420856
+R8,5.04,Other tread supports,tip_front_l,17.63242440817626
+R8,5.04,Inset wheels,wheel_fl_geom,19.538183664638225
+R8,5.06,chassis,chassis_geom,10.456145345886663
+R8,5.06,head,head_geom,34.82406195706008
+R8,5.06,Upper links,rail0_27,29.274885946259932
+R8,5.06,Lower links,rail1_13,18.768783055261462
+R8,5.06,Other tread supports,tip_front_l,18.054505071462007
+R8,5.06,Inset wheels,wheel_fl_geom,19.970853352838066
+R8,5.08,chassis,chassis_geom,10.975191267610848
+R8,5.08,head,head_geom,35.67661308430119
+R8,5.08,Upper links,rail0_27,29.15964266024353
+R8,5.08,Lower links,rail1_13,18.884847561894325
+R8,5.08,Other tread supports,tip_front_l,18.50141403417917
+R8,5.08,Inset wheels,wheel_fl_geom,20.422852686760613
+R8,5.1,chassis,chassis_geom,11.57158074229856
+R8,5.1,head,head_geom,36.53313469367291
+R8,5.1,Upper links,rail0_27,28.34888562079334
+R8,5.1,Lower links,rail1_13,18.406865098666042
+R8,5.1,Other tread supports,tip_front_l,18.97270491309272
+R8,5.1,Inset wheels,wheel_fl_geom,20.893737384445128
+R8,5.12,chassis,chassis_geom,12.133390298783745
+R8,5.12,head,head_geom,37.33830707862606
+R8,5.12,Upper links,rail0_27,27.90067093161832
+R8,5.12,Lower links,rail1_13,18.214933987838442
+R8,5.12,Other tread supports,tip_front_l,19.442618037847733
+R8,5.12,Inset wheels,wheel_fl_geom,21.356417558089607
+R8,5.14,chassis,chassis_geom,12.680066096376539
+R8,5.14,head,head_geom,38.124928061750715
+R8,5.14,Upper links,rail0_27,28.227893909218423
+R8,5.14,Lower links,rail1_13,18.643201691349176
+R8,5.14,Other tread supports,tip_front_l,19.913767524281543
+R8,5.14,Inset wheels,wheel_fl_geom,21.823658305882145
+R8,5.16,chassis,chassis_geom,13.21113734494806
+R8,5.16,head,head_geom,38.91415902165612
+R8,5.16,Upper links,rail0_27,29.18371724893383
+R8,5.16,Lower links,rail1_27,19.545534227483785
+R8,5.16,Other tread supports,tip_front_l,20.392621315453386
+R8,5.16,Inset wheels,wheel_fl_geom,22.304448824869723
+R8,5.18,chassis,chassis_geom,13.655321960443422
+R8,5.18,head,head_geom,39.70535732165821
+R8,5.18,Upper links,rail0_27,30.338192536890784
+R8,5.18,Lower links,rail1_27,20.47590975643705
+R8,5.18,Other tread supports,tip_front_l,20.87868455476009
+R8,5.18,Inset wheels,wheel_fl_geom,22.794085586090393
+R8,5.2,chassis,chassis_geom,14.1654115208301
+R8,5.2,head,head_geom,40.497951669628804
+R8,5.2,Upper links,rail0_27,31.505050415123254
+R8,5.2,Lower links,rail1_27,21.434695009512048
+R8,5.2,Other tread supports,tip_front_l,21.37148682980357
+R8,5.2,Inset wheels,wheel_fl_geom,23.28802973744914
+R9,4.02,chassis,chassis_geom,67.9252900322402
+R9,4.02,head,head_geom,75.69542443486742
+R9,4.02,Upper links,rail0_27,56.19294567986896
+R9,4.02,Lower links,rail1_27,55.69128900143093
+R9,4.02,Other tread supports,tip_front_l,67.54657695191341
+R9,4.02,Inset wheels,wheel_fl_geom,70.3209767717935
+R9,4.04,chassis,chassis_geom,69.57225172580047
+R9,4.04,head,head_geom,77.34345416814196
+R9,4.04,Upper links,rail0_27,57.830015211439566
+R9,4.04,Lower links,rail1_27,57.32202313168605
+R9,4.04,Other tread supports,tip_front_l,69.18486893339579
+R9,4.04,Inset wheels,wheel_fl_geom,71.96037125225386
+R9,4.06,chassis,chassis_geom,71.21916911757036
+R9,4.06,head,head_geom,78.9919565697164
+R9,4.06,Upper links,rail0_27,59.46892352878061
+R9,4.06,Lower links,rail1_27,58.95441515055668
+R9,4.06,Other tread supports,tip_front_l,70.82384541419542
+R9,4.06,Inset wheels,wheel_fl_geom,73.60037371253911
+R9,4.08,chassis,chassis_geom,72.48267424198072
+R9,4.08,head,head_geom,80.21131221010415
+R9,4.08,Upper links,rail0_27,60.70586310365461
+R9,4.08,Lower links,rail1_27,60.195704665560584
+R9,4.08,Other tread supports,tip_front_l,72.07562455432237
+R9,4.08,Inset wheels,wheel_fl_geom,74.85291491546265
+R9,4.1,chassis,chassis_geom,73.55325927227656
+R9,4.1,head,head_geom,81.21426778551222
+R9,4.1,Upper links,rail0_27,61.74052023119648
+R9,4.1,Lower links,rail1_27,61.24023237963397
+R9,4.1,Other tread supports,tip_front_l,73.13261921785713
+R9,4.1,Inset wheels,wheel_fl_geom,75.9105377201208
+R9,4.12,chassis,chassis_geom,74.62378460005206
+R9,4.12,head,head_geom,82.21680555932751
+R9,4.12,Upper links,rail0_27,62.77573509851135
+R9,4.12,Lower links,rail1_27,62.285322360929925
+R9,4.12,Other tread supports,tip_front_l,74.18987357201027
+R9,4.12,Inset wheels,wheel_fl_geom,76.96839147456475
+R9,4.14,chassis,chassis_geom,75.67220691341386
+R9,4.14,head,head_geom,83.22752710205796
+R9,4.14,Upper links,rail0_27,63.800938932200246
+R9,4.14,Lower links,rail1_27,63.31419465473646
+R9,4.14,Other tread supports,tip_front_l,75.22730000637665
+R9,4.14,Inset wheels,wheel_fl_geom,78.00644064258199
+R9,4.16,chassis,chassis_geom,76.69305012313782
+R9,4.16,head,head_geom,84.24928428457764
+R9,4.16,Upper links,rail0_27,64.81350897362512
+R9,4.16,Lower links,rail1_27,64.32263975394704
+R9,4.16,Other tread supports,tip_front_l,76.23986930563477
+R9,4.16,Inset wheels,wheel_fl_geom,79.01966960314397
+R9,4.18,chassis,chassis_geom,77.71387003849293
+R9,4.18,head,head_geom,85.27159012542012
+R9,4.18,Upper links,rail0_27,65.82660597068393
+R9,4.18,Lower links,rail1_27,65.3315683605137
+R9,4.18,Other tread supports,tip_front_l,77.25266041879335
+R9,4.18,Inset wheels,wheel_fl_geom,80.03309518622193
+R9,4.2,chassis,chassis_geom,78.7346658125374
+R9,4.2,head,head_geom,86.29442466010207
+R9,4.2,Upper links,rail0_27,66.84020532229054
+R9,4.2,Lower links,rail1_27,66.34095798389993
+R9,4.2,Other tread supports,tip_front_l,78.26566477895516
+R9,4.2,Inset wheels,wheel_fl_geom,81.04671002713891
+R9,4.22,chassis,chassis_geom,79.66840005114267
+R9,4.22,head,head_geom,87.2335152214293
+R9,4.22,Upper links,rail0_27,67.76649626094284
+R9,4.22,Lower links,rail1_27,67.26272493123174
+R9,4.22,Other tread supports,tip_front_l,79.19080264327059
+R9,4.22,Inset wheels,wheel_fl_geom,81.97245462554297
+R9,4.24,chassis,chassis_geom,80.60062644243678
+R9,4.24,head,head_geom,88.17158384319946
+R9,4.24,Upper links,rail0_27,68.69172852935182
+R9,4.24,Lower links,rail1_27,68.1833948985184
+R9,4.24,Other tread supports,tip_front_l,80.11463638866826
+R9,4.24,Inset wheels,wheel_fl_geom,82.89687447614581
+R9,4.26,chassis,chassis_geom,81.53281301206721
+R9,4.26,head,head_geom,89.11003829871828
+R9,4.26,Upper links,rail0_27,69.61736703885077
+R9,4.26,Lower links,rail1_27,69.10443882793494
+R9,4.26,Other tread supports,tip_front_l,81.03864639641607
+R9,4.26,Inset wheels,wheel_fl_geom,83.82145050124606
+R9,4.28,chassis,chassis_geom,82.45176576364808
+R9,4.28,head,head_geom,90.0253247106376
+R9,4.28,Upper links,rail0_27,70.52642121564179
+R9,4.28,Lower links,rail1_27,70.0117712795542
+R9,4.28,Other tread supports,tip_front_l,81.94998254555848
+R9,4.28,Inset wheels,wheel_fl_geom,84.73329568473088
+R9,4.3,chassis,chassis_geom,83.29133731034128
+R9,4.3,head,head_geom,90.77561091816737
+R9,4.3,Upper links,rail0_27,71.32745729637735
+R9,4.3,Lower links,rail1_27,70.82781449360863
+R9,4.3,Other tread supports,tip_front_l,82.77785897741767
+R9,4.3,Inset wheels,wheel_fl_geom,85.56142009282135
+R9,4.32,chassis,chassis_geom,84.13740174906414
+R9,4.32,head,head_geom,91.53732518889463
+R9,4.32,Upper links,rail0_27,72.13669269160054
+R9,4.32,Lower links,rail1_27,71.65181476278077
+R9,4.32,Other tread supports,tip_front_l,83.61334220235459
+R9,4.32,Inset wheels,wheel_fl_geom,86.3971462947757
+R9,4.34,chassis,chassis_geom,85.09727252390731
+R9,4.34,head,head_geom,92.44838077056593
+R9,4.34,Upper links,rail0_27,73.07238723762646
+R9,4.34,Lower links,rail1_27,72.59458222170704
+R9,4.34,Other tread supports,tip_front_l,84.56404720203108
+R9,4.34,Inset wheels,wheel_fl_geom,87.34820522086275
+R9,4.36,chassis,chassis_geom,86.05710809272911
+R9,4.36,head,head_geom,93.3597948626393
+R9,4.36,Upper links,rail0_27,74.0083478513265
+R9,4.36,Lower links,rail1_27,73.53761504245533
+R9,4.36,Other tread supports,tip_front_l,85.51488328310438
+R9,4.36,Inset wheels,wheel_fl_geom,88.29938236433001
+R9,4.38,chassis,chassis_geom,87.01690751718134
+R9,4.38,head,head_geom,94.27155714894744
+R9,4.38,Upper links,rail0_27,74.94456516160777
+R9,4.38,Lower links,rail1_27,74.48090370544487
+R9,4.38,Other tread supports,tip_front_l,86.46584612106977
+R9,4.38,Inset wheels,wheel_fl_geom,89.25067391284759
+R9,4.4,chassis,chassis_geom,88.09746863453316
+R9,4.4,head,head_geom,95.2971273535
+R9,4.4,Upper links,rail0_27,76.00028138864353
+R9,4.4,Lower links,rail1_27,75.54487439621722
+R9,4.4,Other tread supports,tip_front_l,87.53802036462825
+R9,4.4,Inset wheels,wheel_fl_geom,90.32315720307189
+R9,4.42,chassis,chassis_geom,89.63468213084272
+R9,4.42,head,head_geom,96.75235963573594
+R9,4.42,Upper links,rail0_27,77.50732219220608
+R9,4.42,Lower links,rail1_27,77.06464382209104
+R9,4.42,Other tread supports,tip_front_l,89.06826521764381
+R9,4.42,Inset wheels,wheel_fl_geom,91.85366361991369
+R9,4.44,chassis,chassis_geom,91.17171848206259
+R9,4.44,head,head_geom,98.20834538600225
+R9,4.44,Upper links,rail0_27,79.0148521123952
+R9,4.44,Lower links,rail1_27,78.58489809461707
+R9,4.44,Other tread supports,tip_front_l,90.59875741487461
+R9,4.44,Inset wheels,wheel_fl_geom,93.38439610303814
+R9,4.46,chassis,chassis_geom,92.74987496107428
+R9,4.46,head,head_geom,99.7870475089224
+R9,4.46,Upper links,rail0_27,80.60396938126141
+R9,4.46,Lower links,rail1_27,80.16957715445646
+R9,4.46,Other tread supports,tip_front_l,92.18255880417608
+R9,4.46,Inset wheels,wheel_fl_geom,94.96836332019161
+R9,4.48,chassis,chassis_geom,94.33364165622812
+R9,4.48,head,head_geom,101.38347416648561
+R9,4.48,Upper links,rail0_27,82.20489734656701
+R9,4.48,Lower links,rail1_27,81.76360508802604
+R9,4.48,Other tread supports,tip_front_l,93.7739909593948
+R9,4.48,Inset wheels,wheel_fl_geom,96.55993756442852
+R9,4.5,chassis,chassis_geom,95.91724230848935
+R9,4.5,head,head_geom,102.98053681548998
+R9,4.5,Upper links,rail0_27,83.80627697819529
+R9,4.5,Lower links,rail1_27,83.3580204300236
+R9,4.5,Other tread supports,tip_front_l,95.36562710217439
+R9,4.5,Inset wheels,wheel_fl_geom,98.1497158125975
+R9,4.52,chassis,chassis_geom,97.35750872826497
+R9,4.52,head,head_geom,104.41382698610398
+R9,4.52,Upper links,rail0_27,85.25037425113105
+R9,4.52,Lower links,rail1_27,84.7999257114835
+R9,4.52,Other tread supports,tip_front_l,96.80814944390627
+R9,4.52,Inset wheels,wheel_fl_geom,99.59000601792178
+R9,4.54,chassis,chassis_geom,98.52571012376767
+R9,4.54,head,head_geom,105.5352835842737
+R9,4.54,Upper links,rail0_27,86.39516393810989
+R9,4.54,Lower links,rail1_27,85.95168410145239
+R9,4.54,Other tread supports,tip_front_l,97.96527395328577
+R9,4.54,Inset wheels,wheel_fl_geom,100.747635971341
+R9,4.56,chassis,chassis_geom,99.6938699176464
+R9,4.56,head,head_geom,106.65710048339545
+R9,4.56,Upper links,rail0_27,87.54020503649771
+R9,4.56,Lower links,rail1_27,87.103692008576
+R9,4.56,Other tread supports,tip_front_l,99.12257071413508
+R9,4.56,Inset wheels,wheel_fl_geom,101.90542143484583
+R9,4.58,chassis,chassis_geom,100.96381937095478
+R9,4.58,head,head_geom,107.89009203254543
+R9,4.58,Upper links,rail0_27,88.78947479691008
+R9,4.58,Lower links,rail1_27,88.35776201559257
+R9,4.58,Other tread supports,tip_front_l,100.38103579015007
+R9,4.58,Inset wheels,wheel_fl_geom,103.16439830560716
+R9,4.6,chassis,chassis_geom,102.91726303435901
+R9,4.6,head,head_geom,109.86769490434358
+R9,4.6,Upper links,rail0_27,90.73744739797826
+R9,4.6,Lower links,rail1_27,90.29595594196921
+R9,4.6,Other tread supports,tip_front_l,102.3179165851805
+R9,4.6,Inset wheels,wheel_fl_geom,105.1020203189796
+R9,4.62,chassis,chassis_geom,104.56222489820992
+R9,4.62,head,head_geom,111.54059585111793
+R9,4.62,Upper links,rail0_27,92.38086261824554
+R9,4.62,Lower links,rail1_27,91.92961362807982
+R9,4.62,Other tread supports,tip_front_l,103.94956180490853
+R9,4.62,Inset wheels,wheel_fl_geom,106.73425297081222
+R9,4.64,chassis,chassis_geom,105.15176624696952
+R9,4.64,head,head_geom,112.16809447872383
+R9,4.64,Upper links,rail0_27,92.9791409480549
+R9,4.64,Lower links,rail1_27,92.51844022636038
+R9,4.64,Other tread supports,tip_front_l,104.53485181091384
+R9,4.64,Inset wheels,wheel_fl_geom,107.31973761359595
+R9,4.66,chassis,chassis_geom,105.74119239119084
+R9,4.66,head,head_geom,112.79563734158532
+R9,4.66,Upper links,rail0_27,93.57754035265546
+R9,4.66,Lower links,rail1_27,93.10736931431404
+R9,4.66,Other tread supports,tip_front_l,105.12019178225262
+R9,4.66,Inset wheels,wheel_fl_geom,107.90526577423682
+R9,4.68,chassis,chassis_geom,106.3305015747166
+R9,4.68,head,head_geom,113.42322268456297
+R9,4.68,Upper links,rail0_27,94.17605844653332
+R9,4.68,Lower links,rail1_27,93.69639899317626
+R9,4.68,Other tread supports,tip_front_l,105.70558097809898
+R9,4.68,Inset wheels,wheel_fl_geom,108.4908367876875
+R9,4.7,chassis,chassis_geom,107.59632780326447
+R9,4.7,head,head_geom,114.71231431990687
+R9,4.7,Upper links,rail0_27,95.44988604094296
+R9,4.7,Lower links,rail1_27,94.96250583283698
+R9,4.7,Other tread supports,tip_front_l,106.9681467492952
+R9,4.7,Inset wheels,wheel_fl_geom,109.75365146760409
+R9,4.72,chassis,chassis_geom,108.89853211014315
+R9,4.72,head,head_geom,116.03737441672281
+R9,4.72,Upper links,rail0_27,96.76034944219539
+R9,4.72,Lower links,rail1_27,96.26531249541536
+R9,4.72,Other tread supports,tip_front_l,108.26734603567274
+R9,4.72,Inset wheels,wheel_fl_geom,111.05309204406471
+R9,4.74,chassis,chassis_geom,109.8685482625143
+R9,4.74,head,head_geom,117.04770224324743
+R9,4.74,Upper links,rail0_27,97.748903050605
+R9,4.74,Lower links,rail1_27,97.24490702951356
+R9,4.74,Other tread supports,tip_front_l,109.24254524153834
+R9,4.74,Inset wheels,wheel_fl_geom,112.02833919216822
+R9,4.76,chassis,chassis_geom,109.98881623848642
+R9,4.76,head,head_geom,117.24828418717766
+R9,4.76,Upper links,rail0_27,97.9122208243696
+R9,4.76,Lower links,rail1_27,97.39556327066487
+R9,4.76,Other tread supports,tip_front_l,109.38616617953457
+R9,4.76,Inset wheels,wheel_fl_geom,112.17155020540363
+R9,4.78,chassis,chassis_geom,110.10905131738282
+R9,4.78,head,head_geom,117.44882511372597
+R9,4.78,Upper links,rail0_27,98.07567562548468
+R9,4.78,Lower links,rail1_27,97.5462684137427
+R9,4.78,Other tread supports,tip_front_l,109.52981329290718
+R9,4.78,Inset wheels,wheel_fl_geom,112.31477838354476
+R9,4.8,chassis,chassis_geom,110.18755511000082
+R9,4.8,head,head_geom,117.56399091255801
+R9,4.8,Upper links,rail0_27,98.17552844786638
+R9,4.8,Lower links,rail1_27,97.64024177385625
+R9,4.8,Other tread supports,tip_front_l,109.62022923608791
+R9,4.8,Inset wheels,wheel_fl_geom,112.40497378366744
+R9,4.82,chassis,chassis_geom,110.19496012067466
+R9,4.82,head,head_geom,117.53366244348325
+R9,4.82,Upper links,rail0_27,98.16677309803524
+R9,4.82,Lower links,rail1_27,97.63742970377363
+R9,4.82,Other tread supports,tip_front_l,109.61985932214697
+R9,4.82,Inset wheels,wheel_fl_geom,112.40473280332893
+R9,4.84,chassis,chassis_geom,110.20236926823098
+R9,4.84,head,head_geom,117.50333978390547
+R9,4.84,Upper links,rail0_27,98.15804045360825
+R9,4.84,Lower links,rail1_27,97.63462298324116
+R9,4.84,Other tread supports,tip_front_l,109.6194952730638
+R9,4.84,Inset wheels,wheel_fl_geom,112.4044958414882
+R9,4.86,chassis,chassis_geom,110.1982419050271
+R9,4.86,head,head_geom,117.50135256864097
+R9,4.86,Upper links,rail0_27,98.16429620604146
+R9,4.86,Lower links,rail1_27,97.63728786807894
+R9,4.86,Other tread supports,tip_front_l,109.62055796126876
+R9,4.86,Inset wheels,wheel_fl_geom,112.40546995466167
+R9,4.88,chassis,chassis_geom,110.18544282403043
+R9,4.88,head,head_geom,117.52146599330095
+R9,4.88,Upper links,rail0_27,98.18188559753102
+R9,4.88,Lower links,rail1_27,97.64408940031275
+R9,4.88,Other tread supports,tip_front_l,109.6227061399645
+R9,4.88,Inset wheels,wheel_fl_geom,112.40736350657339
+R9,4.9,chassis,chassis_geom,110.17265704071626
+R9,4.9,head,head_geom,117.54158582140191
+R9,4.9,Upper links,rail0_27,98.1995633074029
+R9,4.9,Lower links,rail1_27,97.65092066504104
+R9,4.9,Other tread supports,tip_front_l,109.62487364867799
+R9,4.9,Inset wheels,wheel_fl_geom,112.40927029904769
+R9,4.92,chassis,chassis_geom,110.15988456901253
+R9,4.92,head,head_geom,117.56171202637769
+R9,4.92,Upper links,rail0_27,98.21732812731221
+R9,4.92,Lower links,rail1_27,97.65778070031703
+R9,4.92,Other tread supports,tip_front_l,109.62706048030097
+R9,4.92,Inset wheels,wheel_fl_geom,112.41119032619392
+R9,4.94,chassis,chassis_geom,110.14712542283146
+R9,4.94,head,head_geom,117.5818445817507
+R9,4.94,Upper links,rail0_27,98.23517913086484
+R9,4.94,Lower links,rail1_27,97.66466878250796
+R9,4.94,Other tread supports,tip_front_l,109.62926662763427
+R9,4.94,Inset wheels,wheel_fl_geom,112.41312358205076
+R9,4.96,chassis,chassis_geom,110.13437961607102
+R9,4.96,head,head_geom,117.60198346113224
+R9,4.96,Upper links,rail0_27,98.25311580059387
+R9,4.96,Lower links,rail1_27,97.67158454342399
+R9,4.96,Other tread supports,tip_front_l,109.63149208338936
+R9,4.96,Inset wheels,wheel_fl_geom,112.41507006058819
+R9,4.98,chassis,chassis_geom,110.15005885109636
+R9,4.98,head,head_geom,117.40727008385869
+R9,4.98,Upper links,rail0_27,98.26035563340018
+R9,4.98,Lower links,rail1_27,97.6861757329517
+R9,4.98,Other tread supports,tip_front_l,109.64676453975326
+R9,4.98,Inset wheels,wheel_fl_geom,112.43029369677814
+R9,5.0,chassis,chassis_geom,110.19074810936019
+R9,5.0,head,head_geom,117.13870499737453
+R9,5.0,Upper links,rail0_27,98.23004565765946
+R9,5.0,Lower links,rail1_27,97.6851738182077
+R9,5.0,Other tread supports,tip_front_l,109.65607265449403
+R9,5.0,Inset wheels,wheel_fl_geom,112.44011038980122
+R9,5.02,chassis,chassis_geom,110.25262385414413
+R9,5.02,head,head_geom,116.84094999856212
+R9,5.02,Upper links,rail0_27,98.15263937227343
+R9,5.02,Lower links,rail1_27,97.66030489059929
+R9,5.02,Other tread supports,tip_front_l,109.65411627514777
+R9,5.02,Inset wheels,wheel_fl_geom,112.43921734406256
+R9,5.04,chassis,chassis_geom,110.26127640058075
+R9,5.04,head,head_geom,116.78167741623507
+R9,5.04,Upper links,rail0_27,98.13429921455885
+R9,5.04,Lower links,rail1_27,97.65475352118119
+R9,5.04,Other tread supports,tip_front_l,109.65605228294496
+R9,5.04,Inset wheels,wheel_fl_geom,112.44131747471819
+R9,5.06,chassis,chassis_geom,110.26096138223458
+R9,5.06,head,head_geom,116.78329100100571
+R9,5.06,Upper links,rail0_27,98.13478519418192
+R9,5.06,Lower links,rail1_27,97.6548252086337
+R9,5.06,Other tread supports,tip_front_l,109.65590471757294
+R9,5.06,Inset wheels,wheel_fl_geom,112.44116582926691
+R9,5.08,chassis,chassis_geom,110.26064620145209
+R9,5.08,head,head_geom,116.78490458390698
+R9,5.08,Upper links,rail0_27,98.13527757371055
+R9,5.08,Lower links,rail1_27,97.65490245464625
+R9,5.08,Other tread supports,tip_front_l,109.65575715247941
+R9,5.08,Inset wheels,wheel_fl_geom,112.44101418011083
+R9,5.1,chassis,chassis_geom,110.2624851512059
+R9,5.1,head,head_geom,116.77379905663044
+R9,5.1,Upper links,rail0_27,98.13119277057638
+R9,5.1,Lower links,rail1_27,97.65360842462924
+R9,5.1,Other tread supports,tip_front_l,109.65610417231353
+R9,5.1,Inset wheels,wheel_fl_geom,112.44139766656646
+R9,5.12,chassis,chassis_geom,110.26454634781099
+R9,5.12,head,head_geom,116.76133042297465
+R9,5.12,Upper links,rail0_27,98.12662037264953
+R9,5.12,Lower links,rail1_27,97.65216982524439
+R9,5.12,Other tread supports,tip_front_l,109.65650419885813
+R9,5.12,Inset wheels,wheel_fl_geom,112.44183829504199
+R9,5.14,chassis,chassis_geom,110.26659847467386
+R9,5.14,head,head_geom,116.74886185083241
+R9,5.14,Upper links,rail0_27,98.1220505832782
+R9,5.14,Lower links,rail1_27,97.65073330484903
+R9,5.14,Other tread supports,tip_front_l,109.65690422519825
+R9,5.14,Inset wheels,wheel_fl_geom,112.44227870165876
+R9,5.16,chassis,chassis_geom,110.26786577592435
+R9,5.16,head,head_geom,116.74132974817299
+R9,5.16,Upper links,rail0_27,98.11935450740584
+R9,5.16,Lower links,rail1_27,97.64993690771365
+R9,5.16,Other tread supports,tip_front_l,109.65721145234804
+R9,5.16,Inset wheels,wheel_fl_geom,112.44260938594451
+R9,5.18,chassis,chassis_geom,110.26888783292351
+R9,5.18,head,head_geom,116.73533948140016
+R9,5.18,Upper links,rail0_27,98.11724394513892
+R9,5.18,Lower links,rail1_27,97.64934068855388
+R9,5.18,Other tread supports,tip_front_l,109.65748969504304
+R9,5.18,Inset wheels,wheel_fl_geom,112.44290579723871
+R9,5.2,chassis,chassis_geom,110.26990776897712
+R9,5.2,head,head_geom,116.72934922720115
+R9,5.2,Upper links,rail0_27,98.11513419601721
+R9,5.2,Lower links,rail1_27,97.64874513049647
+R9,5.2,Other tread supports,tip_front_l,109.65776793776898
+R9,5.2,Inset wheels,wheel_fl_geom,112.44320215670709

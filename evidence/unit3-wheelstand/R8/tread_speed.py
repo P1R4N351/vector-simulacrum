@@ -42,7 +42,7 @@ def compose_fixture(path, values):
     return root,center,radius
 
 
-def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False, initial_xy_mm=None, shelf_support=False, lift_velocity_feedforward=False):
+def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False, initial_xy_mm=None, shelf_support=False, lift_velocity_feedforward=False, chassis_contact=False):
     values = params.values(params.load(model="vector_2"))
     values.update(sensor_overrides or {})
     root,center,radius = compose_fixture(path,values)
@@ -61,6 +61,11 @@ def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrid
         ET.SubElement(wrist_body,'inertial',pos='0 0 -.010',mass='.006',diaginertia='2e-6 1e-6 2e-6')
         original.set('name','carrier')
         original.append(arm)
+        if chassis_contact:
+            chassis = robot.find(".//geom[@name='chassis_geom']")
+            chassis.set('contype','0')
+            chassis.set('conaffinity','4')
+            original.append(chassis)
         ET.SubElement(root,'actuator').append(robot.find(".//position[@name='lift']"))
         equality=ET.SubElement(root,'equality')
         equality.append(robot.find(".//equality/joint[@joint1='wrist_joint']"))
