@@ -35,3 +35,13 @@ We compared the variance of the robot head IMU's acceleration magnitude during e
 | Direction means alone | 0.80 mg | 0.75 mg |
 
 The combined model fit D1 more closely but transferred poorly when unit 3 was off the dock. D1 used slow and fast strokes, while D2 used an intermediate commanded duration. These data leave dock coupling, location, speed and acceleration bandwidth confounded. The robot IMU at this cadence does not justify a shared gain for predicting vertical cube vibration in both settings. [Per-stroke inputs and errors](onboard-vibration.csv) · [Analysis](onboard_vibration.py)
+
+## Can lift speed or travel explain the partial raises?
+
+![Cube vibration predictions on off-dock full raises and native partial raises](lift-reach-transfer.png)
+
+We used only the six full D1 raises to estimate vibration above the pre-stroke baseline. On six native partial raises, a linear speed fit to excess variance gave 3.12 mg mean absolute error. Scoring only the D1 packet samples from the same 10–90% height interval above the starting pose gave 3.22 mg. The original full-stroke estimate gave 3.61 mg. In particular, R6 rose at 52.3 mm/s, close to the slow D1 raises at 49–50 mm/s, yet its cube magnitude SD was 3.09 mg versus 6.69–6.87 mg on D1.
+
+Scaling the added RMS vibration amplitude in proportion to total lift travel reduced partial-raise error to 0.62 mg, versus 0.76 mg using the pre-stroke baseline alone. This assumed proportionality has no exponent fitted on the partial raises. It still overpredicted all six. Across all ten evaluation raises (three valid D2, six partial, one full native), none of those travel-scaled predictions was within 5% of the measured SD. The lower portion of a commanded full stroke already vibrates more than a whole native undock raise. Stroke length, the motor profile and mechanical setup remain confounded. Keep the proportional rule offline.
+
+[Per-stroke predictions](lift-reach-transfer.csv) · [Reproduce](lift_reach_transfer.py)
