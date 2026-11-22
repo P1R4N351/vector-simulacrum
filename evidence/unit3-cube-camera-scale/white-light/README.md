@@ -21,3 +21,11 @@ The 580 physical interarrival intervals spanned 20.86 s (27.8 packets/s at the h
 A receiver model fitted earlier on the robot's Bluetooth daemon timestamps predicts 21.123 s for this packet count. The host measured 20.863 s, a +1.24% prediction error. The ideal emission timeline predicts 17.400 s (−16.60%). The host trace has 17 gaps longer than 150 ms, spanning 226–275 ms. Using the first restart as a timing anchor and the 1.22746 s period from the earlier resting recording, median absolute timing error for the other 16 restarts is 38 ms, maximum 65 ms. This recurring receiver pattern explains most of the apparent rate difference across these two observation points. The cause of the pauses and what happened to chip samples during them remain unresolved.
 
 [Timing overlay](receiver-holdout.png) · [Reproduce the comparison](receiver_holdout.py) · [Earlier robot-side evidence](../../unit3-cube-accelerometer/receipt-transfer.md)
+
+### Does the sideways reading recur?
+
+W11 and W12 each recorded a quiet +Z-up interval with 19.6 and 17.9 mg on X and under 1 mg magnitude on Y. This resembles the LED session. Other captures differ substantially. Across 15 qualifying wheelstand-series recordings plus the LED session, X ranged from −3.4 to +26.1 mg and Y from −28.2 to +0.7 mg. Each run contributes its first one-second bin containing ≥60 samples, three-axis scatter ≤8 mg RMS, Z >950 mg and transverse mean magnitude <100 mg. R9, W3 and any other runs without an eligible interval do not enter the score. Quiet intervals can include supported contact. Repeated runs need not represent distinct placements.
+
+Predicting a fixed transverse vector from the earlier resting capture (+1.8, −18.6 mg) improved 11 of 16 windows over a level, zero-offset prediction. Median error fell from 19.8 to 13.8 mg, but the LED window worsened from 17.9 to 23.4 mg. The repeatable W11/W12 reading therefore supplies a target for replaying that setup. A global sensor bias would confound sensor mounting, cube support and orientation relative to gravity. These recordings alone do not distinguish them.
+
+[Run-by-run comparison](resting-direction.png) · [Selected windows](resting-direction.csv) · [Analysis](resting_direction.py)
