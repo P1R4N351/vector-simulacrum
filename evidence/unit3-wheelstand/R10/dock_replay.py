@@ -20,10 +20,15 @@ start_offset=float(sys.argv[2]) if len(sys.argv)>2 else 3.75
 zero=dock+start_offset
 fig,ax=plt.subplots(2,1,figsize=(8,6),sharex=True,layout='constrained')
 summary=[]
+early_path="--early-path" in sys.argv[3:]
+early_rows=[]
+
 angles=np.unwrap(R.from_quat(np.column_stack([poses[k] for k in ['qx','qy','qz','qw']])).as_euler('ZYX')[:,0])
 heading=np.interp(registration,poses['sec'],angles)
 xy=np.array([np.interp(registration,poses['sec'],poses[k]) for k in ['x_mm','y_mm']])
 face_test='--face-test' in sys.argv[3:]
+if early_path and not face_test:
+ raise ValueError('early path comparison requires --face-test')
 reverse_boxes='--reverse-box-order' in sys.argv[3:]
 if reverse_boxes and not face_test:
  raise ValueError('box order comparison requires --face-test')
@@ -63,7 +68,7 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    w.writerow([-.01,'robot_observed_object',*pos,yaw,0,0])
    for r,a in zip(poses,angles):
     t=r['sec']
-    if -.1<t-zero<7.05-start_offset:w.writerow([t-zero,'robot_state',r['x_mm'],r['y_mm'],a,np.interp(t,s['sec'],s['pitch']),np.interp(t,s['sec'],s['lift'])])
+    if -.1<t-zero<(5.0 if early_path else 7.05)-start_offset:w.writerow([t-zero,'robot_state',r['x_mm'],r['y_mm'],a,np.interp(t,s['sec'],s['pitch']),np.interp(t,s['sec'],s['lift'])])
   conditions=[(),('fork',),('tread',),('carrier',),('fork','tread','carrier')] if ablation else [()]
   fixture=sys.argv[1]
   if current_surface:
@@ -91,6 +96,8 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
      matrix=np.array([int(row[f'r{i}{j}']) for i in range(3) for j in range(3)]).reshape(3,3)
      layouts.append((str(rank),R.from_matrix(matrix)))
   timesteps=(.00025,) if reverse_boxes else (.0005,.00025)
+  if early_path:
+   timesteps=(.00025,)
   if solver_check:
    timesteps=(.00025,.000125)
    layouts=[item for item in layouts if item[0]=='4' or (reg['view']=='B' and item[0]=='1')]
@@ -131,7 +138,21 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    if layout!='upright':
     initial=initial*asset_rotation
    t,tilt,hit,speed,sensor=run(fixture,dt,True,d,initial,observer=observe,articulated=True,shelf_support=True,chassis_contact=True,omit_contacts=omitted)
-   if tilt_trace:
+   if tilt_trace or early_path:
+    samples=np.asarray(out)
+    offset_xy=(samples[:,:2]-samples[0,:2])*1000
+    yaw_trace=np.degrees(np.unwrap(samples[:,2])-samples[0,2])
+    stride=round(.001/dt)
+    trajectory='impact-path-'+('reverse' if reverse_boxes else 'original')+'.csv'
+    xy_body=R.from_euler('z',-heading).apply(np.column_stack([offset_xy,np.zeros(len(t))]))[:,:2]
+    if early_path:
+     for frame in range(74,81):
+      clock=frame/12-2
+      vals=[np.interp(clock,t+start_offset,v) for v in (*xy_body.T,yaw_trace)]
+      early_rows.append([reg['view'],layout,frame,clock,*vals])
+     continue
+    np.savetxt(folder/trajectory,np.column_stack([t+start_offset,xy_body,yaw_trace])[::stride],
+               delimiter=',',header='dock_s,forward_mm,left_mm,ccw_deg',comments='',fmt='%.6f')
     # Save the control-tick trace at 1 ms for plotting against video at 12 fps.
     stride=round(.001/dt)
     name='tilt-reverse.csv' if reverse_boxes else 'tilt-original.csv'
@@ -153,6 +174,12 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    if dt==.00025:
     ax[0].plot(t+start_offset,travel,label=reg['view']+' · '+(layout if face_test else ','.join(omitted) or 'all contacts'))
     ax[1].plot(t+start_offset,turn)
+if early_path:
+ with (folder/'impact-path-candidates.csv').open('w') as f:
+  w=csv.writer(f,lineterminator='\n')
+  w.writerow('view layout frame dock_s forward_mm left_mm ccw_deg'.split())
+  w.writerows(early_rows)
+ sys.exit(0)
 if '--tilt-trace' in sys.argv[3:]:
  if not (solver_check and tight_solver):
   raise ValueError('tilt trace needs --face-test --solver-check --tight-solver')

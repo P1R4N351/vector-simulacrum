@@ -93,3 +93,17 @@ The two tight-solver B4 curves at 0.0625 ms still reach 92.2° and 43.1° after 
 ![Camera tilt, simulated tilt and cube specific-force direction](tilt-overlay.png)
 
 [Glyph fits at selected frames](tilt-picks.jpg) · [Frame estimates](tilt-frames.csv) · [Original-order trace](tilt-original.csv) · [Reverse-order trace](tilt-reverse.csv). Run `tilt_frames.py`, then the tight solver comparison with `--tilt-trace` once for each box order, and `tilt_overlay.py`.
+
+### When does the cube's path depart from the recordings?
+
+The two rectified camera views independently recover the earliest displacement. The coordinate frame is fixed at the robot's pre-impact heading, with positive X forward and positive Y left. We project the upper glyph onto the nominal 44 mm plane using the earlier stationary two-face and hub registration. Each camera uses its own stationary glyph as a texture template. Translation and yaw follow its correlation peak within a search window centered on the thresholded border. We search ±25° from the preceding frame in 1° steps. The top plane is assumed level over the sequence. Small real inclination, foreshortening, lighting, the registration and host clocks limit accuracy. Camera B loses sight of the complete upper glyph after +4.42 s.
+
+At +4.33 s A gives 3.2 mm forward, 7.5 mm right, and B gives 2.9 mm forward, 6.9 mm right. At +4.42 s the rightward estimates are 11.3 and 15.5 mm. The two fine-step B4 replays each give 0.9 and 1.8 mm right at those times. By +4.58 s camera A gives 40° CCW and 25.3 mm right; both replays give approximately 2° clockwise and 4.1 mm right. They agree closely with one another through this interval. Their later solver-order sensitivity cannot explain this early path discrepancy.
+
+At +6.42 s the A template gives 42.3 mm net displacement and 66° CCW, near the earlier manual endpoint fits. Following only the outer border gives 51° at that frame. Threshold spreads in the CSV describe that border method only. The earlier manual fits and this reconstruction share the physical clip. Camera B supplies the independent early view. Exact first contact remains unresolved between frames.
+
+![Top glyph trajectory and both fine-step cube predictions on the same clock](impact-path-overlay.png)
+
+[Camera trajectories and template correlations](impact-path-camera.csv) · [Original solver order](impact-path-original.csv) · [Reversed solver order](impact-path-reverse.csv) · [Shortlisted orientations and upright controls](impact-path-candidates.csv). The existing tight solver `--tilt-trace` commands now also export XY and yaw. Run the face replay with `--face-test --early-path` for the 0.25 ms candidate comparison, then run `impact_path.py`.
+
+Across ten 0.25 ms replays (two registrations, four shortlisted orientations plus the upright control), A orientation 2 comes close to the translation at +4.58 s: 1.1 mm backward and 26.8 mm right, versus 0.8 mm backward and 25.3 mm right in camera A. Yet it predicts 5.1° clockwise against the observed 40° counterclockwise. The other nine yaw predictions at that frame also fall outside the physical turn (all ten range from 9.1° clockwise to 5.4° CCW). This isolates a case with comparable translation but a substantially different turn and makes the line of action of the contact force a testable candidate. The trajectory alone does not identify a unique force or contact point.
