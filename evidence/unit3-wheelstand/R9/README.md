@@ -147,3 +147,11 @@ With the same free cube and prescribed robot motion, we disabled collisions on t
 In this reconstructed trajectory the fork produces most of the tilt and tread contact increases the acceleration overshoot. The comparison tests the simulator's mechanism. The physical tread contact remains unverified, and this result does not justify removing it.
 
 [Eight contact combinations and traces](contact-ablation.png) · [Scores](contact-ablation.csv) · [Reproduction script](contact_ablation.py), using the same printed-fork fixture as above.
+
+### Receipt counts on held-out roll recordings
+
+Using only the earlier stationary capture, estimate the ordinary packet interval, average packets per gap cycle, and gap return period. In each of R5–R9, anchor on the first gap return, skip its cycle and count packets by robot uptime in complete 150 ms windows. The three alternatives share the same phase anchor. The periodic model compresses ordinary spaced arrivals into the active part of each cycle. Windows cover the recorded session, including quiet portions; they do not separately score the instant of impact.
+
+Across 1,442 windows the mean absolute count error was 0.37 packets for periodic arrivals, 0.91 for nominal spacing and 1.30 for a uniform clock matched to the observed mean rate. The periodic prediction got 75.3% of counts exactly right. It identified 77 of 126 empty windows and falsely marked 30 occupied windows empty. Moving the bin origin by 75 ms gave 0.42 packets mean absolute error, 74.3% exact, and 72 of 134 empty windows detected. This supports modelling periodic loss of receipt coverage in simulated observations. It cannot tell whether a specific physical impulse was sampled internally.
+
+[Packet-count overlay](packet-windows.png) · [Per-run counts](packet-windows.csv) · [Half-window offset](packet-windows-shifted.csv) · [Reproduce](packet_windows.py)
