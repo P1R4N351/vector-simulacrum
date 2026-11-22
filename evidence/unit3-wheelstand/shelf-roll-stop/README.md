@@ -35,3 +35,11 @@ The recorded magnitude reached 3.825 g. Immediately before the packet containing
 Releasing the unchanged model from 15.76° on each bottom edge and running its production Vector 2 accelerometer and default last-frame app yielded peaks of 1.63–5.43 g across 160 cases (four edges, ten app tick phases, four frame phases; fixed noise seed). The smallest sampled magnitude across those cases was **0.095 g**. The peak alone is a poor calibration target because it varies substantially with sampling phase. The much lower measured trough is a separate discrepancy. The unknown fork release and physical chip position limit attribution to any one model parameter. Near-zero specific force at the chip alone does not establish loss of external contact.
 
 ![Cube accelerometer magnitude through impact, aligned on each trace's peak](impact-sensor.png)
+
+### Independent check for low force before impact
+
+A scan of 83,508 decoded slots in 21 nonempty shelf recordings found two runs with adjacent slots below 0.05 g in the same packet. The independent R5 run produced 0.036 and 0.033 g during the commanded set-down of an improperly engaged cube, followed within 100 ms by 4.02 g. S22B produced 0.022 and 0.012 g before 3.83 g. Neither stationary recording had a sample below 0.05 g (1,656 slots combined). W8 had one isolated reading below threshold. Pair detection uses packet order and slot indices, independent of any host-clock alignment. The 100 ms peak window uses approximate receipt and slot timing.
+
+This gives two separately recorded landing events against which to check a model of fork release. They have different starting geometries. A shared trough is evidence for repeatability of the sensor signature, but does not uniquely identify free flight, rubber compliance, or the fork trajectory.
+
+![Cube acceleration around two consecutive low-force readings](low-force.png)
