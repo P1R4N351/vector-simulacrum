@@ -150,6 +150,36 @@ def run(start,limit,onset=None):
 
 initial_checks=[]
 firmware='--firmware' in sys.argv[2:]
+if '--lift-phase' in sys.argv:
+    if not firmware:
+        raise ValueError('Lift phase comparison requires firmware targets')
+    fig,axes=plt.subplots(1,2,figsize=(10,4),layout='constrained')
+    def phase(label,t,height,pitch):
+        peak=np.argmax(pitch)
+        axes[0].plot(t-late_onset,height,label=label)
+        axes[1].plot(height[:peak+1],pitch[:peak+1],label=label)
+        for threshold in (70,55,40,35):
+            crossed=np.flatnonzero((height[:-1]>threshold)&(height[1:]<=threshold))
+            if len(crossed):
+                i=crossed[0]
+                f=(height[i]-threshold)/(height[i]-height[i+1])
+                w.writerow([label,threshold,t[i]+f*(t[i+1]-t[i])-late_onset,
+                            pitch[i]+f*(pitch[i+1]-pitch[i]),pitch[peak]])
+            else:w.writerow([label,threshold,'','',pitch[peak]])
+    with (here/'lift-phase.csv').open('w') as out:
+        w=csv.writer(out,lineterminator='\n')
+        w.writerow(['case','descending_height_mm','s_from_last_raised_sample','pitch_at_height_deg','peak_pitch_deg'])
+        use=(approach['s']>=late_onset-.10)
+        phase('Physical',approach['s'][use],approach['lift_mm'][use],np.degrees(approach['pitch'][use]))
+        for cap in (10,30,80):
+            tr,pk,taps,load=run(3.5+shift,cap,late_onset)
+            phase(f'{cap} mN m',tr[:,0],tr[:,4],tr[:,1])
+    axes[0].set(xlim=(-.1,.65),xlabel='Seconds from last raised-lift sample',ylabel='Lift height (mm)')
+    axes[1].set(xlabel='Lift height (mm)',ylabel='Chassis pitch through peak (degrees)')
+    axes[1].invert_xaxis()
+    axes[0].legend()
+    fig.savefig(here/'lift-phase.png',dpi=150)
+    sys.exit(0)
 fig,axes=plt.subplots(4 if firmware else 3,1,sharex=True,figsize=(9,9 if firmware else 7),layout='constrained')
 if firmware:axes[3].plot(approach['s'],approach['lift_mm'],color='black')
 axes[0].plot(approach['s'],np.rad2deg(approach['pitch']),color='black',label='Physical')
