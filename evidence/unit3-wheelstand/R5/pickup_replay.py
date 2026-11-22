@@ -26,10 +26,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("fixture")
 parser.add_argument("--output", type=Path, help="Directory for this replay’s generated evidence")
 parser.add_argument("--substeps", type=int, default=1, choices=(1,2,4))
-parser.add_argument("--freeze-at-raise", choices=("planar", "pitch", "both"),
+motion = parser.add_mutually_exclusive_group()
+motion.add_argument("--wheel-translation", action="store_true", help="Integrate reported wheel speeds after lift onset")
+motion.add_argument("--freeze-at-raise", choices=("planar", "pitch", "both"),
                     help="Hold selected chassis motion at its value when the wrist first rises 1 mm")
 args = parser.parse_args()
-if args.freeze_at_raise and not args.output:
+if (args.freeze_at_raise or args.wheel_translation) and not args.output:
     parser.error("Use --output for counterfactual runs to preserve the recorded baseline")
 tree = ET.parse(args.fixture)
 require_printed_fork(tree)
@@ -44,8 +46,17 @@ assert np.all(p["origin"] == s["origin"])
 t = np.arange(-.5, 8.3, m.opt.timestep)
 x, y, pitch, height = [np.interp(t, p["sec"], p[k]) for k in ("x","y","pitch","lift")]
 yaw = np.interp(t, p["sec"], np.unwrap(p["yaw"]))
-if args.freeze_at_raise:
+if args.freeze_at_raise or args.wheel_translation:
     onset = np.flatnonzero(height > height[0] + 1)[0]
+if args.wheel_translation:
+    from wheel_retreat import wheel_path
+    from pickup_onset import action_time
+    robot = read("state.csv.gz")
+    start = action_time(here/"actions.csv", "pickup for inward transport", "sec")
+    dx, dy = wheel_path(t[onset:], yaw[onset:], robot["sec"]-start, robot["left"], robot["right"])
+    x[onset:] = x[onset] + dx
+    y[onset:] = y[onset] + dy
+if args.freeze_at_raise:
     channels = {"planar": (x, y, yaw), "pitch": (pitch,), "both": (x, y, yaw, pitch)}
     for channel in channels[args.freeze_at_raise]:
         channel[onset:] = channel[onset]
