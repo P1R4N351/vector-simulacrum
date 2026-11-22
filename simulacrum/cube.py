@@ -177,18 +177,23 @@ class MovementListener:
         self.score = 0.0
         self.moving = False
         self.events: List[Tuple[float, bool]] = []
+        self.broadcast_events: List[Tuple[float, bool]] = []
 
-    def update(self, t_s: float, accel: np.ndarray) -> None:
+    def update(self, t_s: float, accel: np.ndarray, *, handling_cube: bool = False) -> None:
         if self.previous is not None:
             self.filtered = np.float32(.8) * (self.filtered + accel - self.previous)
             magnitude = float(np.linalg.norm(self.filtered))
             self.score = float(np.clip(np.float32(self.score + min(500., magnitude)) - 300., 0., 20000.))
+            was_moving = self.moving
             if self.score > 10000. and not self.moving:
                 self.moving = True
-                self.events.append((t_s, True))
             elif 0. < self.score < 5000. and self.moving:
                 self.moving = False
-                self.events.append((t_s, False))
+            if self.moving != was_moving:
+                event = (t_s, self.moving)
+                self.events.append(event)
+                if not handling_cube:
+                    self.broadcast_events.append(event)
         self.previous = accel
 
 
@@ -226,6 +231,11 @@ class CubeAccelerometer:
                  tick_phase_s: float = 0.0, app: str = "last") -> None:
         assert step_s > 0.0 and math.isfinite(step_s), "step must be positive"
         assert app in APPS, "the app is last or mean"
+        self.handling_cube = False  # Engine is carrying or docking with this particular cube.
+        self.calm_mode = False
+        self._supervisor_loop_us = round(v.get("supervisor_loop_ms", v.get("control_period_ms", 5.0)) * 1000)
+        if self._supervisor_loop_us <= 0:
+            raise ValueError("Supervisor loop must advance")
         self.app_kind = app
         shift, low_bits = v.get("cube_accel_word_format", [LEFT_SHIFT, 0])
         self.word_shift, self.low_bits = int(shift), int(low_bits)
@@ -258,6 +268,10 @@ class CubeAccelerometer:
         self.filter.reset(np.concatenate([held, held]))
         self.fifo: List[List[int]] = []
         self.dropped = 0
+        self.packet_timestamps_ms: Dict[float, int] = {}
+        self._next_loop_us = round(t_s * 1e6) + self._supervisor_loop_us
+        self._loops_since_state = 0
+        self._state_stamp_ms = round(t_s * 1000)
         self.app = CubeApp(self.app_kind)
         self.taps = TapListener()
         self.up_axis = UpAxisListener()
@@ -265,6 +279,14 @@ class CubeAccelerometer:
         # Event times are counted, not summed: ten 2 ms steps summed come to 0.020000000000000004 s and would
         # put the frame due at 20 ms after the tick due then.
         self._t0, self._frames, self._ticks = t_s, 0, 0
+
+    def _advance_supervisor(self, through_us: int) -> None:
+        while self._next_loop_us <= through_us:
+            self._loops_since_state += 1
+            if self._loops_since_state >= (50 if self.calm_mode else 6):
+                self._state_stamp_ms = (self._next_loop_us + 500) // 1000
+                self._loops_since_state = 0
+            self._next_loop_us += self._supervisor_loop_us
 
     def _frame_time(self) -> float:
         return self._t0 + self._phases[0] + (self._frames + 1) * self.frame_s
@@ -288,6 +310,7 @@ class CubeAccelerometer:
         for _ in range(MAX_EVENTS_PER_STEP):
             frame_at, tick_at = self._frame_time(), self._tick_time()
             if min(frame_at, tick_at) > t_s + TIME_EPS_S:
+                self._advance_supervisor(round(t_s * 1e6))
                 return
             if frame_at <= tick_at + TIME_EPS_S:
                 self._store(frame)
@@ -306,11 +329,14 @@ class CubeAccelerometer:
     def _tick(self, t_s: float) -> None:
         self.app.tick(t_s, self.fifo)
         if self.app.slot == 0:
+            # A packet coincident with a supervisor publication sees the preceding stamp.
+            self._advance_supervisor(round(t_s * 1e6) - 1)
+            self.packet_timestamps_ms[t_s] = self._state_stamp_ms
             payload = self.app.messages[-1][1]
             self.taps.receive(t_s, payload)
             for accel in engine_samples(payload):
                 self.up_axis.update(t_s, accel)
-                self.movement.update(t_s, accel)
+                self.movement.update(t_s, accel, handling_cube=self.handling_cube)
         self.fifo = []
 
     @property

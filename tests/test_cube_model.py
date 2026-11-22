@@ -44,6 +44,44 @@ def unpack(data: bytes) -> List[int]:
     return list(fields[2:])
 
 
+class TestCubeRobotTimestamps(unittest.TestCase):
+    def test_handling_filters_broadcast_at_transition_only(self):
+        listener = cube.MovementListener()
+        for tick in range(80):
+            accel = np.array([5000 * (-1)**tick, 0, 0], dtype=np.float32)
+            listener.update(tick / 100, accel, handling_cube=True)
+        self.assertTrue(listener.moving)
+        self.assertEqual(listener.broadcast_events, [])
+        for tick in range(80, 200):
+            listener.update(tick / 100, accel)
+        self.assertEqual(listener.broadcast_events, listener.events[1:])
+        self.assertEqual([state for _, state in listener.broadcast_events], [False])
+
+
+    def test_state_clock_changes_mode_without_resetting_loop_phase(self):
+        chip = cube.CubeAccelerometer(QUIET, STEP)
+        chip.calm_mode = True
+        gravity = np.array([0., 0., 1.])
+        for ms in range(1, 301):
+            if ms == 271:
+                chip.calm_mode = False
+            chip.step(ms * STEP, gravity)
+        stamps = [chip.packet_timestamps_ms[t] for t, _ in chip.messages]
+        self.assertEqual(stamps, [0]*8 + [250, 280])
+        chip.reset(gravity, 1.)
+        self.assertEqual(chip.packet_timestamps_ms, {})
+        for ms in range(1, 61):
+            chip.step(1 + ms * STEP, gravity)
+        self.assertEqual(list(chip.packet_timestamps_ms.values()), [1000, 1030])
+
+    def test_measured_loop_stamps_do_not_retime_cube_packets(self):
+        chip = run(dict(QUIET, supervisor_loop_ms=5.08), .33, lambda _: [0,0,1])
+        self.assertEqual(len(chip.messages), 11)
+        last, _ = chip.messages[-1]
+        self.assertAlmostEqual(last, .33)
+        self.assertEqual(chip.packet_timestamps_ms[last], 305)
+
+
 class ChipAndApp(unittest.TestCase):
     def test_at_rest_on_its_base_the_cube_sends_one_g_on_z_every_30_ms(self) -> None:
         chip = run(QUIET, 1.0, lambda n: [0.0, 0.0, 1.0])

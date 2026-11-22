@@ -139,6 +139,8 @@ class VectorSim:
         # The cube draws noise from its own stream, so carrying one does not move the robot's IMU noise.
         self.cube = (cube_model.CubeAccelerometer(self.v, float(self.model.opt.timestep), seed=noise_seed + 2, app=cube_app)
                      if cube is not None else None)
+        if self.cube is not None:
+            self.cube.handling_cube = cube == "lift"
         assert (self.cube is None) == (self._cube_adr < 0), "cube sensor and model must agree"
         self.hazards = Hazards(self.v)
         self.states: collections.deque = collections.deque(maxlen=STATE_HISTORY)
