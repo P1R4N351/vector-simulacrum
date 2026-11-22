@@ -23,3 +23,11 @@ Both sweeps use the measured command schedule, the SDK's linear 32–92 mm targe
 Eight earlier unloaded docked full strokes on the same robot settled at 90.81–92.28 mm. Both 75-to-100% raises here ended lower (89.29 and 89.54 mm). A fixed 89.5 mm ceiling would contradict every earlier full stroke. The recordings vary in approach distance, command profile, session and hold timing, so this comparison cannot isolate the cause. The earlier strokes use the median in the last half-second before the following command.
 
 Two overhead-confirmed carries started their outward turn at 91.30 mm (improper engagement) and 90.31 mm (seating unknown). A visually false carry also started at 91.30 mm. These are pre-turn readings after native pickup, with different command histories from the docked holds. Lift height alone did not distinguish actual support from a false carry in these trials.
+
+### Two-camera check of approach direction at 75%
+
+[Opposing fork close-ups](fork-hold-overlay.png) · [Frame measurements](fork-hold-optical.csv) · [Reproduce from the published video](optical_holds.py)
+
+On the first sweep the fork appeared 4.13 px lower in A and 4.17 px lower in B when approaching 75% from above. The second sweep reproduced the direction (3.73 and 3.65 px). Each estimate subtracts the apparent vertical motion of a wheel hub on the same side and compares median positions over five frames per hold. Within-hold ranges were at most 0.14 px. Those ranges describe short-term repeatability only. The colored close-ups overlay one frame from each hold in the original camera coordinates.
+
+The encoder differences (1.82 and 1.22 mm) and both camera views agree on the direction of unloaded fork motion. The cameras measure image-plane displacement; a metric fork-tip shift would require local scale and pose calibration. These recordings cannot distinguish controller tolerance, gear play, or fork flex under load.
