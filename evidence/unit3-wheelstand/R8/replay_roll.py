@@ -2,6 +2,7 @@
 import csv
 from pathlib import Path
 import sys
+import xml.etree.ElementTree as ET
 
 import matplotlib.pyplot as plt
 import mujoco as mj
@@ -13,7 +14,17 @@ with (here/'roll-poses.csv').open() as f:
 states = [r for r in rows if r['source'] == 'robot_state']
 cube = next(r for r in rows if r['source'] == 'robot_observed_object' and float(r['sec']) < 0)
 assert all(r['origin'] == cube['origin'] for r in states)
-model = mj.MjModel.from_xml_path(sys.argv[1])
+with_support = '--front-right' in sys.argv
+tree = ET.parse(sys.argv[1])
+if with_support:
+    sys.path.insert(0,str(here.parents[2]))
+    from simulacrum import mjcf, params
+    robot = ET.fromstring(mjcf.build_mjcf(params.values(params.load(model='vector_2'))))
+    support = robot.find(".//geom[@name='tip_front_r']")
+    support.attrib.update(contype="1", conaffinity="6")
+    body = ET.SubElement(tree.find('worldbody'),'body',name='driven_chassis',mocap='true')
+    body.append(support)
+model = mj.MjModel.from_xml_string(ET.tostring(tree.getroot(),encoding='unicode'))
 data = mj.MjData(model)
 fixture = data.joint('cube_root').qpos
 cyaw = float(cube['yaw_rad'])
@@ -37,12 +48,21 @@ for t in np.arange(0, src[-1,0], model.opt.timestep):
     c,s = np.cos(yaw/2),np.sin(yaw/2)
     cp,sp = np.cos(pitch/2),-np.sin(pitch/2)
     data.mocap_quat[0] = [c*cp,-s*sp,c*sp,s*cp]
+    if with_support:
+        i = model.body('driven_chassis').mocapid[0]
+        data.mocap_pos[i] = np.array([x+z0*np.sin(pitch)*np.cos(yaw),
+                                     y+z0*np.sin(pitch)*np.sin(yaw),z0*(1-np.cos(pitch))])/1000
+        data.mocap_quat[i] = data.mocap_quat[0]
     mj.mj_step(model,data)
     contact = any(set(model.geom_bodyid[[ct.geom1,ct.geom2]]) == {cube_id,fork_id}
                   for ct in data.contact)
     tilt = np.degrees(np.arccos(np.clip(data.body('cube').xmat[-1],-1,1)))
-    trace.append((t,contact,tilt))
-t,contact,tilt = np.array(trace).T
+    front_contact = with_support and any(set(model.geom_bodyid[[ct.geom1,ct.geom2]]) ==
+                                             {cube_id,model.body('driven_chassis').id} for ct in data.contact)
+    trace.append((t,contact,tilt,front_contact))
+t,contact,tilt,front_contact = np.array(trace).T
+if np.any(front_contact):
+    print('first support contact',t[np.flatnonzero(front_contact)[0]])
 change = np.diff(contact, prepend=0) > 0
 print('first contacts',t[change][:6], 'peak tilt',max(tilt), 'last tilt',tilt[-1])
 # Horizontal projection of the original top-face normal versus cube-to-robot bearing.
@@ -58,6 +78,9 @@ ax[0].plot(acc['sec']-zero,np.linalg.norm(np.column_stack([acc[k] for k in 'xyz'
 ax[0].set(ylabel='Measured cube (g)',title='Native roll on the shelf')
 ax[1].plot(t,tilt,label='Simulated cube tilt')
 ax[1].fill_between(t,0,1,where=contact.astype(bool),transform=ax[1].get_xaxis_transform(),alpha=.15,label='Fork contact')
+if with_support:
+    ax[1].fill_between(t,0,.1,where=front_contact.astype(bool),transform=ax[1].get_xaxis_transform(),
+                       color='tab:orange',alpha=.7,label='Front-right tread proxy contact')
 ax[1].legend()
 ax[1].set(xlabel='Seconds after roll command',ylabel='Tilt (degrees)',xlim=(0,5.3))
-fig.savefig(here/('contact-level.png' if '--level' in sys.argv else 'contact-replay.png'),dpi=150)
+fig.savefig(here/('front-right-replay.png' if with_support else 'contact-level.png' if '--level' in sys.argv else 'contact-replay.png'),dpi=150)

@@ -32,3 +32,13 @@ The physical cube tap counter first changed at 3.128 s. Modeled fork contact beg
 [Measured pitch replay](contact-replay.png) · [Level control](contact-level.png) · [Recorded pose inputs](roll-poses.csv)
 
 Build the fixture with evidence/unit3-printed-fork-contact/build_fixture.py and forks7.stl, then run replay_roll.py with the fixture XML path. Add --level for the control. The fixture used here had SHA-256 4867e81c8d8d92ad3abc621d920af9b550c001e5d8f81d8443d1e84a069b8230.
+
+### What can reach the cube at the first tap?
+
+With the cube fixed at each of four pre-contact SDK observations, the simulated front-right tipping cylinder overlaps the cube shell by 2.09–2.44 mm at the first transmitted counter change (3.128 s). This cylinder represents the tread near the actual axle. The inset wheel collision geometry is within 0.2 mm of touching in all four cases. At the same instant the chassis box is at least 5.7 mm clear, head 10.6 mm, lower links 28.6 mm and upper links 35.2 mm. These are signed distances at corresponding receiver times. The four observations share camera calibration and odometry errors; their spread is a sensitivity check.
+
+Adding just the driven front-right cylinder to the free-cube fork replay yields first support contact at 3.086 s, 42 ms before the physical counter change. The fork follows at 3.987 s. The cube peaks at 43.18° and returns to its original face by the final chassis sample. The fork-only replay reached 90°. Thus the front-right tread offers a geometrically plausible source for the first disturbance, while the extra contact materially worsens the endpoint prediction. No firmware tap was predicted from that contact force and no physical contact point was identified in the video. Neither replay extends beyond the recorded chassis motion.
+
+Run early_contact.py for the clearance plot (requires the viewer SDK assets and web dependencies used by replay_links.py). Pass --front-right to replay_roll.py for the free-cube experiment, using the same printed fixture as above.
+
+[Part clearance](early-contact.png) · [Geometry and distances](early-contact.csv) · [Free cube with tread contact](front-right-replay.png)

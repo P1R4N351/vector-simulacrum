@@ -1,0 +1,1009 @@
+cube_observation_s,roll_s,robot_part,signed_gap_mm,nearest_robot_geom,nearest_cube_geom
+-0.057742,2.7,chassis,30.8723,chassis_geom,cube_shell_41
+-0.057742,2.7,head,31.0944,head_geom,cube_shell_19
+-0.057742,2.7,wheels,20.852,wheel_fr_geom,cube_shell_41
+-0.057742,2.7,tip supports,19.6466,tip_front_r,cube_shell_41
+-0.057742,2.7,upper links,44.1398,rail0_5,cube_rubber_13
+-0.057742,2.7,lower links,38.8765,rail1_6,cube_rubber_13
+-0.057742,2.72,chassis,30.4258,chassis_geom,cube_shell_41
+-0.057742,2.72,head,30.6605,head_geom,cube_shell_19
+-0.057742,2.72,wheels,20.3969,wheel_fr_geom,cube_shell_41
+-0.057742,2.72,tip supports,19.1926,tip_front_r,cube_shell_41
+-0.057742,2.72,upper links,43.4563,rail0_5,cube_rubber_13
+-0.057742,2.72,lower links,38.2985,rail1_6,cube_rubber_13
+-0.057742,2.74,chassis,29.9707,chassis_geom,cube_shell_41
+-0.057742,2.74,head,30.2231,head_geom,cube_shell_19
+-0.057742,2.74,wheels,19.9353,wheel_fr_geom,cube_shell_41
+-0.057742,2.74,tip supports,18.731,tip_front_r,cube_shell_41
+-0.057742,2.74,upper links,42.7938,rail0_5,cube_rubber_13
+-0.057742,2.74,lower links,37.7444,rail1_6,cube_rubber_13
+-0.057742,2.76,chassis,29.5156,chassis_geom,cube_shell_41
+-0.057742,2.76,head,29.7857,head_geom,cube_shell_19
+-0.057742,2.76,wheels,19.4737,wheel_fr_geom,cube_shell_41
+-0.057742,2.76,tip supports,18.2694,tip_front_r,cube_shell_41
+-0.057742,2.76,upper links,42.1419,rail0_5,cube_rubber_13
+-0.057742,2.76,lower links,37.2047,rail1_6,cube_rubber_13
+-0.057742,2.78,chassis,29.0612,chassis_geom,cube_shell_41
+-0.057742,2.78,head,29.3569,head_geom,cube_shell_19
+-0.057742,2.78,wheels,19.0274,wheel_fr_geom,cube_shell_41
+-0.057742,2.78,tip supports,17.8188,tip_front_r,cube_shell_41
+-0.057742,2.78,upper links,41.5915,rail0_5,cube_rubber_13
+-0.057742,2.78,lower links,36.7401,rail1_6,cube_rubber_13
+-0.057742,2.8,chassis,28.6074,chassis_geom,cube_shell_41
+-0.057742,2.8,head,28.9342,head_geom,cube_shell_19
+-0.057742,2.8,wheels,18.5914,wheel_fr_geom,cube_shell_41
+-0.057742,2.8,tip supports,17.3758,tip_front_r,cube_shell_41
+-0.057742,2.8,upper links,41.1092,rail0_5,cube_rubber_13
+-0.057742,2.8,lower links,36.3309,rail1_6,cube_rubber_13
+-0.057742,2.82,chassis,28.1145,chassis_geom,cube_rubber_59
+-0.057742,2.82,head,28.5117,head_geom,cube_shell_19
+-0.057742,2.82,wheels,18.1556,wheel_fr_geom,cube_shell_41
+-0.057742,2.82,tip supports,16.933,tip_front_r,cube_shell_41
+-0.057742,2.82,upper links,40.6354,rail0_5,cube_rubber_13
+-0.057742,2.82,lower links,35.9334,rail1_6,cube_rubber_13
+-0.057742,2.84,chassis,27.6106,chassis_geom,cube_rubber_59
+-0.057742,2.84,head,28.0894,head_geom,cube_shell_19
+-0.057742,2.84,wheels,17.72,wheel_fr_geom,cube_shell_41
+-0.057742,2.84,tip supports,16.4904,tip_front_r,cube_shell_41
+-0.057742,2.84,upper links,40.171,rail0_5,cube_rubber_13
+-0.057742,2.84,lower links,35.548,rail1_6,cube_rubber_13
+-0.057742,2.86,chassis,26.3075,chassis_geom,cube_rubber_59
+-0.057742,2.86,head,26.9402,head_geom,cube_shell_19
+-0.057742,2.86,wheels,16.533,wheel_fr_geom,cube_shell_41
+-0.057742,2.86,tip supports,15.2778,tip_front_r,cube_shell_41
+-0.057742,2.86,upper links,39.0846,rail0_5,cube_rubber_13
+-0.057742,2.86,lower links,34.6356,rail1_6,cube_rubber_13
+-0.057742,2.88,chassis,24.7278,chassis_geom,cube_rubber_59
+-0.057742,2.88,head,25.5188,head_geom,cube_shell_19
+-0.057742,2.88,wheels,15.0626,wheel_fr_geom,cube_shell_41
+-0.057742,2.88,tip supports,13.7672,tip_front_r,cube_shell_41
+-0.057742,2.88,upper links,37.9695,rail0_5,cube_rubber_13
+-0.057742,2.88,lower links,33.6509,rail1_6,cube_rubber_13
+-0.057742,2.9,chassis,24.147,chassis_geom,cube_rubber_59
+-0.057742,2.9,head,25.0352,head_geom,cube_shell_19
+-0.057742,2.9,wheels,14.5589,wheel_fr_geom,cube_shell_41
+-0.057742,2.9,tip supports,13.2355,tip_front_r,cube_shell_41
+-0.057742,2.9,upper links,37.8256,rail0_5,cube_rubber_13
+-0.057742,2.9,lower links,33.4721,rail1_6,cube_rubber_13
+-0.057742,2.92,chassis,23.5689,chassis_geom,cube_rubber_59
+-0.057742,2.92,head,24.5539,head_geom,cube_shell_19
+-0.057742,2.92,wheels,14.0591,wheel_fr_geom,cube_shell_41
+-0.057742,2.92,tip supports,12.7079,tip_front_r,cube_shell_41
+-0.057742,2.92,upper links,37.6848,rail0_5,cube_rubber_13
+-0.057742,2.92,lower links,33.2942,rail1_6,cube_rubber_13
+-0.057742,2.94,chassis,22.067,chassis_geom,cube_rubber_59
+-0.057742,2.94,head,23.3501,head_geom,cube_shell_19
+-0.057742,2.94,wheels,12.7847,wheel_fr_geom,cube_shell_41
+-0.057742,2.94,tip supports,11.3575,tip_front_r,cube_shell_41
+-0.057742,2.94,upper links,37.4401,rail0_5,cube_rubber_13
+-0.057742,2.94,lower links,32.913,rail1_6,cube_rubber_13
+-0.057742,2.96,chassis,20.0343,chassis_geom,cube_rubber_59
+-0.057742,2.96,head,21.7402,head_geom,cube_shell_19
+-0.057742,2.96,wheels,11.084,wheel_fr_geom,cube_shell_41
+-0.057742,2.96,tip supports,9.5537,tip_front_r,cube_shell_41
+-0.057742,2.96,upper links,37.1478,rail0_5,cube_rubber_13
+-0.057742,2.96,lower links,32.4074,rail1_6,cube_rubber_13
+-0.057742,2.98,chassis,18.04,chassis_geom,cube_rubber_59
+-0.057742,2.98,head,20.1716,head_geom,cube_shell_19
+-0.057742,2.98,wheels,9.4391,wheel_fr_geom,cube_shell_41
+-0.057742,2.98,tip supports,7.8085,tip_front_r,cube_shell_41
+-0.057742,2.98,upper links,36.8771,rail0_5,cube_rubber_13
+-0.057742,2.98,lower links,31.9048,rail1_6,cube_rubber_13
+-0.057742,3.0,chassis,16.0815,chassis_geom,cube_rubber_59
+-0.057742,3.0,head,18.6131,head_geom,cube_shell_19
+-0.057742,3.0,wheels,7.8342,wheel_fr_geom,cube_shell_41
+-0.057742,3.0,tip supports,6.1089,tip_front_r,cube_shell_41
+-0.057742,3.0,upper links,36.573,rail0_5,cube_rubber_13
+-0.057742,3.0,lower links,31.3608,rail1_6,cube_rubber_13
+-0.057742,3.02,chassis,14.1553,chassis_geom,cube_rubber_59
+-0.057742,3.02,head,17.0481,head_geom,cube_shell_19
+-0.057742,3.02,wheels,6.2591,wheel_fr_geom,cube_shell_41
+-0.057742,3.02,tip supports,4.4452,tip_front_r,cube_shell_41
+-0.057742,3.02,upper links,36.2045,rail0_5,cube_rubber_13
+-0.057742,3.02,lower links,30.7516,rail1_6,cube_rubber_13
+-0.057742,3.04,chassis,12.2642,chassis_geom,cube_rubber_59
+-0.057742,3.04,head,15.5163,head_geom,cube_shell_19
+-0.057742,3.04,wheels,4.7318,wheel_fr_geom,cube_shell_41
+-0.057742,3.04,tip supports,2.8325,tip_front_r,cube_shell_41
+-0.057742,3.04,upper links,35.8344,rail0_5,cube_rubber_13
+-0.057742,3.04,lower links,30.1473,rail1_6,cube_rubber_13
+-0.057742,3.06,chassis,10.714,chassis_geom,cube_rubber_59
+-0.057742,3.06,head,14.3394,head_geom,cube_shell_19
+-0.057742,3.06,wheels,3.5239,wheel_fr_geom,cube_shell_41
+-0.057742,3.06,tip supports,1.5514,tip_front_r,cube_shell_41
+-0.057742,3.06,upper links,35.643,rail0_5,cube_rubber_13
+-0.057742,3.06,lower links,29.7581,rail1_6,cube_rubber_13
+-0.057742,3.08,chassis,9.2233,chassis_geom,cube_rubber_59
+-0.057742,3.08,head,13.225,head_geom,cube_shell_19
+-0.057742,3.08,wheels,2.3815,wheel_fr_geom,cube_shell_41
+-0.057742,3.08,tip supports,0.3395,tip_front_r,cube_shell_41
+-0.057742,3.08,upper links,35.4685,rail0_5,cube_rubber_13
+-0.057742,3.08,lower links,29.3961,rail1_6,cube_rubber_13
+-0.057742,3.1,chassis,7.7581,chassis_geom,cube_rubber_59
+-0.057742,3.1,head,12.137,head_geom,cube_shell_19
+-0.057742,3.1,wheels,1.274,wheel_fr_geom,cube_shell_41
+-0.057742,3.1,tip supports,-0.8351,tip_front_r,cube_shell_41
+-0.057742,3.1,upper links,35.2886,rail0_5,cube_rubber_13
+-0.057742,3.1,lower links,29.0371,rail1_6,cube_rubber_13
+-0.057742,3.12,chassis,6.2825,chassis_geom,cube_rubber_59
+-0.057742,3.12,head,11.0493,head_geom,cube_shell_19
+-0.057742,3.12,wheels,0.2002,wheel_fr_geom,cube_shell_41
+-0.057742,3.12,tip supports,-1.9798,tip_front_r,cube_shell_41
+-0.057742,3.12,upper links,35.1708,rail0_5,cube_rubber_13
+-0.057742,3.12,lower links,28.7306,rail1_6,cube_rubber_13
+-0.057742,3.128174,chassis,5.6712,chassis_geom,cube_rubber_59
+-0.057742,3.128174,head,10.6005,head_geom,cube_shell_19
+-0.057742,3.128174,wheels,-0.2259,wheel_fr_geom,cube_shell_41
+-0.057742,3.128174,tip supports,-2.4375,tip_front_r,cube_shell_41
+-0.057742,3.128174,upper links,35.1542,rail0_5,cube_rubber_13
+-0.057742,3.128174,lower links,28.6309,rail1_6,cube_rubber_13
+-0.057742,3.14,chassis,4.8441,chassis_geom,cube_rubber_59
+-0.057742,3.14,head,9.9614,head_geom,cube_shell_19
+-0.057742,3.14,wheels,-0.8274,wheel_fr_geom,cube_shell_41
+-0.057742,3.14,tip supports,-3.083,tip_front_r,cube_shell_41
+-0.057742,3.14,upper links,35.1247,rail0_5,cube_rubber_13
+-0.057742,3.14,lower links,28.4851,rail1_6,cube_rubber_13
+-0.057742,3.16,chassis,3.4636,chassis_geom,cube_shell_41
+-0.057742,3.16,head,8.9066,head_geom,cube_shell_19
+-0.057742,3.16,wheels,-1.8045,wheel_fr_geom,cube_shell_41
+-0.057742,3.16,tip supports,-4.1313,tip_front_r,cube_shell_41
+-0.057742,3.16,upper links,35.0588,rail0_5,cube_rubber_13
+-0.057742,3.16,lower links,28.2335,rail1_6,cube_rubber_13
+-0.057742,3.18,chassis,2.0295,chassis_geom,cube_shell_41
+-0.057742,3.18,head,7.8811,head_geom,cube_shell_19
+-0.057742,3.18,wheels,-2.7353,wheel_fr_geom,cube_shell_41
+-0.057742,3.18,tip supports,-5.1293,tip_front_r,cube_shell_41
+-0.057742,3.18,upper links,34.9642,rail0_5,cube_rubber_13
+-0.057742,3.18,lower links,27.966,rail1_6,cube_rubber_13
+-0.057742,3.2,chassis,0.551,chassis_geom,cube_shell_41
+-0.057742,3.2,head,6.8499,head_geom,cube_shell_19
+-0.057742,3.2,wheels,-3.6567,wheel_fr_geom,cube_shell_41
+-0.057742,3.2,tip supports,-6.1208,tip_front_r,cube_shell_41
+-0.057742,3.2,upper links,34.8996,rail0_5,cube_rubber_13
+-0.057742,3.2,lower links,27.7242,rail1_6,cube_rubber_13
+-0.057742,3.22,chassis,-0.8792,chassis_geom,cube_shell_41
+-0.057742,3.22,head,5.8553,head_geom,cube_shell_19
+-0.057742,3.22,wheels,-4.5196,wheel_fr_geom,cube_shell_41
+-0.057742,3.22,tip supports,-7.0472,tip_front_r,cube_shell_41
+-0.057742,3.22,upper links,34.8036,rail0_5,cube_rubber_13
+-0.057742,3.22,lower links,27.468,rail1_6,cube_rubber_13
+-0.057742,3.24,chassis,-2.1687,chassis_geom,cube_shell_41
+-0.057742,3.24,head,4.9653,head_geom,cube_shell_19
+-0.057742,3.24,wheels,-5.263,wheel_fr_geom,cube_shell_41
+-0.057742,3.24,tip supports,-7.8452,tip_front_r,cube_shell_41
+-0.057742,3.24,upper links,34.7016,rail0_5,cube_rubber_13
+-0.057742,3.24,lower links,27.2291,rail1_6,cube_rubber_13
+-0.057742,3.26,chassis,-2.7389,chassis_geom,cube_shell_41
+-0.057742,3.26,head,4.6184,head_geom,cube_shell_19
+-0.057742,3.26,wheels,-5.5079,wheel_fr_geom,cube_shell_41
+-0.057742,3.26,tip supports,-8.1195,tip_front_r,cube_shell_41
+-0.057742,3.26,upper links,34.7902,rail0_5,cube_rubber_13
+-0.057742,3.26,lower links,27.2449,rail1_6,cube_rubber_13
+-0.057742,3.28,chassis,-3.2946,chassis_geom,cube_shell_41
+-0.057742,3.28,head,4.2805,head_geom,cube_shell_19
+-0.057742,3.28,wheels,-5.7361,wheel_fr_geom,cube_shell_41
+-0.057742,3.28,tip supports,-8.3752,tip_front_r,cube_shell_41
+-0.057742,3.28,upper links,34.866,rail0_5,cube_rubber_13
+-0.057742,3.28,lower links,27.2532,rail1_6,cube_rubber_13
+-0.057742,3.3,chassis,-3.8363,chassis_geom,cube_shell_41
+-0.057742,3.3,head,3.9512,head_geom,cube_shell_19
+-0.057742,3.3,wheels,-5.9484,wheel_fr_geom,cube_shell_41
+-0.057742,3.3,tip supports,-8.6128,tip_front_r,cube_shell_41
+-0.057742,3.3,upper links,34.9283,rail0_5,cube_rubber_13
+-0.057742,3.3,lower links,27.2529,rail1_6,cube_rubber_13
+-0.057742,3.32,chassis,-4.9404,chassis_geom,cube_shell_41
+-0.057742,3.32,head,3.262,head_geom,cube_shell_19
+-0.057742,3.32,wheels,-6.3531,wheel_fr_geom,cube_shell_41
+-0.057742,3.32,tip supports,-9.0636,tip_front_r,cube_shell_41
+-0.057742,3.32,upper links,34.9848,rail0_5,cube_rubber_13
+-0.057742,3.32,lower links,27.1945,rail1_6,cube_rubber_13
+-0.057742,3.34,chassis,-6.1789,chassis_geom,cube_shell_41
+-0.057742,3.34,head,2.4787,head_geom,cube_shell_19
+-0.057742,3.34,wheels,-6.705,wheel_fr_geom,cube_shell_41
+-0.057742,3.34,tip supports,-9.5049,tip_front_r,cube_shell_41
+-0.057742,3.34,upper links,34.9572,rail0_5,cube_rubber_13
+-0.057742,3.34,lower links,27.0593,rail1_6,cube_rubber_13
+-0.057742,3.36,chassis,-7.2159,chassis_geom,cube_shell_41
+-0.057742,3.36,head,1.761,head_geom,cube_shell_19
+-0.057742,3.36,wheels,-7.0072,wheel_fr_geom,cube_shell_26
+-0.057742,3.36,tip supports,-9.7083,tip_front_r,cube_shell_26
+-0.057742,3.36,upper links,34.732,rail0_5,cube_rubber_13
+-0.057742,3.36,lower links,26.7715,rail1_6,cube_rubber_13
+-0.057742,3.38,chassis,-8.0831,chassis_geom,cube_shell_41
+-0.057742,3.38,head,1.0911,head_geom,cube_shell_19
+-0.057742,3.38,wheels,-7.3834,wheel_fr_geom,cube_shell_26
+-0.057742,3.38,tip supports,-10.0837,tip_front_r,cube_shell_26
+-0.057742,3.38,upper links,34.3549,rail0_5,cube_rubber_13
+-0.057742,3.38,lower links,26.3612,rail1_6,cube_rubber_13
+-0.057742,3.4,chassis,-8.9293,chassis_geom,cube_shell_41
+-0.057742,3.4,head,0.4296,head_geom,cube_shell_19
+-0.057742,3.4,wheels,-7.7393,wheel_fr_geom,cube_shell_26
+-0.057742,3.4,tip supports,-10.4327,tip_front_r,cube_shell_26
+-0.057742,3.4,upper links,33.9116,rail0_5,cube_rubber_13
+-0.057742,3.4,lower links,25.8932,rail1_6,cube_rubber_13
+-0.057742,3.42,chassis,-9.6412,chassis_geom,cube_shell_41
+-0.057742,3.42,head,-0.1293,head_geom,cube_shell_19
+-0.057742,3.42,wheels,-8.031,wheel_fr_geom,cube_shell_26
+-0.057742,3.42,tip supports,-10.7129,tip_front_r,cube_shell_26
+-0.057742,3.42,upper links,33.4985,rail0_5,cube_rubber_13
+-0.057742,3.42,lower links,25.4674,rail1_6,cube_rubber_13
+-0.057742,3.44,chassis,-9.9666,chassis_geom,cube_shell_41
+-0.057742,3.44,head,-0.4861,head_geom,cube_rubber_25
+-0.057742,3.44,wheels,-8.164,wheel_fr_geom,cube_shell_26
+-0.057742,3.44,tip supports,-10.8396,tip_front_r,cube_shell_26
+-0.057742,3.44,upper links,33.3167,rail0_5,cube_rubber_13
+-0.057742,3.44,lower links,25.2825,rail1_6,cube_rubber_13
+-0.057742,3.46,chassis,-10.5309,chassis_geom,cube_shell_41
+-0.057742,3.46,head,-1.1956,head_geom,cube_rubber_25
+-0.057742,3.46,wheels,-8.4185,wheel_fr_geom,cube_shell_26
+-0.057742,3.46,tip supports,-11.0773,tip_front_r,cube_shell_26
+-0.057742,3.46,upper links,33.1285,rail0_5,cube_rubber_13
+-0.057742,3.46,lower links,25.0927,rail1_6,cube_rubber_13
+-0.057742,3.48,chassis,-10.788,chassis_geom,cube_shell_41
+-0.057742,3.48,head,-1.5051,head_geom,cube_rubber_25
+-0.057742,3.48,wheels,-8.5117,wheel_fr_geom,cube_shell_26
+-0.057742,3.48,tip supports,-11.1633,tip_front_r,cube_shell_26
+-0.057742,3.48,upper links,33.079,rail0_5,cube_rubber_13
+-0.057742,3.48,lower links,25.0434,rail1_6,cube_rubber_13
+-0.057742,3.5,chassis,-10.8115,chassis_geom,cube_shell_41
+-0.057742,3.5,head,-1.547,head_geom,cube_rubber_25
+-0.057742,3.5,wheels,-8.4864,wheel_fr_geom,cube_shell_26
+-0.057742,3.5,tip supports,-11.1398,tip_front_r,cube_shell_26
+-0.057742,3.5,upper links,33.1178,rail0_5,cube_rubber_13
+-0.057742,3.5,lower links,25.0828,rail1_6,cube_rubber_13
+0.246004,2.7,chassis,31.0076,chassis_geom,cube_shell_41
+0.246004,2.7,head,31.3375,head_geom,cube_shell_19
+0.246004,2.7,wheels,21.0731,wheel_fr_geom,cube_shell_41
+0.246004,2.7,tip supports,19.8354,tip_front_r,cube_shell_41
+0.246004,2.7,upper links,44.6252,rail0_5,cube_rubber_13
+0.246004,2.7,lower links,39.3745,rail1_6,cube_rubber_13
+0.246004,2.72,chassis,30.5489,chassis_geom,cube_shell_41
+0.246004,2.72,head,30.8921,head_geom,cube_shell_19
+0.246004,2.72,wheels,20.6055,wheel_fr_geom,cube_shell_41
+0.246004,2.72,tip supports,19.3689,tip_front_r,cube_shell_41
+0.246004,2.72,upper links,43.9434,rail0_5,cube_rubber_13
+0.246004,2.72,lower links,38.7972,rail1_6,cube_rubber_13
+0.246004,2.74,chassis,30.0815,chassis_geom,cube_shell_41
+0.246004,2.74,head,30.4434,head_geom,cube_shell_19
+0.246004,2.74,wheels,20.1315,wheel_fr_geom,cube_shell_41
+0.246004,2.74,tip supports,18.8949,tip_front_r,cube_shell_41
+0.246004,2.74,upper links,43.2826,rail0_5,cube_rubber_13
+0.246004,2.74,lower links,38.2436,rail1_6,cube_rubber_13
+0.246004,2.76,chassis,29.6142,chassis_geom,cube_shell_41
+0.246004,2.76,head,29.9946,head_geom,cube_shell_19
+0.246004,2.76,wheels,19.6575,wheel_fr_geom,cube_shell_41
+0.246004,2.76,tip supports,18.4209,tip_front_r,cube_shell_41
+0.246004,2.76,upper links,42.6323,rail0_5,cube_rubber_13
+0.246004,2.76,lower links,37.7042,rail1_6,cube_rubber_13
+0.246004,2.78,chassis,29.1495,chassis_geom,cube_shell_41
+0.246004,2.78,head,29.5561,head_geom,cube_shell_19
+0.246004,2.78,wheels,19.201,wheel_fr_geom,cube_shell_41
+0.246004,2.78,tip supports,17.9602,tip_front_r,cube_shell_41
+0.246004,2.78,upper links,42.0831,rail0_5,cube_rubber_13
+0.246004,2.78,lower links,37.2396,rail1_6,cube_rubber_13
+0.246004,2.8,chassis,28.6847,chassis_geom,cube_rubber_59
+0.246004,2.8,head,29.1245,head_geom,cube_shell_19
+0.246004,2.8,wheels,18.7562,wheel_fr_geom,cube_shell_41
+0.246004,2.8,tip supports,17.5084,tip_front_r,cube_shell_41
+0.246004,2.8,upper links,41.6017,rail0_5,cube_rubber_13
+0.246004,2.8,lower links,36.8303,rail1_6,cube_rubber_13
+0.246004,2.82,chassis,28.1627,chassis_geom,cube_rubber_59
+0.246004,2.82,head,28.6932,head_geom,cube_shell_19
+0.246004,2.82,wheels,18.3116,wheel_fr_geom,cube_shell_41
+0.246004,2.82,tip supports,17.0569,tip_front_r,cube_shell_41
+0.246004,2.82,upper links,41.1288,rail0_5,cube_rubber_13
+0.246004,2.82,lower links,36.4326,rail1_6,cube_rubber_13
+0.246004,2.84,chassis,27.657,chassis_geom,cube_rubber_59
+0.246004,2.84,head,28.2622,head_geom,cube_shell_19
+0.246004,2.84,wheels,17.8672,wheel_fr_geom,cube_shell_41
+0.246004,2.84,tip supports,16.6056,tip_front_r,cube_shell_41
+0.246004,2.84,upper links,40.6648,rail0_5,cube_rubber_13
+0.246004,2.84,lower links,36.0468,rail1_6,cube_rubber_13
+0.246004,2.86,chassis,26.3476,chassis_geom,cube_rubber_59
+0.246004,2.86,head,27.0923,head_geom,cube_shell_19
+0.246004,2.86,wheels,16.6603,wheel_fr_geom,cube_shell_41
+0.246004,2.86,tip supports,15.3732,tip_front_r,cube_shell_41
+0.246004,2.86,upper links,39.5779,rail0_5,cube_rubber_13
+0.246004,2.86,lower links,35.1307,rail1_6,cube_rubber_13
+0.246004,2.88,chassis,24.7451,chassis_geom,cube_rubber_59
+0.246004,2.88,head,25.6486,head_geom,cube_shell_19
+0.246004,2.88,wheels,15.1692,wheel_fr_geom,cube_shell_41
+0.246004,2.88,tip supports,13.8422,tip_front_r,cube_shell_41
+0.246004,2.88,upper links,38.4611,rail0_5,cube_rubber_13
+0.246004,2.88,lower links,34.1213,rail1_6,cube_rubber_13
+0.246004,2.9,chassis,24.1621,chassis_geom,cube_rubber_59
+0.246004,2.9,head,25.1623,head_geom,cube_shell_19
+0.246004,2.9,wheels,14.6647,wheel_fr_geom,cube_shell_41
+0.246004,2.9,tip supports,13.3098,tip_front_r,cube_shell_41
+0.246004,2.9,upper links,38.3167,rail0_5,cube_rubber_13
+0.246004,2.9,lower links,33.938,rail1_6,cube_rubber_13
+0.246004,2.92,chassis,23.5818,chassis_geom,cube_rubber_59
+0.246004,2.92,head,24.6784,head_geom,cube_shell_19
+0.246004,2.92,wheels,14.164,wheel_fr_geom,cube_shell_41
+0.246004,2.92,tip supports,12.7815,tip_front_r,cube_shell_41
+0.246004,2.92,upper links,38.1754,rail0_5,cube_rubber_13
+0.246004,2.92,lower links,33.7555,rail1_6,cube_rubber_13
+0.246004,2.94,chassis,22.0782,chassis_geom,cube_rubber_59
+0.246004,2.94,head,23.4724,head_geom,cube_shell_19
+0.246004,2.94,wheels,12.8917,wheel_fr_geom,cube_shell_41
+0.246004,2.94,tip supports,11.4338,tip_front_r,cube_shell_41
+0.246004,2.94,upper links,37.9299,rail0_5,cube_rubber_13
+0.246004,2.94,lower links,33.3667,rail1_6,cube_rubber_13
+0.246004,2.96,chassis,20.0443,chassis_geom,cube_rubber_59
+0.246004,2.96,head,21.8607,head_geom,cube_shell_19
+0.246004,2.96,wheels,11.1949,wheel_fr_geom,cube_shell_41
+0.246004,2.96,tip supports,9.6347,tip_front_r,cube_shell_41
+0.246004,2.96,upper links,37.6364,rail0_5,cube_rubber_13
+0.246004,2.96,lower links,32.8442,rail1_6,cube_rubber_13
+0.246004,2.98,chassis,18.0488,chassis_geom,cube_rubber_59
+0.246004,2.98,head,20.2904,head_geom,cube_shell_19
+0.246004,2.98,wheels,9.5538,wheel_fr_geom,cube_shell_41
+0.246004,2.98,tip supports,7.8943,tip_front_r,cube_shell_41
+0.246004,2.98,upper links,37.3642,rail0_5,cube_rubber_13
+0.246004,2.98,lower links,32.331,rail1_6,cube_rubber_13
+0.246004,3.0,chassis,16.0904,chassis_geom,cube_rubber_59
+0.246004,3.0,head,18.7309,head_geom,cube_shell_19
+0.246004,3.0,wheels,7.9536,wheel_fr_geom,cube_shell_41
+0.246004,3.0,tip supports,6.2002,tip_front_r,cube_shell_41
+0.246004,3.0,upper links,37.058,rail0_5,cube_rubber_13
+0.246004,3.0,lower links,31.7771,rail1_6,cube_rubber_13
+0.246004,3.02,chassis,14.1658,chassis_geom,cube_rubber_59
+0.246004,3.02,head,17.166,head_geom,cube_shell_19
+0.246004,3.02,wheels,6.3842,wheel_fr_geom,cube_shell_41
+0.246004,3.02,tip supports,4.5432,tip_front_r,cube_shell_41
+0.246004,3.02,upper links,36.6808,rail0_5,cube_rubber_13
+0.246004,3.02,lower links,31.1591,rail1_6,cube_rubber_13
+0.246004,3.04,chassis,12.2763,chassis_geom,cube_rubber_59
+0.246004,3.04,head,15.6343,head_geom,cube_shell_19
+0.246004,3.04,wheels,4.8626,wheel_fr_geom,cube_shell_41
+0.246004,3.04,tip supports,2.937,tip_front_r,cube_shell_41
+0.246004,3.04,upper links,36.3003,rail0_5,cube_rubber_13
+0.246004,3.04,lower links,30.5454,rail1_6,cube_rubber_13
+0.246004,3.06,chassis,10.7315,chassis_geom,cube_rubber_59
+0.246004,3.06,head,14.4619,head_geom,cube_shell_19
+0.246004,3.06,wheels,3.6635,wheel_fr_geom,cube_shell_41
+0.246004,3.06,tip supports,1.6658,tip_front_r,cube_shell_41
+0.246004,3.06,upper links,36.103,rail0_5,cube_rubber_13
+0.246004,3.06,lower links,30.1522,rail1_6,cube_rubber_13
+0.246004,3.08,chassis,9.2465,chassis_geom,cube_rubber_59
+0.246004,3.08,head,13.3523,head_geom,cube_shell_19
+0.246004,3.08,wheels,2.5302,wheel_fr_geom,cube_shell_41
+0.246004,3.08,tip supports,0.4638,tip_front_r,cube_shell_41
+0.246004,3.08,upper links,35.9217,rail0_5,cube_rubber_13
+0.246004,3.08,lower links,29.7864,rail1_6,cube_rubber_13
+0.246004,3.1,chassis,7.7871,chassis_geom,cube_rubber_59
+0.246004,3.1,head,12.269,head_geom,cube_shell_19
+0.246004,3.1,wheels,1.4315,wheel_fr_geom,cube_shell_41
+0.246004,3.1,tip supports,-0.7009,tip_front_r,cube_shell_41
+0.246004,3.1,upper links,35.7344,rail0_5,cube_rubber_13
+0.246004,3.1,lower links,29.4232,rail1_6,cube_rubber_13
+0.246004,3.12,chassis,6.3204,chassis_geom,cube_rubber_59
+0.246004,3.12,head,11.1883,head_geom,cube_shell_19
+0.246004,3.12,wheels,0.37,wheel_fr_geom,cube_shell_41
+0.246004,3.12,tip supports,-1.8324,tip_front_r,cube_shell_41
+0.246004,3.12,upper links,35.6102,rail0_5,cube_rubber_13
+0.246004,3.12,lower links,29.114,rail1_6,cube_rubber_13
+0.246004,3.128174,chassis,5.7145,chassis_geom,cube_rubber_59
+0.246004,3.128174,head,10.7438,head_geom,cube_shell_19
+0.246004,3.128174,wheels,-0.0494,wheel_fr_geom,cube_shell_41
+0.246004,3.128174,tip supports,-2.2828,tip_front_r,cube_shell_41
+0.246004,3.128174,upper links,35.5915,rail0_5,cube_rubber_13
+0.246004,3.128174,lower links,29.0138,rail1_6,cube_rubber_13
+0.246004,3.14,chassis,4.8968,chassis_geom,cube_rubber_59
+0.246004,3.14,head,10.1106,head_geom,cube_shell_19
+0.246004,3.14,wheels,-0.6412,wheel_fr_geom,cube_shell_41
+0.246004,3.14,tip supports,-2.9179,tip_front_r,cube_shell_41
+0.246004,3.14,upper links,35.5587,rail0_5,cube_rubber_13
+0.246004,3.14,lower links,28.8674,rail1_6,cube_rubber_13
+0.246004,3.16,chassis,3.5245,chassis_geom,cube_shell_41
+0.246004,3.16,head,9.0657,head_geom,cube_shell_19
+0.246004,3.16,wheels,-1.6023,wheel_fr_geom,cube_shell_41
+0.246004,3.16,tip supports,-3.9488,tip_front_r,cube_shell_41
+0.246004,3.16,upper links,35.4868,rail0_5,cube_rubber_13
+0.246004,3.16,lower links,28.6151,rail1_6,cube_rubber_13
+0.246004,3.18,chassis,2.1062,chassis_geom,cube_shell_41
+0.246004,3.18,head,8.0498,head_geom,cube_shell_19
+0.246004,3.18,wheels,-2.5172,wheel_fr_geom,cube_shell_41
+0.246004,3.18,tip supports,-4.9295,tip_front_r,cube_shell_41
+0.246004,3.18,upper links,35.3795,rail0_5,cube_rubber_13
+0.246004,3.18,lower links,28.3455,rail1_6,cube_rubber_13
+0.246004,3.2,chassis,0.646,chassis_geom,cube_shell_41
+0.246004,3.2,head,7.0327,head_geom,cube_shell_19
+0.246004,3.2,wheels,-3.4173,wheel_fr_geom,cube_shell_41
+0.246004,3.2,tip supports,-5.8982,tip_front_r,cube_shell_41
+0.246004,3.2,upper links,35.3121,rail0_5,cube_rubber_13
+0.246004,3.2,lower links,28.1038,rail1_6,cube_rubber_13
+0.246004,3.22,chassis,-0.766,chassis_geom,cube_shell_41
+0.246004,3.22,head,6.0516,head_geom,cube_shell_19
+0.246004,3.22,wheels,-4.2596,wheel_fr_geom,cube_shell_41
+0.246004,3.22,tip supports,-6.8025,tip_front_r,cube_shell_41
+0.246004,3.22,upper links,35.213,rail0_5,cube_rubber_13
+0.246004,3.22,lower links,27.8475,rail1_6,cube_rubber_13
+0.246004,3.24,chassis,-2.0384,chassis_geom,cube_shell_41
+0.246004,3.24,head,5.1741,head_geom,cube_shell_19
+0.246004,3.24,wheels,-4.9839,wheel_fr_geom,cube_shell_41
+0.246004,3.24,tip supports,-7.5798,tip_front_r,cube_shell_41
+0.246004,3.24,upper links,35.1073,rail0_5,cube_rubber_13
+0.246004,3.24,lower links,27.6083,rail1_6,cube_rubber_13
+0.246004,3.26,chassis,-2.5964,chassis_geom,cube_shell_41
+0.246004,3.26,head,4.8362,head_geom,cube_shell_19
+0.246004,3.26,wheels,-5.2156,wheel_fr_geom,cube_shell_41
+0.246004,3.26,tip supports,-7.84,tip_front_r,cube_shell_41
+0.246004,3.26,upper links,35.1956,rail0_5,cube_rubber_13
+0.246004,3.26,lower links,27.6246,rail1_6,cube_rubber_13
+0.246004,3.28,chassis,-3.1402,chassis_geom,cube_shell_41
+0.246004,3.28,head,4.5071,head_geom,cube_shell_19
+0.246004,3.28,wheels,-5.431,wheel_fr_geom,cube_shell_41
+0.246004,3.28,tip supports,-8.0819,tip_front_r,cube_shell_41
+0.246004,3.28,upper links,35.2706,rail0_5,cube_rubber_13
+0.246004,3.28,lower links,27.6334,rail1_6,cube_rubber_13
+0.246004,3.3,chassis,-3.67,chassis_geom,cube_shell_41
+0.246004,3.3,head,4.1863,head_geom,cube_shell_19
+0.246004,3.3,wheels,-5.6307,wheel_fr_geom,cube_shell_41
+0.246004,3.3,tip supports,-8.3059,tip_front_r,cube_shell_41
+0.246004,3.3,upper links,35.3318,rail0_5,cube_rubber_13
+0.246004,3.3,lower links,27.6337,rail1_6,cube_rubber_13
+0.246004,3.32,chassis,-4.7478,chassis_geom,cube_shell_41
+0.246004,3.32,head,3.5162,head_geom,cube_shell_19
+0.246004,3.32,wheels,-6.0078,wheel_fr_geom,cube_shell_41
+0.246004,3.32,tip supports,-8.727,tip_front_r,cube_shell_41
+0.246004,3.32,upper links,35.3867,rail0_5,cube_rubber_13
+0.246004,3.32,lower links,27.5776,rail1_6,cube_rubber_13
+0.246004,3.34,chassis,-5.9554,chassis_geom,cube_shell_41
+0.246004,3.34,head,2.7547,head_geom,cube_shell_19
+0.246004,3.34,wheels,-6.3166,wheel_fr_geom,cube_shell_41
+0.246004,3.34,tip supports,-9.1166,tip_front_r,cube_shell_41
+0.246004,3.34,upper links,35.3555,rail0_5,cube_rubber_13
+0.246004,3.34,lower links,27.4442,rail1_6,cube_rubber_13
+0.246004,3.36,chassis,-6.968,chassis_geom,cube_shell_41
+0.246004,3.36,head,2.054,head_geom,cube_shell_19
+0.246004,3.36,wheels,-6.6112,wheel_fr_geom,cube_shell_26
+0.246004,3.36,tip supports,-9.3257,tip_front_r,cube_shell_26
+0.246004,3.36,upper links,35.1267,rail0_5,cube_rubber_13
+0.246004,3.36,lower links,27.1575,rail1_6,cube_rubber_13
+0.246004,3.38,chassis,-7.8174,chassis_geom,cube_shell_41
+0.246004,3.38,head,1.3965,head_geom,cube_shell_19
+0.246004,3.38,wheels,-6.9707,wheel_fr_geom,cube_shell_26
+0.246004,3.38,tip supports,-9.686,tip_front_r,cube_shell_26
+0.246004,3.38,upper links,34.7435,rail0_5,cube_rubber_13
+0.246004,3.38,lower links,26.745,rail1_6,cube_rubber_13
+0.246004,3.4,chassis,-8.6459,chassis_geom,cube_shell_41
+0.246004,3.4,head,0.7471,head_geom,cube_shell_19
+0.246004,3.4,wheels,-7.3109,wheel_fr_geom,cube_shell_26
+0.246004,3.4,tip supports,-10.0218,tip_front_r,cube_shell_26
+0.246004,3.4,upper links,34.287,rail0_5,cube_rubber_13
+0.246004,3.4,lower links,26.2697,rail1_6,cube_rubber_13
+0.246004,3.42,chassis,-9.3426,chassis_geom,cube_shell_41
+0.246004,3.42,head,0.1552,head_geom,cube_rubber_25
+0.246004,3.42,wheels,-7.589,wheel_fr_geom,cube_shell_26
+0.246004,3.42,tip supports,-10.2922,tip_front_r,cube_shell_26
+0.246004,3.42,upper links,33.8715,rail0_5,cube_rubber_13
+0.246004,3.42,lower links,25.8434,rail1_6,cube_rubber_13
+0.246004,3.44,chassis,-9.837,chassis_geom,cube_shell_41
+0.246004,3.44,head,-0.5185,head_geom,cube_rubber_25
+0.246004,3.44,wheels,-7.8078,wheel_fr_geom,cube_shell_26
+0.246004,3.44,tip supports,-10.5015,tip_front_r,cube_shell_26
+0.246004,3.44,upper links,33.6892,rail0_5,cube_rubber_13
+0.246004,3.44,lower links,25.6583,rail1_6,cube_rubber_13
+0.246004,3.46,chassis,-10.4655,chassis_geom,cube_shell_41
+0.246004,3.46,head,-1.2549,head_geom,cube_rubber_25
+0.246004,3.46,wheels,-8.0891,wheel_fr_geom,cube_shell_26
+0.246004,3.46,tip supports,-10.7678,tip_front_r,cube_shell_26
+0.246004,3.46,upper links,33.5004,rail0_5,cube_rubber_13
+0.246004,3.46,lower links,25.4683,rail1_6,cube_rubber_13
+0.246004,3.48,chassis,-10.7231,chassis_geom,cube_shell_41
+0.246004,3.48,head,-1.565,head_geom,cube_rubber_25
+0.246004,3.48,wheels,-8.1796,wheel_fr_geom,cube_shell_26
+0.246004,3.48,tip supports,-10.8525,tip_front_r,cube_shell_26
+0.246004,3.48,upper links,33.4507,rail0_5,cube_rubber_13
+0.246004,3.48,lower links,25.419,rail1_6,cube_rubber_13
+0.246004,3.5,chassis,-10.7469,chassis_geom,cube_shell_41
+0.246004,3.5,head,-1.6071,head_geom,cube_rubber_25
+0.246004,3.5,wheels,-8.1535,wheel_fr_geom,cube_shell_26
+0.246004,3.5,tip supports,-10.8278,tip_front_r,cube_shell_26
+0.246004,3.5,upper links,33.4895,rail0_5,cube_rubber_13
+0.246004,3.5,lower links,25.4583,rail1_6,cube_rubber_13
+1.604735,2.7,chassis,31.1267,chassis_geom,cube_shell_41
+1.604735,2.7,head,31.5604,head_geom,cube_shell_19
+1.604735,2.7,wheels,21.2769,wheel_fr_geom,cube_shell_41
+1.604735,2.7,tip supports,20.0081,tip_front_r,cube_shell_41
+1.604735,2.7,upper links,45.1197,rail0_5,cube_rubber_13
+1.604735,2.7,lower links,39.8647,rail1_6,cube_rubber_13
+1.604735,2.72,chassis,30.6561,chassis_geom,cube_shell_41
+1.604735,2.72,head,31.104,head_geom,cube_shell_19
+1.604735,2.72,wheels,20.7972,wheel_fr_geom,cube_shell_41
+1.604735,2.72,tip supports,19.5296,tip_front_r,cube_shell_41
+1.604735,2.72,upper links,44.4373,rail0_5,cube_rubber_13
+1.604735,2.72,lower links,39.2859,rail1_6,cube_rubber_13
+1.604735,2.74,chassis,30.177,chassis_geom,cube_shell_41
+1.604735,2.74,head,30.6444,head_geom,cube_shell_19
+1.604735,2.74,wheels,20.3113,wheel_fr_geom,cube_shell_41
+1.604735,2.74,tip supports,19.0436,tip_front_r,cube_shell_41
+1.604735,2.74,upper links,43.7764,rail0_5,cube_rubber_13
+1.604735,2.74,lower links,38.7305,rail1_6,cube_rubber_13
+1.604735,2.76,chassis,29.6979,chassis_geom,cube_shell_41
+1.604735,2.76,head,30.1847,head_geom,cube_shell_19
+1.604735,2.76,wheels,19.8253,wheel_fr_geom,cube_shell_41
+1.604735,2.76,tip supports,18.5576,tip_front_r,cube_shell_41
+1.604735,2.76,upper links,43.1259,rail0_5,cube_rubber_13
+1.604735,2.76,lower links,38.1898,rail1_6,cube_rubber_13
+1.604735,2.78,chassis,29.2233,chassis_geom,cube_shell_41
+1.604735,2.78,head,29.7367,head_geom,cube_shell_19
+1.604735,2.78,wheels,19.359,wheel_fr_geom,cube_shell_41
+1.604735,2.78,tip supports,18.0872,tip_front_r,cube_shell_41
+1.604735,2.78,upper links,42.5762,rail0_5,cube_rubber_13
+1.604735,2.78,lower links,37.7238,rail1_6,cube_rubber_13
+1.604735,2.8,chassis,28.7344,chassis_geom,cube_rubber_59
+1.604735,2.8,head,29.2967,head_geom,cube_shell_19
+1.604735,2.8,wheels,18.9058,wheel_fr_geom,cube_shell_41
+1.604735,2.8,tip supports,17.627,tip_front_r,cube_shell_41
+1.604735,2.8,upper links,42.0942,rail0_5,cube_rubber_13
+1.604735,2.8,lower links,37.3125,rail1_6,cube_rubber_13
+1.604735,2.82,chassis,28.208,chassis_geom,cube_rubber_59
+1.604735,2.82,head,28.857,head_geom,cube_shell_19
+1.604735,2.82,wheels,18.4528,wheel_fr_geom,cube_shell_41
+1.604735,2.82,tip supports,17.1671,tip_front_r,cube_shell_41
+1.604735,2.82,upper links,41.6205,rail0_5,cube_rubber_13
+1.604735,2.82,lower links,36.9125,rail1_6,cube_rubber_13
+1.604735,2.84,chassis,27.6977,chassis_geom,cube_rubber_59
+1.604735,2.84,head,28.4176,head_geom,cube_shell_19
+1.604735,2.84,wheels,18.0,wheel_fr_geom,cube_shell_41
+1.604735,2.84,tip supports,16.7075,tip_front_r,cube_shell_41
+1.604735,2.84,upper links,41.1555,rail0_5,cube_rubber_13
+1.604735,2.84,lower links,36.5243,rail1_6,cube_rubber_13
+1.604735,2.86,chassis,26.375,chassis_geom,cube_rubber_59
+1.604735,2.86,head,27.2279,head_geom,cube_shell_19
+1.604735,2.86,wheels,16.7739,wheel_fr_geom,cube_shell_41
+1.604735,2.86,tip supports,15.456,tip_front_r,cube_shell_41
+1.604735,2.86,upper links,40.0632,rail0_5,cube_rubber_13
+1.604735,2.86,lower links,35.5969,rail1_6,cube_rubber_13
+1.604735,2.88,chassis,24.7508,chassis_geom,cube_rubber_59
+1.604735,2.88,head,25.7628,head_geom,cube_shell_19
+1.604735,2.88,wheels,15.263,wheel_fr_geom,cube_shell_41
+1.604735,2.88,tip supports,13.9054,tip_front_r,cube_shell_41
+1.604735,2.88,upper links,38.9391,rail0_5,cube_rubber_13
+1.604735,2.88,lower links,34.5638,rail1_6,cube_rubber_13
+1.604735,2.9,chassis,24.1657,chassis_geom,cube_rubber_59
+1.604735,2.9,head,25.274,head_geom,cube_shell_19
+1.604735,2.9,wheels,14.7576,wheel_fr_geom,cube_shell_41
+1.604735,2.9,tip supports,13.3725,tip_front_r,cube_shell_41
+1.604735,2.9,upper links,38.7933,rail0_5,cube_rubber_13
+1.604735,2.9,lower links,34.3761,rail1_6,cube_rubber_13
+1.604735,2.92,chassis,23.5833,chassis_geom,cube_rubber_59
+1.604735,2.92,head,24.7876,head_geom,cube_shell_19
+1.604735,2.92,wheels,14.2562,wheel_fr_geom,cube_shell_41
+1.604735,2.92,tip supports,12.8435,tip_front_r,cube_shell_41
+1.604735,2.92,upper links,38.6504,rail0_5,cube_rubber_13
+1.604735,2.92,lower links,34.1892,rail1_6,cube_rubber_13
+1.604735,2.94,chassis,22.0784,chassis_geom,cube_rubber_59
+1.604735,2.94,head,23.5799,head_geom,cube_shell_19
+1.604735,2.94,wheels,12.9862,wheel_fr_geom,cube_shell_41
+1.604735,2.94,tip supports,11.4987,tip_front_r,cube_shell_41
+1.604735,2.94,upper links,38.4025,rail0_5,cube_rubber_13
+1.604735,2.94,lower links,33.7902,rail1_6,cube_rubber_13
+1.604735,2.96,chassis,20.0436,chassis_geom,cube_rubber_59
+1.604735,2.96,head,21.9668,head_geom,cube_shell_19
+1.604735,2.96,wheels,11.2935,wheel_fr_geom,cube_shell_41
+1.604735,2.96,tip supports,9.7046,tip_front_r,cube_shell_41
+1.604735,2.96,upper links,38.1056,rail0_5,cube_rubber_13
+1.604735,2.96,lower links,33.2543,rail1_6,cube_rubber_13
+1.604735,2.98,chassis,18.0473,chassis_geom,cube_rubber_59
+1.604735,2.98,head,20.395,head_geom,cube_shell_19
+1.604735,2.98,wheels,9.6563,wheel_fr_geom,cube_shell_41
+1.604735,2.98,tip supports,7.9689,tip_front_r,cube_shell_41
+1.604735,2.98,upper links,37.8295,rail0_5,cube_rubber_13
+1.604735,2.98,lower links,32.7312,rail1_6,cube_rubber_13
+1.604735,3.0,chassis,16.0892,chassis_geom,cube_rubber_59
+1.604735,3.0,head,18.8349,head_geom,cube_shell_19
+1.604735,3.0,wheels,8.0608,wheel_fr_geom,cube_shell_41
+1.604735,3.0,tip supports,6.2805,tip_front_r,cube_shell_41
+1.604735,3.0,upper links,37.5174,rail0_5,cube_rubber_13
+1.604735,3.0,lower links,32.1679,rail1_6,cube_rubber_13
+1.604735,3.02,chassis,14.1665,chassis_geom,cube_rubber_59
+1.604735,3.02,head,17.2704,head_geom,cube_shell_19
+1.604735,3.02,wheels,6.4973,wheel_fr_geom,cube_shell_41
+1.604735,3.02,tip supports,4.6303,tip_front_r,cube_shell_41
+1.604735,3.02,upper links,37.1308,rail0_5,cube_rubber_13
+1.604735,3.02,lower links,31.5414,rail1_6,cube_rubber_13
+1.604735,3.04,chassis,12.2789,chassis_geom,cube_rubber_59
+1.604735,3.04,head,15.739,head_geom,cube_shell_19
+1.604735,3.04,wheels,4.9813,wheel_fr_geom,cube_shell_41
+1.604735,3.04,tip supports,3.0307,tip_front_r,cube_shell_41
+1.604735,3.04,upper links,36.7397,rail0_5,cube_rubber_13
+1.604735,3.04,lower links,30.9188,rail1_6,cube_rubber_13
+1.604735,3.06,chassis,10.7395,chassis_geom,cube_rubber_59
+1.604735,3.06,head,14.5713,head_geom,cube_shell_19
+1.604735,3.06,wheels,3.7911,wheel_fr_geom,cube_shell_41
+1.604735,3.06,tip supports,1.7691,tip_front_r,cube_shell_41
+1.604735,3.06,upper links,36.5356,rail0_5,cube_rubber_13
+1.604735,3.06,lower links,30.5219,rail1_6,cube_rubber_13
+1.604735,3.08,chassis,9.2603,chassis_geom,cube_rubber_59
+1.604735,3.08,head,13.4666,head_geom,cube_shell_19
+1.604735,3.08,wheels,2.6667,wheel_fr_geom,cube_shell_41
+1.604735,3.08,tip supports,0.577,tip_front_r,cube_shell_41
+1.604735,3.08,upper links,36.3477,rail0_5,cube_rubber_13
+1.604735,3.08,lower links,30.1526,rail1_6,cube_rubber_13
+1.604735,3.1,chassis,7.8066,chassis_geom,cube_rubber_59
+1.604735,3.1,head,12.3879,head_geom,cube_shell_19
+1.604735,3.1,wheels,1.5768,wheel_fr_geom,cube_shell_41
+1.604735,3.1,tip supports,-0.578,tip_front_r,cube_shell_41
+1.604735,3.1,upper links,36.1535,rail0_5,cube_rubber_13
+1.604735,3.1,lower links,29.7859,rail1_6,cube_rubber_13
+1.604735,3.12,chassis,6.3489,chassis_geom,cube_rubber_59
+1.604735,3.12,head,11.3143,head_geom,cube_shell_19
+1.604735,3.12,wheels,0.5273,wheel_fr_geom,cube_shell_41
+1.604735,3.12,tip supports,-1.6964,tip_front_r,cube_shell_41
+1.604735,3.12,upper links,36.0231,rail0_5,cube_rubber_13
+1.604735,3.12,lower links,29.4749,rail1_6,cube_rubber_13
+1.604735,3.128174,chassis,5.7512,chassis_geom,cube_rubber_59
+1.604735,3.128174,head,10.874,head_geom,cube_shell_19
+1.604735,3.128174,wheels,0.1145,wheel_fr_geom,cube_shell_41
+1.604735,3.128174,tip supports,-2.1396,tip_front_r,cube_shell_41
+1.604735,3.128174,upper links,36.0024,rail0_5,cube_rubber_13
+1.604735,3.128174,lower links,29.3746,rail1_6,cube_rubber_13
+1.604735,3.14,chassis,4.9575,chassis_geom,cube_rubber_59
+1.604735,3.14,head,10.2467,head_geom,cube_shell_19
+1.604735,3.14,wheels,-0.4678,wheel_fr_geom,cube_shell_41
+1.604735,3.14,tip supports,-2.7646,tip_front_r,cube_shell_41
+1.604735,3.14,upper links,35.9665,rail0_5,cube_rubber_13
+1.604735,3.14,lower links,29.2281,rail1_6,cube_rubber_13
+1.604735,3.16,chassis,3.571,chassis_geom,cube_shell_41
+1.604735,3.16,head,9.2114,head_geom,cube_shell_19
+1.604735,3.16,wheels,-1.4132,wheel_fr_geom,cube_shell_41
+1.604735,3.16,tip supports,-3.7785,tip_front_r,cube_shell_41
+1.604735,3.16,upper links,35.8876,rail0_5,cube_rubber_13
+1.604735,3.16,lower links,28.9754,rail1_6,cube_rubber_13
+1.604735,3.18,chassis,2.173,chassis_geom,cube_shell_41
+1.604735,3.18,head,8.2051,head_geom,cube_shell_19
+1.604735,3.18,wheels,-2.3125,wheel_fr_geom,cube_shell_41
+1.604735,3.18,tip supports,-4.7422,tip_front_r,cube_shell_41
+1.604735,3.18,upper links,35.7703,rail0_5,cube_rubber_13
+1.604735,3.18,lower links,28.7018,rail1_6,cube_rubber_13
+1.604735,3.2,chassis,0.7309,chassis_geom,cube_shell_41
+1.604735,3.2,head,7.2018,head_geom,cube_shell_19
+1.604735,3.2,wheels,-3.1919,wheel_fr_geom,cube_shell_41
+1.604735,3.2,tip supports,-5.6887,tip_front_r,cube_shell_41
+1.604735,3.2,upper links,35.701,rail0_5,cube_rubber_13
+1.604735,3.2,lower links,28.4609,rail1_6,cube_rubber_13
+1.604735,3.22,chassis,-0.6634,chassis_geom,cube_shell_41
+1.604735,3.22,head,6.234,head_geom,cube_shell_19
+1.604735,3.22,wheels,-4.0141,wheel_fr_geom,cube_shell_41
+1.604735,3.22,tip supports,-6.5713,tip_front_r,cube_shell_41
+1.604735,3.22,upper links,35.5989,rail0_5,cube_rubber_13
+1.604735,3.22,lower links,28.2048,rail1_6,cube_rubber_13
+1.604735,3.24,chassis,-1.9189,chassis_geom,cube_shell_41
+1.604735,3.24,head,5.3687,head_geom,cube_shell_19
+1.604735,3.24,wheels,-4.7198,wheel_fr_geom,cube_shell_41
+1.604735,3.24,tip supports,-7.3284,tip_front_r,cube_shell_41
+1.604735,3.24,upper links,35.4897,rail0_5,cube_rubber_13
+1.604735,3.24,lower links,27.9655,rail1_6,cube_rubber_13
+1.604735,3.26,chassis,-2.4652,chassis_geom,cube_shell_41
+1.604735,3.26,head,5.0396,head_geom,cube_shell_19
+1.604735,3.26,wheels,-4.9387,wheel_fr_geom,cube_shell_41
+1.604735,3.26,tip supports,-7.575,tip_front_r,cube_shell_41
+1.604735,3.26,upper links,35.5775,rail0_5,cube_rubber_13
+1.604735,3.26,lower links,27.9827,rail1_6,cube_rubber_13
+1.604735,3.28,chassis,-2.9973,chassis_geom,cube_shell_41
+1.604735,3.28,head,4.7191,head_geom,cube_shell_19
+1.604735,3.28,wheels,-5.1416,wheel_fr_geom,cube_shell_41
+1.604735,3.28,tip supports,-7.8034,tip_front_r,cube_shell_41
+1.604735,3.28,upper links,35.6519,rail0_5,cube_rubber_13
+1.604735,3.28,lower links,27.9919,rail1_6,cube_rubber_13
+1.604735,3.3,chassis,-3.5155,chassis_geom,cube_shell_41
+1.604735,3.3,head,4.4067,head_geom,cube_shell_19
+1.604735,3.3,wheels,-5.3289,wheel_fr_geom,cube_shell_41
+1.604735,3.3,tip supports,-8.0142,tip_front_r,cube_shell_41
+1.604735,3.3,upper links,35.712,rail0_5,cube_rubber_13
+1.604735,3.3,lower links,27.9924,rail1_6,cube_rubber_13
+1.604735,3.32,chassis,-4.5676,chassis_geom,cube_shell_41
+1.604735,3.32,head,3.7552,head_geom,cube_shell_19
+1.604735,3.32,wheels,-5.6793,wheel_fr_geom,cube_shell_41
+1.604735,3.32,tip supports,-8.4066,tip_front_r,cube_shell_41
+1.604735,3.32,upper links,35.7652,rail0_5,cube_rubber_13
+1.604735,3.32,lower links,27.938,rail1_6,cube_rubber_13
+1.604735,3.34,chassis,-5.7451,chassis_geom,cube_shell_41
+1.604735,3.34,head,3.015,head_geom,cube_shell_19
+1.604735,3.34,wheels,-5.9302,wheel_fr_geom,cube_shell_41
+1.604735,3.34,tip supports,-8.7301,tip_front_r,cube_shell_41
+1.604735,3.34,upper links,35.7306,rail0_5,cube_rubber_13
+1.604735,3.34,lower links,27.8064,rail1_6,cube_rubber_13
+1.604735,3.36,chassis,-6.7339,chassis_geom,cube_shell_41
+1.604735,3.36,head,2.3309,head_geom,cube_shell_19
+1.604735,3.36,wheels,-6.2327,wheel_fr_geom,cube_shell_26
+1.604735,3.36,tip supports,-8.9583,tip_front_r,cube_shell_26
+1.604735,3.36,upper links,35.4984,rail0_5,cube_rubber_13
+1.604735,3.36,lower links,27.521,rail1_6,cube_rubber_13
+1.604735,3.38,chassis,-7.5657,chassis_geom,cube_shell_41
+1.604735,3.38,head,1.6855,head_geom,cube_shell_19
+1.604735,3.38,wheels,-6.576,wheel_fr_geom,cube_shell_26
+1.604735,3.38,tip supports,-9.3032,tip_front_r,cube_shell_26
+1.604735,3.38,upper links,35.0995,rail0_5,cube_rubber_13
+1.604735,3.38,lower links,27.1005,rail1_6,cube_rubber_13
+1.604735,3.4,chassis,-8.377,chassis_geom,cube_shell_41
+1.604735,3.4,head,1.0479,head_geom,cube_shell_19
+1.604735,3.4,wheels,-6.9005,wheel_fr_geom,cube_shell_26
+1.604735,3.4,tip supports,-9.6247,tip_front_r,cube_shell_26
+1.604735,3.4,upper links,34.6409,rail0_5,cube_rubber_13
+1.604735,3.4,lower links,26.624,rail1_6,cube_rubber_13
+1.604735,3.42,chassis,-9.1652,chassis_geom,cube_shell_41
+1.604735,3.42,head,0.1414,head_geom,cube_rubber_25
+1.604735,3.42,wheels,-7.2218,wheel_fr_geom,cube_shell_26
+1.604735,3.42,tip supports,-9.9381,tip_front_r,cube_shell_26
+1.604735,3.42,upper links,34.2237,rail0_5,cube_rubber_13
+1.604735,3.42,lower links,26.1981,rail1_6,cube_rubber_13
+1.604735,3.44,chassis,-9.8911,chassis_geom,cube_shell_26
+1.604735,3.44,head,-0.5858,head_geom,cube_rubber_25
+1.604735,3.44,wheels,-7.4998,wheel_fr_geom,cube_shell_26
+1.604735,3.44,tip supports,-10.2058,tip_front_r,cube_shell_26
+1.604735,3.44,upper links,34.0407,rail0_5,cube_rubber_13
+1.604735,3.44,lower links,26.0132,rail1_6,cube_rubber_13
+1.604735,3.46,chassis,-10.4155,chassis_geom,cube_shell_41
+1.604735,3.46,head,-1.3251,head_geom,cube_rubber_25
+1.604735,3.46,wheels,-7.7746,wheel_fr_geom,cube_shell_26
+1.604735,3.46,tip supports,-10.4684,tip_front_r,cube_shell_26
+1.604735,3.46,upper links,33.8511,rail0_5,cube_rubber_13
+1.604735,3.46,lower links,25.8233,rail1_6,cube_rubber_13
+1.604735,3.48,chassis,-10.6747,chassis_geom,cube_shell_41
+1.604735,3.48,head,-1.6365,head_geom,cube_rubber_25
+1.604735,3.48,wheels,-7.8621,wheel_fr_geom,cube_shell_26
+1.604735,3.48,tip supports,-10.551,tip_front_r,cube_shell_26
+1.604735,3.48,upper links,33.5561,rail0_19,cube_rubber_25
+1.604735,3.48,lower links,25.7738,rail1_6,cube_rubber_13
+1.604735,3.5,chassis,-10.6989,chassis_geom,cube_shell_41
+1.604735,3.5,head,-1.679,head_geom,cube_rubber_25
+1.604735,3.5,wheels,-7.8353,wheel_fr_geom,cube_shell_26
+1.604735,3.5,tip supports,-10.5252,tip_front_r,cube_shell_26
+1.604735,3.5,upper links,33.5062,rail0_19,cube_rubber_25
+1.604735,3.5,lower links,25.8131,rail1_6,cube_rubber_13
+1.971984,2.7,chassis,31.1786,chassis_geom,cube_shell_41
+1.971984,2.7,head,31.5882,head_geom,cube_shell_19
+1.971984,2.7,wheels,21.3098,wheel_fr_geom,cube_shell_41
+1.971984,2.7,tip supports,20.0479,tip_front_r,cube_shell_41
+1.971984,2.7,upper links,45.0852,rail0_5,cube_rubber_13
+1.971984,2.7,lower links,39.8331,rail1_6,cube_rubber_13
+1.971984,2.72,chassis,30.7106,chassis_geom,cube_shell_41
+1.971984,2.72,head,31.1343,head_geom,cube_shell_19
+1.971984,2.72,wheels,20.8328,wheel_fr_geom,cube_shell_41
+1.971984,2.72,tip supports,19.572,tip_front_r,cube_shell_41
+1.971984,2.72,upper links,44.4031,rail0_5,cube_rubber_13
+1.971984,2.72,lower links,39.2547,rail1_6,cube_rubber_13
+1.971984,2.74,chassis,30.2341,chassis_geom,cube_shell_41
+1.971984,2.74,head,30.6771,head_geom,cube_shell_19
+1.971984,2.74,wheels,20.3495,wheel_fr_geom,cube_shell_41
+1.971984,2.74,tip supports,19.0887,tip_front_r,cube_shell_41
+1.971984,2.74,upper links,43.7425,rail0_5,cube_rubber_13
+1.971984,2.74,lower links,38.6998,rail1_6,cube_rubber_13
+1.971984,2.76,chassis,29.7576,chassis_geom,cube_shell_41
+1.971984,2.76,head,30.2198,head_geom,cube_shell_19
+1.971984,2.76,wheels,19.8662,wheel_fr_geom,cube_shell_41
+1.971984,2.76,tip supports,18.6054,tip_front_r,cube_shell_41
+1.971984,2.76,upper links,43.0923,rail0_5,cube_rubber_13
+1.971984,2.76,lower links,38.1594,rail1_6,cube_rubber_13
+1.971984,2.78,chassis,29.2851,chassis_geom,cube_shell_41
+1.971984,2.78,head,29.7739,head_geom,cube_shell_19
+1.971984,2.78,wheels,19.4021,wheel_fr_geom,cube_shell_41
+1.971984,2.78,tip supports,18.1371,tip_front_r,cube_shell_41
+1.971984,2.78,upper links,42.5429,rail0_5,cube_rubber_13
+1.971984,2.78,lower links,37.6937,rail1_6,cube_rubber_13
+1.971984,2.8,chassis,28.8022,chassis_geom,cube_rubber_59
+1.971984,2.8,head,29.3358,head_geom,cube_shell_19
+1.971984,2.8,wheels,18.9507,wheel_fr_geom,cube_shell_41
+1.971984,2.8,tip supports,17.6788,tip_front_r,cube_shell_41
+1.971984,2.8,upper links,42.0612,rail0_5,cube_rubber_13
+1.971984,2.8,lower links,37.2828,rail1_6,cube_rubber_13
+1.971984,2.82,chassis,28.2766,chassis_geom,cube_rubber_59
+1.971984,2.82,head,28.8979,head_geom,cube_shell_19
+1.971984,2.82,wheels,18.4995,wheel_fr_geom,cube_shell_41
+1.971984,2.82,tip supports,17.2207,tip_front_r,cube_shell_41
+1.971984,2.82,upper links,41.5878,rail0_5,cube_rubber_13
+1.971984,2.82,lower links,36.8833,rail1_6,cube_rubber_13
+1.971984,2.84,chassis,27.7672,chassis_geom,cube_rubber_59
+1.971984,2.84,head,28.4603,head_geom,cube_shell_19
+1.971984,2.84,wheels,18.0486,wheel_fr_geom,cube_shell_41
+1.971984,2.84,tip supports,16.7629,tip_front_r,cube_shell_41
+1.971984,2.84,upper links,41.1232,rail0_5,cube_rubber_13
+1.971984,2.84,lower links,36.4956,rail1_6,cube_rubber_13
+1.971984,2.86,chassis,26.4471,chassis_geom,cube_rubber_59
+1.971984,2.86,head,27.2749,head_geom,cube_shell_19
+1.971984,2.86,wheels,16.8267,wheel_fr_geom,cube_shell_41
+1.971984,2.86,tip supports,15.5157,tip_front_r,cube_shell_41
+1.971984,2.86,upper links,40.0319,rail0_5,cube_rubber_13
+1.971984,2.86,lower links,35.5708,rail1_6,cube_rubber_13
+1.971984,2.88,chassis,24.8276,chassis_geom,cube_rubber_59
+1.971984,2.88,head,25.8145,head_geom,cube_shell_19
+1.971984,2.88,wheels,15.3202,wheel_fr_geom,cube_shell_41
+1.971984,2.88,tip supports,13.9694,tip_front_r,cube_shell_41
+1.971984,2.88,upper links,38.9092,rail0_5,cube_rubber_13
+1.971984,2.88,lower links,34.5428,rail1_6,cube_rubber_13
+1.971984,2.9,chassis,24.243,chassis_geom,cube_rubber_59
+1.971984,2.9,head,25.3262,head_geom,cube_shell_19
+1.971984,2.9,wheels,14.815,wheel_fr_geom,cube_shell_41
+1.971984,2.9,tip supports,13.4365,tip_front_r,cube_shell_41
+1.971984,2.9,upper links,38.7636,rail0_5,cube_rubber_13
+1.971984,2.9,lower links,34.356,rail1_6,cube_rubber_13
+1.971984,2.92,chassis,23.661,chassis_geom,cube_rubber_59
+1.971984,2.92,head,24.8403,head_geom,cube_shell_19
+1.971984,2.92,wheels,14.3137,wheel_fr_geom,cube_shell_41
+1.971984,2.92,tip supports,12.9078,tip_front_r,cube_shell_41
+1.971984,2.92,upper links,38.6211,rail0_5,cube_rubber_13
+1.971984,2.92,lower links,34.1701,rail1_6,cube_rubber_13
+1.971984,2.94,chassis,22.1564,chassis_geom,cube_rubber_59
+1.971984,2.94,head,23.6328,head_geom,cube_shell_19
+1.971984,2.94,wheels,13.0433,wheel_fr_geom,cube_shell_41
+1.971984,2.94,tip supports,11.5623,tip_front_r,cube_shell_41
+1.971984,2.94,upper links,38.3736,rail0_5,cube_rubber_13
+1.971984,2.94,lower links,33.774,rail1_6,cube_rubber_13
+1.971984,2.96,chassis,20.1218,chassis_geom,cube_rubber_59
+1.971984,2.96,head,22.0198,head_geom,cube_shell_19
+1.971984,2.96,wheels,11.3496,wheel_fr_geom,cube_shell_41
+1.971984,2.96,tip supports,9.767,tip_front_r,cube_shell_41
+1.971984,2.96,upper links,38.0772,rail0_5,cube_rubber_13
+1.971984,2.96,lower links,33.24,rail1_6,cube_rubber_13
+1.971984,2.98,chassis,18.1257,chassis_geom,cube_rubber_59
+1.971984,2.98,head,20.4481,head_geom,cube_shell_19
+1.971984,2.98,wheels,9.7115,wheel_fr_geom,cube_shell_41
+1.971984,2.98,tip supports,8.0303,tip_front_r,cube_shell_41
+1.971984,2.98,upper links,37.8018,rail0_5,cube_rubber_13
+1.971984,2.98,lower links,32.7188,rail1_6,cube_rubber_13
+1.971984,3.0,chassis,16.1675,chassis_geom,cube_rubber_59
+1.971984,3.0,head,18.8879,head_geom,cube_shell_19
+1.971984,3.0,wheels,8.115,wheel_fr_geom,cube_shell_41
+1.971984,3.0,tip supports,6.3406,tip_front_r,cube_shell_41
+1.971984,3.0,upper links,37.4909,rail0_5,cube_rubber_13
+1.971984,3.0,lower links,32.1573,rail1_6,cube_rubber_13
+1.971984,3.02,chassis,14.2443,chassis_geom,cube_rubber_59
+1.971984,3.02,head,17.3231,head_geom,cube_shell_19
+1.971984,3.02,wheels,6.5502,wheel_fr_geom,cube_shell_41
+1.971984,3.02,tip supports,4.6889,tip_front_r,cube_shell_41
+1.971984,3.02,upper links,37.1064,rail0_5,cube_rubber_13
+1.971984,3.02,lower links,31.5324,rail1_6,cube_rubber_13
+1.971984,3.04,chassis,12.3562,chassis_geom,cube_rubber_59
+1.971984,3.04,head,15.7914,head_geom,cube_shell_19
+1.971984,3.04,wheels,5.0329,wheel_fr_geom,cube_shell_41
+1.971984,3.04,tip supports,3.0878,tip_front_r,cube_shell_41
+1.971984,3.04,upper links,36.7175,rail0_5,cube_rubber_13
+1.971984,3.04,lower links,30.9115,rail1_6,cube_rubber_13
+1.971984,3.06,chassis,10.8157,chassis_geom,cube_rubber_59
+1.971984,3.06,head,14.6224,head_geom,cube_shell_19
+1.971984,3.06,wheels,3.8407,wheel_fr_geom,cube_shell_41
+1.971984,3.06,tip supports,1.824,tip_front_r,cube_shell_41
+1.971984,3.06,upper links,36.5148,rail0_5,cube_rubber_13
+1.971984,3.06,lower links,30.5152,rail1_6,cube_rubber_13
+1.971984,3.08,chassis,9.3352,chassis_geom,cube_rubber_59
+1.971984,3.08,head,13.5165,head_geom,cube_shell_19
+1.971984,3.08,wheels,2.7143,wheel_fr_geom,cube_shell_41
+1.971984,3.08,tip supports,0.6297,tip_front_r,cube_shell_41
+1.971984,3.08,upper links,36.328,rail0_5,cube_rubber_13
+1.971984,3.08,lower links,30.1465,rail1_6,cube_rubber_13
+1.971984,3.1,chassis,7.8802,chassis_geom,cube_rubber_59
+1.971984,3.1,head,12.4366,head_geom,cube_shell_19
+1.971984,3.1,wheels,1.6224,wheel_fr_geom,cube_shell_41
+1.971984,3.1,tip supports,-0.5275,tip_front_r,cube_shell_41
+1.971984,3.1,upper links,36.1352,rail0_5,cube_rubber_13
+1.971984,3.1,lower links,29.7803,rail1_6,cube_rubber_13
+1.971984,3.12,chassis,6.4205,chassis_geom,cube_rubber_59
+1.971984,3.12,head,11.3612,head_geom,cube_shell_19
+1.971984,3.12,wheels,0.5702,wheel_fr_geom,cube_shell_41
+1.971984,3.12,tip supports,-1.6488,tip_front_r,cube_shell_41
+1.971984,3.12,upper links,36.0059,rail0_5,cube_rubber_13
+1.971984,3.12,lower links,29.4694,rail1_6,cube_rubber_13
+1.971984,3.128174,chassis,5.821,chassis_geom,cube_rubber_59
+1.971984,3.128174,head,10.9199,head_geom,cube_shell_19
+1.971984,3.128174,wheels,0.156,wheel_fr_geom,cube_shell_41
+1.971984,3.128174,tip supports,-2.0936,tip_front_r,cube_shell_41
+1.971984,3.128174,upper links,35.9855,rail0_5,cube_rubber_13
+1.971984,3.128174,lower links,29.3691,rail1_6,cube_rubber_13
+1.971984,3.14,chassis,5.0224,chassis_geom,cube_rubber_59
+1.971984,3.14,head,10.2911,head_geom,cube_shell_19
+1.971984,3.14,wheels,-0.4284,wheel_fr_geom,cube_shell_41
+1.971984,3.14,tip supports,-2.7208,tip_front_r,cube_shell_41
+1.971984,3.14,upper links,35.9502,rail0_5,cube_rubber_13
+1.971984,3.14,lower links,29.2226,rail1_6,cube_rubber_13
+1.971984,3.16,chassis,3.6376,chassis_geom,cube_shell_41
+1.971984,3.16,head,9.2535,head_geom,cube_shell_19
+1.971984,3.16,wheels,-1.3773,wheel_fr_geom,cube_shell_41
+1.971984,3.16,tip supports,-3.7385,tip_front_r,cube_shell_41
+1.971984,3.16,upper links,35.8735,rail0_5,cube_rubber_13
+1.971984,3.16,lower links,28.9699,rail1_6,cube_rubber_13
+1.971984,3.18,chassis,2.236,chassis_geom,cube_shell_41
+1.971984,3.18,head,8.2449,head_geom,cube_shell_19
+1.971984,3.18,wheels,-2.28,wheel_fr_geom,cube_shell_41
+1.971984,3.18,tip supports,-4.7059,tip_front_r,cube_shell_41
+1.971984,3.18,upper links,35.7572,rail0_5,cube_rubber_13
+1.971984,3.18,lower links,28.6969,rail1_6,cube_rubber_13
+1.971984,3.2,chassis,0.7899,chassis_geom,cube_shell_41
+1.971984,3.2,head,7.2384,head_geom,cube_shell_19
+1.971984,3.2,wheels,-3.1641,wheel_fr_geom,cube_shell_41
+1.971984,3.2,tip supports,-5.6574,tip_front_r,cube_shell_41
+1.971984,3.2,upper links,35.6884,rail0_5,cube_rubber_13
+1.971984,3.2,lower links,28.4559,rail1_6,cube_rubber_13
+1.971984,3.22,chassis,-0.6083,chassis_geom,cube_shell_41
+1.971984,3.22,head,6.2674,head_geom,cube_shell_19
+1.971984,3.22,wheels,-3.9907,wheel_fr_geom,cube_shell_41
+1.971984,3.22,tip supports,-6.5448,tip_front_r,cube_shell_41
+1.971984,3.22,upper links,35.5869,rail0_5,cube_rubber_13
+1.971984,3.22,lower links,28.1997,rail1_6,cube_rubber_13
+1.971984,3.24,chassis,-1.8676,chassis_geom,cube_shell_41
+1.971984,3.24,head,5.3993,head_geom,cube_shell_19
+1.971984,3.24,wheels,-4.7005,wheel_fr_geom,cube_shell_41
+1.971984,3.24,tip supports,-7.3063,tip_front_r,cube_shell_41
+1.971984,3.24,upper links,35.4785,rail0_5,cube_rubber_13
+1.971984,3.24,lower links,27.9604,rail1_6,cube_rubber_13
+1.971984,3.26,chassis,-2.4165,chassis_geom,cube_shell_41
+1.971984,3.26,head,5.0681,head_geom,cube_shell_19
+1.971984,3.26,wheels,-4.9223,wheel_fr_geom,cube_shell_41
+1.971984,3.26,tip supports,-7.556,tip_front_r,cube_shell_41
+1.971984,3.26,upper links,35.5664,rail0_5,cube_rubber_13
+1.971984,3.26,lower links,27.9774,rail1_6,cube_rubber_13
+1.971984,3.28,chassis,-2.9512,chassis_geom,cube_shell_41
+1.971984,3.28,head,4.7456,head_geom,cube_shell_19
+1.971984,3.28,wheels,-5.128,wheel_fr_geom,cube_shell_41
+1.971984,3.28,tip supports,-7.7874,tip_front_r,cube_shell_41
+1.971984,3.28,upper links,35.6409,rail0_5,cube_rubber_13
+1.971984,3.28,lower links,27.9866,rail1_6,cube_rubber_13
+1.971984,3.3,chassis,-3.4719,chassis_geom,cube_shell_41
+1.971984,3.3,head,4.4313,head_geom,cube_shell_19
+1.971984,3.3,wheels,-5.318,wheel_fr_geom,cube_shell_41
+1.971984,3.3,tip supports,-8.0011,tip_front_r,cube_shell_41
+1.971984,3.3,upper links,35.7013,rail0_5,cube_rubber_13
+1.971984,3.3,lower links,27.9869,rail1_6,cube_rubber_13
+1.971984,3.32,chassis,-4.5297,chassis_geom,cube_shell_41
+1.971984,3.32,head,3.7755,head_geom,cube_shell_19
+1.971984,3.32,wheels,-5.6743,wheel_fr_geom,cube_shell_41
+1.971984,3.32,tip supports,-8.3999,tip_front_r,cube_shell_41
+1.971984,3.32,upper links,35.7549,rail0_5,cube_rubber_13
+1.971984,3.32,lower links,27.9321,rail1_6,cube_rubber_13
+1.971984,3.34,chassis,-5.7139,chassis_geom,cube_shell_41
+1.971984,3.34,head,3.0305,head_geom,cube_shell_19
+1.971984,3.34,wheels,-5.9369,wheel_fr_geom,cube_shell_41
+1.971984,3.34,tip supports,-8.7368,tip_front_r,cube_shell_41
+1.971984,3.34,upper links,35.7211,rail0_5,cube_rubber_13
+1.971984,3.34,lower links,27.8,rail1_6,cube_rubber_13
+1.971984,3.36,chassis,-6.708,chassis_geom,cube_shell_41
+1.971984,3.36,head,2.3426,head_geom,cube_shell_19
+1.971984,3.36,wheels,-6.2399,wheel_fr_geom,cube_shell_26
+1.971984,3.36,tip supports,-8.9645,tip_front_r,cube_shell_26
+1.971984,3.36,upper links,35.4895,rail0_5,cube_rubber_13
+1.971984,3.36,lower links,27.5143,rail1_6,cube_rubber_13
+1.971984,3.38,chassis,-7.5437,chassis_geom,cube_shell_41
+1.971984,3.38,head,1.6945,head_geom,cube_shell_19
+1.971984,3.38,wheels,-6.5869,wheel_fr_geom,cube_shell_26
+1.971984,3.38,tip supports,-9.3134,tip_front_r,cube_shell_26
+1.971984,3.38,upper links,35.0939,rail0_5,cube_rubber_13
+1.971984,3.38,lower links,27.0953,rail1_6,cube_rubber_13
+1.971984,3.4,chassis,-8.3588,chassis_geom,cube_shell_41
+1.971984,3.4,head,1.0542,head_geom,cube_shell_19
+1.971984,3.4,wheels,-6.9142,wheel_fr_geom,cube_shell_26
+1.971984,3.4,tip supports,-9.6386,tip_front_r,cube_shell_26
+1.971984,3.4,upper links,34.6355,rail0_5,cube_rubber_13
+1.971984,3.4,lower links,26.6189,rail1_6,cube_rubber_13
+1.971984,3.42,chassis,-9.0995,chassis_geom,cube_shell_41
+1.971984,3.42,head,0.2288,head_geom,cube_rubber_25
+1.971984,3.42,wheels,-7.2123,wheel_fr_geom,cube_shell_26
+1.971984,3.42,tip supports,-9.929,tip_front_r,cube_shell_26
+1.971984,3.42,upper links,34.2184,rail0_5,cube_rubber_13
+1.971984,3.42,lower links,26.1928,rail1_6,cube_rubber_13
+1.971984,3.44,chassis,-9.7976,chassis_geom,cube_shell_26
+1.971984,3.44,head,-0.4979,head_geom,cube_rubber_25
+1.971984,3.44,wheels,-7.4919,wheel_fr_geom,cube_shell_26
+1.971984,3.44,tip supports,-10.1983,tip_front_r,cube_shell_26
+1.971984,3.44,upper links,34.0355,rail0_5,cube_rubber_13
+1.971984,3.44,lower links,26.0079,rail1_6,cube_rubber_13
+1.971984,3.46,chassis,-10.3488,chassis_geom,cube_shell_41
+1.971984,3.46,head,-1.2368,head_geom,cube_rubber_25
+1.971984,3.46,wheels,-7.7681,wheel_fr_geom,cube_shell_26
+1.971984,3.46,tip supports,-10.4624,tip_front_r,cube_shell_26
+1.971984,3.46,upper links,33.846,rail0_5,cube_rubber_13
+1.971984,3.46,lower links,25.8179,rail1_6,cube_rubber_13
+1.971984,3.48,chassis,-10.6078,chassis_geom,cube_shell_41
+1.971984,3.48,head,-1.5479,head_geom,cube_rubber_25
+1.971984,3.48,wheels,-7.8563,wheel_fr_geom,cube_shell_26
+1.971984,3.48,tip supports,-10.5457,tip_front_r,cube_shell_26
+1.971984,3.48,upper links,33.6476,rail0_19,cube_rubber_25
+1.971984,3.48,lower links,25.7685,rail1_6,cube_rubber_13
+1.971984,3.5,chassis,-10.6319,chassis_geom,cube_shell_41
+1.971984,3.5,head,-1.5904,head_geom,cube_rubber_25
+1.971984,3.5,wheels,-7.8298,wheel_fr_geom,cube_shell_26
+1.971984,3.5,tip supports,-10.5201,tip_front_r,cube_shell_26
+1.971984,3.5,upper links,33.5978,rail0_19,cube_rubber_25
+1.971984,3.5,lower links,25.8078,rail1_6,cube_rubber_13
