@@ -62,3 +62,20 @@ Two motion onsets provide an independent clock check. First visible lift motion 
 The prescribed chassis trajectory ends at +5.208 s, before this visual endpoint. A replay stopped there cannot be scored as a final-face failure solely because it has yet to settle; discrepancies in earlier impact, sensor response, and timing remain measurable.
 
 [Settling frames and correlation](optical-settle.png) · [Frame scores](optical-settle.csv) · [Losslessly cropped camera sequence](cube-settling.mkv) · [Reproduce the measurement](optical_settle.py)
+
+### What generates the excess impact?
+
+The prescribed-fork replay squeezes the cube between fork and shelf. At 4.19425 s the two resultant loads reach 2,063.0 and 2,063.5 N respectively; they largely cancel and the simulated raw chip reads 1.05 g. The largest raw acceleration occurs later at 4.78125 s. Only the shelf contacts the cube then, with a resultant force of 7.91 N and raw chip magnitude of 16.13 g. The sampled and filtered simulation peaks at 5.32 g in the packet timestamped 4.83 s. Physical packets peak at 1.11 g over 4.5–5.0 s. These are simulated forces. There is no physical load cell in this recording.
+
+The control uses the simulator's hinged 66 mm lift, level-wrist constraint, printed collision geometry and nominal 30 mN·m torque limit. Chassis motion and right tread speed are still supplied from the recording. The observed lift angle is a servo target here; in the prescribed-fork baseline it directly places the fork. Both use the shelf cube's candidate sensor frame and gain. The physical motor target, current, and actual available torque under load were not recorded.
+
+| At 0.25 ms | Peak fork force | Peak packet magnitude | Tap changes after 2.5 s | Peak cube tilt |
+|---|---:|---:|---:|---:|
+| Prescribed fork, roll | 2,063 N | 5.32 g | 4 | 154.85° |
+| Articulated lift, roll | 1.35 N | 1.87 g | 3 | 0.14° |
+| Physical roll | unmeasured | 1.43 g | 2 | adjacent face at rest |
+| Articulated lift, failed approach | 0 N | 0.98 g | 0 | <0.001° |
+
+The servo misses the recorded roll height by as much as 17.47 mm relative to its joint-limited target. At 0.5 ms it likewise misses the roll, with two tap changes and 1.80 g peak. Improving acceleration while losing the measured maneuver is insufficient to select this replay. This points to a joint check of fork registration, chassis motion and loaded lift tracking before fitting contact softness.
+
+[Contact partners and packets](impact-loads.png) · [Force samples](impact-loads.csv.gz) · [Window peaks](impact-windows.csv) · [Servo comparison](servo-load.png) · [Both timesteps and held-out approach](servo-load.csv)
