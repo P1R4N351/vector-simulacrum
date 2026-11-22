@@ -33,12 +33,14 @@ parser.add_argument("--shelf-friction-scale", type=float, choices=(0.25, 0.5, 1.
                     help="Scale only sliding friction at cube-to-table contacts")
 parser.add_argument("--mute-links-at-raise", action="store_true",
                     help="Diagnostic only: disable both link contacts once the wrist rises 1 mm")
+parser.add_argument("--mute-links-before-raise", action="store_true",
+                    help="Diagnostic only: disable link contacts during the approach")
 motion = parser.add_mutually_exclusive_group()
 motion.add_argument("--wheel-translation", action="store_true", help="Integrate reported wheel speeds after lift onset")
 motion.add_argument("--freeze-at-raise", choices=("planar", "pitch", "both"),
                     help="Hold selected chassis motion at its value when the wrist first rises 1 mm")
 args = parser.parse_args()
-if (args.mute_links_at_raise or args.freeze_at_raise or args.wheel_translation or args.sighting is not None or args.shelf_friction_scale is not None) and not args.output:
+if (args.mute_links_before_raise or args.mute_links_at_raise or args.freeze_at_raise or args.wheel_translation or args.sighting is not None or args.shelf_friction_scale is not None) and not args.output:
     parser.error("Use --output for counterfactual runs to preserve the recorded baseline")
 tree = ET.parse(args.fixture)
 require_printed_fork(tree)
@@ -71,7 +73,7 @@ if args.sighting is not None and s["sec"] > 0:
     t = t[t >= s["sec"]]
 x, y, pitch, height = [np.interp(t, p["sec"], p[k]) for k in ("x","y","pitch","lift")]
 yaw = np.interp(t, p["sec"], np.unwrap(p["yaw"]))
-if args.mute_links_at_raise or args.freeze_at_raise or args.wheel_translation:
+if args.mute_links_before_raise or args.mute_links_at_raise or args.freeze_at_raise or args.wheel_translation:
     onset = np.flatnonzero(height > height[0] + 1)[0]
 if args.wheel_translation:
     from wheel_retreat import wheel_path
@@ -112,7 +114,16 @@ weight = m.body_mass[cube_id] * np.linalg.norm(m.opt.gravity)
 link_bodies = [m.body(f"rail{j}").id for j in range(2)]
 link_geoms = np.isin(m.geom_bodyid, link_bodies)
 link_patch = []
+normals = []
+geom_affinity = m.geom_conaffinity[link_geoms].copy()
+body_affinity = m.body_conaffinity[link_bodies].copy()
+if args.mute_links_before_raise:
+    m.geom_conaffinity[link_geoms] = 0
+    m.body_conaffinity[link_bodies] = 0
 for i, tick in enumerate(t):
+    if args.mute_links_before_raise and i == onset and not args.mute_links_at_raise:
+        m.geom_conaffinity[link_geoms] = geom_affinity
+        m.body_conaffinity[link_bodies] = body_affinity
     if args.mute_links_at_raise and i == onset:
         m.geom_conaffinity[link_geoms] = 0
         m.body_conaffinity[link_bodies] = 0
@@ -147,6 +158,7 @@ for i, tick in enumerate(t):
         loads.append([tick, height[i], *contact_load(m,d,cube_id,floor,fork_id)/weight, overlap_mm])
         collect(m,d,cube_id,fork_id,tick,m.opt.timestep,patch)
     if i % (10*args.substeps) == 0:
+        normals.append([tick, *Rotation.from_quat(cube[3:7], scalar_first=True).as_matrix()[:, 2]])
         lean = np.degrees(np.arccos(np.clip(1-2*np.sum(cube[4:6]**2),-1,1)))
         traces.append([tick,cube[2]*1000,lean,any(floor in c.geom for c in d.contact),
                        any(floor not in c.geom for c in d.contact),
@@ -155,6 +167,7 @@ for i, tick in enumerate(t):
 a = np.array(traces)
 output = args.output or (here if args.substeps == 1 else here/f"substeps-{args.substeps}")
 output.mkdir(exist_ok=True)
+np.savetxt(output/"top-normal.csv", normals, delimiter=",", comments="", header="sec,nx,ny,nz")
 with (output/"link-patch.csv").open("w") as stream:
     writer = csv.writer(stream, lineterminator="\n")
     writer.writerow("sec rail cube x_mm y_mm z_mm normal_Ns".split())
