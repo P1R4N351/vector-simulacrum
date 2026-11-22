@@ -1,0 +1,11 @@
+# Physical fork sweep on unit 3, November 22
+
+Two back-to-back docked sweeps of the installed printed fork, each stepping through 0, 25, 50, 75 and 100 percent and back down. The middle zero serves as the end of sweep one and the start of sweep two. All 17 lift commands returned success. The robot stayed on the charger in all 555 SDK states, and both wheels reported zero speed throughout. The cube stood clear. These are unloaded motion measurements. After the experiment the robot reported full, on the charger, stationary, with quiet mode active.
+
+[Two-sided video with encoder readout](physical-sweeps.mp4) · [Encoder trace](lift-trace.png) · [First sweep](sweep-1.jpg) · [Repeated sweep](sweep-2.jpg) · [Hold measurements](holds.csv) · [Time series](state.csv.gz)
+
+The 75% holds settled higher on the way up by 1.82 mm and 1.22 mm in sweeps one and two. At 50% the corresponding differences were −0.34 and +2.34 mm. These values are SDK lift heights. Two cycles give a repeatability check and cannot uniquely attribute the differences to gear play, control tolerance, or physical deflection.
+
+All four cameras delivered decoded frames during preflight. The two opposing See3CAMs recorded the motion at 1280 × 720 with V4L2 packet timestamps. The clip uses the closest camera frame at each 100 ms playback sample, with the shelf undistortion, orientation, white balance, denoise and sharpening applied. The encoder readout is interpolated in recorder time. Holds use a median 120–600 ms after action success and the nearest frame to 350 ms after success. Both cameras had a sample within 23 ms of each target on their mapped clocks. That bound covers frame selection only. Cross-host offset and SDK receipt latency are additional uncertainties.
+
+The local archive contains the original A.nut, B.nut, camera clock pairs, and SDK JSONL. Run summarize.py and then make_video.py with the archive directory to regenerate this comparison.
