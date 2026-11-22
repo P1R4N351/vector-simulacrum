@@ -237,7 +237,7 @@ output = args.output or (here if args.substeps == 1 else here/f"substeps-{args.s
 output.mkdir(exist_ok=True)
 with (output/"approach-yaw-contacts.csv").open("w") as stream:
     writer = csv.writer(stream, lineterminator="\n")
-    writer.writerow("sec cube_geom fork_x_m fork_y_m fork_z_m normal_N normal_yaw_Nm other_yaw_Nm".split())
+    writer.writerow("sec cube_geom fork_x_m fork_y_m fork_z_m normal_N normal_yaw_Nm other_yaw_Nm cube_x_m cube_y_m cube_z_m".split())
     writer.writerows(approach_yaw)
 with (output/"fork-materials.csv").open("w") as stream:
     writer = csv.writer(stream, lineterminator="\n")
