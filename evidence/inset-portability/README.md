@@ -30,3 +30,13 @@ The opposite shift gave a partial correction. Across a ±3.5 mm grid in 0.5 mm s
 This is an offline auxiliary-roller experiment on the current model with its built-in inset set to zero, a 1 ms physics step and MuJoCo 4.0.1. Each spin starts at its recorded head and lift pose. The roller experiment uses its historical multi-contact setting and its camera-sampled center estimator, which differ from the preceding native-model comparison. A separate contact-force check at nominal 22.5° head and 32.7 mm lift found the four patches carried all sampled normal load. The front share varied by turn direction, so these forces alone do not identify a universal cause for the pivot motion.
 
 [All unit 3 spins](shift.csv) · [Frozen unit 1 transfer](shift-c7.csv) · [Contact loads](shift-load.csv). Positive shifts in the CSVs are toward the front. Run `python shift.py` and `python shift_load.py` from this directory.
+
+### Camera sensitivity of the forward shift
+
+![Pivot error reduction in nine camera reconstructions](camera-sensitivity.png)
+
+On the held-out unit 3 pair, the frozen 1 mm forward contact shift reduced longitudinal pivot RMS by **2.10–2.85 mm** across nine reconstructions. All reuse the same image picks, dock and shelf constraints. We varied the focal prior from 450 to 720 pixels and the backpack lens height by ±3 mm around 65.5 mm. These are sensitivity scenarios for the same four spins.
+
+The longitudinal registration of the backpack landmark matters more. At nominal calibration, moving the *measured* pivots **2.00 mm forward relative to the front axle** would equalize held-out RMS for the two models. The crossover ranges from 1.52 to 2.48 mm across the grid. This is a calculated break-even offset. Its physical size and sign need an independent side-view measurement of the backpack landmark relative to the front axle. The gyro comparison is independent of this camera calculation.
+
+[Per-pair RMS and crossover](camera-sensitivity.csv) · [Reproduce the calculation](camera_sensitivity.py)
