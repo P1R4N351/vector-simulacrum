@@ -25,3 +25,8 @@ and "Anki Vector Lifting Forks" https://www.thingiverse.com/thing:3731746.
 tools/fetch_print_parts.py fetches the originals from Internet Archive. These
 STLs are distributed separately from this repository's code and are placed
 in public/robot/sdk/print with the original attribution and licence wording.
+
+The optional WireOS body/camera/cube adapter interoperates with the
+wire-os-victor simulator protocols at commit 3cec4844d24c4719b5b3892e4979494bcd260424
+(https://github.com/os-vector/wire-os-victor). Upstream firmware and headers
+are obtained separately; the C++ interoperability test includes those headers.

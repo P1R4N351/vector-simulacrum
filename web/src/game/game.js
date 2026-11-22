@@ -10,6 +10,8 @@
 // time has passed, up to MAX_TICKS_PER_FRAME; past that the simulation runs
 // slower than real time (and says so in the readout) rather than stall the page.
 
+import { attachWireCamera } from "./wire_camera.js";
+import { WireBody, cubeFrame } from "../sim/wire_body.js";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
@@ -233,6 +235,12 @@ function installApi(ctx) {
       if (!start(sim)) note(sim.hasControl ? "Refused: an action is already running" : "Refused: no control (press X)");
     };
   }
+  if (new URLSearchParams(location.search).get("wireos") === "1") {
+    const externalControl = () => note("WireOS controls the motors. Pause to freeze the simulated body.");
+    for (const name of [...Object.keys(ACTIONS), "level", "control"]) press[name] = externalControl;
+    press.stop = () => useGame.setState({ paused: true });
+    press.reset = () => window.location.reload();
+  }
   Object.assign(gameApi, { press: (name) => press[name]?.(), setPad: (fwd, turn) => ctx.input.setPad(fwd, turn), trail: () => visuals.trailPoints() });
   return press;
 }
@@ -266,6 +274,36 @@ function startLoop(ctx) {
   let ticksInWindow = 0;
   let blinkAt = last + 3000;
 
+  const wireMode = new URLSearchParams(location.search).get("wireos") === "1";
+  if (wireMode) {
+    if (!__WIREOS_BODY__ || !import.meta.hot) throw new Error("Start the dev server with WIREOS_BODY=1 to connect WireOS");
+    const body = new WireBody(sim);
+    const hot = import.meta.hot;
+    let power = [0,0,0,0], receivedAt = -Infinity, timer;
+    attachWireCamera(hot, ctx);
+    let lastTap = 0;
+    hot.on("wire:power", values => { power = values; receivedAt = performance.now(); });
+    hot.on("wire:error", bootHalt);
+    hot.on("wire:ready", () => {
+      bootLine("WIREOS BODY RELAY")("READY");
+      clearInterval(timer);
+      timer = setInterval(() => {
+        if (useGame.getState().paused) return;
+        const bytes = body.frame(performance.now()-receivedAt < 250 ? power : [0,0,0,0]);
+        hot.send("wire:frame",btoa(String.fromCharCode(...bytes)));
+        if (sim.cubeSensor) {
+          const taps = sim.cubeSensor.listeners.tapEvents;
+          if ((body.seq-1)%200===0) hot.send("wire:cube",btoa(String.fromCharCode(...cubeFrame(sim,true,false))));
+          hot.send("wire:cube",btoa(String.fromCharCode(...cubeFrame(sim,false,taps>lastTap))));
+          lastTap=taps;
+        }
+        ticksInWindow++;
+      }, sim.dt*1000);
+    });
+    hot.dispose(() => clearInterval(timer));
+    hot.send("wire:attach",{});
+  }
+
   function advance(now, dtS) {
     const intent = ctx.input.read();
     if (intent.padConnected !== useGame.getState().padConnected) useGame.setState({ padConnected: intent.padConnected });
@@ -289,7 +327,7 @@ function startLoop(ctx) {
     last = now;
     const ui = useGame.getState();
     try {
-      if (!ui.paused) advance(now, dtS);
+      if (!ui.paused && !wireMode) advance(now, dtS);
     } catch (err) {
       cancelAnimationFrame(ctx.raf);
       bootHalt(`simulation stopped: ${err?.message ?? err}`);

@@ -650,6 +650,11 @@ export class VectorSim {
     const scale = this.batteryVolts / v.motor_reference_voltage_v;
     const duties = [this._controllers[0].update(left, measured[0]), this._controllers[1].update(right, measured[1])];
     assert(Math.max(Math.abs(duties[0]), Math.abs(duties[1])) <= v.motor_power_max, "power outside its limit");
+    this._applyWheelDuty(duties, scale);
+  }
+
+  _applyWheelDuty(duties, scale) {
+    const v = this.v;
     const tau = v.tread_heat_tau_s;
     const rates = v.tread_heat_loss_rate_per_s;
     const keep = [1 - rates[0] * tau * this.treadHeat[0], 1 - rates[1] * tau * this.treadHeat[1]];
@@ -673,7 +678,13 @@ export class VectorSim {
     }
   }
 
-  _tickOnce() {
+  // One body frame under the external WireOS motor controller.
+  tickWireBody(power) {
+    assert(power.length === 4 && power.every(n => Number.isFinite(n) && Math.abs(n) <= 1), "bad motor duty");
+    this._tickOnce(power);
+  }
+
+  _tickOnce(power = null) {
     const travel = this._treadTravelMm();
     this._encoders[0].update(travel[0]);
     this._encoders[1].update(travel[1]);
@@ -681,9 +692,20 @@ export class VectorSim {
     this._sampleImu();
     const accel = this._imu()[0];
     this.hazards.update(this.cliffRangesMm(), Math.hypot(accel[0], accel[1], accel[2]));
-    this._maybeReact();
-    this._rampCommands();
-    this._writeControls();
+    if (power === null) {
+      this._maybeReact();
+      this._rampCommands();
+      this._writeControls();
+    } else {
+      const v = this.v, ctrl = this.data.ctrl;
+      this.batteryVolts = v.battery_rest_voltage_v - v.battery_sag_v_per_power * (Math.abs(power[0]) + Math.abs(power[1]));
+      this._applyWheelDuty([power[0], -power[1]], this.batteryVolts / v.motor_reference_voltage_v);
+      for (const [index, name, rate] of [[2, "lift", 20], [3, "head", 2 * Math.PI]]) {
+        const at = this._act[name];
+        const bounds = this.model.actuator_ctrlrange;
+        ctrl[at] = clamp(ctrl[at] + power[index] * rate * this.dt, bounds[2 * at], bounds[2 * at + 1]);
+      }
+    }
     this._physicsStep();
     this.tick_ += 1;
     this._updateLiftStatus();
