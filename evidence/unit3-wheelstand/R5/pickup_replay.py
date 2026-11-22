@@ -26,7 +26,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("fixture")
 parser.add_argument("--output", type=Path, help="Directory for this replay’s generated evidence")
 parser.add_argument("--substeps", type=int, default=1, choices=(1,2,4))
+parser.add_argument("--freeze-at-raise", choices=("planar", "pitch", "both"),
+                    help="Hold selected chassis motion at its value when the wrist first rises 1 mm")
 args = parser.parse_args()
+if args.freeze_at_raise and not args.output:
+    parser.error("Use --output for counterfactual runs to preserve the recorded baseline")
 tree = ET.parse(args.fixture)
 require_printed_fork(tree)
 add_links(tree, repo)
@@ -40,6 +44,11 @@ assert np.all(p["origin"] == s["origin"])
 t = np.arange(-.5, 8.3, m.opt.timestep)
 x, y, pitch, height = [np.interp(t, p["sec"], p[k]) for k in ("x","y","pitch","lift")]
 yaw = np.interp(t, p["sec"], np.unwrap(p["yaw"]))
+if args.freeze_at_raise:
+    onset = np.flatnonzero(height > height[0] + 1)[0]
+    channels = {"planar": (x, y, yaw), "pitch": (pitch,), "both": (x, y, yaw, pitch)}
+    for channel in channels[args.freeze_at_raise]:
+        channel[onset:] = channel[onset]
 bx, _, bz = v["lift_base_position_mm"]
 reach = bx + np.sqrt(v["lift_arm_length_mm"]**2 - (height-bz)**2)
 wrist = .001*np.column_stack([x+reach*np.cos(yaw), y+reach*np.sin(yaw), height])

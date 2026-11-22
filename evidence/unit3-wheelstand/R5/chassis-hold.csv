@@ -1,0 +1,5 @@
+run,mean_raise_force_weight,last_half_weight_height_mm,hold_center_mm,hold_tilt_deg,hold_floor_fraction
+Measured motion,0.06517852137054043,38.8037,22.1468,0.0,1.0
+Fixed planar pose,0.18006790180148358,43.580513,22.1468,0.0,1.0
+Fixed pitch,0.08135968950900742,39.760699,22.1468,0.0,1.0
+Fixed planar pose and pitch,0.20001948110208406,42.964694,22.1468,0.0,1.0
