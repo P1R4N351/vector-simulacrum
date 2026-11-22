@@ -114,3 +114,9 @@ Replay the same prescribed printed fork, measured rolling tread and R8 trajector
 Free-running phase on this simulation grid cannot reconcile the late impact. The receipt immediately before the nominal 4.83 s peak arrived at 4.815 s and the next at 4.855 s. Receiver time is distinct from chip sampling time. This test does not establish the physical impulse or identify the correct rubber stiffness. The fork/chassis trajectory and shelf landing still need independent constraints.
 
 [Phase map](impact-phase.png) · [All phases](impact-phase.csv) · [Reproduce with the same printed fork fixture as the tread-speed replay](impact_phase.py)
+
+### Rubber response after release
+
+Branch the simulated R8 replay at 4.765 s after roll command. All five trials have identical cube velocity at that step (vertical −0.590 m/s, angular speed 12.16 rad/s) and subsequently contact only the shelf. Changing the rubber geoms' MuJoCo contact time constant from 4 to 64 ms gave nominal-phase packet peaks from 4.11 to 6.58 g. The physical peak in the common window was 1.11 g. Increasing the time constant from 8 to 16 ms lowered the peak from 5.32 to 4.11 g while increasing maximum contact penetration from 1.95 to 3.67 mm. Still softer settings increased penetration and did not further improve the peak. All cases settled at 90° tilt by the replay endpoint. This sensitivity test does not measure the rubber's stiffness; no contact parameters were adopted.
+
+[Five landing traces](landing-compliance.png) · [Release and landing metrics](landing-compliance.csv) · [Replay](landing_compliance.py)
