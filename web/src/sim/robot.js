@@ -75,6 +75,7 @@ export class VectorSim {
     this.cubeSensor = this._cubeAdr < 0 ? null : new CubeSensor(
       this.v, this.model.opt.timestep, opts.noiseSeed ?? 0, this._cubeForce(),
     );
+    if (this.cubeSensor) this.cubeSensor.handlingCube = this._cubeMountedOnFork;
   }
 
   dispose() {
@@ -99,6 +100,8 @@ export class VectorSim {
     this._sceneOnly = [1, 0, 0, 0, 0, 0]; // geom group 0 is the scene; the robot's own geoms are in group 1
     const cubeId = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR.value, "cube_accel");
     this._cubeAdr = cubeId < 0 ? -1 : model.sensor_adr[cubeId];
+    this._cubeMountedOnFork = cubeId >= 0 &&
+      model.body_parentid[id("mjOBJ_BODY", "cube")] === id("mjOBJ_BODY", "lift_fork");
     this._gyroAdr = sensor("gyro");
     this._accelAdr = sensor("accel");
     this._imuAdr = [0, 1, 2].map((i) => this._accelAdr + i).concat([0, 1, 2].map((i) => this._gyroAdr + i));

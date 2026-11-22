@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { gunzipSync } from "node:zlib";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { CubeSensor } from "../src/sim/cube_sensor.js";
 import { VectorSim } from "../src/sim/robot.js";
@@ -45,5 +47,38 @@ test("the browser free cube publishes three stationary samples and reset clears 
     assert.equal(sim.cubeSensor.packet, null);
   } finally {
     sim.dispose();
+  }
+});
+
+test("browser movement broadcasts follow the physical carry-state recordings", () => {
+  for (const [run, expectedRaw] of [["R5",4], ["R8",1], ["R10",2], ["R11",2]]) {
+    const sensor = new CubeSensor(quietChip, .001, 0, [0,0,1]);
+    const directory = new URL("../../evidence/unit3-wheelstand/" + run + "/", import.meta.url);
+    function rows(name) {
+      const data = readFileSync(new URL(name, directory));
+      return (name.endsWith(".gz") ? gunzipSync(data) : data).toString().trim().split(/\r?\n/)
+        .slice(1).map(line => line.split(","));
+    }
+    const states = rows("state.csv.gz");
+    const sdk = rows("events.csv").filter(row => ["object_moved","object_stopped_moving"].includes(row[1]));
+    let idx = -1, slots = [], raw = 0;
+    const broadcasts = [];
+    for (const row of rows("cube.csv.gz")) {
+      const [t, uptime, slot, taps, ...xyz] = row.map(Number);
+      slots.push(xyz);
+      if (slot !== 2) continue;
+      while (idx+1 < states.length && Number(states[idx+1][0]) <= t) idx++;
+      sensor.handlingCube = idx >= 0 && Boolean(Number(states[idx][6]) & 2);
+      sensor.receivePacket({time_s:t, taps, slots}, Math.round(uptime * 1000));
+      slots = [];
+      raw += sensor.packet.events.filter(e => "moving" in e).length;
+      broadcasts.push(...sensor.packet.movementBroadcasts);
+    }
+    assert.equal(raw, expectedRaw, run);
+    assert.equal(sensor.movementBroadcastCount, sdk.length, run);
+    broadcasts.forEach((e,i) => {
+      assert.equal(e.moving, sdk[i][1] === "object_moved");
+      assert.ok(Math.abs(e.timestamp - Number(sdk[i][3])) <= 35, run);
+    });
   }
 });

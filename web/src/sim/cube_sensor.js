@@ -19,6 +19,8 @@ export class CubeSensor {
     this.positiveFirst = false;
     this.slots = Array.from({ length: 3 }, () => [0, 0, 0]);
     this.packet = null;
+    this.handlingCube = false;
+    this.movementBroadcastCount = 0;
     this.listeners = new CubeListeners();
   }
 
@@ -48,7 +50,18 @@ export class CubeSensor {
     }
   }
 
-  step(time, force) {
+  receivePacket(packet, bodyStateStampMs) {
+    const events = this.listeners.receive(packet);
+    if (bodyStateStampMs !== undefined) {
+      for (const event of events) event.timestamp = bodyStateStampMs;
+    }
+    // The engine keeps filtering the handled cube but suppresses its movement broadcasts.
+    const movementBroadcasts = this.handlingCube ? [] : events.filter(event => "moving" in event);
+    this.movementBroadcastCount += movementBroadcasts.length;
+    this.packet = { ...packet, events, movementBroadcasts };
+  }
+
+  step(time, force, bodyStateStampMs) {
     const sensed = this.sense(force, this.sigma);
     this.filter.update([...sensed, ...sensed]);
     const [shift, lowBits] = this.v.cube_accel_word_format ?? [4, 0];
@@ -68,8 +81,7 @@ export class CubeSensor {
         this.buffered = 0;
         this.ticks++;
         if (this.ticks % 3 === 0) {
-          this.packet = { time_s: nextTick, taps: this.taps, slots: this.slots.slice() };
-          this.packet.events = this.listeners.receive(this.packet);
+          this.receivePacket({ time_s: nextTick, taps: this.taps, slots: this.slots.slice() }, bodyStateStampMs);
         }
       }
     }
