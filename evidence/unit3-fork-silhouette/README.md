@@ -62,3 +62,11 @@ We projected the SDK viewer's fork_geo mesh using its own fork_pivot registratio
 Across the four lowered edge samples per trial, mean absolute errors for the print model were 27.0, 30.0, 32.0, 29.5 and 24.75 px. The SDK control gave 25.25, 41.75, 43.75, 27.75 and 10.0 px. Its projected outline changes abruptly near the upper sampled rows in several views. Neither mesh describes the whole observed fork. Unit 3 had a printed fork. The stock mesh comparison supplies no basis for replacing its collision geometry or shortening its encoder-derived lift travel.
 
 [Side-by-side lowered outlines](low/stock-control.png) · [Native edge columns](low/stock-control.csv) · [Raised crossbar rows](low/stock-control-raised.csv). With the SDK assets installed, run stock_fork_control.py ../../web/public/robot/sdk/vector.obj.
+
+## Fork height from opposite side views
+
+The 8160 × 6120 Flip photos at 60° and 195° show the installed fork cheek from its upper crest to the bottom tab. We back-projected these two manual image picks using the existing 48 mm hub-rim camera registrations. Allowing each pick independently to lie 16, 20 or 24 mm from the chassis midplane gives a crest-to-tab height of 29.29–32.13 mm at 60° and 29.05–32.96 mm at 195°. These ranges reflect assumed depths and exclude rim calibration and pick uncertainty. Both contain the printed STL cheek height of 30.87 mm. A gross error in total print height is therefore a poor explanation for the raised crossbar discrepancy.
+
+The turquoise outline is the near-side portion of forks7.stl at an assumed 32 mm wrist height and nominal reach. The fork crest and tab are visible, but the two pin centers are covered by the linkage. The photos constrain external size more directly than wrist-to-crossbar registration. The outer contour includes geometry that is obscured by an arm in the photograph. These exposures do not verify the installed STL identity.
+
+[Opposite-side overlays](orbit-fork.png) · [Native picks and depth sensitivity](orbit-fork.csv). Run orbit_fork.py with the full-resolution orbit archive as its argument.
