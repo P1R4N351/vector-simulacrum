@@ -102,6 +102,7 @@ async function loadEverything() {
   const navMap = shelf ? JSON.parse(await fetchText("./robot/vector2/" + mapFile)) : null;
   const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
     cubeStartXY: shelf ? mappedCubeXY(navMap, model.values.cube_size_mm, -66, 30) : null,
+    startDocked: shelf && options.get("start") === "docked",
     shelfOutline: shelf ? model.shelf_outline_mm : null,
     bodyRangeClock: options.get("rangeClock") === "body", chargerContact: options.get("chargerContact") === "1" });
   doneCompile("OK");

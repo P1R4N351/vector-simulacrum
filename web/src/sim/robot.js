@@ -102,9 +102,11 @@ export class VectorSim {
       assert(joint >= 0, "mapped cube placement requires a free cube");
       this.data.qpos.set(this.cubeStartXY.map(mm => mm * MM), this.model.jnt_qposadr[joint]);
     }
+    this.startDocked = opts.startDocked ?? this.startDocked ?? false;
     this._place(opts.startXyMm ?? [0, 0], opts.headingDeg ?? 0);
     this._poseServos(opts.headDeg ?? 0, opts.liftMm ?? null);
     this._settle();
+    if (this.startDocked) this.chargerContact = this._padsTouchDock();
     this.cubeSensor = this._cubeAdr < 0 ? null : new CubeSensor(
       this.v, this.model.opt.timestep, opts.noiseSeed ?? 0, this._cubeForce(),
     );
@@ -129,6 +131,9 @@ export class VectorSim {
     const qadr = (name) => model.jnt_qposadr[id("mjOBJ_JOINT", `${name}_joint`)];
     const dof = (name) => model.jnt_dofadr[id("mjOBJ_JOINT", `${name}_joint`)];
     this._cliffAdr = CLIFF_NAMES.map((name) => sensor(`cliff_${name}`));
+    this._dockBody = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY.value, "dock");
+    this._chassisBody = id("mjOBJ_BODY", "chassis");
+    if (this._dockBody >= 0) this._dockPins = ["dock_pin_l", "dock_pin_r"].map(name => id("mjOBJ_SITE", name));
     this._tofSite = id("mjOBJ_SITE", "tof");
     this._sceneOnly = [1, 0, 0, 0, 0, 0]; // geom group 0 is the scene; the robot's own geoms are in group 1
     const cubeId = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR.value, "cube_accel");
@@ -202,15 +207,25 @@ export class VectorSim {
 
   _place(startXyMm, headingDeg) {
     assert(startXyMm.length === 2 && Number.isFinite(headingDeg), "bad start pose");
-    const yaw = headingDeg * DEG;
+    let yaw = headingDeg * DEG, pitch = 0, z = 0;
+    if (this.startDocked) {
+      assert(this._dockBody >= 0, "docked start requires a dock in the scene");
+      this.mujoco.mj_forward(this.model, this.data);
+      const dock = this._dockBody, orientation = this.data.xmat.subarray(9 * dock);
+      const origin = this.data.xpos.subarray(3 * dock);
+      startXyMm = [origin[0] / MM + 30 * orientation[0], origin[1] / MM + 30 * orientation[3]];
+      yaw = Math.atan2(orientation[3], orientation[0]) - Math.PI;
+      pitch = 8.2 * DEG;
+      z = origin[2] + 6.3 * MM;
+    }
     const qpos = this.data.qpos;
     qpos[0] = startXyMm[0] * MM;
     qpos[1] = startXyMm[1] * MM;
-    qpos[2] = 0;
-    qpos[3] = Math.cos(0.5 * yaw);
-    qpos[4] = 0;
-    qpos[5] = 0;
-    qpos[6] = Math.sin(0.5 * yaw);
+    qpos[2] = z;
+    qpos[3] = Math.cos(yaw / 2) * Math.cos(pitch / 2);
+    qpos[4] = -Math.sin(yaw / 2) * Math.sin(pitch / 2);
+    qpos[5] = Math.cos(yaw / 2) * Math.sin(pitch / 2);
+    qpos[6] = Math.sin(yaw / 2) * Math.cos(pitch / 2);
     qpos[this._q.lift] = this.d.lift_angle_min;
     qpos[this._q.wrist] = -this.d.lift_angle_min;
     this.data.ctrl[this._act.lift] = this.d.lift_angle_min;
@@ -690,6 +705,27 @@ export class VectorSim {
     }
   }
 
+  // Electrical contact envelope from simulacrum/dock.py, in dock-local metres.
+  _padsTouchDock() {
+    const { xpos, xmat, site_xpos } = this.data;
+    const chassis = this._chassisBody, dock = this._dockBody;
+    const c = xmat.subarray(9 * chassis, 9 * chassis + 9);
+    const d = xmat.subarray(9 * dock, 9 * dock + 9);
+    if (c[2] * d[2] + c[5] * d[5] + c[8] * d[8] <= 0.85) return false;
+    const project = (v, axis) => v[0] * d[axis] + v[1] * d[3 + axis] + v[2] * d[6 + axis];
+    const center = [0, 1, 2].map(i => xpos[3 * chassis + i] - xpos[3 * dock + i]);
+    const x = project(center, 0), z = project(center, 2);
+    if (x < -0.030 || x > 0.065 || Math.abs(project(center, 1)) > 0.032 || z < -0.002 || z > 0.035) return false;
+    const leftSign = c[1] * d[1] + c[4] * d[4] + c[7] * d[7] > 0 ? -1 : 1;
+    return this._dockPins.every((pin, side) => {
+      const y = (side === 0 ? leftSign : -leftSign) * 0.00990;
+      const delta = [0, 1, 2].map(i => xpos[3 * chassis + i] - site_xpos[3 * pin + i]
+        - 0.0355 * c[3 * i] + y * c[3 * i + 1] + 0.001 * c[3 * i + 2]);
+      const height = project(delta, 2);
+      return Math.abs(project(delta, 0)) <= 0.009 && Math.abs(project(delta, 1)) <= 0.0038 && height >= -0.005 && height <= 0.004;
+    });
+  }
+
   // One body frame under the external WireOS motor controller.
   tickWireBody(power) {
     assert(power.length === 4 && power.every(n => Number.isFinite(n) && Math.abs(n) <= 1), "bad motor duty");
@@ -722,6 +758,7 @@ export class VectorSim {
     this.tick_ += 1;
     this._updateLiftStatus();
 
+    if ((power || this.startDocked) && this._dockBody >= 0) this.chargerContact = this._padsTouchDock();
     if (this.bodyRangeClock) this._advanceRangeClock(power);
     const yaw = this._yaw();
     this._yawTotal += Math.atan2(Math.sin(yaw - this._yawPrev), Math.cos(yaw - this._yawPrev));

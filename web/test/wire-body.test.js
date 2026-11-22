@@ -54,3 +54,37 @@ test("WireOS receives held raw ranges and scene-dependent signal per SPAD", asyn
     assert.ok(Math.abs(near.getUint16(94) - 100) < 15);
   } finally { sim.dispose(); }
 });
+
+test("shelf charger supply follows both pads through seating and displacement", async () => {
+  const profile = readJson("public/robot/vector2/model.json");
+  const mj = await mujoco();
+  const sim = new VectorSim(mj, { xml: readText("public/robot/vector2/vector-free-shelf.xml"),
+    values: profile.values, derived: profile.derived, startDocked: true });
+  try {
+    const body = new WireBody(sim);
+    assert.equal(new DataView(body.frame([0, 0, 0, 0]).buffer).getUint16(86, true), 3);
+    const readAt = (offsetY, height) => {
+      const halfPitch = 8.2 * Math.PI / 360;
+      sim.data.qpos.set([-0.096, offsetY, height, Math.cos(halfPitch), 0, Math.sin(halfPitch), 0]);
+      sim.data.qvel.fill(0);
+      mj.mj_forward(sim.model, sim.data);
+      return new DataView(body.frame([0, 0, 0, 0]).buffer);
+    };
+    const seated = readAt(0, 0.0063);
+    assert.ok(seated.getInt16(82, true) > 0);
+    assert.equal(seated.getUint16(86, true), 3);
+    assert.equal(readAt(0.012, 0.0063).getInt16(82, true), 0);
+    assert.equal(readAt(0, 0.030).getUint16(86, true), 0);
+    assert.equal(readAt(0, 0.0063).getUint16(86, true), 3);
+    const onCharger = power => new DataView(body.frame(power).buffer).getUint16(86, true);
+    for (let i = 0; i < 200; i++) assert.equal(onCharger([0, 0, 0, 0]), 3);
+    let releases = 0, previous = 3;
+    for (let i = 0; i < 160; i++) {
+      const current = onCharger([0.45, -0.45, 0, 0]);
+      if (current !== previous) releases++;
+      previous = current;
+    }
+    assert.equal(previous, 0);
+    assert.equal(releases, 1);
+  } finally { sim.dispose(); }
+});
