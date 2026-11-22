@@ -21,3 +21,11 @@ Across 14 nonempty wheelstand-series captures, 555 long intervals (>150 ms) acco
 Ten of the 19 other counter changes have no above-threshold Z step between the three slots of the new packet. The detector uses chip FIFO frames. The retained packet has just three tick samples, and the triggering transition can also precede the new packet. An analysis that infers taps solely by thresholding the two internal differences would miss those ten. This dataset provides no example of a post-gap tap count change accompanied by an entirely subthreshold returning packet. It cannot establish the rate of unseen physical impacts.
 
 [Counter transitions](tap-gap.png) · [Per-event Z steps](tap-gap-events.csv) · [Intervals per recording](tap-gap-exposure.csv). Run tap_gap_audit.py.
+
+### Packet listener versus SDK callbacks
+
+We replayed 18,891 physical packets from 14 wheelstand-series recordings through the simulator's TapListener, retaining robot uptime and host receipt clocks separately. The listener emitted 21 events. All 20 captured SDK tap payload stamps matched one-to-one to listener events within 41 ms (100 ms assignment limit). The extra R10 counter change at uptime 8594.01 s had no matching SDK payload. The next counter change 150 ms later did match. Another 150 ms pair earlier in R10 generated two SDK events, so a simple 150 ms grouping rule would discard a real callback.
+
+On matched taps, using the previously estimated 145.906 ms host delivery delay reduced median absolute callback-time error from 149.2 to 11.9 ms. The largest error after this correction was 171.3 ms. R10’s observed delivery delays ranged from 38.6 to 317.2 ms. The delay is a useful typical estimate on this setup. It is too variable to locate a particular impact. This replay supplies the *physical* packets, so it validates packet interpretation separately from predicting which contacts generate taps.
+
+[Two clocks for each matched event](sdk-tap-transfer.png) · [All matches and extra listener event](sdk-tap-transfer.csv) · [Per-recording coverage](sdk-tap-coverage.csv). Run sdk_tap_transfer.py.
