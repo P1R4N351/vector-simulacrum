@@ -186,3 +186,9 @@ Placing the cube at its independently reconstructed trial 1 pose reveals a diffe
 In the free reconstruction, the forward tip of the lower right rail lies at the right rubber corner while raised and at the shell during lowering. The modeled head, chassis and treads are each at least 10 mm clear in both exposures and both pose fits. The earlier same-exposure second-face check favors the free pose but does not establish absolute height precisely. The lower link is a candidate for supporting an already tilted cube. The observed-pose check imposes that tilt, and the free replay still misses its onset.
 
 [Observed-pose gaps](body-clearance.png) · [All distances and closest pieces](body-clearance.csv) · [Simulated and recorded endpoints](link-contact.png) · [All five paired runs](link-contact.csv). After installing the web SDK assets and Node dependencies, run body_clearance.py and link_contact.py with the same arguments as evaluate.py.
+
+### Does the simulated lowering match the next image?
+
+Start the cube at rest in each raised pose at 5.498 s and replay the measured lift and chassis motion for 0.5 s. Project the simulated side-face glyph into the archived See3CAM crop. Across 58 columns of its upper border, median distance to the prediction is 44.8 pixels from the free start and 35.2 pixels from the shelf-constrained start. For comparison, fitting the top marker in the lowering exposure itself predicts that side border to 4.3 and 15.4 pixels, respectively. The side border is reserved in both fits. This single event establishes an image-space discrepancy independently of choosing a reconstructed endpoint height. The two starts inherit initial intersections with the collision model, and neither measures the instantaneous velocity.
+
+[Lowering overlay](restart-pixels.png) · [Scores](restart-pixels.csv). Reproduce with `python restart_pixels.py ../.. /tmp/unit3-fork.xml` using the same fixture as evaluate.py.

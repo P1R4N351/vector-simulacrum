@@ -1,0 +1,5 @@
+prediction,observed_columns,median_segment_error_px
+Free restart,58,44.78876129655059
+Free optical,58,4.323789141163512
+Shelf restart,58,35.189821401996795
+Shelf optical,58,15.35863049495386
