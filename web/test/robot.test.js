@@ -256,6 +256,22 @@ test("head and lift targets are readable and the actions reach them", async () =
   sim.dispose();
 });
 
+test("lift duration applies to one action", async () => {
+  const sim = await makeSim(CONTROL_DEFAULT);
+  for (const [height, duration, lo, hi] of [[92, 1.4, 1.2, 2], [32, 0, 0, 1]]) {
+    assert.ok(sim.setLiftHeight(height, null, duration));
+    let ticks = 0;
+    while (sim.actionRunning && ticks * sim.dt < 3) {
+      sim.stepAction();
+      ticks++;
+    }
+    assert.equal(sim.lastAction.result, "completed");
+    assert.ok(ticks * sim.dt > lo && ticks * sim.dt < hi);
+    sim.tick(Math.round(0.5 / sim.dt));
+  }
+  sim.dispose();
+});
+
 test("lift height and angle convert both ways, and rounding is Python's", () => {
   const v = model.values;
   for (const height of [v.lift_height_min_mm, 50, 70, v.lift_height_max_mm]) {

@@ -658,12 +658,25 @@ export class VectorSim {
   }
 
   // Set the lift target and return at once.
-  commandLiftHeight(heightMm) {
+  _startLift(heightMm, speedRadps, durationS) {
+    assert(Number.isFinite(durationS) && durationS >= 0, "bad lift duration");
+    this._liftTarget = liftAngleOfHeight(this.v, heightMm);
+    this._liftSpeed = speedRadps ? Math.abs(speedRadps) : this.v.lift_speed_default_radps;
+    this._liftAccel = this.v.lift_accel_default_radps2;
+    this._servoRate[1] = 0;
+    const span = Math.abs(this._liftTarget - this._liftCmd);
+    if (durationS > 0 && span > 0) {
+      // Stock SetLiftHeight reserves 10% of the duration for each ramp.
+      const peak = span / (0.9 * durationS);
+      this._liftSpeed = Math.min(peak, this.v.lift_speed_max_radps);
+      this._liftAccel = Math.min(10000, peak / (0.1 * durationS));
+    }
+  }
+
+  commandLiftHeight(heightMm, durationS = 0) {
     assert(Number.isFinite(heightMm), "bad lift height");
     if (!this.hasControl) return false;
-    this._liftSpeed = this.v.lift_speed_default_radps;
-    this._servoRate[1] = 0;
-    this._liftTarget = liftAngleOfHeight(this.v, heightMm);
+    this._startLift(heightMm, null, durationS);
     return true;
   }
 
@@ -735,16 +748,14 @@ export class VectorSim {
   }
 
   // Raise or lower the lift and wait for it; the height is clamped to the robot's range.
-  setLiftHeight(heightMm, speedRadps = null) {
+  setLiftHeight(heightMm, speedRadps = null, durationS = 0) {
     assert(Number.isFinite(heightMm), "bad lift height");
     if (!this.hasControl || this._action !== null) return this._refuse();
     const v = this.v;
-    this._liftSpeed = speedRadps ? Math.abs(speedRadps) : v.lift_speed_default_radps;
-    this._servoRate[1] = 0;
-    const target = liftAngleOfHeight(v, heightMm);
+    this._startLift(heightMm, speedRadps, durationS);
+    const target = this._liftTarget;
     const span = Math.abs(target - this.data.qpos[this._q.lift]);
     const made = this._newServoAction("lift", target, v.lift_angle_tol_deg * DEG, span, this._liftSpeed);
-    this._liftTarget = target;
     return made;
   }
 
