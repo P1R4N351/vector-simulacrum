@@ -15,3 +15,9 @@ The repo contains the SDK image/report timestamps, light command times, raw cube
 We ran the frozen Vector 2 cube model upright under gravity with seed zero and compared the first 581 packets with this separate physical recording. Within-packet noise on X/Y/Z was 1.98/2.29/2.65 mg RMS physically and 2.00/2.23/2.72 mg in simulation. All signed axis words in both streams had remainder 1 modulo 4. Neither tap counter changed. Mean Z agreed within 0.30 mg, but mean X differed by 18.35 mg. A single resting orientation cannot separate inclination from accelerometer bias.
 
 The 580 physical interarrival intervals spanned 20.86 s (27.8 packets/s at the host), compared with 17.40 s for simulated emission (33.3 packets/s). The longest host gap was 275 ms. These are timestamped at different stages, so this recording alone cannot distinguish missed packets, transport delay and a different production rate. We retain the existing calibration. Reproduce with `python stationary_holdout.py`.
+
+### Transfer from robot receipt to host receipt
+
+A receiver model fitted earlier on the robot's Bluetooth daemon timestamps predicts 21.123 s for this packet count. The host measured 20.863 s, a +1.24% prediction error. The ideal emission timeline predicts 17.400 s (−16.60%). The host trace has 17 gaps longer than 150 ms, spanning 226–275 ms. Using the first restart as a timing anchor and the 1.22746 s period from the earlier resting recording, median absolute timing error for the other 16 restarts is 38 ms, maximum 65 ms. This recurring receiver pattern explains most of the apparent rate difference across these two observation points. The cause of the pauses and what happened to chip samples during them remain unresolved.
+
+[Timing overlay](receiver-holdout.png) · [Reproduce the comparison](receiver_holdout.py) · [Earlier robot-side evidence](../../unit3-cube-accelerometer/receipt-transfer.md)
