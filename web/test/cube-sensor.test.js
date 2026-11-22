@@ -79,7 +79,7 @@ test("cube callbacks carry the last supervisor timestamp across calm and awake p
 
 test("Unit 3 awake clock advances independently of the physics control tick", async () => {
   const sim = new VectorSim(await mujoco(), {
-    xml: readText("public/robot/vector-free.xml"), values: { ...quietChip, supervisor_loop_ms: 5.08 }, derived,
+    xml: readText("public/robot/vector-free.xml"), values: { ...quietChip, supervisor_loop_ms: 5.083 }, derived,
   });
   try {
     sim.tick(60);
