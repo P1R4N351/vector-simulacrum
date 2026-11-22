@@ -2,7 +2,7 @@
 
 ![Head and lift profiles for three robots and their frozen replays](profiles.png)
 
-unit 2 remained on the workshop dock and reported charging at the end. The recorder issued only head and lift actions. It requested three cycles per joint. unit 2 moved its head between the first two head actions, including a return from +46° to approximately −6° after the first raise completed. That cycle had unmatched starting postures. The raw recording includes it. Two head cycles and all three lift cycles met the endpoint check.
+Unit 2 remained on the workshop dock and reported charging at the end. The recorder issued only head and lift actions. It requested three cycles per joint. Unit 2 moved its head between the first two head actions, including a return from +46° to approximately −6° after the first raise completed. That cycle had unmatched starting postures. The raw recording includes it. Two head cycles and all three lift cycles met the endpoint check.
 
 Median time from host command to detected motion and median 10–90% travel time, in milliseconds. Each cell gives onset / travel time. Frozen values here replay unit 2. The CSV includes the separate replay for every robot and stroke.
 
@@ -13,15 +13,15 @@ Median time from host command to detected motion and median 10–90% travel time
 | Lift 32 to 92 mm | 189 / 327 | 129 / 344 | 223 / 318 | 232 / 318 |
 | Lift 92 to 32 mm | 190 / 341 | 129 / 338 | 199 / 326 | 279 / 318 |
 
-unit 2 starts 59–115 ms later than its matched replay. After onset the largest median 10–90% discrepancy is 27 ms on head lowering. Individual unit 2 head lowers took 328 and 378 ms. The repeats and sample cadence limit conclusions about small differences. unit 3 starts its head lower about 94 ms later than unit 2, yet their median traversal times differ by only 4 ms.
+Unit 2 starts 59–115 ms later than its matched replay. After onset the largest median 10–90% discrepancy is 27 ms on head lowering. Individual unit 2 head lowers took 328 and 378 ms. The repeats and sample cadence limit conclusions about small differences. Unit 3 starts its head lower about 94 ms later than unit 2, yet their median traversal times differ by only 4 ms.
 
 ## Measurement
 
-All recordings use SDK state delivery time on the recorder clock. For the head, subtract the precommand pitch gyro baseline and interpolate the first sustained directional 1°/s crossing. For the lift, use the midpoint of the bracket containing the first sustained displacement above 0.15 mm. The two successive readings rule rejects isolated spikes. unit 2 onset brackets are typically about 60 ms wide. Host dispatch, transport, controller response and SDK reporting all contribute to measured onset. The data do not isolate motor dead time.
+All recordings use SDK state delivery time on the recorder clock. For the head, subtract the precommand pitch gyro baseline and interpolate the first sustained directional 1°/s crossing. For the lift, use the midpoint of the bracket containing the first sustained displacement above 0.15 mm. The two successive readings rule rejects isolated spikes. Unit 2 onset brackets are typically about 60 ms wide. Host dispatch, transport, controller response and SDK reporting all contribute to measured onset. The data do not isolate motor dead time.
 
 Select alternating full endpoint commands and require the median positions before command and during 1.25–1.53 s after command to be within 5° or 5 mm of the two endpoints. Interpolate 10% and 90% crossings of each measured excursion. Each overlay shifts only time and retains absolute angle or height.
 
-Replay uses the unchanged actuator parameters at commit 69260a7, including the 105 ms command delay, measured initial joint positions, and each recording's sample times. The simulator's standard level-table replay supplies the reference for docked unit 2. Its generation was unverified, so the reference uses the base Vector 1 profile. unit 1 is a refurbished Vector 1. unit 3 is a Vector 2 with a printed lift and uses the Vector 2 profile. Both archived bots performed their sweeps off dock. These runs cannot independently identify a dock, generation or lift-hardware effect.
+Replay uses the unchanged actuator parameters at commit 69260a7, including the 105 ms command delay, measured initial joint positions, and each recording's sample times. The simulator's standard level-table replay supplies the reference for docked unit 2. Its generation was unverified, so the reference uses the base Vector 1 profile. Unit 1 is a refurbished Vector 1. Unit 3 is a Vector 2 with a printed lift and uses the Vector 2 profile. Both archived bots performed their sweeps off dock. These runs cannot independently identify a dock, generation or lift-hardware effect.
 
 Run `MPLBACKEND=Agg python evidence/docked-actuator-timing/analyze.py` from the repository root with NumPy, Matplotlib and MuJoCo installed (analysis used MuJoCo 4.0.1). Inputs are the docked SDK log, the actuator excerpt from unit 3 run O before the wheelie phase, and the repository's unit 1 run A. See [per-move measurements](moves.csv).
 
@@ -40,3 +40,15 @@ Over 40–80 mm, unit 1's median increased from 238 to 399 ms and unit 3's from 
 **Head timing on a held-out robot.** Nine docked full strokes on units 1 and 2 gave a median physical-minus-frozen gyro onset of 91.6 ms. Applying that one shift to both simulated head angle and pitch gyro reduced first-second RMS error for both signals on every accepted unit 3 stroke. The four docked strokes had median angle error 7.20° before and 2.63° after, and gyro error 39.77 and 19.56°/s. The four off-dock strokes gave 7.10° and 3.46°, and 35.64 and 16.46°/s. Each session includes two raises and two lowers. The replay uses measured starting posture and a level-table model in both settings. Errors are per stroke at actual SDK receipt times from command through 1 s, with the precommand gyro median removed in each stream. The offset describes host-command to observed motion across these recordings. The data cannot allocate it between command delivery, actuation and state reporting. The shift is applied only in this diagnostic. [Command-aligned overlay](repeat/head-transfer.png) · [individual scores](repeat/head-transfer.csv) · [reproduce](repeat/head_transfer.py).
 
 **Earlier-session challenge.** Against twelve archived head moves on Nov 15 and 18, the same 91.6 ms shift improves encoder error on four and pitch gyro error on three. All four Nov 18 strokes between −22° and +45° worsen in both signals, including both directions. Their original angle RMS errors span 1.21–2.49°, rising to 7.04–8.28° with the shift. Command range alone therefore cannot select the receipt offset. The two archives were independent of the 91.6 ms estimate, although some Nov 15 strokes contributed to the original 105 ms simulator delay. This uses the same first-second SDK receipt scoring and removes the precommand gyro median separately per signal. The model retains its existing default. [Paired error plot](repeat/head-archive.png) · [per-move scores](repeat/head-archive.csv) · [reproduce](repeat/head_archive.py).
+
+## Fleet coverage for docked work
+
+Run each experiment that works on the charger in darkness on every available household Vector. Check actual SDK reachability and charging status on each unit, and record the robot, hardware generation, surface or dock, and session. Keep each unit's results separate so a measurement from one unit can test a fit from another. A pod registry entry alone establishes enrollment. For cube tests, record whether that unit has a connected cube.
+
+| Experiment | unit 1 | unit 2 | unit 3 |
+|---|---|---|---|
+| Full head and lift strokes | Recorded, see repeat | Recorded, see repeat | Recorded, see repeat |
+| Partial head/lift and two lift speed crossovers | Pending | Pending | Recorded |
+| White cube LED and stationary cube accelerometer | Pending, cube availability unverified | Pending, cube availability unverified | Recorded |
+
+At the November 22 fleet check both pod routes returned no route to unit 1 and unit 2. The workshop access point was enabled and reported zero associated stations. Retain these units for the next available run.
