@@ -1,0 +1,73 @@
+name: leak-check
+
+# Server-side leak scan. Runs on every push to main and on every pull request.
+# The pattern list is held as a repository secret (LEAK_PATTERNS_JSON, base64 of
+# a {"patterns":[{"id","category","regex","flags"}...]} document) so the specific
+# values the project does not want public are not themselves in the repo.
+# A pull request sent from a fork does NOT receive secrets, and the check is
+# skipped there with a visible note; a maintainer re-runs the check from a trusted
+# branch before merge.
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Decode patterns and scan the tree
+        env:
+          LEAK_PATTERNS_JSON_B64: ${{ secrets.LEAK_PATTERNS_JSON }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${LEAK_PATTERNS_JSON_B64:-}" ]; then
+            echo "::warning::LEAK_PATTERNS_JSON secret is not set for this run (fork pull request, or secret not configured). Skipping scan."
+            exit 0
+          fi
+          mkdir -p "$RUNNER_TEMP/lc"
+          echo "$LEAK_PATTERNS_JSON_B64" | base64 -d > "$RUNNER_TEMP/lc/patterns.json"
+          python3 - "$RUNNER_TEMP/lc/patterns.json" <<'PY'
+          import json, os, re, subprocess, sys
+          MAX_FILE_BYTES = 2_000_000
+          with open(sys.argv[1]) as fh:
+              spec = json.load(fh)
+          patterns = []
+          for entry in spec.get("patterns", []):
+              flags = re.IGNORECASE if "i" in entry.get("flags", "") else 0
+              patterns.append((entry["id"], re.compile(entry["regex"], flags)))
+          assert patterns, "no patterns loaded"
+          names = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+          findings = 0
+          for rel in names:
+              if not rel:
+                  continue
+              try:
+                  if os.path.getsize(rel) > MAX_FILE_BYTES:
+                      continue
+                  with open(rel, "rb") as fh:
+                      data = fh.read()
+              except OSError:
+                  continue
+              if b"\x00" in data[:8192]:
+                  continue
+              text = data.decode("utf-8", errors="replace")
+              for number, line in enumerate(text.splitlines(), 1):
+                  for pid, rx in patterns:
+                      if rx.search(line):
+                          print(f"{rel}:{number}: {pid}: {line[:160]}")
+                          findings += 1
+          print(f"scanned {sum(1 for n in names if n)} tracked file(s); {findings} finding(s).")
+          sys.exit(1 if findings else 0)
+          PY
