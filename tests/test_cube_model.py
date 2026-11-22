@@ -75,7 +75,7 @@ class TestCubeRobotTimestamps(unittest.TestCase):
         self.assertEqual(list(chip.packet_timestamps_ms.values()), [1000, 1030])
 
     def test_measured_loop_stamps_do_not_retime_cube_packets(self):
-        chip = run(dict(QUIET, supervisor_loop_ms=5.08), .33, lambda _: [0,0,1])
+        chip = run(dict(QUIET, supervisor_loop_ms=5.083), .33, lambda _: [0,0,1])
         self.assertEqual(len(chip.messages), 11)
         last, _ = chip.messages[-1]
         self.assertAlmostEqual(last, .33)
