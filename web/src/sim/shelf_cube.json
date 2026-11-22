@@ -1,0 +1,28 @@
+{
+  "cube_accel_bandwidth_hz": 250.0,
+  "cube_accel_bias_mg": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "cube_accel_counts_per_g": 8192.0,
+  "cube_accel_filter_second_pole": 1.0,
+  "cube_accel_frame_period_ms": 2.0,
+  "cube_accel_noise_axis_scale": [
+    0.8467741935483871,
+    0.9919354838709677,
+    1.1370967741935485
+  ],
+  "cube_accel_noise_density_ug": 124.0,
+  "cube_accel_range_g": 4.0,
+  "cube_accel_scale": [
+    1.0,
+    0.970709,
+    0.970709
+  ],
+  "cube_accel_word_format": [
+    2,
+    1
+  ],
+  "cube_tick_ms": 10.0
+}

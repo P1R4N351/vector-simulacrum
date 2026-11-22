@@ -400,7 +400,11 @@ def main(argv: Sequence[str]) -> int:
              "values": _jsonable(v), "derived": _jsonable(d), "cliff_names": list(mjcf.CLIFF_NAMES),
              "provenance_counts": _provenance_counts(table_bytes), "camera": camera_block(v),
              "obstacles": _jsonable(SCENE_OBSTACLES)}
+    shelf_values = params.values(params.load(model="vector_2"))
+    shelf_chip = {k: value for k, value in shelf_values.items()
+                  if k.startswith("cube_accel_") or k == "cube_tick_ms"}
     outputs = {
+        "src/sim/shelf_cube.json": json.dumps(shelf_chip, indent=2, sort_keys=True) + "\n",
         "public/robot/vector.xml": xml,
         "public/robot/vector-contact42.xml": trial_xml,
         "public/robot/model.json": json.dumps(model, indent=1, sort_keys=True) + "\n",
