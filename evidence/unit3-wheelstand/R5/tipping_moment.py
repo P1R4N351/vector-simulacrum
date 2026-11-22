@@ -27,7 +27,7 @@ def moments(model, data, cube, floor, fork, fork_yaw=None):
             normal_yaw = np.cross(lever, normal)[2]
             local = (c.pos - data.xpos[fork]) @ data.xmat[fork].reshape(3,3)
             fork_yaw.append((model.geom(c.geom[side]).name, *local, wrench[0],
-                             normal_yaw, total[2] - normal_yaw))
+                             normal_yaw, total[2] - normal_yaw, *(lever @ rotation)))
     # The fixture's isotropic free cube has its body origin at its COM.
     joint = model.body_jntadr[cube]
     adr = model.jnt_dofadr[joint]+3
