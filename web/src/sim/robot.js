@@ -62,6 +62,9 @@ export class VectorSim {
     const level = opts.controlLevel ?? this.controlLevel ?? CONTROL_DEFAULT;
     assert(level === CONTROL_DEFAULT || level === CONTROL_OVERRIDE, "unknown control level");
     this.controlLevel = level;
+    this.calmMode = opts.calmMode ?? this.calmMode ?? false;
+    this._bodyStateTicks = 0;
+    this._bodyStateStampMs = 0;
     this._gauss = makeGauss(opts.noiseSeed ?? 0);
     // The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
     this._proxSensor = new ProxSensor(this.v, (opts.noiseSeed ?? 0) + 1);
@@ -238,7 +241,7 @@ export class VectorSim {
       const sd = this.data.sensordata;
       for (let ch = 0; ch < CHANNELS; ch++) raw[ch] = sd[this._imuAdr[ch]];
       this._imuFilter.update(raw);
-      if (this.cubeSensor) this.cubeSensor.step(this.data.time, this._cubeForce());
+      if (this.cubeSensor) this.cubeSensor.step(this.data.time, this._cubeForce(), this._bodyStateStampMs);
     }
   }
 
@@ -598,6 +601,11 @@ export class VectorSim {
     this._writeControls();
     this._physicsStep();
     this.tick_ += 1;
+    // Supervisor Messages::UpdateRobotState sends every 6 loops, or 50 in calm mode.
+    if (++this._bodyStateTicks >= (this.calmMode ? 50 : 6)) {
+      this._bodyStateStampMs = Math.round(this.tick_ * this.dt * 1000);
+      this._bodyStateTicks = 0;
+    }
     const yaw = this._yaw();
     this._yawTotal += Math.atan2(Math.sin(yaw - this._yawPrev), Math.cos(yaw - this._yawPrev));
     this._yawPrev = yaw;

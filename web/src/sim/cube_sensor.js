@@ -48,7 +48,7 @@ export class CubeSensor {
     }
   }
 
-  step(time, force) {
+  step(time, force, bodyStateStampMs) {
     const sensed = this.sense(force, this.sigma);
     this.filter.update([...sensed, ...sensed]);
     const [shift, lowBits] = this.v.cube_accel_word_format ?? [4, 0];
@@ -70,6 +70,9 @@ export class CubeSensor {
         if (this.ticks % 3 === 0) {
           this.packet = { time_s: nextTick, taps: this.taps, slots: this.slots.slice() };
           this.packet.events = this.listeners.receive(this.packet);
+          if (bodyStateStampMs !== undefined) {
+            for (const event of this.packet.events) event.timestamp = bodyStateStampMs;
+          }
         }
       }
     }
