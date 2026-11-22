@@ -76,6 +76,7 @@ const ARMS = [
   { name: "3D shell: decal normals left unnormalized", file: "src/game/shell.js", old: "  geometry.normalizeNormals();\n", new: "", mustFail: true },
   { name: "3D rig: stock fork pivoted on wrist instead of fork_pivot", file: "src/game/sdkmodel.js", old: "s.position.set(-pose.fork_pivot[0], 0, -pose.fork_pivot[1]);", new: "s.position.set(0, 0, 0);", mustFail: true },
   { name: "3D topology: cover sliver normals left unaligned", file: "src/game/topology.js", old: "    alignGeometryNormals(geo);\n", new: "", mustFail: true },
+  { name: "3D cube: marker UVs mirrored horizontally", file: "src/game/cube.js", old: "uv.setXY(k, face.cx + (rMm / 11.5) * face.h, face.cy - (uMm / 11.5) * face.h);", new: "uv.setXY(k, face.cx - (rMm / 11.5) * face.h, face.cy - (uMm / 11.5) * face.h);", mustFail: true },
 ];
 
 function makeCopy() {
