@@ -177,18 +177,23 @@ class MovementListener:
         self.score = 0.0
         self.moving = False
         self.events: List[Tuple[float, bool]] = []
+        self.broadcast_events: List[Tuple[float, bool]] = []
 
-    def update(self, t_s: float, accel: np.ndarray) -> None:
+    def update(self, t_s: float, accel: np.ndarray, *, handling_cube: bool = False) -> None:
         if self.previous is not None:
             self.filtered = np.float32(.8) * (self.filtered + accel - self.previous)
             magnitude = float(np.linalg.norm(self.filtered))
             self.score = float(np.clip(np.float32(self.score + min(500., magnitude)) - 300., 0., 20000.))
+            was_moving = self.moving
             if self.score > 10000. and not self.moving:
                 self.moving = True
-                self.events.append((t_s, True))
             elif 0. < self.score < 5000. and self.moving:
                 self.moving = False
-                self.events.append((t_s, False))
+            if self.moving != was_moving:
+                event = (t_s, self.moving)
+                self.events.append(event)
+                if not handling_cube:
+                    self.broadcast_events.append(event)
         self.previous = accel
 
 
@@ -226,6 +231,7 @@ class CubeAccelerometer:
                  tick_phase_s: float = 0.0, app: str = "last") -> None:
         assert step_s > 0.0 and math.isfinite(step_s), "step must be positive"
         assert app in APPS, "the app is last or mean"
+        self.handling_cube = False  # Engine is carrying or docking with this particular cube.
         self.app_kind = app
         shift, low_bits = v.get("cube_accel_word_format", [LEFT_SHIFT, 0])
         self.word_shift, self.low_bits = int(shift), int(low_bits)
@@ -310,7 +316,7 @@ class CubeAccelerometer:
             self.taps.receive(t_s, payload)
             for accel in engine_samples(payload):
                 self.up_axis.update(t_s, accel)
-                self.movement.update(t_s, accel)
+                self.movement.update(t_s, accel, handling_cube=self.handling_cube)
         self.fifo = []
 
     @property
