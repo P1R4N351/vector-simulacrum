@@ -18,3 +18,15 @@ Capture both streams concurrently using the persistent device path for each came
 With the cube centered, both cameras recorded three green pulses, including all three falling edges. The battery-powered cube was driven briefly from the camera host over its BLE application light characteristic and left dark, then disconnected. The shelf lamp was untouched. We used the first pulse to locate the strongest local increase in green relative to red and blue in each image, then scored all three pulses at those fixed locations. For each transition, the last frame on one side of half brightness and the first frame on the other side bracket the visible change. All six pairs of camera brackets overlapped. B-minus-A midpoint differences ranged from −23.8 to +47.6 ms, so a constant correction inferred from this run is unwarranted. Frames are free-running, and command acknowledgement is only the plotting origin.
 
 [Three pulses on both cameras](cube-led-pulses.png) · [Six edge brackets](cube-led-edges.csv) · [Analysis script](cube_pulses.py)
+
+### Default inspection view for the opposed cameras
+
+Use `python live_view.py HOST preview.jpg` for a fresh upright pair. Routine visual inspection, LED pulse extraction and glyph tracking use the same shelf view. Use the original recordings explicitly for optical calibration or diagnosis. Preserve source timestamps. The 1280×720 camera inputs are mapped to a 1000×440 rectilinear shelf view with a downward virtual pitch and ceiling crop. The second camera is rotated 180°. Color gains come from a bare shelf patch in the reference frame and stay fixed throughout a clip. A fixed midtone lift brings out shaded features. Avoid temporal smoothing when timing impacts or LED edges.
+
+The equidistant focal length transfers the earlier single-camera shelf estimate at the new resolution. It is an approximate viewing correction. Absolute distance and stereo pose need separate calibration of the two mounted lenses. The shelf is a relative neutral reference; these views have no color-chart calibration. Refresh the reference after a lighting or camera change and confirm the patch still shows bare shelf.
+
+![Corrected shelf preview](corrected-preview.jpg)
+
+We reran the three-pulse test through the corrected view. All six edge brackets agree with the earlier scoring. In the four LED-off windows the 95th-percentile apparent motion of stationary glyph corners ranged from 1.03 to 1.71 corrected pixels on A and 0.20 to 0.30 on B. With the LEDs on, A lost all 60 attempted corner matches under a one-pixel round-trip consistency check. B retained all 56. Use lit corners for timing and unlit glyphs for position on A. Neither pixel result measures millimetres or establishes accuracy on moving targets.
+
+[Glyph landmarks and residuals](glyph-tracking.png) · [Per-frame scores](glyph-tracking.csv) · [Analysis](glyph_tracking.py)
