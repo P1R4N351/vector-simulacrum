@@ -83,7 +83,7 @@ async function loadEverything() {
     traced("PARAMETER TABLE", fetchText("./robot/model.json")),
   ]);
   const model = JSON.parse(modelText);
-  if (free && options.get("cubeSensor") === "p2y8") Object.assign(model.values, shelfCube);
+  if (free && options.get("cubeSensor") === "unit3") Object.assign(model.values, shelfCube);
   const doneCheck = bootLine("MODEL CHECKSUM");
   doneCheck(await checkModel(xml, free ? model.source[sceneName + "_sha256"] : (trial ? model.source.trial_xml_sha256 : model.source.xml_sha256)));
   const mujoco = await traced("WEBASSEMBLY", loadMujoco({ locateFile: (p) => (p.endsWith(".wasm") ? mujocoWasmUrl : p) }));

@@ -11,7 +11,7 @@ series = [("Shelf", here.parent/"stationary.csv.gz"),
                     ("Shelf repeat", here.parent/"stationary-repeat.csv.gz"),
                     ("Browser default cube", sys.argv[1])]
 if len(sys.argv) > 2:
-    series.append(("Browser P2Y8 cube", sys.argv[2]))
+    series.append(("Browser unit 3 cube", sys.argv[2]))
 for label, path in series:
     slots = np.genfromtxt(path, delimiter=",", names=True)
     magnitude = np.sqrt(sum(slots[key]**2 for key in "xyz")) / 8192
@@ -19,4 +19,4 @@ for label, path in series:
     ax.step(np.sort(magnitude), np.arange(1, len(slots)+1)/len(slots), where="post", label=label)
 ax.set(xlabel="Cube accelerometer magnitude (g)", ylabel="Fraction of stationary slots")
 ax.legend()
-fig.savefig(here/("browser-rest-p2y8.png" if len(sys.argv) > 2 else "browser-rest.png"), dpi=150)
+fig.savefig(here/("browser-rest-unit3.png" if len(sys.argv) > 2 else "browser-rest.png"), dpi=150)
