@@ -70,6 +70,16 @@ with a full SDK asset folder installs the textured cube locally. The fallback
 shows the shell and rubber contact boxes. Add `&contact=42` for the experimental
 42 mm contact span.
 
+In the free-cube scene, the cube acceleration readout shows the magnitude of
+each of the three ordered slots in the latest simulated stock Bluetooth packet.
+The chip filters specific force before sampling. The app keeps the last chip
+frame on each 10 ms tick and publishes after three ticks. In the debug console,
+`window.__sim.cubeSensor.packet` contains send time, tap count and signed XYZ
+counts for all three slots. The default calibration represents a generic cube.
+The [stationary shelf comparison](../evidence/unit3-wheelstand/shelf-roll-stop/browser-rest.png)
+shows a median of 1.0000 g in the browser and 0.9703 and 0.9704 g in two
+recordings of the same physical cube (828 slots each, same resting pose).
+
 ## Wheels and tracks
 
 On the robot, each side has a motor-driven front wheel, a free-spinning rear
