@@ -29,3 +29,11 @@ We replayed 18,891 physical packets from 14 wheelstand-series recordings through
 On matched taps, using the previously estimated 145.906 ms host delivery delay reduced median absolute callback-time error from 149.2 to 11.9 ms. The largest error after this correction was 171.3 ms. R10’s observed delivery delays ranged from 38.6 to 317.2 ms. The delay is a useful typical estimate on this setup. It is too variable to locate a particular impact. This replay supplies the *physical* packets, so it validates packet interpretation separately from predicting which contacts generate taps.
 
 [Two clocks for each matched event](sdk-tap-transfer.png) · [All matches and extra listener event](sdk-tap-transfer.csv) · [Per-recording coverage](sdk-tap-coverage.csv). Run sdk_tap_transfer.py.
+
+### Movement start and stop on the same physical packets
+
+Passing each physical packet's three slots through the simulator's movement listener reproduced all five captured SDK movement transitions within 34 ms on the robot uptime clock. R10 moved for 660 ms in replay versus 640 ms by SDK timestamps. R11 moved for 350 ms versus 306 ms. R8's packet capture ended 207 ms after its SDK start, with no recorded stop. Use the individual transition rows for scoring; starts and stops can each receive different SDK clock offsets.
+
+The listener also produced two starts and two stops in R5 without SDK movement callbacks. In host time, the first episode (26.800–29.252 s) was inside the pickup action; the second (32.844–38.343 s) ran from reversing with the cube into placement. All four occur during manipulation. This is consistent with the stock engine's separate carry/docking broadcast rules. Exact internal suppression state was not logged. The other ten nonempty captures had neither listener nor SDK movement transitions. Input packets came from real hardware, so no contact parameters were changed.
+
+[Listener score and SDK events](sdk-move-transfer.png) · [Per-run and per-transition results](sdk-move-transfer.csv). Run sdk_move_transfer.py.
