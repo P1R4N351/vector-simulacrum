@@ -12,7 +12,8 @@ from simulacrum import mjcf, params
 from simulacrum.cube import CubeAccelerometer, packet
 
 
-def replay(path, pitched, v, clock, heights, pitches, contact_observer=None):
+def replay(path, pitched, v, clock, heights, pitches, contact_observer=None, *,
+           yaw_deg=0, lateral_mm=0):
     tree = ET.parse(path)
     cube = tree.find(".//body[@name='cube']")
     cube.append(ET.fromstring(mjcf._cube_chip_xml(v)))
@@ -34,7 +35,8 @@ def replay(path, pitched, v, clock, heights, pitches, contact_observer=None):
 
     pose(0)
     joint = d.joint('cube_root')
-    joint.qpos[:] = [.15, 0, .02215, 1, 0, 0, 0]
+    half_yaw = np.deg2rad(yaw_deg) / 2
+    joint.qpos[:] = [.15, lateral_mm / 1000, .02215, np.cos(half_yaw), 0, 0, np.sin(half_yaw)]
     def touching(xpos):
         joint.qpos[0] = xpos
         mj.mj_forward(model, d)
