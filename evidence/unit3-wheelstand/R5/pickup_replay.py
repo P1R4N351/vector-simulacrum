@@ -1,6 +1,7 @@
 """Replay the physical R5 approach starting with the cube on the shelf."""
 import argparse
 import csv
+from copy import deepcopy
 import sys
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -27,16 +28,28 @@ parser.add_argument("fixture")
 parser.add_argument("--output", type=Path, help="Directory for this replay’s generated evidence")
 parser.add_argument("--substeps", type=int, default=1, choices=(1,2,4))
 parser.add_argument("--sighting", type=int, help="Camera sighting row (zero-based) for a fresh stationary cube start")
+parser.add_argument("--shelf-friction-scale", type=float, choices=(0.25, 0.5, 1., 2.),
+                    help="Scale only sliding friction at cube-to-table contacts")
 motion = parser.add_mutually_exclusive_group()
 motion.add_argument("--wheel-translation", action="store_true", help="Integrate reported wheel speeds after lift onset")
 motion.add_argument("--freeze-at-raise", choices=("planar", "pitch", "both"),
                     help="Hold selected chassis motion at its value when the wrist first rises 1 mm")
 args = parser.parse_args()
-if (args.freeze_at_raise or args.wheel_translation or args.sighting is not None) and not args.output:
+if (args.freeze_at_raise or args.wheel_translation or args.sighting is not None or args.shelf_friction_scale is not None) and not args.output:
     parser.error("Use --output for counterfactual runs to preserve the recorded baseline")
 tree = ET.parse(args.fixture)
 require_printed_fork(tree)
 add_links(tree, repo)
+if args.shelf_friction_scale is not None:
+    world = tree.find("worldbody")
+    world.find("geom[@name='table']").set("conaffinity", "11")
+    body = world.find("body[@name='cube']")
+    for geom in body.findall("geom"):
+        pad = deepcopy(geom)
+        pad.attrib.update(name="floor_" + geom.get("name"), contype="8", conaffinity="0", mass="0")
+        mu, torsion, rolling = geom.get("friction").split()
+        pad.set("friction", f"{float(mu)*args.shelf_friction_scale} {torsion} {rolling}")
+        body.append(pad)
 m = mj.MjModel.from_xml_string(ET.tostring(tree.getroot(), encoding="unicode"))
 m.opt.timestep /= args.substeps
 v = params.values(params.load(model="vector_2"))
