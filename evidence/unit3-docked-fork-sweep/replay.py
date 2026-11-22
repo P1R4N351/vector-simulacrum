@@ -34,7 +34,7 @@ with (folder / "replay-errors.csv").open("w") as stream:
         start = moves[1 + 8 * cycle]["command_s"]
         end = moves[9]["command_s"] if cycle == 0 else samples["seconds"][-1]
         for x, y, label in [(times, heights, "Frozen simulation"),
-                              (samples["seconds"], samples["lift_mm"], "P2Y8 encoder")]:
+                              (samples["seconds"], samples["lift_mm"], "Unit 3 encoder")]:
             x = np.asarray(x)
             mask = (x >= start) & (x < end)
             ax.plot(x[mask] - start, np.asarray(y)[mask], label=label)

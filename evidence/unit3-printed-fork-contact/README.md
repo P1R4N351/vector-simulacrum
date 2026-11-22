@@ -1,6 +1,6 @@
 # What the printed fork changes in unit 3's five cube trials
 
-Hardware update, November 22: the operator reports a missing tooth on P2Y8’s installed printed fork. Its side, fracture dimensions and break date are unknown. The intact STL comparison below cannot establish grip on an undamaged production fork. [Docked physical contact trial](../unit3-docked-grip/README.md)
+Hardware update, November 22: the operator reports a missing tooth on unit 3’s installed printed fork. Its side, fracture dimensions and break date are unknown. The intact STL comparison below cannot establish grip on an undamaged production fork. [Docked physical contact trial](../unit3-docked-grip/README.md)
 
 Replacing the three collision boxes with 58 convex parts from Dauler's forks7.stl roughly halved the mean endpoint vector error on trials 2–5, from 2.51 to 1.26 mm. Both runs used the same starting cube center from unit 3's calibrated camera, starting heading from the overhead marker, recorded odometry and lift, and moving wrist driven by a stiff weld. No contact parameter was fitted. With onboard heading alone, the mean improved from 2.70 to 2.39 mm and two of those four individual trials worsened. The particular STL installed on unit 3 has not been independently identified.
 

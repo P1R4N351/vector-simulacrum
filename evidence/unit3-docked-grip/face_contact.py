@@ -13,7 +13,7 @@ here = Path(__file__).resolve().parent
 physical = np.genfromtxt(here / "encoder.csv", delimiter=",", names=True)
 rows = []
 fig, axes = plt.subplots(2, 1, sharex=True, figsize=(8,5), layout="constrained")
-axes[0].plot(physical["seconds"], physical["lift_mm"], color="black", label="P2Y8 encoder")
+axes[0].plot(physical["seconds"], physical["lift_mm"], color="black", label="Unit 3 encoder")
 for gap in (0, 1, 2):
     sim = VectorSim(params.values(params.load(model="vector_2")), lift_mm=33.02,
                     head_deg=21.5, charger_contact=True, cube="free")

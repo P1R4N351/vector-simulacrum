@@ -1,4 +1,4 @@
-"""Compare real endpoint measurements across independent P2Y8 recordings."""
+"""Compare real endpoint measurements across independent unit 3 recordings."""
 import csv
 import json
 from pathlib import Path

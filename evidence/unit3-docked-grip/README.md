@@ -1,6 +1,6 @@
 # Docked cube contact with a missing lift tooth
 
-P2Y8 remained on the charger while the operator placed a marked face of the cube against its installed printed fork. The operator reports that the fork is missing a tooth. Which tooth, the fracture shape, and the date it broke are unverified. The intact STL in earlier contact replays is a comparison geometry. Historical footage establishing a physical carry does not establish full seating.
+Unit 3 remained on the charger while the operator placed a marked face of the cube against its installed printed fork. The operator reports that the fork is missing a tooth. Which tooth, the fracture shape, and the date it broke are unverified. The intact STL in earlier contact replays is a comparison geometry. Historical footage establishing a physical carry does not establish full seating.
 
 [Two-sided clip](docked-contact.mp4) · [Contact sequence](contact.jpg) · [Encoder and accelerometer](sensors.png) · [Cube samples](cube.csv) · [Encoder samples](encoder.csv)
 

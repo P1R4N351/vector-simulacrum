@@ -61,7 +61,7 @@ with (here/'holds.csv').open('w') as f:
 fig,ax=plt.subplots(figsize=(10,3.7),layout='constrained')
 ax.plot(ts-zero,heights,lw=1.4,label='Encoder')
 ax.scatter([r[6] for r in poses],[r[4] for r in poses],s=16,color='#b74719',label='Camera A hold samples')
-ax.set(xlabel='Time since first command (s)',ylabel='Reported lift height (mm)',title='P2Y8 · two full docked sweeps with quarter-height holds');ax.legend()
+ax.set(xlabel='Time since first command (s)',ylabel='Reported lift height (mm)',title='Unit 3 · two full docked sweeps with quarter-height holds');ax.legend()
 fig.savefig(here/'lift-trace.png',dpi=160)
 for iteration,indices in enumerate((range(9),range(8,17)),1):
     rows=[]
