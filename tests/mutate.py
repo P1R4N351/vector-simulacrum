@@ -43,6 +43,7 @@ IF, RK = "simulacrum/imu_fit.py", "rank_assumed.py"
 MS, TMC = "simulacrum/mcp_service.py", "test_mcp."
 WS, WC, TWS = "simulacrum/wheelstand.py", "wheelstand_check.py", "test_wheelstand."
 PX, TPX = "simulacrum/prox.py", "test_prox."
+MP, TMP = "simulacrum/mujoco_pin.py", "test_mujoco_pin.LoadedLibrary."
 SF, TSF = "simulacrum/spin_fit.py", "test_spin_fit.InsetFit."
 CS, TCS = "simulacrum/camera_spins.py", "test_camera_spins.TurnCentres."
 LP, TLP, TLR = "simulacrum/imu_filter.py", "test_imu_filter.Filter.", "test_imu_filter.InTheRobot."
@@ -98,6 +99,22 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
     ("cliff reaction also runs at the override level", R,
      'if self.control_level != CONTROL_DEFAULT or self._react_phase != "idle":', 'if self._react_phase != "idle":',
      (TS + "Cliff.test_reaction_off_the_robot_drives_off_and_falls",), True),
+    ("the floor is a ledge just under the table top", M, 'pos="0 0 {num(-v["table_height_mm"] * MM)}"',
+     'pos="0 0 {num(-(v["table_thickness_mm"] + 60.0) * MM)}"',
+     (TS + "Cliff.test_reaction_off_the_robot_drives_off_and_falls",), True),
+    ("the fall detector never sees a free fall", R,
+     "self.hazards.update(self.cliff_ranges_mm(), math.sqrt(sum(a * a for a in accel)))",
+     "self.hazards.update(self.cliff_ranges_mm(), 10000.0 + math.sqrt(sum(a * a for a in accel)))",
+     (TS + "Cliff.test_reaction_off_the_robot_drives_off_and_falls",), True),
+    ("pin check ignores the loaded library's version", MP, "if found is None or found.group(1) != want:",
+     "if False:", (TMP + "test_a_library_of_another_version_fails_even_when_the_bindings_agree",), True),
+    ("pin check passes when no library is mapped", MP, "if not libs:", "if False:",
+     (TMP + "test_no_library_found_is_a_failure_not_a_pass",), True),
+    ("pin check ignores the bindings' version", MP, "if mujoco.mj_versionString() != want:", "if False:",
+     (TMP + "test_another_version_fails_on_both_the_bindings_and_the_library",), True),
+    ("pin check accepts a library from another package", MP,
+     "elif Path(lib).resolve().parent != package_dir:", "elif False:",
+     (TMP + "test_the_right_version_from_another_package_fails",), True),
     ("back-up distance halved", R, 'if gone >= v["cliff_reaction_backup_mm"] or self._react_ticks <= 0:',
      'if gone >= 0.5 * v["cliff_reaction_backup_mm"] or self._react_ticks <= 0:',
      (TS + "Cliff.test_reaction_on_stops_backs_away_and_takes_control",), True),
@@ -262,7 +279,7 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
      (TS + "Determinism.test_nominal_runs_repeat_exactly_including_a_fall",), True),
     ("falling is never reported", H, "if self._fall_ticks > self._fall_need:\n            self.falling = True",
      "if self._fall_ticks > self._fall_need:\n            self.falling = False",
-     (TS + "Cliff.test_reaction_off_the_robot_drives_off_and_falls",), True),
+     ("test_hazards.FallFlag.test_low_acceleration_over_a_cliff_sets_falling_only_after_the_detection_time",), False),
     ("a drop within sensor reach is not a cliff", H, "self.cliff[i] = reading < 0.0 or reading > self._range_mm",
      "self.cliff[i] = reading < 0.0", (TS + "RangeSensors.test_front_cliff_sensors_over_the_edge_read_the_floor",), True),
     ("observation leaks the true position", T, 'state.prox_distance_mm / scales["prox"],',

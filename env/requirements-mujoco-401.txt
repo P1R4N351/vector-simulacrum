@@ -1,0 +1,28 @@
+# The reference MuJoCo for fitting and training: 4.0.1, the version the browser build
+# (web/, @mujoco/mujoco 4.0.1) runs.
+#
+# Installed by env/setup_mujoco_401.sh with:
+#   pip install --require-hashes --no-deps -r env/requirements-mujoco-401.txt
+# --no-deps is deliberate: this list IS the closure. mujoco 4.0.1 also declares
+# mujoco-studio (a viewer); the simulacrum never imports it and runs without it.
+# Hashes are of the wheels on PyPI, downloaded and hashed 2026-11-22, for
+# Linux x86_64 (manylinux_2_28; the GPU host's container is Debian 12, glibc 2.36) and macOS arm64,
+# CPython 3.11 and 3.12.
+
+mujoco==4.0.1 \
+    --hash=sha256:3a0ce4c6cd76dd599a89e60513ac1b03404642363a42267bcfd6b028cc753417
+mujoco-core==4.0.1 \
+    --hash=sha256:be28c0c7587347ef996b4de0487264e9da296282082b092bae211a9163e9aed6 \
+    --hash=sha256:efbfb6e8f2bd63c5f19473f8093f01696937ef453d647b3c7a92620f5873b845 \
+    --hash=sha256:2a898046fab1961b57b07bc199620d57c695eac19c3b49f6fd906cd29e5cc11f \
+    --hash=sha256:c9b68ab5bea2557ed6b27b6160beebbb9804dba49b624c2fbb5bc2f5a38262a1
+numpy==2.4.6 \
+    --hash=sha256:89cd468399cfd2504718f0ba50e410dca55a170b61a02ad92bb18c8a65186e93 \
+    --hash=sha256:90f9849678c75fe7afa2d348ac842c168b0a4d3d61919687216dfc547976d853 \
+    --hash=sha256:110f8b71aacb688ec69062bb7f6938a0f8acb01b7c1c4beb453c65b6d234584d \
+    --hash=sha256:ebfb099f8dcf083deef3ac1ca4c1503f387cf76296fcb3816b66f5ecb5f54fdb
+glfw==2.11.0 \
+    --hash=sha256:76484fae4a4ef0f778a05e02422ecbe6960ae23039087fe2e0ad9742ab8c7bbe \
+    --hash=sha256:7405d3e3041add442e40a15ef5a880178ff90f486d576a82e112240c66f59555
+pyopengl==3.1.10 \
+    --hash=sha256:794a943daced39300879e4e47bd94525280685f42dbb5a998d336cfff151d74f

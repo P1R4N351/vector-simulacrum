@@ -54,8 +54,9 @@ most sensitive to, by a wide margin ("The assumed values, ranked" below).
 | `evidence/hw-rec-20261115/` | The recording, the script that made it, SHA-256 in the table's `REC` source |
 | `evidence/` | Smoke run learning curves and outputs; the fit, replay, measurement, ranking and fault-check outputs; the hardware findings the third version started from; the conferral with an external review lane |
 | `hardware/record_barriered.py` | The recorder for the next recording. **Not run yet.** Written by a lane, who holds the robot; nothing here runs it against one |
-| `tests/` | `run_all.py`, fifteen test files, `mutate.py` |
-| `run_in_ct.sh` | Copies this directory into a GPU host and runs a file there |
+| `tests/` | `run_all.py`, 29 test files, `mutate.py` |
+| `run_in_ct.sh` | Copies this directory into a GPU host and runs a file there, on MuJoCo 4.0.1 |
+| `env/`, `pinned_run.py`, `simulacrum/mujoco_pin.py` | The pinned MuJoCo 4.0.1 environment (hashed wheels, setup script) and the check that a run used it |
 | `mcp_server.py`, `simulacrum/mcp_service.py` | An MCP server over stdio: the table, the recordings and the recorder's command line as tools. Read-only; no robot, no MuJoCo |
 
 ## Use
@@ -95,6 +96,83 @@ Keep to at most four worker processes and short runs in a GPU host: the node is
 a shared hypervisor. One process runs about 9 times real time. Do not start
 a second `run_in_ct.sh` while one is running: each run replaces the copy in
 the container.
+
+### Which MuJoCo: 4.0.1
+
+Fits, tests and training use MuJoCo 4.0.1, the version the browser build
+(`web/`, `@mujoco/mujoco` 4.0.1) runs. The GPU host's own environment has
+3.11.0, and until 2026-11-22 the fits and the suite ran there while the
+browser and the macOS checks ran 4.0.1. The two are different models.
+Measured on this tree (inset 3.1 mm) on the same Linux host, sensor noise off
+where it says so:
+
+| | 3.11.0 | 4.0.1 |
+|---|---|---|
+| Wheel replay, fit / held out | 0.1291 / 0.1284 | 0.1260 / 0.1278 |
+| Head and lift replay, fit / held out | 0.0325 / 0.0355 | 0.0325 / 0.0355 |
+| Contact points under each wheel at rest | 5 | 2 |
+| Resting accelerometer, noise off, spread of 50 messages before the first move | up to 0.074 mg (largest 0.17 mg) | 0.000 mg |
+| `web/test/fixtures/robot.json` remade on Linux, against the committed file | up to 28.6 mm apart; `npm test` fails 8 of 63 | within 1.2e-7 mm, except the tumble off the table (23.6 mm); `npm test` passes |
+| Unit 1's run E spins, fitted inset (pull request #110) | 3.105 mm | 3.242 mm |
+
+Against the real robot the two tie: the replay scores above differ by
+less than one refit moves them. 4.0.1 is the reference because it is the
+model the browser shows and the fixtures pin, and because Linux and macOS
+agree on it. The tumble off the table is chaotic on every build, so
+`test_sim.Cliff.test_reaction_off_the_robot_drives_off_and_falls` checks the
+drop itself (off the edge, down to the floor, a free fall the detector
+sees) and `tests/test_hazards.py` checks the fall flag's rule on known
+traces.
+
+How it is pinned:
+
+- `env/requirements-mujoco-401.txt`: mujoco, mujoco-core, numpy, glfw and
+  pyopengl at exact versions with sha256 hashes for Linux x86_64 and macOS
+  arm64, CPython 3.11 and 3.12. Installed with `--require-hashes --no-deps`.
+- `env/setup_mujoco_401.sh` builds the environment (default
+  `/root/vector-mujoco-401`) from that file. With `--borrow` (or
+  `VECTOR_TRAINING_SITE`) torch, rsl_rl, tensordict, onnx and onnxruntime
+  are read from the GPU host's own environment, read-only:
+  `env/borrowed-training.json` pins each one's version and the hash of its
+  installed-file list, and the setup refuses to link them if either differs.
+  It never deletes or rebuilds an existing environment; one that does not
+  pass is reported and left alone.
+- `run_in_ct.sh` runs that setup (a check, once built) and then the file,
+  through `pinned_run.py`. At the end of every run `simulacrum/mujoco_pin.py`
+  reads the libmujoco actually mapped into the process (from
+  `/proc/self/maps`, or the dynamic loader on macOS), not only the version
+  the bindings report, and the run exits 3 if it is not 4.0.1.
+  `tests/run_all.py --require-mujoco` makes the same check itself.
+  `CAULDRON_PYTHON` names the container's own Python command; it supplies
+  the MUJOCO_* environment both interpreters run with.
+- `VECTOR_MUJOCO=container ./run_in_ct.sh ...` runs on the container's own
+  3.11.0 instead, with `VECTOR_MUJOCO_EXPECT=3.11.0` so the check expects that.
+
+The GPU host's environment stays on 3.11.0 because mjlab pins it (see "Why
+not mjlab's task classes", item 7). Its `mujoco/` directory also holds
+`mujoco-core` 4.0.1, pulled in by `mjviser`: today every file the two
+disagree on is 3.11.0's and only `libmujoco.so.3.11.0` loads, but a reinstall
+of `mujoco-core` would overwrite 3.11.0's bindings. The check above would say so.
+
+The fitted entries that come from replaying the recordings through MuJoCo
+were re-checked on 4.0.1 on 2026-11-22, with the same tools on both versions.
+None was refitted:
+
+| Entry, range | Table | 3.11.0 refit | 4.0.1 refit | Scores (fit / held out) |
+|---|---|---|---|---|
+| `command_delay_ms`, 40-120 | 75 | 80 | 80 | `fit_recording.py --wheels-held-noload`, both versions: the table 0.129 / 0.128 (3.11.0) and 0.126 / 0.128 (4.0.1); refitted 0.120 / 0.132 and 0.117 / 0.133. Held out gets worse on both |
+| `tread_friction_power_fraction`, 0.1-0.2 | 0.1573 | 0.1730 | 0.1730 | as above |
+| `wheel_stall_torque_mNm`, 50-200 | 156.25 | 195.3 | 250 | as above. The only value that leaves its range, on 4.0.1. The recording fixes the motor's strength relative to the load, not the torque itself (the entry's own note), and the refit loses on the held-out segments, so the table keeps 156.25 |
+| `wheel_armature_gcm2`, 1000-4000 | 2380 | 2332 | 2380 | as above |
+| `tread_noload_speed_mmps`, 280-320 | 305 | - | - | Held, not searched. Run F's first full-power spin each way: model 241.4 / 241.3 mm/s on 3.11.0, 240.8 / 240.8 on 4.0.1, robot 247.1 / 243.3 |
+| `servo_command_delay_ms`, 80-130 | 105 | 105 | 105 | `fit_recording.py --servos`: 0.033 / 0.035 on both; run A's 15 moves 0.031 on both |
+| `head_speed_max_radps`, 3.5-10 | 10 | 10 | 10 | as above |
+| `lift_speed_max_radps`, 6-10 | 10 | 10 | 10 | as above |
+| `tread_contact_inset_mm`, 2-4 | 3.1 | 3.105 | 3.242 | Pull request #110 (`evidence/inset-portability/`), which keeps 3.10 mm and checks the live fit against the range on each build |
+
+The tread values move on 3.11.0 as well, so the table is no longer at the
+optimum of `fit_recording.py` on this tree whichever version runs it; that
+is the model having changed since the fit, not the version.
 
 ## The range sensor
 
@@ -1494,6 +1572,11 @@ A move to `mjlab` on the GPU node would need:
    against the recording, before any policy trained there is believed.
 6. Confirmation that MuJoCo Warp supports what the model uses: range
    sensors against a box, the elliptic friction cone, joint couplings.
+7. A MuJoCo that agrees with the reference. mjlab 1.6.0 and 1.6.1 (the
+   latest on 2026-11-22) both require `mujoco~=3.11.0` and
+   `mujoco-warp~=3.11.0`, so mjlab runs on 3.11.0, a different model from
+   the 4.0.1 the table is checked on ("Which MuJoCo: 4.0.1" above). Either
+   wait for an mjlab that allows 4.x, or check item 5 against 4.0.1.
 
 ### One thing that bites: import order
 
