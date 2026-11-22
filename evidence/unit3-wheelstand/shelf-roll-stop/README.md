@@ -186,3 +186,34 @@ uses the solution with lower reprojection error.
 [Picked corners](landing-corners.csv) · [Pose solutions](landing-height.csv) · [Reference and focal sensitivity](landing-height-sensitivity.csv).
 Run `python landing_height.py` from the checked-in corners. The optional
 `landing_corners.py` takes the native corrected crop NPZ (image and time arrays).
+
+### Landing replay within the video clearance range
+
+The held cube's gravity direction selects rotation about negative X, within
+0.33° after removing the small resting offset. The nearest alternative edge
+misses by 22.34°. Starting from rest at 15.76°, we replayed that edge at
+0, 1, 2 and 3 mm clearance, with the original 8 ms pads and the earlier
+32 ms candidate. Both physics step sizes (0.125 and 0.25 ms) leave the
+camera's 27.6–84.0 ms settling bracket satisfied throughout the grid.
+
+The real low-force pair is specifically in slots 1 and 2; the 3.825 g peak
+is in slot 1 of the next received packet. If those packets were consecutive
+on the cube, this gives a tighter test than matching any peak within 100 ms.
+At each step size 28 of 480 phase/clearance/pad cases produce the low pair in
+the correct slots, all at 2 or 3 mm. None puts a peak within 5% at the observed
+slot. At that slot the real X channel reads +1.838 g; the largest absolute
+simulated X among the low-pair matches is 0.006 g. Even the closest of those
+three-slot impact sequences has 1.66 g RMS error across its nine components.
+The chart shows that optimistic selection on the same event.
+
+![Recorded and closest simulated impact slots on the chip axes](near-shelf-axes.png)
+
+A purely planar release from rest fails to predict the measured impact
+direction on this landing. The observations leave out-of-plane fork contact,
+initial motion and off-center support unresolved. The second packet arrived
+19 ms after the first on the collector clock, but no packet sequence number
+is available to prove continuity. This is one landing and the finite phase
+grid is a sensitivity check. No production contact parameter changed.
+
+[Condition counts](near-shelf.png) · [Case scores](near-shelf.csv).
+Run `python near_shelf.py` to reproduce.
