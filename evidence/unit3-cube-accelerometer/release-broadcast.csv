@@ -1,0 +1,5 @@
+sec,robot_uptime_s,moving,preceding_carry_id,following_carry_id,preceding_age_s,carry_only_broadcast,pickup_target_proxy_broadcast,matched_sdk_host_delta_ms
+3.709582805633545,2313.89,True,-1,-1,0.03616976737976074,True,False,
+6.612699747085571,2316.79,False,1,1,0.05918431282043457,False,False,
+9.102112054824829,2319.27,True,1,1,0.018681764602661133,False,False,
+12.64526653289795,2322.83,False,-1,-1,0.03137660026550293,True,True,20.73526382446289
