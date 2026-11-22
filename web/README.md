@@ -310,3 +310,7 @@ uv run --python 3.12 --with numpy --with coacd==1.0.14 python tools/export_print
 ```
 
 Open `/?robot=2&fork=printed&cube=free&contact=42` in the local simulator. Toggle the collision overlay to inspect the fork opening. Rerun the exporter after changing the base scenes. The locally generated scenes contain geometry derived from Dauler's forks7.stl and carry the source part's usage terms in `public/robot/sdk/print/Anki_Vector_Lifting_Forks-LICENSE.txt`. [Physical trial results](../evidence/unit3-printed-fork-contact/README.md)
+
+### Body-clock range acquisition
+
+Add `rangeClock=body` to the simulator URL to acquire range on the published syscon timer. Add `chargerContact=1` for a replay with charger contact asserted. This input represents the electrical contact signal only. The simulation starts with a fresh range sample. Its 5 ms control step observes subsequent acquisitions on the first step at or after the body deadline. Each SDK state uses the held distance and quality while evaluating lift visibility and pitch at publication. Tread power above 10% selects the six-tick interval even when charger contact is asserted. The stationary off-dock and on-dock intervals are 12 and 200 ticks. Hardware comparison covers the steady docked period. Acquisition-to-report latency and the two faster periods are still uncalibrated. [Recorded clock comparison](../evidence/unit3-cube-range/README.md)
