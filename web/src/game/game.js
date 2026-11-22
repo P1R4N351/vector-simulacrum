@@ -177,6 +177,7 @@ function telemetryOf(sim, extra) {
     cube_axis: sim.cubeSensor?.listeners.axis, cube_moving: sim.cubeSensor?.listeners.moving,
     cube_tap_events: sim.cubeSensor?.listeners.tapEvents,
     cube_last_tap_s: sim.cubeSensor?.listeners.lastTapTime,
+    cube_movement_broadcasts: sim.cubeSensor?.movementBroadcastCount,
     cube_motion_transitions: sim.cubeSensor?.listeners.motionTransitions,
     cube_last_motion_s: sim.cubeSensor?.listeners.lastMotionTime,
     cube_slot_g: sim.cubeSensor?.packet?.slots.map(slot =>
