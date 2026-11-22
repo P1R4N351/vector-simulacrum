@@ -115,6 +115,11 @@ def run(start,limit,onset=None,clear_cube=False,drive_during_descent=True):
     trace=[];peak_load=0
     drive_ended=False
     lowering_start=mjcf.lift_angle_of_height(v,obs(onset,"lift_mm")) if onset is not None else lift
+    support_test='--rear-support' in sys.argv
+    if support_test:
+        table=m.geom('table').id
+        rear_support={m.geom('tip_rear_'+side).id for side in ('l','r')}
+        rear_wheels={m.geom('wheel_r'+side+'_geom').id for side in ('l','r')}
     for i,t in enumerate(np.arange(start,5.8+shift,dt)):
         if i%round(.001*v['control_period_ms']/dt)==0:
             lowering=onset is not None and t>=onset
@@ -133,8 +138,16 @@ def run(start,limit,onset=None,clear_cube=False,drive_during_descent=True):
             d.actuator('head').ctrl[0]=obs(t,'head')
         mj.mj_step(m,d)
         downward=0.
+        support_loads=np.zeros(3) if support_test else None
         for j,c in enumerate(d.contact):
             a,b=m.geom_bodyid[c.geom]
+            if support_test and table in c.geom and cube_id not in (a,b):
+                other=c.geom[1] if c.geom[0]==table else c.geom[0]
+                index=0 if other in rear_support else 1 if other in rear_wheels else 2
+                wrench=np.zeros(6)
+                mj.mj_contactForce(m,d,j,wrench)
+                world_force=c.frame.reshape(3,3).T@wrench[:3]
+                support_loads[index]+=world_force[2]*(1 if c.geom[0]==table else -1)
             if cube_id in (a,b) and m.body('lift_fork').id in (a,b):
                 wrench=np.zeros(6);mj.mj_contactForce(m,d,j,wrench)
                 force=c.frame.reshape(3,3).T@wrench[:3]
@@ -150,11 +163,37 @@ def run(start,limit,onset=None,clear_cube=False,drive_during_descent=True):
                       1000*d.actuator("lift").force[0],downward,float(d.sensor("gyro").data[1]),
                       *[float(d.joint('wheel_f'+side+'_joint').qvel[0])*v['wheel_front_radius_mm']
                         for side in ('l','r')]])
+        if support_test:trace[-1].extend(support_loads)
     packets=np.array([[start+t,np.linalg.norm(a)/8192] for t,p in sensor.messages for a in np.frombuffer(p[2:],'<i2').reshape(3,3)])
     return np.array(trace),packets,len(sensor.taps.events),peak_load
 
 initial_checks=[]
 firmware='--firmware' in sys.argv[2:]
+if '--rear-support' in sys.argv:
+    fig,axes=plt.subplots(2,1,figsize=(8,6),sharex=True,layout='constrained')
+    axes[0].plot(state['sec']-zero-late_onset,np.degrees(state['pitch']),'.-',color='black',label='Recorded')
+    with (here/'rear-support.csv').open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['cap_mNm','rear_support_mu','fraction_robot_table_impulse_on_support_300ms',
+                         'fraction_robot_table_impulse_on_rear_wheels_300ms','peak_pitch_300ms_deg',
+                         'peak_pitch_deg'])
+        for cap in (30,80):
+            for mu in (v['tread_friction'],.001):
+                for side in ('l','r'):
+                    m.geom('tip_rear_'+side).friction[0]=mu
+                tr,*_=run(3.5+shift,cap,late_onset)
+                t=tr[:,0]-late_onset
+                use=(t>=0)&(t<=.30)
+                impulse=np.trapezoid(tr[use,10:13],t[use],axis=0)
+                writer.writerow([cap,mu,*(impulse[:2]/sum(impulse)),max(tr[use,1]),max(tr[:,1])])
+                label=f'{cap} mN m, rear support μ={mu:g}'
+                axes[0].plot(t,tr[:,1],label=label)
+                axes[1].plot(t,tr[:,10])
+    axes[0].set_ylabel('Chassis pitch (°)')
+    axes[0].legend(fontsize=8,ncol=2)
+    axes[1].set(ylabel='Rear support load (N)',xlabel='Seconds from last raised lift',xlim=(-.1,.6))
+    fig.savefig(here/'rear-support.png',dpi=150)
+    sys.exit(0)
 if '--descent-drive' in sys.argv:
     fig,axes=plt.subplots(3,1,sharex=True,figsize=(9,7),layout='constrained')
     def score(label,t,left,right,pitch):
