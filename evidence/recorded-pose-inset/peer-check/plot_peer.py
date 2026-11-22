@@ -18,7 +18,7 @@ for index,(geom,desc) in enumerate([("roller","Fixed axles"),("shifted","Shifted
         on=(geom=='shifted')!=swap
         ax.plot([float(r['inset_mm']) for r in rows],[float(r['rms_yaw_error_pct']) for r in rows],
                 marker='o',color='#166a73' if on else '#ae602c',label='Multi-contact '+('on' if on else 'off'))
-    ax.set(xlabel='Inset per end (mm)',ylabel='Steady yaw RMS error (%)',title=f'unit 3  ·  {desc}',xticks=[3.,3.75],ylim=(0,5.3))
+    ax.set(xlabel='Inset per end (mm)',ylabel='Steady yaw RMS error (%)',title=f'Unit 3  ·  {desc}',xticks=[3.,3.75],ylim=(0,5.3))
     ax.legend()
 data=read('sampling_scores.csv')
 for ax,unit in zip(axes[1],['unit 3','unit 1']):
@@ -29,7 +29,7 @@ for ax,unit in zip(axes[1],['unit 3','unit 1']):
             vals.append(np.mean([float(r[axis]) for r in rows]))
         ax.bar(np.arange(4)+(i-.5)*.32,vals,.32,color=color,label=axis.capitalize())
     ax.set_xticks(range(4),['Robot','Raw model','1 pole','2 poles'])
-    ax.set(ylabel='Mean absolute rate (rad/s)',title=f'{unit}  ·  Sensor bandwidth sensitivity',ylim=(0,.64))
+    ax.set(ylabel='Mean absolute rate (rad/s)',title=f'{unit.capitalize()}  ·  Sensor bandwidth sensitivity',ylim=(0,.64))
     ax.legend()
 fig.suptitle('Collision settings change the yaw fit. Gyro filtering changes the rocking comparison.',fontsize=15)
 fig.savefig(base/'peer-comparison.png',dpi=155)

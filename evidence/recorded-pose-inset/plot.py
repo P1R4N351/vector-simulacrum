@@ -43,7 +43,7 @@ def draw(dataset, traces, metrics, sources, fields, series_key, interval):
     axes[0,0].legend(loc="best", fontsize=8)
     fig.suptitle(f"{dataset}   |   Gyro through each spin", fontsize=17, weight="bold")
     fig.supxlabel("Shading marks the steady interval used for scoring. Dots are recorded samples.", fontsize=10)
-    fig.savefig(HERE / (dataset.lower()+"-spins.png"), dpi=150)
+    fig.savefig(HERE / (dataset.lower().replace(" ", "")+"-spins.png"), dpi=150)
     plt.close(fig)
 
 
@@ -55,7 +55,7 @@ def compare_fit(p2, c7):
             color=COLORS[2], marker=".", lw=1.3)
     ax.axvline(3, ls=":", color="#777", label="Previous 42 mm span")
     ax.axvline(3.75, ls="--", color=COLORS[2], label="Selected 40.5 mm span")
-    ax.set(xlabel="Longitudinal inset per end (mm)", ylabel="RMS relative yaw error (%)", title="unit 3 fit across four spins")
+    ax.set(xlabel="Longitudinal inset per end (mm)", ylabel="RMS relative yaw error (%)", title="Unit 3 fit across four spins")
     ax.legend(fontsize=8)
     order = list(dict.fromkeys(r["spin"] for r in p2))
     ax = axes[0,1]
@@ -65,11 +65,11 @@ def compare_fit(p2, c7):
         ys=[float(next(r for r in p2 if r["spin"]==s and r["series"]==key)["center_mm"]) for s in order]
         ax.plot(range(4),ys, marker=marker, lw=1, color=color,label=label)
     ax.set_xticks(range(4),[s.replace("_"," ").upper() for s in order])
-    ax.set(ylabel="Turn center x from front axle (mm)", title="unit 3 camera and simulated pivot")
+    ax.set(ylabel="Turn center x from front axle (mm)", title="Unit 3 camera and simulated pivot")
     ax.legend(fontsize=8,ncol=2)
     for ax, rows, ids, key, roll, pitch, title in [
-        (axes[1,0],p2,["recorded","stock","proxy_0","proxy_3.75"],"series","roll","pitch","unit 3 at the recorded pose"),
-        (axes[1,1],c7,["unit 1","original","proxy_zero","frozen"],"source","mean_abs_roll_rad_s","mean_abs_pitch_rad_s","unit 1 held-out spins")]:
+        (axes[1,0],p2,["recorded","stock","proxy_0","proxy_3.75"],"series","roll","pitch","Unit 3 at the recorded pose"),
+        (axes[1,1],c7,["unit 1","original","proxy_zero","frozen"],"source","mean_abs_roll_rad_s","mean_abs_pitch_rad_s","Unit 1 held-out spins")]:
         for i,(field,color) in enumerate([(roll,"#4d528b"),(pitch,"#408271")]):
             vals = [np.mean([float(r[field]) for r in rows if r[key]==s]) for s in ids]
             ax.bar(np.arange(4)+(i-.5)*.32, vals, .32, color=color,label=["Roll","Pitch"][i])
@@ -84,10 +84,10 @@ def compare_fit(p2, c7):
 
 if __name__ == "__main__":
     p2, c7 = read("metrics.csv"), read("c7_scores.csv")
-    draw("unit 3", read("traces.csv"), p2, ["recorded","stock","proxy_3.75"], ["yaw","roll","pitch"], "series",lambda s,m:(.7,1.4))
+    draw("Unit 3", read("traces.csv"), p2, ["recorded","stock","proxy_3.75"], ["yaw","roll","pitch"], "series",lambda s,m:(.7,1.4))
     def c7_window(spin, metrics):
         row=next(r for r in metrics if r["spin"]==spin)
         return float(row["window_start_s"]),float(row["window_end_s"])
-    draw("unit 1", read("c7_traces.csv"), c7, ["unit 1","original","frozen"],
+    draw("Unit 1", read("c7_traces.csv"), c7, ["unit 1","original","frozen"],
          ["yaw_rad_s","roll_rad_s","pitch_rad_s"], "source",c7_window)
     compare_fit(p2,c7)
