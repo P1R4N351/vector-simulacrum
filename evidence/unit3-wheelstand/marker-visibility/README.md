@@ -13,3 +13,13 @@ The replay uses the calibrated moving head camera, SDK body quaternion, head and
 A dot identifies an SDK cube event with exactly the robot state's last-image timestamp. The other samples show image stamps for which the log has no matching cube event. The physical cube pose is held at its latest reported value in the same origin; the CSV includes its age. Real movement before the first tap remains possible. Host receipt times are relative to the wheelstand command. These SDK logs do not supply independent video labels for the unsighted intervals.
 
 Run `python replay.py PATH_TO_FORK_FIXTURE.xml` in this directory. Use the same registered 58-piece fixture as the W4 contact replay. The three compressed CSVs contain the replay inputs; `extract.py LOG_DIRECTORY` rebuilds them from the original SDK logs.
+
+## Why a visible cube can stop producing sightings
+
+The public stock vision code checks the IMU at the image timestamp before marker detection. Its default limits for blocks are absolute head pitch rate above 10°/s or absolute body yaw rate above 30°/s. Either adjacent native IMU sample can suppress processing. The fast-rotation vision mode bypasses this check; the markers-off mode disables detection outright. [Marker update](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/engine/vision/visionSystem.cpp#L1575-L1603) · [IMU tests](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/engine/components/sensors/imuComponent.cpp#L156-L215)
+
+![W4, W8 and W12 motion rates compared with stock marker thresholds](motion-gate.png)
+
+After W12's last sighting, nine sampled images still had the entire facing marker within frame and clear of the modeled fork. All nine coincided with SDK yaw-rate brackets above the stock threshold (54–140°/s). At eight of nine, a motion limit remained exceeded at every tested timing shift (−120, −60, 0, +60, +120 ms). Head pitch alone would miss the effect. This gives a firmware-supported explanation for the gap before frame clipping and again during re-entry.
+
+The comparison uses adjacent SDK gyro readings around host receipt, not the native IMU pair at exposure. At nominal timing it also flags two actual sightings out of 18 across W4, W8 and W12. Both depend on the assumed alignment. The logs omit per-frame vision-mode selections. A hard veto based on SDK receipt times would therefore introduce false negatives. Black points are reported cube sightings. Run `python motion_gate.py` to reproduce the plot and per-image sensitivity table.
