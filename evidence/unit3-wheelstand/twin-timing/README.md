@@ -67,3 +67,16 @@ Six acceleration receipt gaps lasted 243–281 ms. Both cameras covered the firs
 The visible holds lengthen when accelerometer receipts stop. Delaying only the host callback while the cube continues its normal animation cannot explain that observation. This supports a delay in application progress or LED updating inside the cube. The timing cannot identify the specific blocking firmware operation or show what the accelerometer chip did internally. The cube finished dark and disconnected.
 
 [Independent optical clocks and packet gaps](blink-clock.png) · [Per-gap coverage and dwell estimates](blink-clock-gaps.csv) · [Corrected brightness traces](blink-clock-traces.csv) · [BLE receipts](blink-clock-receipts.csv) · [Capture](blink_clock_capture.py) · [Analysis](blink_clock.py)
+
+### Predicting later blinks from rest accelerometer timing
+
+The independent rest recording supplied the 1.227461 s period and 230 ms excess gap (median long interval minus median ordinary interval). The first returning packet set the pause phase. The midpoint of camera A's first falling edge set the optical phase for both cameras. All models used the programmed 150 ms hold. The uniform slowdown used the same average clock rate as the pause model. Edges were paired by ordinal and polarity, and scoring began after the first gap return. Each camera used its own early brightness threshold on the previously extracted patch.
+
+| Camera | Later edges | Continuous median absolute error | Uniform slowdown | Periodic pause | Pause predictions within frame bracket |
+|---|---:|---:|---:|---:|---:|
+| A | 36 | 680 ms | 84 ms | 30 ms | 17/36 |
+| B | 25 | 459 ms | 73 ms | 28 ms | 9/25 |
+
+Both cameras filmed the same cube run. B independently checks optical timing, while the run tests transfer from the earlier rest recording. The pause model still placed the falling edge around 3.3 s one pause too late (251–254 ms). A saw a similar 236 ms error near 7 s after B's capture ended. This makes a hard pause boundary inferred from BLE receipt time unreliable for predicting individual edge order near that boundary. The score covers the visible transitions and does not establish internal accelerometer sampling during the gaps.
+
+[Edge timing overlay](blink-prediction.png) · [Every observed bracket and prediction](blink-prediction.csv) · [Reproduce the prediction](blink_prediction.py)
