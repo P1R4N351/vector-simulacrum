@@ -131,3 +131,11 @@ We swapped only the free cube's box positions and sizes from the revised SDK sur
 The revision roughly halves the R8 peak error. It also adds a spurious tap and the cube tilts only 0.25° during the replay. The missed-approach result transfers. This experiment leaves the cause of the missing roll open.
 
 [Acceleration and tilt overlays](surface-transfer.png) · [Replay metrics](surface-transfer.csv) · [Reproduction script](surface_transfer.py). Pass the printed-fork fixture XML (SHA-256 `79641b7fe78c9ef47293f069002474be7d1e004d16f4acf6300fa90b14b321d9`).
+
+### Does enforcing the measured lift trajectory recover the roll?
+
+With the revised collision boxes, we compared the torque-limited articulated lift to a kinematic fork. The latter follows the interpolated, encoder-derived wrist position exactly and stays level relative to the prescribed chassis. It can exert unlimited contact force. Both use the same optical yaw, measured chassis trajectory, shelf support and rolling tread. A third case clips each measured height to the nominal 32–92 mm travel before interpolating it. R8 reached a reported 29.97 mm and R9 29.30 mm after +2.5 s.
+
+During R8 the kinematic fork increases peak tilt from 0.25° to 20.94°, then the cube returns to its original face. It gives two tap changes as recorded, but overshoots peak acceleration at 2.34 g versus 1.43 g measured and 1.57 g with the articulated fork. Clipping the height samples leaves these scores unchanged. All three versions correctly predict zero taps and a stationary cube on R9. Fork kinematics affect the leverage, but enforcing this trajectory does not reproduce the physical change of face. Because the kinematic fork also removes compliance and wrist tracking error, this comparison cannot attribute the difference solely to lift height.
+
+[Measured packet Y and simulated tilt](fork-motion-transfer.png) · [Six replay scores](fork-motion-transfer.csv) · [Reproduction script](fork_motion_transfer.py). Use the same printed-fork fixture as the surface-transfer test above.
