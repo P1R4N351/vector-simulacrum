@@ -535,17 +535,33 @@ def apply(xml: str, v: Dict[str, Any], parts: Sequence[str] = (), materials: Opt
         return xml
     report = part_report(v, parts, materials, fetch, fork_voxel_mm)
     root = ET.fromstring(xml)
-    # The body-mesh mode (mjcf body=) builds its own fork from Anki's rig as fork_hull_* pieces. Until the
-    # two modes are folded together, a printed fork is refused on such a model; rims and treads touch only
-    # the wheel bodies, which that mode leaves as they are.
-    assert not ("fork" in report and any(g.get("name", "").startswith("fork_hull_") for g in root.iter("geom"))), \
-        "a printed fork cannot go on a body-mesh model yet"
+    if any("_hull_" in g.get("name", "") for g in root.iter("geom")):
+        _check_body_mode(root, report)
     if "fork" in report:
         _apply_fork(root, v, report["fork"])
     _apply_wheels(root, v, report)
     if "treads" in report:
         _apply_tread_runs(root, v, report)
     return ET.tostring(root, encoding="unicode") + "\n"
+
+
+def _check_body_mode(root: ET.Element, report: Dict[str, Any]) -> None:
+    """What may go on a body-mesh model (mjcf body=, whose contact comes from *_hull_* pieces of Anki's rig).
+
+    The fork: nothing, since that mode builds its own fork as fork_hull_* pieces. Rims and treads: only if
+    every rolling radius is at least the model's own wheel radius. That mode's tread hulls are fixed chassis
+    pieces, cut 0.3 mm above the table and shrunk 0.5 mm inside the tip supports; a larger wheel moves the
+    wheels and supports away from them, but a smaller one can set a hull on the table."""
+    assert "fork" not in report, "a printed fork cannot go on a body-mesh model yet"
+    if "rims" not in report and "treads" not in report:
+        return
+    for side, (front, rear) in report["rolling_radius_mm"].items():
+        for name, radius in ((f"wheel_f{side[0]}", front), (f"wheel_r{side[0]}", rear)):
+            geom = _body(root, name).find("geom")
+            assert geom is not None, f"{name} has no geom"
+            stock = float(geom.get("size")) / MM
+            assert radius >= stock - 1e-6, \
+                f"on a body-mesh model {name} would shrink from {stock:.3f} to {radius:.3f} mm and set the tread hull down"
 
 
 def build_mjcf(v: Dict[str, Any], parts: Sequence[str] = (), obstacles: Sequence[Sequence[float]] = (),

@@ -84,10 +84,12 @@ def to_ascii_stl(tris: np.ndarray) -> bytes:
 
 
 TREAD = (26.0, 28.5, 11.0)   # synthetic band: inner radius, outer radius, width (mm)
+THIN_TREAD = (26.0, 26.8, 11.0)   # 0.8 mm thick: rolls on a smaller radius than the 1.5 mm stock tread
 RIM_FRONT, RIM_REAR = (12.0, 13.2, 8.0), (8.0, 9.4, 8.0)
 SYNTHETIC = {
     "fork:synthetic": ("fork", {"fork": fork_on_the_bed()}, {"registration": "bed"}),
     "treads:synthetic": ("treads", {"left": annulus(*TREAD), "right": annulus(*TREAD)}, {}),
+    "treads:synthetic-thin": ("treads", {"left": annulus(*THIN_TREAD), "right": annulus(*THIN_TREAD)}, {}),
     "rims:synthetic": ("rims", {"front": annulus(*RIM_FRONT), "rear": annulus(*RIM_REAR)}, {}),
 }
 
@@ -269,13 +271,22 @@ class SyntheticParts(WithSyntheticParts):
         front = float(_find(root, "body", "wheel_fl").find("inertial").get("mass")) / mjcf.GRAM
         self.assertAlmostEqual(front, self.v["wheel_mass_g"] + report["treads"]["left"]["share_g"]["front"], places=6)
 
-    def test_a_printed_fork_is_refused_on_a_body_mesh_model_and_treads_are_not(self) -> None:
+    def _body_mode(self) -> str:
+        """The stock model marked the way the body-mesh mode marks its contact pieces."""
         root = ET.fromstring(self.stock)
         ET.SubElement(_find(root, "body", "lift_fork"), "geom", name="fork_hull_0", type="box", size="0.001 0.001 0.001")
-        body_mode = ET.tostring(root, encoding="unicode")
+        ET.SubElement(_find(root, "body", "chassis"), "geom", name="chassis_hull_0", type="box", size="0.001 0.001 0.001")
+        return ET.tostring(root, encoding="unicode")
+
+    def test_on_a_body_mesh_model_a_fork_and_smaller_wheels_are_refused(self) -> None:
+        body_mode = self._body_mode()
         with self.assertRaises(AssertionError):
             pp.apply(body_mode, self.v, ("fork:synthetic",))
-        pp.apply(body_mode, self.v, ("treads:synthetic",))
+        with self.assertRaises(AssertionError):
+            pp.apply(body_mode, self.v, ("treads:synthetic-thin",))
+        pp.apply(body_mode, self.v, ("treads:synthetic",))           # larger: the hulls stay clear
+        pp.apply(body_mode, self.v, ("rims:synthetic",))
+        pp.apply(self.stock, self.v, ("treads:synthetic-thin",))      # the stock model has no hulls to land
 
     def test_tread_masses_follow_the_wheel_bodies_not_the_table(self) -> None:
         moved = ET.fromstring(self.stock)

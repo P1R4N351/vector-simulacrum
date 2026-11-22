@@ -13,8 +13,11 @@ sim = printed_parts.vector_sim(parts=("fork:dauler", "treads:dauler-obar"))   # 
 `VectorSim` and `mjcf.build_mjcf` have no keyword of their own for it yet. The
 body-mesh mode (`body=`) is adding one to the same two functions, and the two
 will be folded together once both land. Until then a printed fork is refused on
-a body-mesh model, which builds its own fork. Rims and treads are allowed,
-since that mode leaves the wheel bodies alone. Everything printed parts change
+a body-mesh model, which builds its own fork. Rims and treads are allowed only
+if no rolling radius comes out smaller than the model's own wheel. That mode's
+tread hulls are fixed chassis pieces just above the table; a smaller wheel could
+set one down. By that rule `rims:10zz` (front 14.491 against 14.5 mm) is
+refused there, and the stock-shaped rims and every registered tread are allowed. Everything printed parts change
 is found through the wheel and fork bodies in the model, not through the table,
 so a refit that moves the wheels (for example to 47.9 mm tread spacing) moves
 the printed treads' masses with them.
@@ -71,9 +74,8 @@ public download API.
     It is deterministic for a given mesh and pitch and depends on no library
     version: `fork:dauler` gives 106 boxes, `fork:10zz` 177. `part_report()`
     returns the boxes, the pitch and the voxel volume, so a replay can check its
-    piece count. CoACD-based fixtures (PR #91) depend on CoACD's version.
-    The body-mesh work reports forks7 at 58 pieces in that fixture and 52
-    under coacd 1.0.14, from the same STL and script. Not re-measured here.
+    piece count. A CoACD-based fixture's piece count can depend on CoACD's
+    version; record it with the fixture.
   - `fork:dauler` uses the print-bed registration that `experiments/righting/printed_fork.py`
     and the browser use.
   - `fork:10zz` is registered by matching. It is turned into the same axes,
