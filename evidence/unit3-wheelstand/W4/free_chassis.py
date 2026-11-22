@@ -164,11 +164,46 @@ def run(start,limit,onset=None,clear_cube=False,drive_during_descent=True):
                       *[float(d.joint('wheel_f'+side+'_joint').qvel[0])*v['wheel_front_radius_mm']
                         for side in ('l','r')]])
         if support_test:trace[-1].extend(support_loads)
-    packets=np.array([[start+t,np.linalg.norm(a)/8192] for t,p in sensor.messages for a in np.frombuffer(p[2:],'<i2').reshape(3,3)])
+    packets=np.array([[start+t,np.linalg.norm(a)/8192,p[1]] for t,p in sensor.messages for a in np.frombuffer(p[2:],'<i2').reshape(3,3)])
     return np.array(trace),packets,len(sensor.taps.events),peak_load
 
 initial_checks=[]
 firmware='--firmware' in sys.argv[2:]
+if '--tap-phase' in sys.argv:
+    raw=np.genfromtxt(here/'cube.csv.gz',delimiter=',',names=True)
+    assert np.all(raw['slot'].reshape(-1,3)==[0,1,2])
+    native_packets=raw[::3]
+    def receipts(t,counter):
+        idx=np.flatnonzero(np.diff(counter)!=0)+1
+        assert np.all((counter[idx]-counter[idx-1])%256==1)
+        return t[idx]
+    recorded=receipts(native_packets['sec']-zero,native_packets['tap'])
+    fig,ax=plt.subplots(figsize=(8,3.7),layout='constrained')
+    labels=[]
+    with (here/'tap-phase.csv').open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['release_s','onset_s','shared_end_s','stream','event_times_s_from_command'])
+        for start in (3.5+shift,3.8+shift):
+            for onset in (early_onset,late_onset):
+                _,pk,count,_=run(start,30,onset)
+                packets=pk[::3]
+                taps=receipts(packets[:,0],packets[:,2])
+                assert len(taps)==count
+                lo=max(packets[0,0],native_packets['sec'][0]-zero)
+                hi=min(packets[-1,0],native_packets['sec'][-1]-zero)
+                label=f'Release {start:.2f}, onset {onset:.2f}'
+                row=len(labels)
+                labels.append(label)
+                for offset,events,name,color in ((.12,recorded,'Recorded','black'),(-.12,taps,'Replay','tab:blue')):
+                    within=events[(events>=lo)&(events<=hi)]
+                    writer.writerow([start,onset,hi,name,' '.join(f'{t:.6f}' for t in within)])
+                    ax.scatter(within-late_onset,np.full(len(within),row+offset),color=color,
+                               marker='|',s=160,label=name if row==0 else None)
+    ax.axvline(0,color='0.6',lw=.8)
+    ax.set(yticks=range(len(labels)),yticklabels=labels,xlabel='Seconds from last raised-lift sample')
+    ax.legend()
+    fig.savefig(here/'tap-phase.png',dpi=150)
+    sys.exit(0)
 if '--rear-support' in sys.argv:
     fig,axes=plt.subplots(2,1,figsize=(8,6),sharex=True,layout='constrained')
     axes[0].plot(state['sec']-zero-late_onset,np.degrees(state['pitch']),'.-',color='black',label='Recorded')
