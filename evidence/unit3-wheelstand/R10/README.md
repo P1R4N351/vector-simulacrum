@@ -143,3 +143,11 @@ We matched each view's pre-motion top-glyph patch on successive native frames, e
 ![Original camera displacement and simulated threshold crossings](native-onset.png)
 
 [Measured displacements](native-onset.csv) · [Simulated crossings](sim-onset.csv) · [Lossless corrected onset crops and frame times](native-onset-crops.zip). Extract the zip and run `native_onset.py <extracted-directory>` to reproduce the measurement. The `--impact-impulse` replay also writes the simulated crossings. With the archived twin NUTs, `native_contact.py <recording-directory> <crop-directory>` regenerates the longer video and source crops. Playback repeats the nearest recorded frames and labels each with its actual receipt-aligned presentation time.
+
+### Does cube inertia explain the early yaw error?
+
+We kept the measured robot trajectory, mass (50 g), cube center of mass, optical orientation 2, printed fork geometry, friction and 0.25 ms timestep fixed. We scaled all three principal moments together. The reference is a uniform solid 44 mm cube. Factors 0.5 and 5/3 represent a more central mass distribution and the thin uniform six-wall limit respectively. They are sensitivity cases, not measurements of the installed battery or internal components.
+
+At +4.583 s the real cube had turned about 40° counterclockwise. For initial registration A, the three predictions were −3.55°, −5.06° and −5.31°. Registration B gave −1.97°, −2.31° and −0.94°. The shell case changed A's late yaw from −107° to −6° while increasing its seven-moving-frame planar RMS error from 3.44 to 10.60 mm. Late yaw is sensitive to inertia, yet all six cases turn the wrong way during the observed early motion. This experiment leaves anisotropic inertia and a displaced center of mass untested. Default mass properties are retained.
+
+Run dock_replay.py with the printed-fork fixture and arguments `3.75 --face-test --early-path --inertia-test`, then run inertia_check.py. Its baseline check reproduces the earlier zero-offset predictions at each camera frame in both registrations. The two registrations are alternative reconstructions of the same impact. [Overlay](inertia.png) · [scores](inertia-scores.csv) · [trajectories](inertia-path.csv).
