@@ -42,7 +42,7 @@ def compose_fixture(path, values):
     return root,center,radius
 
 
-def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False, initial_xy_mm=None, shelf_support=False):
+def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False, initial_xy_mm=None, shelf_support=False, lift_velocity_feedforward=False):
     values = params.values(params.load(model="vector_2"))
     values.update(sensor_overrides or {})
     root,center,radius = compose_fixture(path,values)
@@ -114,6 +114,12 @@ def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrid
     tilt, hit = [],[]
     if articulated:
         target=np.array([mjcf.lift_angle_of_height(values,h) for h in lift])
+        if lift_velocity_feedforward:
+            # Cancel the position actuator's damping term at the reference speed.
+            kd_over_kp = values['lift_servo_kv_mNms_per_rad'] / values['lift_servo_kp_mNm_per_rad']
+            velocity = np.r_[0., np.diff(target)] / dt
+            lo, hi = m.actuator('lift').ctrlrange
+            target = np.clip(target + kd_over_kp * velocity, lo, hi)
         d.joint('lift_joint').qpos[0]=target[0]
         d.joint('wrist_joint').qpos[0]=-target[0]
     for i in range(len(t)-1):
