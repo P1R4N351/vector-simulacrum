@@ -15,3 +15,11 @@ The local archive contains the original A.nut, B.nut, camera clock pairs, and SD
 [Command-aligned overlay](physical-vs-replay.png) · [Per-move errors](replay-errors.csv) · [Replay script](replay.py)
 
 Both sweeps use the measured command schedule, the SDK's linear 32–92 mm target mapping and the requested 0.7 s duration. Replay starts from the recorded head and lift pose and runs continuously across both sweeps. No parameters were fitted. On the second sweep the per-move RMS difference spans 1.01–1.79 mm, including the hold. The largest settled difference repeats at full raise (+2.51 mm on the first sweep, +2.25 mm on the second, simulation minus encoder). At the 75% hold the sign reverses with approach direction on both sweeps. The comparison measures SDK-reported height in recorder time. It does not independently measure fork-tip position, command receipt at the firmware, or loaded grip.
+
+### Does the top-height shortfall transfer?
+
+[Physical endpoint comparison](full-raise-comparison.png) · [Values](full-raise-comparison.csv) · [Reproduce](check_full_raise.py)
+
+Eight earlier unloaded docked full strokes on the same robot settled at 90.81–92.28 mm. Both 75-to-100% raises here ended lower (89.29 and 89.54 mm). A fixed 89.5 mm ceiling would contradict every earlier full stroke. The recordings vary in approach distance, command profile, session and hold timing, so this comparison cannot isolate the cause. The earlier strokes use the median in the last half-second before the following command.
+
+Two overhead-confirmed carries started their outward turn at 91.30 mm (improper engagement) and 90.31 mm (seating unknown). A visually false carry also started at 91.30 mm. These are pre-turn readings after native pickup, with different command histories from the docked holds. Lift height alone did not distinguish actual support from a false carry in these trials.
