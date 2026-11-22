@@ -28,5 +28,5 @@ for event in rows:
         for ax in axes: ax.axvline(float(event["sec"]),color=".4",ls=":" if event["kind"]=="end" else "--")
 axes[2].set_xlim(45.9,52.0)
 for ax in axes: ax.axvline(51.286772,color="tab:red",ls=":")
-axes[0].set_title("P2Y8 autonomous cube roll   |   dashed: roll command   ·   red: first cliff flag")
+axes[0].set_title("Unit 3 autonomous cube roll   |   dashed: roll command   ·   red: first cliff flag")
 fig.savefig(p/"roll-traces.png",dpi=150)
