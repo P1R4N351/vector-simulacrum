@@ -19,6 +19,7 @@ from simulacrum import params
 sys.path.insert(0, str(repo/"evidence/unit3-cube-accelerometer"))
 from pickup_support import contact_load
 from pickup_patch import collect
+from tipping_moment import moments
 
 def read(name):
     return np.genfromtxt(here/name, delimiter=",", names=True)
@@ -102,6 +103,7 @@ floor = m.geom("table").id
 traces = []
 loads = []
 patch = []
+torque = []
 cube_id, fork_id = m.body("cube").id, m.body("fork").id
 weight = m.body_mass[cube_id] * np.linalg.norm(m.opt.gravity)
 for i, tick in enumerate(t):
@@ -111,6 +113,8 @@ for i, tick in enumerate(t):
         mj.mj_forward(m,d)
         assert all(c.dist >= 0 for c in d.contact)
     mj.mj_step(m,d)
+    if 2.55 <= tick < 2.91:
+        torque.append([tick,height[i],*moments(m,d,cube_id,floor,fork_id)])
     if 1.5 <= tick < 3.8:
         overlap_mm = max((max(0., -1000*c.dist) for c in d.contact
                           if fork_id in m.geom_bodyid[c.geom] and cube_id in m.geom_bodyid[c.geom]), default=0.)
@@ -125,6 +129,8 @@ for i, tick in enumerate(t):
 a = np.array(traces)
 output = args.output or (here if args.substeps == 1 else here/f"substeps-{args.substeps}")
 output.mkdir(exist_ok=True)
+np.savetxt(output/"tipping-moment.csv",torque,delimiter=",",comments="",
+           header="seconds,wrist_mm,shelf_mNm,fork_mNm,links_mNm")
 np.savetxt(output/"pickup-replay.csv",a,fmt="%.5f",delimiter=",",comments="",
            header="sec,center_height_mm,tilt_deg,floor_contact,robot_contact,dx_mm,dy_mm")
 c = read("cube.csv.gz")
