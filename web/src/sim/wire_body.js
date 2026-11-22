@@ -13,6 +13,7 @@ export function motorCommand(bytes) {
 export class WireBody {
   constructor(sim) {
     this.sim = sim;
+    sim.bodyRangeClock = true;
     this.seq = 0;
     this.prev = null;
     this.elapsed = [0, 0, 0, 0];
@@ -50,12 +51,14 @@ export class WireBody {
     v.setInt16(82,s.chargerContact ? Math.trunc(5*2048/2.8) : 0,true);
     v.setInt16(84,25,true);
     v.setUint16(86,s.chargerContact ? 3 : 0,true);
-    const prox = s._prox();
+    const prox = s.rawRangeSample();
+    // Wire HAL decodes 9.7 rate and 8.8 SPAD count. Engine takes their ratio.
+    const spads = 90;
     v.setUint8(92,0x58);
-    v.setUint16(94, Math.max(0,Math.min(65535,prox.distance_mm)));
-    v.setUint16(96,25*128);
-    v.setUint16(100,90*256);
-    v.setUint16(102,(this.seq+1)&65535,true);
+    v.setUint16(94, Math.max(0,Math.min(65535,Math.round(prox.raw))));
+    v.setUint16(96,Math.min(65535,Math.round(prox.quality * spads * 128)));
+    v.setUint16(100,spads*256);
+    v.setUint16(102,prox.count,true);
     for (const offset of [112,114]) v.setUint16(offset,(this.seq&1) ? 0 : 65535,true);
     const [accel, gyro] = s._imu();
     [...gyro,...accel,70-50*Math.exp(-.0032*s.tickCount*s.dt)].forEach((x,i) => v.setFloat32(784+4*i,x,true));

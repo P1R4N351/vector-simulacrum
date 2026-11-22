@@ -92,6 +92,7 @@ export class VectorSim {
     this._rangeBodyTicks = 0;
     this._rangeBodyPhaseUs = 0;
     this._rangeSample = null;
+    this._rangeSampleCount = 0;
     this._tofHitsMm = [];
     this.mujoco.mj_resetData(this.model, this.data);
     this._initCommands();
@@ -381,21 +382,32 @@ export class VectorSim {
   _prox() {
     const lift = this._reportedHeadAndLift()[1];
     if (!this.bodyRangeClock) return this._proxSensor.read(this._castTof(), lift, this._pitch());
-    if (this._rangeSample === null) this._rangeSample = this._proxSensor.acquire(this._castTof(), lift);
+    this.rawRangeSample();
     return this._proxSensor.report(this._rangeSample, lift, this._pitch());
   }
 
-  _advanceRangeClock() {
+  rawRangeSample() {
+    if (this._rangeSample === null) this._acquireRange();
+    return { ...this._rangeSample, count: this._rangeSampleCount };
+  }
+
+  _acquireRange() {
+    this._rangeSample = this._proxSensor.acquire(this._castTof(), this._reportedHeadAndLift()[1]);
+    this._rangeSampleCount = (this._rangeSampleCount + 1) & 0xffff;
+  }
+
+  _advanceRangeClock(power) {
     // Syscon timer.h and opto.cpp: 5.12 ms per body tick. Preserve phase on mode changes.
     this._rangeBodyPhaseUs += Math.round(this.dt * 1e6);
     const ticks = Math.floor(this._rangeBodyPhaseUs / 5120);
     this._rangeBodyPhaseUs %= 5120;
-    const driven = this._controllers.some(controller => Math.abs(controller.power) > 0.1);
+    const driven = power ? power.some(duty => Math.abs(duty) > 0.1)
+      : this._controllers.some(controller => Math.abs(controller.power) > 0.1);
     const target = driven ? 6 : (this.chargerContact ? 200 : 12);
     for (let i = 0; i < ticks; i++) {
       if (++this._rangeBodyTicks >= target) {
         this._rangeBodyTicks = 0;
-        this._rangeSample = this._proxSensor.acquire(this._castTof(), this._reportedHeadAndLift()[1]);
+        this._acquireRange();
       }
     }
   }
@@ -710,7 +722,7 @@ export class VectorSim {
     this.tick_ += 1;
     this._updateLiftStatus();
 
-    if (this.bodyRangeClock) this._advanceRangeClock();
+    if (this.bodyRangeClock) this._advanceRangeClock(power);
     const yaw = this._yaw();
     this._yawTotal += Math.atan2(Math.sin(yaw - this._yawPrev), Math.cos(yaw - this._yawPrev));
     this._yawPrev = yaw;
