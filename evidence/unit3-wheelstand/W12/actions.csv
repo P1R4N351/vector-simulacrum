@@ -1,0 +1,150 @@
+sec,kind,action,response
+-48.304681,begin,connect cube,
+-31.92314,end,connect cube,"status {
+  code: RESPONSE_RECEIVED
+}
+success: true
+object_id: 1"
+-31.922059,begin,look,
+-31.129022,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-30.578027,begin,look,
+-29.802742,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-29.252493,begin,look,
+-28.41639,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-27.86612,begin,aim,
+-26.569789,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-26.569689,begin,look,
+-25.837797,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-25.286662,begin,look,
+-24.527053,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-23.976095,begin,look,
+-23.092188,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-22.541829,begin,aim,
+-21.298589,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-21.298193,begin,look,
+-20.549322,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-19.998921,begin,look,
+-19.184567,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-18.634215,begin,look,
+-17.795502,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-17.245289,begin,aim,
+-16.249889,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-16.249484,begin,look,
+-15.535765,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-14.985333,begin,look,
+-14.267539,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-13.716404,begin,look,
+-12.814652,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-12.26438,begin,aim,
+-10.179085,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-10.177639,begin,look,
+-9.397907,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-8.847481,begin,look,
+-8.01235,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-7.462143,begin,look,
+-6.578805,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-6.027729,begin,aim,
+-4.05916,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-4.058743,begin,look,
+-3.230425,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-2.6778,begin,center on cube,
+-1.665912,end,center on cube,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-1.665251,begin,center head,
+-0.953077,end,center head,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+0.0,begin,pop_a_wheelie,
+5.043776,begin,disconnect,
+5.101582,end,disconnect,"status {
+  code: REQUEST_PROCESSING
+}"
