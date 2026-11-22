@@ -10,6 +10,12 @@ from shelf_view import ShelfView,SERIALS
 folder=Path(sys.argv[1])
 events=[json.loads(s) for s in (folder/'run.jsonl').read_text().splitlines() if s.startswith('{')]
 start,end=[r['t'] for r in events if r.get('action')=='lift 0.25']
+pitch=[(r["t"]-start,r["data"]["pose_pitch_rad"],r["data"]["head_angle_rad"]) for r in events
+       if r["kind"]=="robot_state" and -1 <= r["t"]-start <= 2.5]
+with (here/"dock-pitch.csv").open("w") as stream:
+    writer=csv.writer(stream,lineterminator="\n")
+    writer.writerow(["seconds","pose_pitch_rad","head_angle_rad"])
+    writer.writerows(pitch)
 states=np.array([[r['t']-start,r['data']['lift_height_mm'],r['data'].get('left_wheel_speed_mmps',0),r['data'].get('right_wheel_speed_mmps',0)] for r in events if r['kind']=='robot_state' and start-1<=r['t']<=end+1])
 np.savetxt(here/'encoder.csv',states,delimiter=',',header='seconds,lift_mm,left_mmps,right_mmps',comments='')
 rows=[]
