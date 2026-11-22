@@ -9,3 +9,13 @@ The rolling-tread replay from the preceding successful physical roll was frozen 
 [Overhead clip](approach.mp4) · [Physical traces](post-stop.png) · [Held-out replay](holdout.png)
 
 Run holdout.py with the printed fixture XML described in ../R8. Run poststop_metrics.py with this directory as its argument. Times in actions, state, cube and events are relative to the undock command; roll-poses uses seconds after the roll command.
+
+### Sensor frame and gravity gain on the sideways face
+
+The earlier +Z-rest capture yields a common gain of 0.970709 using 1,929 samples. Applied without refitting, it recovers the +Y-up gravity magnitude to within 0.29 mg after the roll and 0.97 mg before the next approach. Applying the upright correction to Z alone leaves errors of 29.57 and 30.23 mg. The two sideways windows share the same physical pose. The X gain and independent offsets remain unconstrained.
+
+In the pre-command sideways sighting the nominal SDK-cube-to-sensor transform predicts gravity 175.8° from the raw observation. Rotating the chip frame 180° about cube Z reduces this to 5.0°. This is a candidate registration for this cube when its initial pose comes from the SDK. The two recordings and the preceding settled window use the same cube. They do not provide independent calibration for other cubes, for a carried cube whose face registration is unknown, or for all six faces.
+
+Applying the registration to the preceding rolling-tread replay gives +Y as the final filtered up-axis, matching the later physical rest face. The real cube still reported +Z during the simultaneous captured interval, so the simulated change is early. The vector RMS error over the common dynamic packet window falls from 0.775 g to 0.588 g; adding the earlier gain reduces it to 0.580 g. The adjusted simulation still produces four tap-counter changes versus two measured and peaks at 5.32 g versus 1.43 g. This distinguishes an axis registration error from the remaining contact dynamics and timing errors.
+
+[Sensor comparison](frame-gain.png) · [Resting gain](side-gravity.csv) · [SDK pose registration](frame-sign.csv) · [Dynamic transfer](dynamic-frame.csv) · [Reproduce with printed fixture](frame_gain.py)

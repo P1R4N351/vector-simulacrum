@@ -20,9 +20,9 @@ def load_rows(filename, directory=here):
         return list(csv.DictReader(f))
 
 
-def compose_fixture(path):
+def compose_fixture(path, values):
     root = ET.parse(path).getroot()
-    robot = ET.fromstring(mjcf.build_mjcf(params.values(params.load(model='vector_2')),cube='free'))
+    robot = ET.fromstring(mjcf.build_mjcf(values,cube='free'))
     root.find(".//body[@name='cube']").append(robot.find(".//site[@name='cube_chip']"))
     ET.SubElement(ET.SubElement(root,'sensor'),'accelerometer',site='cube_chip',name='chip')
     geom = robot.find(".//geom[@name='tip_front_r']")
@@ -42,8 +42,10 @@ def compose_fixture(path):
     return root,center,radius
 
 
-def run(path, dt, rolling, directory=here, initial_rotation=None):
-    root,center,radius = compose_fixture(path)
+def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None):
+    values = params.values(params.load(model="vector_2"))
+    values.update(sensor_overrides or {})
+    root,center,radius = compose_fixture(path,values)
     root.find('option').set('timestep',str(dt))
     m = mj.MjModel.from_xml_string(ET.tostring(root,encoding='unicode'))
     d = mj.MjData(m)
@@ -80,7 +82,7 @@ def run(path, dt, rolling, directory=here, initial_rotation=None):
     vel = np.zeros(m.nv)
     ids = m.geom_bodyid
     cube_id,tread_id = m.body('cube').id,m.body('tread').id
-    sensor = CubeAccelerometer(params.values(params.load(model="vector_2")),dt)
+    sensor = CubeAccelerometer(values,dt)
     tilt, hit = [],[]
     for i in range(len(t)-1):
         d.mocap_pos[0],d.mocap_quat[0] = forkpos[i],quat[i]
