@@ -1,7 +1,7 @@
 """Optional printed replacement parts: swap a stock part's geometry, mass and inertia for a printed one.
 
     xml = printed_parts.build_mjcf(v, parts=("fork:dauler", "treads:dauler-obar"))
-    sim = VectorSim(parts=("rims:dauler-stock",))
+    sim = printed_parts.vector_sim(parts=("rims:dauler-stock",))   # a robot.VectorSim
 
 Off by default. With no parts the model is the stock one, byte for byte: apply() hands back the
 string it was given. A part is a published, printable mesh (Thingiverse, Printables) that people
@@ -35,6 +35,7 @@ import io
 import json
 import math
 import os
+import threading
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
@@ -534,6 +535,11 @@ def apply(xml: str, v: Dict[str, Any], parts: Sequence[str] = (), materials: Opt
         return xml
     report = part_report(v, parts, materials, fetch, fork_voxel_mm)
     root = ET.fromstring(xml)
+    # The body-mesh mode (mjcf body=) builds its own fork from Anki's rig as fork_hull_* pieces. Until the
+    # two modes are folded together, a printed fork is refused on such a model; rims and treads touch only
+    # the wheel bodies, which that mode leaves as they are.
+    assert not ("fork" in report and any(g.get("name", "").startswith("fork_hull_") for g in root.iter("geom"))), \
+        "a printed fork cannot go on a body-mesh model yet"
     if "fork" in report:
         _apply_fork(root, v, report["fork"])
     _apply_wheels(root, v, report)
@@ -548,11 +554,49 @@ def build_mjcf(v: Dict[str, Any], parts: Sequence[str] = (), obstacles: Sequence
     return apply(base, v, parts, **kwargs)
 
 
+_SIM_LOCK = threading.Lock()
+
+
+def vector_sim(parts: Sequence[str] = (), materials: Optional[Mapping[str, Tuple[str, float]]] = None,
+               fetch: bool = False, **kwargs: Any) -> Any:
+    """A robot.VectorSim with printed parts, without a keyword of its own in VectorSim.
+
+    VectorSim builds its model through mjcf.build_mjcf. For the length of the constructor that name is
+    pointed at a wrapper that applies the parts to the model it returns, then put back (under a lock, so
+    two threads building at once cannot see each other's wrapper). With no parts this is VectorSim(**kwargs).
+    A parts keyword on VectorSim itself waits for the body-mesh mode's keyword, so the two land together."""
+    from .robot import VectorSim  # noqa: PLC0415  (robot imports MuJoCo; this module does not)
+
+    if not parts:
+        return VectorSim(**kwargs)
+    resolve(parts)
+    stock = mjcf.build_mjcf
+
+    def with_parts(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cube: Any = None) -> str:
+        xml = stock(v, obstacles) if cube is None else stock(v, obstacles, cube)
+        return apply(xml, v, parts, materials, fetch)
+
+    with _SIM_LOCK:
+        mjcf.build_mjcf = with_parts
+        try:
+            sim = VectorSim(**kwargs)
+        finally:
+            mjcf.build_mjcf = stock
+    assert mjcf.build_mjcf is stock, "the stock builder was not put back"
+    sim.parts = tuple(parts)
+    return sim
+
+
 def _body(root: ET.Element, name: str) -> ET.Element:
     for elem in root.iter("body"):
         if elem.get("name") == name:
             return elem
     raise AssertionError(f"no body {name!r} in the model")
+
+
+def _floats(text: Optional[str]) -> List[float]:
+    assert text, "attribute missing"
+    return [float(x) for x in text.split()]
 
 
 def _vec(values: Sequence[float]) -> str:
@@ -663,20 +707,20 @@ def _apply_tread_runs(root: ET.Element, v: Dict[str, Any], report: Dict[str, Any
     """Move the stock treads' mass out of the chassis and the printed loops' straight runs into it.
 
     The stock loop, lumped in the chassis by total_mass_g, comes out entirely (its arcs and its runs);
-    the printed runs go back in, half a wheel base either side of the wheel base's middle, at axle height."""
+    the printed runs go back in. Arcs sit at the axles and runs midway between them, where the wheel bodies
+    are in the model, so a refit that moves the wheels moves these too."""
     chassis = _body(root, "chassis")
     inertial = chassis.find("inertial")
     assert inertial is not None, "chassis has no inertial to adjust"
-    half = 0.5 * v["tread_spacing_mm"]
-    front_x, rear_x = mjcf.wheel_x_mm(v)
-    mid_x = 0.5 * (front_x + rear_x)
-    z_front, z_rear = v["wheel_front_radius_mm"], v["wheel_rear_radius_mm"]
     stock = report["stock_tread"]["share_g"]
     points: List[Tuple[float, Tuple[float, float, float]]] = []
-    for side, y in (("left", half), ("right", -half)):
-        points += [(-stock["front"], (front_x, y, z_front)), (-stock["rear"], (rear_x, y, z_rear)),
-                   (-stock["runs"], (mid_x, y, 0.5 * (z_front + z_rear))),
-                   (report["treads"][side]["share_g"]["runs"], (mid_x, y, 0.5 * (z_front + z_rear)))]
+    for side, front_name, rear_name in (("left", "wheel_fl", "wheel_rl"), ("right", "wheel_fr", "wheel_rr")):
+        # Where the axles are, read from the wheel bodies themselves (chassis frame, mm), not from the table.
+        front = np.array(_floats(_body(root, front_name).get("pos"))) / MM
+        rear = np.array(_floats(_body(root, rear_name).get("pos"))) / MM
+        mid = tuple(0.5 * (front + rear))
+        points += [(-stock["front"], tuple(front)), (-stock["rear"], tuple(rear)), (-stock["runs"], mid),
+                   (report["treads"][side]["share_g"]["runs"], mid)]
     assert len(points) == 8, "two sides, four masses each"
     _add_point_masses(inertial, points)
 

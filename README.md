@@ -1315,6 +1315,15 @@ the firmware disagreements.
   (`simulacrum/cube.py`): the chip's filter, 12-bit frames every 2 ms, the
   FIFO, the last frame per 10 ms tick, and the tap counter as shipped. A
   cube on the floor, and the cube's lights and radio, are not modelled.
+- **Printed replacement parts**, on request
+  (`printed_parts.vector_sim(parts=("fork:dauler", "treads:dauler-obar"))`,
+  a `VectorSim`, or `printed_parts.build_mjcf` for the model alone). A shared
+  printable fork, set of rims or set of treads replaces the stock part's
+  contact shape, mass, inertia and rolling radius. The numbers come from the
+  mesh (`simulacrum/printed_parts.py`). The meshes are fetched from their
+  sources by hash and are not in this repository. Parts, licences and measured
+  numbers are in [evidence/printed-parts](evidence/printed-parts/README.md).
+  Without `parts` the model is unchanged.
 - **Scene.** A table slab with real edges and a floor below; sizes from the
   table (600 by 600 mm, 300 mm high by default). Optional boxes.
 - **Timing.** Physics at 1 ms, control at 5 ms (200 Hz), state messages

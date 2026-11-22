@@ -26,7 +26,7 @@ from simulacrum import mjcf, params, printed_parts as pp
 
 if _common.HAVE_MUJOCO:
     import mujoco
-    from simulacrum.robot import VectorSim
+    from simulacrum import robot
 
 CACHED_SKIP = (_common.OPTIONAL_SKIP_PREFIX + "the registered printed parts are not cached here "
                "(python -c 'from simulacrum import printed_parts as p; [p.fetch_part(n) for n in p.PARTS]')")
@@ -269,6 +269,32 @@ class SyntheticParts(WithSyntheticParts):
         front = float(_find(root, "body", "wheel_fl").find("inertial").get("mass")) / mjcf.GRAM
         self.assertAlmostEqual(front, self.v["wheel_mass_g"] + report["treads"]["left"]["share_g"]["front"], places=6)
 
+    def test_a_printed_fork_is_refused_on_a_body_mesh_model_and_treads_are_not(self) -> None:
+        root = ET.fromstring(self.stock)
+        ET.SubElement(_find(root, "body", "lift_fork"), "geom", name="fork_hull_0", type="box", size="0.001 0.001 0.001")
+        body_mode = ET.tostring(root, encoding="unicode")
+        with self.assertRaises(AssertionError):
+            pp.apply(body_mode, self.v, ("fork:synthetic",))
+        pp.apply(body_mode, self.v, ("treads:synthetic",))
+
+    def test_tread_masses_follow_the_wheel_bodies_not_the_table(self) -> None:
+        moved = ET.fromstring(self.stock)
+        dy = 0.95  # the refit moves the treads from 23.0 to 23.95 mm off the middle
+        for name, sign in (("wheel_fl", 1), ("wheel_rl", 1), ("wheel_fr", -1), ("wheel_rr", -1)):
+            body = _find(moved, "body", name)
+            x, y, z = _floats(body.get("pos"))
+            body.set("pos", mjcf.vec((x, y + sign * dy * mjcf.MM, z)))
+        chassis = lambda xml: _find(ET.fromstring(pp.apply(xml, self.v, ("treads:synthetic",))), "body", "chassis").find("inertial")
+        here, there = chassis(self.stock), chassis(ET.tostring(moved, encoding="unicode"))
+        report = pp.part_report(self.v, ("treads:synthetic",))
+        stock, runs = report["stock_tread"]["share_g"], report["treads"]["left"]["share_g"]["runs"]
+        m = 2 * (runs - stock["front"] - stock["rear"] - stock["runs"])  # both sides, g
+        y0 = 0.5 * self.v["tread_spacing_mm"]
+        expected = m * ((y0 + dy) ** 2 - y0 ** 2) * mjcf.GRAM * mjcf.MM ** 2
+        ixx = lambda e: _floats(e.get("diaginertia"))[0]
+        self.assertAlmostEqual(ixx(there) - ixx(here), expected, delta=1e-12)
+        self.assertAlmostEqual(_floats(there.get("pos"))[1], 0.0, delta=1e-12)
+
     def test_rims_set_the_wheel_mass_and_radius(self) -> None:
         report = pp.part_report(self.v, ("rims:synthetic",))["rims"]
         root = ET.fromstring(pp.apply(self.stock, self.v, ("rims:synthetic",)))
@@ -280,6 +306,16 @@ class SyntheticParts(WithSyntheticParts):
 
 @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
 class SyntheticPartsInMuJoCo(WithSyntheticParts):
+    def test_vector_sim_puts_the_stock_builder_back_even_when_construction_fails(self) -> None:
+        stock = mjcf.build_mjcf
+        with self.assertRaises(AssertionError):
+            pp.vector_sim(parts=("treads:synthetic",), control_level="no such level")
+        self.assertIs(mjcf.build_mjcf, stock)
+        sim = pp.vector_sim(parts=("treads:synthetic",))
+        self.assertIs(mjcf.build_mjcf, stock)
+        self.assertEqual(sim.parts, ("treads:synthetic",))
+        self.assertIsInstance(sim, robot.VectorSim)
+
     def test_the_compiled_mass_is_the_stock_less_its_treads_plus_the_printed_ones(self) -> None:
         report = pp.part_report(self.v, ("treads:synthetic", "fork:synthetic"))
         model = mujoco.MjModel.from_xml_string(pp.apply(self.stock, self.v, ("treads:synthetic", "fork:synthetic")))
@@ -289,7 +325,7 @@ class SyntheticPartsInMuJoCo(WithSyntheticParts):
         self.assertAlmostEqual(float(model.body_mass.sum()) / mjcf.GRAM, expected, places=6)
 
     def _open_loop(self, parts) -> tuple:
-        sim = VectorSim(parts=parts)
+        sim = pp.vector_sim(parts=parts)
         x0, _, z0 = sim.pose_mm()
         sim.set_wheel_motors(60.0, 60.0)
         sim.advance(3.0)
@@ -303,7 +339,7 @@ class SyntheticPartsInMuJoCo(WithSyntheticParts):
         self.assertAlmostEqual(z_printed - z_stock, radius - self.v["wheel_front_radius_mm"], delta=REST_TOL_MM)
 
     def _lift_sag_mm(self, parts) -> float:
-        sim = VectorSim(parts=parts)
+        sim = pp.vector_sim(parts=parts)
         sim.set_lift_height(self.v["lift_height_max_mm"])
         sim.advance(1.0)
         return self.v["lift_height_max_mm"] - sim.lift_height_mm()
@@ -349,7 +385,7 @@ class RegisteredParts(unittest.TestCase):
     @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
     def test_every_registered_part_loads_and_keeps_the_robot_on_its_wheels(self) -> None:
         for name in pp.PARTS:
-            sim = VectorSim(parts=(name,))
+            sim = pp.vector_sim(parts=(name,))
             self.assertFalse(sim.sim_truth()["fallen"], name)
             self.assertGreater(sim.pose_mm()[2], -0.1, name)
 

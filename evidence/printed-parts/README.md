@@ -5,9 +5,19 @@ meshes. `simulacrum/printed_parts.py` can put one of each kind in the model in
 place of the stock part:
 
 ```python
-from simulacrum.robot import VectorSim
-sim = VectorSim(parts=("fork:dauler", "treads:dauler-obar"))
+from simulacrum import printed_parts
+sim = printed_parts.vector_sim(parts=("fork:dauler", "treads:dauler-obar"))   # a VectorSim
 ```
+
+`vector_sim` passes everything else to `VectorSim`. It is a post-pass:
+`VectorSim` and `mjcf.build_mjcf` have no keyword of their own for it yet. The
+body-mesh mode (`body=`) is adding one to the same two functions, and the two
+will be folded together once both land. Until then a printed fork is refused on
+a body-mesh model, which builds its own fork. Rims and treads are allowed,
+since that mode leaves the wheel bodies alone. Everything printed parts change
+is found through the wheel and fork bodies in the model, not through the table,
+so a refit that moves the wheels (for example to 47.9 mm tread spacing) moves
+the printed treads' masses with them.
 
 ```python
 from simulacrum import printed_parts, params
@@ -56,6 +66,14 @@ public download API.
   mesh's closed surface. They are exact for the mesh, scaled by a filament
   density and fill. The wrist joint, the arm and the lift's level coupling do
   not change.
+  - The decomposition is this module's own, not CoACD. Voxels at
+    `fork_voxel_mm` (default 1.0) are merged greedily along x, then y, then z.
+    It is deterministic for a given mesh and pitch and depends on no library
+    version: `fork:dauler` gives 106 boxes, `fork:10zz` 177. `part_report()`
+    returns the boxes, the pitch and the voxel volume, so a replay can check its
+    piece count. CoACD-based fixtures (PR #91) depend on CoACD's version.
+    The body-mesh work reports forks7 at 58 pieces in that fixture and 52
+    under coacd 1.0.14, from the same STL and script. Not re-measured here.
   - `fork:dauler` uses the print-bed registration that `experiments/righting/printed_fork.py`
     and the browser use.
   - `fork:10zz` is registered by matching. It is turned into the same axes,
