@@ -63,3 +63,13 @@ A second replay adds the encoder trajectory's angular velocity times the existin
 At the encoder sample times from +4.00 to +5.208 s within replay coverage, successful-roll height RMS error drops from 3.43 to 3.42 mm. Peak cube tilt drops from 0.47° to 0.16°. Peak acceleration is 1.71 g and two taps in both cases. The held-out missed approach stays at 1.41 mm RMS error and zero taps. The real encoder drops below the 32 mm model travel limit in both recordings. Compensating nominal servo damping explains little of the loaded tracking error and does not recover the physical roll. The default replay still uses the original servo.
 
 [Encoder tracking overlay](lift-tracking.png) · [Four replay scores](lift-tracking.csv) · [Reproduce with fixture XML](lift_tracking.py)
+
+### Below the 32 mm low-dock target
+
+The public firmware clamps height-to-angle commands at low-dock and carry heights. Its reverse conversion from measured angle to reported height has no such clamp. Calibration resets the current angle to the low limit. The five-degree calibration margin is a fault-detection margin and does not specify mechanical travel. The reference source does not establish this unit's physical fork height. [Reference geometry and conversions](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/include/anki/cozmo/shared/cozmoConfig.h#L133-L146) · [Calibration reset](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/supervisor/src/liftController.cpp#L306-L314).
+
+The minimum reported height in the independent unloaded unit 3 docked recording was 30.645 mm. Two diagnostic replays transfer this number into both roll trials. In the travel case the model's lower joint and replay target limits both move to that height. In the encoder-zero case the nominal travel is preserved and a constant 1.202° is added to the measured angle to obtain the physical target; the same offset is subtracted before scoring simulated encoder height. Both use the existing servo and shelf support.
+
+The failed approach spends much of the comparison at its lower lift endpoint. Either hypothesis reduces its encoder RMS error from 1.41 to 0.40 mm. During the successful roll, the travel case gives 3.41 mm versus 3.43 mm nominal; the zero offset gives 2.41 mm but decreases peak cube tilt from 0.47° to 0.14°. All three predict two taps and 1.71 g. Neither correction explains the roll, and encoder agreement alone cannot select the physical geometry. No model default changed. Scores use encoder samples from +4.00 to +5.208 s within the available replay, as in the preceding comparison.
+
+[Lift encoder overlay](low-stop.png) · [Six replays](low-stop.csv) · [Reproduction script](low_stop.py)
