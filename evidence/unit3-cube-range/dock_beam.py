@@ -17,6 +17,7 @@ for run in 'gjklmoq':
     states = [row for row in states if row.get('k') == 's' and 'proxq' in row]
     t, h, dist, quality = np.array([[r[k] for r in states] for k in ('t', 'lift', 'prox', 'proxq')])
     dock = np.array([bool(r['status'] & 4096) and r['wl'] == r['wr'] == 0 for r in states])
+    lift_valid = np.array([not (r['status'] & 0x00400000) for r in states])
     in_band = dock & (h >= 34) & (h <= 56)
     # Age of this exact reported distance/quality pair, a lower bound on repeat duration.
     changes = np.r_[True, (np.diff(dist) != 0) | (np.diff(quality) != 0)]
@@ -31,18 +32,20 @@ for run in 'gjklmoq':
         results.append([run.upper(), int(delay*1000), tp, tn, fp, fn,
                         np.count_nonzero(in_band & (age >= .25)),
                         np.count_nonzero(in_band & changes),
-                        np.count_nonzero(in_band & changes & (majority == floor))])
-    if run == 'j':
+                        np.count_nonzero(in_band & changes & (majority == floor)),
+                        np.count_nonzero(in_band & lift_valid),
+                        np.count_nonzero(in_band & lift_valid & (majority == floor))])
+    if run == 'k':
         keep = (t >= t[in_band][0] - .3) & (t <= t[in_band][-1] + .3)
         trace.plot(t[keep], dist[keep], 'o-', ms=2.5, label='Reported range (mm)')
         trace.plot(t[keep], h[keep], label='Lift height (mm)')
         trace.scatter(t[keep & changes], dist[keep & changes], marker='x', s=50,
                       color='black', label='Distance or quality changed')
-        trace.set(title='Run J on dock', xlabel='Recording time (s)', ylabel='Millimetres')
+        trace.set(title='Run K return to dock · lift flagged invalid', xlabel='Recording time (s)', ylabel='Millimetres')
         trace.legend(fontsize=8)
 with (here/'dock-beam.csv').open('w') as f:
     w = csv.writer(f, lineterminator='\n')
-    w.writerow(['run','delay_ms','true_floor','true_longer','false_floor','missed_floor','pair_age_ge250ms','changed_pair','correct_on_changed_pair'])
+    w.writerow(['run','delay_ms','true_floor','true_longer','false_floor','missed_floor','pair_age_ge250ms','changed_pair','correct_on_changed_pair','lift_valid','correct_with_valid_lift'])
     w.writerows(results)
 for i, delay in enumerate((0,71)):
     rows = [r for r in results if r[1] == delay]
