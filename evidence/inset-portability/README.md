@@ -60,3 +60,11 @@ The side-on cap-scale orbit sees the gold backpack surface nearly edge-on, obscu
 Using each survey's measured longitudinal coordinate and height together, the held-out spin pair favors the 1 mm forward contact shift in all three reconstructions. Pivot RMS for centered versus shifted contacts was **3.02 versus 1.39 mm** using B, **11.02 versus 7.74 mm** using the first A capture, and **6.65 versus 3.47 mm** using the independent A repeat. Variation between captures exceeds the residual in the nominal fit. The shifted model's absolute pivot accuracy therefore depends on the landmark survey, while the yaw tradeoff persists.
 
 [Camera subsets and wheelbase checks](repeat-landmark.csv) · [Held-out pivot scores](landmark-pivot-scores.csv) · [Reproduce](repeat_landmark.py)
+
+### Contact midpoint with measured wheel speeds
+
+![Held-out clockwise and counterclockwise spin errors at commanded and measured wheel speeds](shift-speed.png)
+
+We targeted each tread's recorded mean speed magnitude from 0.7–1.4 s with its commanded sign. On the held-out CW/CCW pair, the simulated steady wheel-speed errors were within **0.42 mm/s**. The 1 mm forward shift still improved longitudinal pivot RMS, from **6.49 to 4.09 mm**, while yaw RMS worsened from **1.61% to 2.92%**. The adverse yaw result comes from the CCW repeat (+0.64% centered, −4.00% shifted). CW improved from −2.19% to −1.00%. The shifted proxy also underestimated steady roll and pitch magnitudes in both directions. Neither geometry was refitted.
+
+Both simulated and observed lens paths now use the same A-repeat landmark position. With the original commands the pivot RMS values are 6.65 and 3.45 mm. The preceding survey comparison adjusted only the observed landmark and reported 3.47 mm for the shifted case. These steady-speed inputs do not reproduce the encoder history through braking. [Per-spin wheel, gyro and pivot errors](shift-speed.csv) · [Replay script](shift_speed_check.py)
