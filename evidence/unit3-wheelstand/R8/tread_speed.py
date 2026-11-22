@@ -42,7 +42,7 @@ def compose_fixture(path, values):
     return root,center,radius
 
 
-def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False, initial_xy_mm=None, shelf_support=False, lift_velocity_feedforward=False, chassis_contact=False, apron_pieces=None):
+def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False, initial_xy_mm=None, shelf_support=False, lift_velocity_feedforward=False, chassis_contact=False, apron_pieces=None, omit_contacts=()):
     values = params.values(params.load(model="vector_2"))
     values.update(sensor_overrides or {})
     root,center,radius = compose_fixture(path,values)
@@ -78,6 +78,13 @@ def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrid
         ET.SubElement(root,'actuator').append(robot.find(".//position[@name='lift']"))
         equality=ET.SubElement(root,'equality')
         equality.append(robot.find(".//equality/joint[@joint1='wrist_joint']"))
+    for body_name in omit_contacts:
+        body = root.find(f".//body[@name='{body_name}']")
+        geoms = body.findall("geom")
+        assert geoms, f"No colliders on {body_name}"
+        for geom in geoms:
+            geom.set("contype","0")
+            geom.set("conaffinity","0")
     root.find('option').set('timestep',str(dt))
     m = mj.MjModel.from_xml_string(ET.tostring(root,encoding='unicode'))
     d = mj.MjData(m)
