@@ -139,3 +139,11 @@ With the revised collision boxes, we compared the torque-limited articulated lif
 During R8 the kinematic fork increases peak tilt from 0.25° to 20.94°, then the cube returns to its original face. It gives two tap changes as recorded, but overshoots peak acceleration at 2.34 g versus 1.43 g measured and 1.57 g with the articulated fork. Clipping the height samples leaves these scores unchanged. All three versions correctly predict zero taps and a stationary cube on R9. Fork kinematics affect the leverage, but enforcing this trajectory does not reproduce the physical change of face. Because the kinematic fork also removes compliance and wrist tracking error, this comparison cannot attribute the difference solely to lift height.
 
 [Measured packet Y and simulated tilt](fork-motion-transfer.png) · [Six replay scores](fork-motion-transfer.csv) · [Reproduction script](fork_motion_transfer.py). Use the same printed-fork fixture as the surface-transfer test above.
+
+### Which part tips the cube in the encoder-prescribed replay?
+
+With the same free cube and prescribed robot motion, we disabled collisions on the fork, the tread, or both after the first simulation step, before the robot reached the cube. Shelf contact remained active. During R8, fork contact alone produced 18.75° of tilt, compared with 0.19° for tread contact alone and 20.94° with both. With neither enabled the cube stayed level. The fork-only peak was 1.60 g with two tap changes. Adding tread contact raised the peak to 2.34 g and retained two taps. The hardware measured 1.43 g and two taps. Every simulated variant returned to its original face; all R9 controls remained stationary and tap-free.
+
+In this reconstructed trajectory the fork produces most of the tilt and tread contact increases the acceleration overshoot. The comparison tests the simulator's mechanism. The physical tread contact remains unverified, and this result does not justify removing it.
+
+[Eight contact combinations and traces](contact-ablation.png) · [Scores](contact-ablation.csv) · [Reproduction script](contact_ablation.py), using the same printed-fork fixture as above.
