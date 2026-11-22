@@ -232,3 +232,11 @@ Neither the household cube's mass nor its mass distribution was measured in this
 Across five replays per case, trial 1 peak tilt ranged from 1.89° to 2.55°, and its endpoint missed by 26.39–27.12 mm. In separate uniform-mass controls changing the solver step from 1 ms to 0.25 ms gave peak tilts of 2.21° (50 g) and 2.27° (85 g), scored on a common 20 ms grid. Within these tests neither mass distribution nor finer time integration explains the physical lift. The contact model still misses the onset of asymmetric engagement.
 
 [Five-trial comparison](cube-mass-distribution.png) · [Mass and inertia cases](cube-mass-distribution.csv) · [Step-size controls](mass-step-check.csv). Run cube_mass_distribution.py and mass_step_check.py with the same arguments as evaluate.py.
+
+### Does encoder-based forward travel misplace the fork?
+
+Track two overlapping head-crown patches and the fixed dock in the overhead frames. The head encoder stays at −0.2124 rad throughout the raise. Match over template scales 0.68–1.06 and fit a linear forward-distance conversion on the approach (−0.5 to 3 s, nine frames scoring above 0.75 on both patches). This is a relative optical check of the later motion conditional on the approach odometry. Perspective, changing patch scale, chassis pitch and the small yaw change can all affect the estimate. The two patches share image content.
+
+At the 5.498 s raised exposure the two estimates exceed the SDK forward position by 6.74 and 3.73 mm. Replay each longitudinal residual, zeroed at the stationary start, with the original lateral position, yaw, lift, printed fork and rails. Simulated peak tilt falls from 2.29° to 1.06° (vents) or 1.53° (seam). Predicted rightward sweep remains below 0.41 mm against 26.72 mm measured. The forward corrections inferred from this view do not recover engagement. A calibrated lateral trajectory remains open.
+
+[Camera and odometry](chassis-track.png) · [Tracks and match scores](chassis-track.csv) · [Three replay outcomes](chassis-replay.csv). Run chassis_track.py with the repo root and the paired overhead frame directory, then chassis_replay.py with the repo root and printed-fork XML.
