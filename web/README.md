@@ -300,9 +300,9 @@ the movement listener state. The latest packet's `events` lists transitions
 in slot order with the packet send time. These are engine listener candidates
 before SDK broadcast suppression during carrying or docking.
 
-### P2Y8 printed fork contact
+### Unit 3 printed fork contact
 
-For the local noncommercial Vector 2 demo, run these from the web directory. The exporter uses the same STL registration, convex decomposition and seed as the five physical cube push replays. It retains the wrist mass and joint and replaces the three contact boxes. The exact print installed on P2Y8 remains unconfirmed.
+For the local noncommercial Vector 2 demo, run these from the web directory. The exporter uses the same STL registration, convex decomposition and seed as the five physical cube push replays. It retains the wrist mass and joint and replaces the three contact boxes. The exact print installed on unit 3 remains unconfirmed.
 
 ```sh
 python3 tools/fetch_print_parts.py
