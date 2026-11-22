@@ -104,6 +104,7 @@ traces = []
 loads = []
 patch = []
 torque = []
+world_torque = []
 cube_id, fork_id = m.body("cube").id, m.body("fork").id
 weight = m.body_mass[cube_id] * np.linalg.norm(m.opt.gravity)
 for i, tick in enumerate(t):
@@ -113,8 +114,12 @@ for i, tick in enumerate(t):
         mj.mj_forward(m,d)
         assert all(c.dist >= 0 for c in d.contact)
     mj.mj_step(m,d)
-    if 2.55 <= tick < 2.91:
-        torque.append([tick,height[i],*moments(m,d,cube_id,floor,fork_id)])
+    if 1.98 <= tick < 2.91:
+        projected, world, lean_axis = moments(m,d,cube_id,floor,fork_id)
+        # cvel is the pre-integration world velocity used by this step.
+        world_torque.append([tick,height[i],*lean_axis,*d.cvel[cube_id,:3],*world.ravel()])
+        if tick >= 2.55:
+            torque.append([tick,height[i],*projected])
     if 1.5 <= tick < 3.8:
         overlap_mm = max((max(0., -1000*c.dist) for c in d.contact
                           if fork_id in m.geom_bodyid[c.geom] and cube_id in m.geom_bodyid[c.geom]), default=0.)
@@ -129,6 +134,8 @@ for i, tick in enumerate(t):
 a = np.array(traces)
 output = args.output or (here if args.substeps == 1 else here/f"substeps-{args.substeps}")
 output.mkdir(exist_ok=True)
+np.savetxt(output/"world-moment.csv",world_torque,delimiter=",",comments="",
+           header="s,height_mm,ax,ay,az,wx,wy,wz,shelf_x,shelf_y,shelf_z,fork_x,fork_y,fork_z,link_x,link_y,link_z")
 np.savetxt(output/"tipping-moment.csv",torque,delimiter=",",comments="",
            header="seconds,wrist_mm,shelf_mNm,fork_mNm,links_mNm")
 np.savetxt(output/"pickup-replay.csv",a,fmt="%.5f",delimiter=",",comments="",
