@@ -16,6 +16,7 @@ from pickup_support import contact_load
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('fixture')
 parser.add_argument('--dock-height-mm',type=float,help='use recorded SDK pitch and this front axle elevation above nominal')
+parser.add_argument('--yaw-deg',type=float,help='rotate cube, then start at first touch along the approach axis')
 args = parser.parse_args()
 record = np.genfromtxt(root/'encoder.csv', names=True, delimiter=',')
 v = params.values(params.load(model='vector_2'))
@@ -34,6 +35,8 @@ if args.dock_height_mm is not None:
     wrist[:,0]=x*np.cos(pitch)-z*np.sin(pitch)
     wrist[:,2]=axle_z+x*np.sin(pitch)+z*np.cos(pitch)+args.dock_height_mm*.001
     stem = f'pitched-hold-{args.dock_height_mm:g}mm'
+if args.yaw_deg is not None:
+    stem += f'-yaw{args.yaw_deg:g}'
 fig, axes = plt.subplots(1,2,figsize=(10,4),layout='constrained',sharey=True)
 rows = []
 for ax,(name,path) in zip(axes,[('Three boxes',root.parent/'unit3-cube-contact-replay/fixture.xml'),('Printed STL',args.fixture)]):
@@ -66,9 +69,33 @@ for ax,(name,path) in zip(axes,[('Three boxes',root.parent/'unit3-cube-contact-r
             d.mocap_pos[0]=wrist[0]
             d.mocap_quat[0]=quat[0]
             d.joint('cube_root').qpos[:]=[max(sizes)+.02215+gap*.001,lateral*.001,.02215,1,0,0,0]
-            mj.mj_forward(model,d)
             def cross(c):
                 return set(model.geom_bodyid[c.geom])=={fork,cube}
+            if args.yaw_deg is not None:
+                joint=d.joint('cube_root')
+                half=np.deg2rad(args.yaw_deg)/2
+                joint.qpos[3:] = [np.cos(half),0,0,np.sin(half)]
+                # Find first external contact approached from clear space.
+                clear=max(sizes)+.04
+                for x in clear-np.arange(101)*.00025:
+                    joint.qpos[0]=x
+                    mj.mj_forward(model,d)
+                    if any(cross(c) and c.dist<0 for c in d.contact):
+                        break
+                    clear=x
+                else:
+                    raise ValueError('No first contact in placement sweep')
+                inside=x
+                for _ in range(20):
+                    mid=(inside+clear)/2
+                    joint.qpos[0]=mid
+                    mj.mj_forward(model,d)
+                    if any(cross(c) and c.dist<0 for c in d.contact):
+                        inside=mid
+                    else:
+                        clear=mid
+                joint.qpos[0]=clear+gap*.001
+            mj.mj_forward(model,d)
             penetration=max([0.,*[-c.dist*1000 for c in d.contact if cross(c)]])
             floor_gap_mm=min(bottoms)*1000
             if penetration>1e-5 or floor_gap_mm < -1e-5:
