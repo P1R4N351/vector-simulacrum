@@ -16,6 +16,11 @@ test("lift-in-position clears on a raise and stays set on a settled repeat", asy
     sim.commandLiftHeight(62);
     sim.tick(sim._stateTicks);
     assert.equal(sim.state.lift_in_pos, true);
+    sim.stopAllMotors();
+    sim.tick(sim._stateTicks);
+    assert.equal(sim.state.lift_in_pos, false);
+    sim.tick(Math.round(0.5 / sim.dt));
+    assert.equal(sim.state.lift_in_pos, true);
   } finally {
     sim.dispose();
   }
