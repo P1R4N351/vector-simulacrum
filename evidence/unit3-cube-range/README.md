@@ -66,3 +66,36 @@ error and trial 2's opposite bias make a global range correction premature.
 
 [Paired readings](browser-range.csv). Run `python browser_range.py` with the
 web dependencies installed. No sensor or contact parameters are fitted.
+
+### Isolating camera placement from approach travel
+
+![Range at the moving upper-edge observations](edge-range.png)
+
+A second reconstruction uses the two visible ends of the glyph's 23 mm upper
+edge. At each image it solves for positive depths along the two calibrated
+camera rays, using the edge direction from the initial overhead heading and
+instantaneous SDK chassis yaw. The midpoint, measured head angle, camera mount
+and 22 mm face-to-center offset give a fresh robot-relative cube center. Wheel
+translation and measured range do not enter this optical position estimate.
+An anchored version adds a constant XY translation per trial to match the
+earlier four-corner registration at rest. All three alternatives use the same
+browser ray fan, lift height and simulated noise draws at each image. Real
+range is interpolated at the previously estimated 71 ms range delay; the image
+clock uses the previously fitted 236 ms capture alignment.
+
+| Pose input | Mean absolute error, moving trials 3–5 | Mean signed error |
+|---|---:|---:|
+| Initial four corners plus odometry | 7.30 mm | −7.09 mm |
+| Upper edge at each frame, anchored at rest | 5.94 mm | −5.36 mm |
+| Upper edge at each frame, absolute position | 3.83 mm | −0.82 mm |
+
+The same 11 held-out images enter each column comparison. Updating travel
+alone recovered part of the short reading. Changing the initial registration
+as well recovered more. Absolute edge placement also over-read the moving
+ranges in trials 1 and 2, with mean errors of +6.09 and +9.06 mm. The
+comparison cannot identify a universal placement offset or a sensor bias.
+The two endpoints constrain position conditional on the overhead yaw and level
+chassis. The images are sparse and the available calibration assumes pinhole
+optics. No production coefficients changed.
+
+[Frame scores](edge-range.csv). Reproduce with `python edge_range.py`.
