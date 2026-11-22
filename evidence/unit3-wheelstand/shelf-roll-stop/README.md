@@ -4,7 +4,7 @@ Two physical runs on the same shelf captured 2,514 and 1,367 robot-state receipt
 
 ![Wheel speeds and cube acceleration with the SDK cliff flag](trials.png)
 
-In B the first SDK cliff flag arrived 4.30 s after the roll command. The action was cancelled and the post-stop capture began at 4.53 s. After eight seconds stationary, the flag had cleared and the cleanup routine started native docking at 12.53 s. The routine only checked the current cliff flag before starting docking. It retained no record of the earlier cliff event and did not monitor clearance or cancel docking on a new cliff event. A second cliff indication began at 23.61 s. The opposite shelf camera shows the robot at the edge at 30.52 s and out of view at 31.55 s. The operator confirmed a fall. Docking returned BEHAVIOR_COMPLETE_STATE even though the immediate battery reply lacked an on-platform indication. Subsequent external recovery was verified separately with both charging flags and the shelf camera.
+In B the first SDK cliff flag arrived 4.30 s after the roll command. The action was cancelled and the post-stop capture began at 4.53 s. After eight seconds stationary, the flag had cleared and the cleanup routine started native docking at 12.53 s. The routine only checked the current cliff flag before starting docking. It retained no record of the earlier cliff event and did not monitor clearance or cancel docking on a new cliff event. A second cliff indication began at 23.61 s. The opposite shelf camera shows the robot at the edge at 30.52 s and out of view at 31.55 s. The experimenter confirmed a fall. Docking returned BEHAVIOR_COMPLETE_STATE even though the immediate battery reply lacked an on-platform indication. Subsequent external recovery was verified separately with both charging flags and the shelf camera.
 
 ![Cropped, lens-corrected opposite shelf view of the incident](sequence.jpg)
 
@@ -65,3 +65,9 @@ A 16.5 mm threshold, selected on Sunday by minimizing receipt disagreements (tie
 Freezing the Sunday candidate at 16.5 mm and excluding both previously examined wheelstands gives 11 other runs with a logged successful undock and subsequent disconnect or docking start. Score the interval between those boundaries. Across 8,472 receipts there were six positive readings, all during R8. The 25 mm setting missed three of those six, while the 16.5 mm candidate caught all six. Neither threshold raised an extra flag on the 8,466 negative receipts. The six positive receipts come from one additional maneuver on the same unit and surface. These observations test the effective pitch response; predicting actual surface departures still requires shelf geometry.
 
 ![Extra and missed cliff flags by held-out run](cliff-transfer.png)
+
+### Browser free-cube replay
+
+The two shipped free-cube scenes take 41.73 ms to settle from 90% to 10% tilt from a 15.76° release on each of four edges. The S22B camera estimate is 54.3 ms with frame brackets of 27.6–84.0 ms. The simulated release begins at rest with a 1 nm numerical clearance. At exactly zero clearance the two runtimes can disagree about whether the first contact exists. The browser regression checks every physics step against native MuJoCo for 150 ms, including all three raw accelerometer channels (0.01 m/s² tolerance). Physical Bluetooth packets additionally depend on chip sampling and app timing.
+
+![Camera and browser-verified free-cube releases](browser-landing.png)
