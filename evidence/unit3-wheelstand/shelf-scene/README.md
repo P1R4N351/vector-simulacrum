@@ -17,3 +17,13 @@ Open the web simulator with `?env=shelf&cubeSensor=unit3`. Use `&contact=42` for
 The pod refreshes its dock-registered JSON every five minutes. On the lab workstation, `tools/p2_shelf/sync_preview.sh` copies it atomically to the local web server. Open the shelf scene with `&map=live` and reload for the latest export. The default URL uses the versioned snapshot so comparisons remain reproducible.
 
 ![Browser shelf scene](browser.png)
+
+## Cube and charger in the native obstacle layer
+
+The SDK calls content type 3 `ObstacleCube`. The firmware assigns its observable-object class to both light cubes and chargers, and marks the back and sides of the charger. The first overlay labelled both purple regions as cube. Its legend now says mapped object. [Firmware mapComponent.cpp](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/engine/navMap/mapComponent.cpp#L96-L166)
+
+Grouping edge-connected leaves before computing their area-weighted centres separates the dock-side region (37 leaves) from the cube-side region (18 leaves). The latter occupies 2,304 mm², equivalent to a 48 mm square. Its centre is 5.4 mm toward the dock and 7.5 mm to the right of the earlier W13 camera sighting, for a 9.25 mm separation. This compares estimates that share robot localization and were acquired at different times. It does not independently establish a physical cube offset. All four corners of each of the 157 native floor cells lie inside the surveyed footprint.
+
+![W13 camera footprint and native obstacle components](cube-map-check.png)
+
+Reproduce with `PYTHONPATH=. python evidence/unit3-wheelstand/shelf-scene/cube_map_check.py`.

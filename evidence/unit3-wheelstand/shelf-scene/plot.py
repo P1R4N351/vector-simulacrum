@@ -50,7 +50,7 @@ for kind in colors:
             cells.append([(origin+x+w*(a*c-b*s),y+w*(a*s+b*c)) for a,b in ((-.5,-.5),(.5,-.5),(.5,.5),(-.5,.5))])
     plan.add_collection(PolyCollection(cells,facecolors=colors[kind],edgecolors="none",alpha=.65))
 plan.set(aspect="equal",xlim=(-240,225),ylim=(-260,250),xlabel="Outward from dock (mm, scene frame)",ylabel="Left (mm)",title="Unit 3 native map registered to the dock")
-handles=[Line2D([],[],color=c,lw=6,label=t) for c,t in [("#0f9c86","Clear of cliff"),("#ac6ace","Cube"),("#5280b4","Proximity"),("#444754","Dock")]]
+handles=[Line2D([],[],color=c,lw=6,label=t) for c,t in [("#0f9c86","Clear of cliff"),("#ac6ace","Mapped object"),("#5280b4","Proximity"),("#444754","Dock")]]
 plan.legend(handles=handles,fontsize=8,loc="upper right")
 photo.set_title("See3CAM   •   dashed edge is inferred")
 fig.savefig(here/"shelf-map.png",dpi=160)
