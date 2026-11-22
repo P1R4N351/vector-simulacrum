@@ -556,24 +556,32 @@ class Cliff(unittest.TestCase):
 
     def test_reaction_off_the_robot_drives_off_and_falls(self) -> None:
         sim = _edge_sim(CONTROL_OVERRIDE)
-        flagged = []
+        seen = []
         update = sim.hazards.update
 
         def watch(ranges: list, accel: float) -> None:
             update(ranges, accel)
-            flagged.append(sim.hazards.falling)
+            seen.append((accel, sim.hazards.cliff_any))
 
         sim.hazards.update = watch
         result = sim.drive_straight(300.0, 100.0)
         sim.advance(1.0)
+        x, _, z = sim.pose_mm()
         self.assertEqual(sim.reactions, 0)
         self.assertTrue(sim.sim_truth()["fallen"])
+        self.assertGreater(x, 0.5 * sim.v["table_length_mm"], "it left over the edge it drove at")
+        self.assertLess(z, -0.5 * sim.v["table_height_mm"], "it reached the floor, not a ledge below the top")
         self.assertEqual(result.result, robot.RESULT_OFF_GROUND)
         self.assertTrue(any(s.cliff_detected for s in sim.states))
-        # The fall flag holds for 5 to 7 control ticks before the landing clears it, less than one 60 ms state
-        # period, so whether a state message carries it is a matter of phase: one did at an inset of 3.0 mm and
-        # none does at 3.1, with the IMU filter or without. The robot's own loop sees it; that is what is checked.
-        self.assertTrue(any(flagged))
+        # The drop itself, not the `falling` flag. The flag needs the free fall to last the firmware's 150 ms,
+        # and how long the tumble's free fall lasts is chaotic: it held for 5 to 7 control ticks at an inset of
+        # 3.1 mm, a state message carried it at 3.0 and not at 3.1, and on 2026-11-22 the same drop on an older
+        # table stayed under the threshold for 3 state messages on Linux MuJoCo 4.0.1 against 5 on macOS 4.0.1
+        # and 6 on 3.11.0. What is checked here is that the fall reached the detector's input: an acceleration
+        # under the threshold while a cliff showed. The flag's rule is tested on known traces in
+        # tests/test_hazards.py.
+        low = sim.v["fall_accel_low_mmps2"]
+        self.assertTrue(any(accel < low and cliff for accel, cliff in seen), "the free fall reaches the detector")
         self.assertTrue(any(s.picked_up for s in sim.states))
         self.assertTrue(sim.has_control, "at the override level the robot never takes control away")
 

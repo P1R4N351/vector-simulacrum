@@ -1,12 +1,13 @@
 """Run the simulacrum's tests and say exactly how many ran..
 
     python3 tests/run_all.py                      everything that can run here
-    the GPU host python tests/run_all.py --require-mujoco
+    ./run_in_ct.sh tests/run_all.py --require-mujoco   (on the GPU host, MuJoCo 4.0.1)
     python3 tests/run_all.py --only test_sim.Cliff.test_reaction_on_stops_and_backs_away
 
 Exit codes: 0 all passed, 7 a test failed or errored (or was skipped under
 --require-mujoco for anything but an optional input, _common.OPTIONAL_SKIP_PREFIX), 3 MuJoCo or the training packages were required and are
-missing, 2 bad arguments. The last line is one JSON object, for the
+missing, or (under --require-mujoco) the MuJoCo loaded is not the pinned one in simulacrum/mujoco_pin.py
+(VECTOR_MUJOCO_EXPECT names another), 2 bad arguments. The last line is one JSON object, for the
 mutation check to read.
 """
 
@@ -27,7 +28,7 @@ import _common  # noqa: E402
 MODULES = ("test_params", "test_mjcf", "test_drive", "test_recording", "test_imu_fit", "test_recorder", "test_sim",
            "test_replay", "test_task", "test_training", "test_rank", "test_mcp",
            "test_wheelstand", "test_motor_heat", "test_prox", "test_spin_fit", "test_camera_spins",
-           "test_imu_filter", "test_record_listen",
+           "test_imu_filter", "test_record_listen", "test_hazards", "test_mujoco_pin",
            "test_hold_cube", "test_cube_accel", "test_cube_model", "test_cube_firmware", "test_cube_surface",
            "test_capture_peers", "test_rescue_pipeline", "test_run_all")
 EXIT_OK, EXIT_USAGE, EXIT_ENV, EXIT_RED = 0, 2, 3, 7
@@ -75,8 +76,21 @@ def main(argv: List[str]) -> int:
     summary["skipped_optional"] = optional
     print(f"declared {declared}, ran {result.testsRun}, passed {passed}, failed {len(result.failures)}, "
           f"errored {len(result.errors)}, skipped {len(result.skipped)} ({optional} for an optional input)")
+    pin = _pin_check() if _common.HAVE_MUJOCO else None
+    if pin is not None:
+        summary.update({"mujoco_version": pin["bindings"], "mujoco_pin_ok": pin["ok"]})
     print("SUMMARY " + json.dumps(summary, sort_keys=True))
+    if args.require_mujoco and pin is not None and not pin["ok"]:
+        print("MuJoCo is not the pinned one (simulacrum/mujoco_pin.py): " + "; ".join(pin["problems"]))
+        return EXIT_ENV
     return EXIT_OK if green else EXIT_RED
+
+
+def _pin_check() -> dict:
+    """Which MuJoCo the tests ran on, from the library mapped into this process (after they ran)."""
+    from simulacrum import mujoco_pin  # noqa: PLC0415  (after the tests: tensordict is already loaded)
+
+    return mujoco_pin.check()
 
 
 if __name__ == "__main__":
