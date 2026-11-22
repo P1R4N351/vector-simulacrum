@@ -49,6 +49,7 @@ if held_out:
 shift=late_onset-4.015283
 target=json.loads((here/'initial-cube.json').read_text())
 w,x,y,z=[target['q'+str(i)] for i in range(4)]
+angle=np.arctan2(2*(w*z+x*y),1-2*(y*y+z*z))
 camera_xy='--camera-xy' in sys.argv[2:]
 if camera_xy:
     if not held_out:
@@ -61,7 +62,6 @@ if camera_xy:
     forward,left=float(ref['forward_mm']),float(ref['left_mm'])
     target['x']=x+forward*np.cos(yaw)-left*np.sin(yaw)
     target['y']=y+forward*np.sin(yaw)+left*np.cos(yaw)
-angle=np.arctan2(2*(w*z+x*y),1-2*(y*y+z*z))
 cube_id=m.body('cube').id
 cube=m.joint('cube_root').qposadr[0]
 def obs(t,k):
