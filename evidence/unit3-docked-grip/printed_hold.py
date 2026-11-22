@@ -17,6 +17,8 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('fixture')
 parser.add_argument('--dock-height-mm',type=float,help='use recorded SDK pitch and this front axle elevation above nominal')
 parser.add_argument('--yaw-deg',type=float,help='rotate cube, then start at first touch along the approach axis')
+parser.add_argument('--lower-from-above', action='store_true',
+                    help='lower cube to first contact, release from rest and settle before the command')
 args = parser.parse_args()
 record = np.genfromtxt(root/'encoder.csv', names=True, delimiter=',')
 v = params.values(params.load(model='vector_2'))
@@ -37,6 +39,8 @@ if args.dock_height_mm is not None:
     stem = f'pitched-hold-{args.dock_height_mm:g}mm'
 if args.yaw_deg is not None:
     stem += f'-yaw{args.yaw_deg:g}'
+if args.lower_from_above:
+    stem += '-from-above'
 fig, axes = plt.subplots(1,2,figsize=(10,4),layout='constrained',sharey=True)
 rows = []
 for ax,(name,path) in zip(axes,[('Three boxes',root.parent/'unit3-cube-contact-replay/fixture.xml'),('Printed STL',args.fixture)]):
@@ -64,7 +68,7 @@ for ax,(name,path) in zip(axes,[('Three boxes',root.parent/'unit3-cube-contact-r
         bottoms.append(init.geom_xpos[g,2]+bottom)
         sizes.append(init.geom_xpos[g,0]+extent)
     for lateral in (-3,0,3):
-        for gap in (-3,-1,0,1):
+        for gap in ((-6,-3,-1,-.5,-.15,0,1) if args.lower_from_above else (-3,-1,0,1)):
             d=mj.MjData(model)
             d.mocap_pos[0]=wrist[0]
             d.mocap_quat[0]=quat[0]
@@ -95,12 +99,28 @@ for ax,(name,path) in zip(axes,[('Three boxes',root.parent/'unit3-cube-contact-r
                     else:
                         clear=mid
                 joint.qpos[0]=clear+gap*.001
+            if args.lower_from_above:
+                joint=d.joint('cube_root')
+                # Lower an upright cube in 0.25 mm increments until either the
+                # shelf or fork is reached. Release at the final clear height.
+                for z in .080-np.arange(234)*.00025:
+                    joint.qpos[2]=max(z,.02215)
+                    mj.mj_forward(model,d)
+                    if any(cross(c) and c.dist<0 for c in d.contact):
+                        joint.qpos[2]+=.00025
+                        break
+                    if z<=.02215:
+                        break
             mj.mj_forward(model,d)
             penetration=max([0.,*[-c.dist*1000 for c in d.contact if cross(c)]])
             floor_gap_mm=min(bottoms)*1000
             if penetration>1e-5 or floor_gap_mm < -1e-5:
                 rows.append([name,lateral,gap,penetration,floor_gap_mm,None,None,None,None,None])
                 continue
+            if args.lower_from_above:
+                release_pos=d.joint("cube_root").qpos[:3].copy()
+                mj.mj_step(model,d,nstep=1000)
+                settle_shift=1000*np.linalg.norm(d.joint("cube_root").qpos[:2]-release_pos[:2])
             angles,heights,touch,load=[],[],[],[]
             for clock,pos,q in zip(t,wrist,quat):
                 d.mocap_pos[0]=pos
@@ -116,7 +136,12 @@ for ax,(name,path) in zip(axes,[('Three boxes',root.parent/'unit3-cube-contact-r
             hold=(t>=1.1)&(t<1.35)
             rows.append([name,lateral,gap,penetration,floor_gap_mm,angles[t>=0].max(),angles[hold].max(),
                          np.mean(np.array(touch)[hold]),max(np.array(heights)[hold])-heights[np.searchsorted(t,0)],np.mean(load)])
-            ax.plot(t,angles,lw=1,alpha=.7)
+            if args.lower_from_above:
+                before = (t>=-.15)&(t<0)
+                rows[-1].extend([np.median(angles[before]),np.median(np.array(heights)[before]),
+                                 np.mean(angles[hold])-np.median(angles[before]),1000*release_pos[2],settle_shift])
+            if not args.lower_from_above or np.median(angles[before])<2:
+                ax.plot(t,angles,lw=1,alpha=.7)
     ax.axvspan(1.1,1.35,color='orange',alpha=.2,label='Physical raised interval')
     ax.set(title=name,xlabel='Seconds from lift command',xlim=(0,1.65))
     ax.legend(fontsize=8)
@@ -124,5 +149,5 @@ axes[0].set_ylabel('Simulated cube inclination (degrees)')
 fig.savefig(root/f'{stem}.png',dpi=165)
 with (root/f'{stem}.csv').open('w') as f:
     w=csv.writer(f)
-    w.writerow('fork lateral_mm envelope_gap_mm initial_penetration_mm initial_fork_floor_clearance_mm peak_deg raised_peak_deg raised_contact_fraction raised_max_rise_mm mean_upward_fork_force_weights'.split())
+    w.writerow('fork lateral_mm envelope_gap_mm initial_penetration_mm initial_fork_floor_clearance_mm peak_deg raised_peak_deg raised_contact_fraction raised_max_rise_mm mean_upward_fork_force_weights'.split() + (['pre_tilt_deg','pre_center_mm','hold_mean_tilt_change_deg','release_center_height_mm','settling_xy_travel_mm'] if args.lower_from_above else []))
     w.writerows(rows)
