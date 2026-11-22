@@ -19,3 +19,11 @@ CSV times are host receipts in seconds from the start of native undocking. State
 Between 4.40 and 5.05 s after roll initiation, the median change in the cube's accelerometer direction was 15.76° relative to the preceding second at rest. The median packet-averaged magnitude was 0.976 g (0.971 g before contact). The visible front glyph rotated clockwise by a median 11.56° in the corrected opposite-camera image over the same window. The estimate fits the central portion of the upper glyph border across multiple luminance thresholds. It yielded 78 of 81 usable frames. A short impact can rotate the acceleration vector independently of gravity, so use the sustained interval for a simulator comparison.
 
 From 6 to 10 s the accelerometer returned to within 0.28° of its initial direction (median), while the projected edge sat 3.68° counterclockwise from its starting orientation. This residual is consistent with a changed viewing geometry. A single projected angle cannot isolate yaw, translation and tilt. Use the gravity-vector and camera observations separately when validating the cube model. Neither measurement by itself identifies corner friction.
+
+### Unsupported settling time
+
+The native opposite-camera frames resolve the fast return that the subsampled overlay missed. Linear interpolation gives **54.3 ms** from 90% to 10% of the projected edge rotation remaining, referenced to the local pre-drop and settled angles. Using just the frames that bracket each crossing gives **27.6–84.0 ms**. This is a sampling bound, not a statistical interval.
+
+The production Vector 2 free-cube model released from rest at 15.76° takes **41.7 ms** for the corresponding fraction of true tilt on each of its four bottom edges. The calculation places the lowest collision geometry at the tabletop before release. No coefficients were fitted. The point estimate is 12.6 ms faster than the camera estimate, inside the frame brackets. The real fork's release velocity and residual support are unknown, and the camera angle is projected. This trial cannot distinguish a contact damping error from those effects.
+
+![Normalized settling curves aligned at the 90 percent crossing](release.png)
