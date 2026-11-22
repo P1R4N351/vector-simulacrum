@@ -36,6 +36,7 @@ def main(fixture):
     # Integer indices measure elapsed physics steps, with mag[0] at DT.
     slots = np.arange(1, len(mag)//tick-1)
     rows = []
+    unload = []
     physical = np.genfromtxt(HERE/'cube.csv.gz',names=True,delimiter=',')
     zero = next(float(r['sec']) for r in load_rows('actions.csv') if r['action']=='roll cube')
     obs = (physical['sec']-zero>=4.5)&(physical['sec']-zero<5)
@@ -48,6 +49,11 @@ def main(fixture):
             mask = (returned>=4.5)&(returned<5)
             peak = mag[latest[mask]-1].max()
             rows.append((f*DT*1000,k*DT*1000,peak))
+            # Select the window on the clock available in both recordings.
+            pre = (returned>=4.60)&(returned<4.78125)
+            samples = mag[latest[pre]-1]
+            unload.append((f*DT*1000,k*DT*1000,len(samples),samples.min(),
+                           np.sum(samples<.50),np.sum(samples<.75)))
     baseline = max(np.linalg.norm(np.frombuffer(b[2:],'<i2').astype(float).reshape(3,3),axis=1).max()/8192
                    for t,b in reference.messages if 4.5<=t<5)
     assert np.isclose(rows[0][2],baseline)
@@ -59,6 +65,37 @@ def main(fixture):
         peak = max(np.linalg.norm(np.frombuffer(b[2:],'<i2').reshape(3,3).astype(float),axis=1).max()/8192
                    for t,b in check.messages if 4.5<=t<5)
         assert np.isclose(rows[f*tick+k][2],peak)
+    phys_t = physical['sec']-zero
+    phys_g = np.linalg.norm(np.column_stack([physical[k] for k in 'xyz']),axis=1)/8192
+    pre = (phys_t>=4.60)&(phys_t<4.78125)
+    earlier = HERE.parent/'R5'
+    transport = np.genfromtxt(earlier/'cube.csv.gz',names=True,delimiter=',')
+    limits = [float(r['sec']) for r in load_rows('actions.csv',earlier) if r['action']=='set cube down']
+    inside = (transport['sec']>=limits[0]) & (transport['sec']<=limits[1])
+    tg = np.linalg.norm(np.column_stack([transport[k][inside] for k in 'xyz']),axis=1)/8192
+    print('R8 full capture min, slots:',phys_g.min(),len(phys_g))
+    print('R5 set-down min, slots below .5 and total:',tg.min(),sum(tg<.5),len(tg))
+    scores = np.array(unload)
+    print('Pre-impact measured slots, minimum, counts below .5/.75 g:',sum(pre),
+          phys_g[pre].min(),sum(phys_g[pre]<.5),sum(phys_g[pre]<.75))
+    print('Simulation min/max over phases for [slots, minimum g, count<.50, count<.75]:',
+          scores[:,2:].min(axis=0),scores[:,2:].max(axis=0))
+    with (HERE/'unloading.csv').open('w') as out:
+        w=csv.writer(out,lineterminator='\n')
+        w.writerow(['frame_phase_ms','tick_phase_ms','slots','minimum_g','below_half_g','below_075_g'])
+        w.writerows(unload)
+    fig,ax=plt.subplots(figsize=(9,4),layout='constrained')
+    for label,ts,gs in [
+        ('Physical slots (receipt time)',phys_t,phys_g),
+        ('Simulated slots (packet time)',np.repeat([t for t,_ in reference.messages],3),
+         np.linalg.norm(np.vstack([np.frombuffer(b[2:],'<i2').reshape(3,3) for _,b in reference.messages]).astype(float),axis=1)/8192)]:
+        show=(ts>=4.59)&(ts<4.91)
+        ax.scatter(ts[show],gs[show],label=label,s=18,alpha=.8)
+    ax.axvspan(4.60,4.78125,alpha=.12,color='gray',label='Pre-impact window')
+    ax.axhline(.5,ls=':',color='.4')
+    ax.set(xlabel='Seconds from roll command',ylabel='Specific force magnitude (g)',ylim=(0,5.7))
+    ax.legend()
+    fig.savefig(HERE/'unloading.png',dpi=160)
     peaks = np.asarray(rows)[:,2]
     print('real, nominal, min/median/max, within real+5%', observed,baseline,np.percentile(peaks,[0,50,100]),sum(peaks<=observed*1.05),len(rows))
     with (HERE/'impact-phase.csv').open('w') as out:
