@@ -3,6 +3,7 @@ import { VectorSim } from "../src/sim/robot.js";
 import { mujoco, readJson, readText } from "../test/helpers.js";
 
 const { values, derived } = readJson("public/robot/model.json");
+if (process.argv.includes("--unit3")) Object.assign(values, readJson("src/sim/shelf_cube.json"));
 const sim = new VectorSim(await mujoco(), { xml: readText("public/robot/vector-free.xml"), values, derived });
 console.log("time_s,slot,x,y,z");
 let previous = null;
