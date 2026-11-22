@@ -189,7 +189,7 @@ function hideFromRobot(object) {
 
 // sdk: the loaded SDK robot model, or null to draw the robot as its physics shapes.
 // cameraSpec: the camera block of model.json.
-export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
+export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, navMap = null) {
   const { model } = sim;
   const v = sim.v;
   const nameOf = (kind, index) => mujoco.mj_id2name(model, mujoco.mjtObj[kind].value, index);
@@ -198,6 +198,22 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
   root.name = "model_root";
   root.rotation.x = -Math.PI / 2;
   scene.add(root);
+  if (navMap) {
+    // SDK seated origin is 30 mm up the ramp; the survey places its lip at x=-66.
+    const offset = 3 * idOf("mjOBJ_BODY", "dock");
+    const dockedX = sim.data.xpos[offset] - 0.030;
+    const cell = navMap.cell_mm * 0.001;
+    const geometry = new THREE.PlaneGeometry(cell * 0.96, cell * 0.96);
+    const material = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.32, depthWrite: false });
+    const observations = new THREE.InstancedMesh(geometry, material, navMap.cells.length);
+    observations.name = "Native shelf map";
+    navMap.cells.forEach(([i, j, kind, conflict], index) => {
+      observations.setMatrixAt(index, new THREE.Matrix4().makeTranslation(
+        dockedX + (i + 0.5) * cell, sim.data.xpos[offset + 1] + (j + 0.5) * cell, 0.0004));
+      observations.setColorAt(index, new THREE.Color(conflict ? 0xffb547 : kind === 7 ? 0xef5149 : 0x50cda2));
+    });
+    root.add(observations);
+  }
   addLights(scene);
   const grid = new THREE.GridHelper(8, 32, 0x323a43, 0x242a31);
   grid.position.y = -v.table_height_mm * 0.001 + 0.0005;
@@ -205,6 +221,7 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
 
   const meshes = [];
   const robotMeshes = [];
+  const dockId = idOf("mjOBJ_BODY", "dock");
   const cubeId = idOf("mjOBJ_BODY", "cube");
   for (let i = 0; i < model.ngeom; i++) {
     const mesh = geomMesh(mujoco, model, i, nameOf("mjOBJ_GEOM", i));
@@ -212,7 +229,7 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
       mesh.visible = false;
     } else if (model.geom_bodyid[i] === cubeId) {
       mesh.visible = cube === null;
-    } else if (sdk !== null && model.geom_bodyid[i] !== 0) {
+    } else if (sdk !== null && model.geom_bodyid[i] !== 0 && model.geom_bodyid[i] !== dockId) {
       mesh.material = SHAPE_OVERLAY;
       mesh.castShadow = false;
       robotMeshes.push(mesh);

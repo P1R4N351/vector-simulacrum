@@ -1,0 +1,15 @@
+[Unit]
+Description=Observe unit 3 native shelf map
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+User=pi
+Environment=PYTHONPATH=/opt/vector-slam
+ExecStart=/opt/vector-venv/bin/python /var/lib/vector-maps/p2-shelf/observe.py /var/lib/vector-maps/p2-shelf/native.sqlite
+Restart=always
+RestartSec=20
+
+[Install]
+WantedBy=multi-user.target

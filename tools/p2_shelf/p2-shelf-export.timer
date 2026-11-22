@@ -1,0 +1,9 @@
+[Unit]
+Description=Refresh unit 3 shelf map export
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=5min
+
+[Install]
+WantedBy=timers.target

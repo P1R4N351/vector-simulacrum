@@ -404,12 +404,20 @@ def main(argv: Sequence[str]) -> int:
         ]:
             outputs[f"{directory}/{name}.xml"] = scene
             source[key] = hashlib.sha256(scene.encode()).hexdigest()
+        if generation == "vector_2":
+            shelf = mjcf.build_mjcf(values, cube="free", environment="p2_shelf")
+            for name, scene in [("vector-free-shelf", shelf),
+                                ("vector-contact42-free-shelf", contact_model(shelf, values))]:
+                outputs[f"{directory}/{name}.xml"] = scene
+                source[name + "_sha256"] = hashlib.sha256(scene.encode()).hexdigest()
         derived = mjcf.derive(values)
         assert all(math.isfinite(x) for x in derived["chassis_inertia"])
         model = {"source": source, "robot_model": generation, "values": _jsonable(values),
                  "derived": _jsonable(derived), "cliff_names": list(mjcf.CLIFF_NAMES),
                  "provenance_counts": _provenance_counts(table_bytes), "camera": camera_block(values),
                  "obstacles": _jsonable(SCENE_OBSTACLES)}
+        if generation == "vector_2":
+            model["shelf_outline_mm"] = mjcf.shelf_survey()["outline_mm"]
         outputs[f"{directory}/model.json"] = json.dumps(model, indent=1, sort_keys=True) + "\n"
 
     v = params.values(params.load(model=ROBOT_MODEL))

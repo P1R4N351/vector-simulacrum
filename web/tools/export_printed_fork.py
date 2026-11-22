@@ -22,7 +22,9 @@ def export(stl):
     output.mkdir(exist_ok=True)
     template = None
     for scene, key in (("vector", "xml_sha256"), ("vector-contact42", "trial_xml_sha256"),
-                       ("vector-free", "vector-free_sha256"), ("vector-contact42-free", "vector-contact42-free_sha256")):
+                       ("vector-free", "vector-free_sha256"), ("vector-contact42-free", "vector-contact42-free_sha256"),
+                       ("vector-free-shelf", "vector-free-shelf_sha256"),
+                       ("vector-contact42-free-shelf", "vector-contact42-free-shelf_sha256")):
         source = (directory / f"{scene}.xml").read_bytes()
         if hashlib.sha256(source).hexdigest() != model["source"][key]:
             raise ValueError(f"Re-export the base scene {scene} before generating the printed fork")
@@ -48,7 +50,7 @@ def export(stl):
         (output / f"{scene}.xml").write_bytes(data)
         model["source"][key] = hashlib.sha256(data).hexdigest()
     (output / "model.json").write_text(json.dumps(model, indent=2) + "\n")
-    print(f"Exported four scenes with {len(template[1])} contact hulls to {output}")
+    print(f"Exported scenes with {len(template[1])} contact hulls to {output}")
 
 
 if __name__ == "__main__":

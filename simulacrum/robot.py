@@ -116,7 +116,8 @@ class VectorSim:
                  start_xy_mm: Tuple[float, float] = (0.0, 0.0), heading_deg: float = 0.0,
                  obstacles: Sequence[Sequence[float]] = (), head_deg: float = 0.0,
                  lift_mm: Optional[float] = None, noise_seed: int = 0, cube: Optional[str] = None,
-                 cube_app: str = "last", *, body_range_clock: bool = False, charger_contact: bool = False) -> None:
+                 cube_app: str = "last", *, body_range_clock: bool = False, charger_contact: bool = False,
+                 environment: str = "table") -> None:
         assert control_level in (CONTROL_DEFAULT, CONTROL_OVERRIDE), "unknown control level"
         assert isinstance(noise_seed, int), "noise seed must be an int"
         assert cube in mjcf.CUBE_MOUNTS, "unknown cube placement"
@@ -137,6 +138,10 @@ class VectorSim:
         self.dt = self.v["control_period_ms"] * 0.001
         # Existing replay builders accept the original two-argument scene interface.
         xml = mjcf.build_mjcf(self.v, obstacles) if cube is None else mjcf.build_mjcf(self.v, obstacles, cube)
+        self._shelf_outline = None
+        if environment != "table":
+            xml = mjcf.build_mjcf(self.v, obstacles, cube, environment=environment)
+            self._shelf_outline = mjcf.shelf_survey()["outline_mm"]
         self.model = mujoco.MjModel.from_xml_string(xml)
         self.data = mujoco.MjData(self.model)
         self._index_model()
@@ -450,6 +455,18 @@ class VectorSim:
         v = self.v
         x, y, z = self.pose_mm()
         margin = min(0.5 * v["table_length_mm"] - abs(x), 0.5 * v["table_width_mm"] - abs(y))
+        if self._shelf_outline:
+            outline = self._shelf_outline
+            inside = False
+            margin = float("inf")
+            for (ax, ay), (bx, by) in zip(outline, outline[1:] + outline[:1]):
+                dx, dy = bx - ax, by - ay
+                t = max(0., min(1., ((x-ax)*dx + (y-ay)*dy)/(dx*dx + dy*dy)))
+                margin = min(margin, math.hypot(x-ax-t*dx, y-ay-t*dy))
+                if (ay > y) != (by > y) and x < ax + (y-ay)*dx/dy:
+                    inside = not inside
+            if not inside:
+                margin = -margin
         assert v["table_thickness_mm"] > 0.0, "table thickness must be positive"
         return {"fallen": z < -v["table_thickness_mm"], "edge_margin_mm": margin, "z_mm": z,
                 "cliff_flags": list(self.hazards.cliff), "wheel_speeds_mmps": self._wheel_speeds(),

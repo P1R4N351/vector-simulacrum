@@ -85,10 +85,46 @@
   "sdk": 93
  },
  "robot_model": "vector_2",
+ "shelf_outline_mm": [
+  [
+   -213.2,
+   -229.9
+  ],
+  [
+   -182.2,
+   212.7
+  ],
+  [
+   90.3,
+   184.4
+  ],
+  [
+   144.0,
+   137.4
+  ],
+  [
+   145.9,
+   84.7
+  ],
+  [
+   162.6,
+   -100.2
+  ],
+  [
+   169.3,
+   -186.6
+  ],
+  [
+   139.6,
+   -223.1
+  ]
+ ],
  "source": {
   "table_sha256": "eb094719d225a1278844cf461c27939925e648be80eeeedc0eb655d9909ff43f",
   "trial_xml_sha256": "eaa151ec2860668e83df6d4a8306d1f6d90227393fc741f4ba4d06dd53b489fa",
+  "vector-contact42-free-shelf_sha256": "3d2c145dafc6161d265156cc28101fcda969b15945cd4d65e2bb00498f47fef7",
   "vector-contact42-free_sha256": "a052d3f49852472fe1a5228979ba72263fcbd69de4e4e830d3f76f90031cff0d",
+  "vector-free-shelf_sha256": "55824f7f5cfd6dbdc18427004bf94cfebc0330abf3aa68b808911f07bb9ab3b8",
   "vector-free_sha256": "a35f55028fcbcb0e0a722681f0d663d9cbc82243ec0c07e34e2caacd563ce1cf",
   "xml_sha256": "1d333bf896284dd498d75b6aab0390136625df8c2950f8696ec21eed7ed1b890"
  },

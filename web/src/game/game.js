@@ -74,12 +74,14 @@ async function checkModel(xml, expectedHash) {
 async function loadEverything() {
   const options = new URLSearchParams(location.search);
   const trial = options.get("contact") === "42";
-  const free = options.get("cube") === "free";
-  const vector2 = options.get("robot") === "2";
+  const shelf = options.get("env") === "shelf" ||
+    (!options.has("env") && options.get("cubeSensor") === "unit3");
+  const free = shelf || options.get("cube") === "free";
+  const vector2 = shelf || options.get("robot") === "2";
   const printedFork = options.get("fork") === "printed";
   if (printedFork && !vector2) throw new Error("Printed fork calibration requires robot=2");
   const directory = vector2 ? "./robot/vector2" + (printedFork ? "/printed" : "") : "./robot";
-  const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "");
+  const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "") + (shelf ? "-shelf" : "");
   const [{ default: loadMujoco }, xml, modelText] = await Promise.all([
     traced("PHYSICS RUNTIME", import("@mujoco/mujoco")),
     traced(trial ? "ROBOT MODEL · 42 MM CONTACT" : "ROBOT MODEL",
@@ -94,9 +96,12 @@ async function loadEverything() {
   const mujoco = await traced("WEBASSEMBLY", loadMujoco({ locateFile: (p) => (p.endsWith(".wasm") ? mujocoWasmUrl : p) }));
   const doneCompile = bootLine("COMPILE AND SETTLE");
   const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
+    shelfOutline: shelf ? model.shelf_outline_mm : null,
     bodyRangeClock: options.get("rangeClock") === "body", chargerContact: options.get("chargerContact") === "1" });
   doneCompile("OK");
-  return { mujoco, model, sim, free };
+  const mapFile = options.get("map") === "live" ? "shelf-navmap-live.json" : "shelf-navmap.json";
+  const navMap = shelf ? JSON.parse(await fetchText("./robot/vector2/" + mapFile)) : null;
+  return { mujoco, model, sim, free, navMap };
 }
 
 function makeRenderer(canvas) {
@@ -341,11 +346,11 @@ export async function bootGame(canvas) {
   booted = true;
   try {
     const view = makeRenderer(canvas);
-    const { mujoco, model, sim, free } = await loadEverything();
+    const { mujoco, model, sim, free, navMap } = await loadEverything();
     const sdk = await loadRobotLook(model);
     const doneScene = bootLine("SCENE");
     const cube = free && sdk ? await loadCubeLook(model.values.cube_size_mm) : null;
-    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube);
+    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube, navMap);
     const ctx = { ...view, sim, visuals, driver: makeDriver(sim), input: null, raf: 0 };
     const press = installApi(ctx);
     ctx.input = createInput((name) => press[name]?.());

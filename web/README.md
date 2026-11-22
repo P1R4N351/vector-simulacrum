@@ -316,3 +316,7 @@ Open `/?robot=2&fork=printed&cube=free&contact=42` in the local simulator. Toggl
 Add `rangeClock=body` to the simulator URL to acquire range on the published syscon timer. Add `chargerContact=1` for a replay with charger contact asserted. This input represents the electrical contact signal only. The simulation starts with a fresh range sample. Its 5 ms control step observes subsequent acquisitions on the first step at or after the body deadline. Each SDK state uses the held distance and quality while evaluating lift visibility and pitch at publication. Tread power above 10% selects the six-tick interval even when charger contact is asserted. The stationary off-dock and on-dock intervals are 12 and 200 ticks. Hardware comparison covers the steady docked period. Acquisition-to-report latency and the two faster periods are still uncalibrated. [Recorded clock comparison](../evidence/unit3-cube-range/README.md)
 
 Python replays select the same acquisition clock with `VectorSim(body_range_clock=True)`. Set `sim.charger_contact` from the recorded contact state. For a policy environment, `TaskConfig(body_range_clock=True)` selects the body clock across episode resets.
+
+Unit 3 cube trials with `cubeSensor=unit3` use the [surveyed shelf, dock and
+persistent native navigation map](../evidence/unit3-wheelstand/shelf-scene/README.md).
+Open `?env=shelf&cubeSensor=unit3` to drive this scene.

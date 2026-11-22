@@ -1,0 +1,8 @@
+[Unit]
+Description=Export unit 3 shelf map to the simulator format
+
+[Service]
+Type=oneshot
+User=pi
+WorkingDirectory=/var/lib/vector-maps/p2-shelf
+ExecStart=/usr/bin/python3 export_map.py native.sqlite shelf-navmap.json

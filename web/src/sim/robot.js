@@ -43,11 +43,26 @@ export function liftHeightOfAngle(v, angleRad) {
   return Math.sin(angleRad) * v.lift_arm_length_mm + v.lift_base_position_mm[2];
 }
 
+function polygonMargin(x, y, outline) {
+  let inside = false;
+  let distance = Infinity;
+  for (let i = 0; i < outline.length; i++) {
+    const [ax, ay] = outline[i];
+    const [bx, by] = outline[(i + 1) % outline.length];
+    const dx = bx - ax, dy = by - ay;
+    const t = clamp(((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy), 0, 1);
+    distance = Math.min(distance, Math.hypot(x - ax - t * dx, y - ay - t * dy));
+    if ((ay > y) !== (by > y) && x < ax + (y - ay) * dx / dy) inside = !inside;
+  }
+  return inside ? distance : -distance;
+}
+
 export class VectorSim {
   // opts: { xml, values, derived, controlLevel, startXyMm, headingDeg, headDeg, liftMm, noiseSeed }
   constructor(mujoco, opts) {
     assert(mujoco && opts && typeof opts.xml === "string", "VectorSim needs the mujoco module and the MJCF");
     this.mujoco = mujoco;
+    this.shelfOutline = opts.shelfOutline;
     this.v = opts.values;
     this.d = opts.derived;
     this.dt = this.v.control_period_ms * 0.001;
@@ -493,7 +508,7 @@ export class VectorSim {
   simTruth() {
     const v = this.v;
     const [x, y, z] = this.poseMm();
-    const margin = Math.min(0.5 * v.table_length_mm - Math.abs(x), 0.5 * v.table_width_mm - Math.abs(y));
+    const margin = this.shelfOutline ? polygonMargin(x, y, this.shelfOutline) : Math.min(0.5 * v.table_length_mm - Math.abs(x), 0.5 * v.table_width_mm - Math.abs(y));
     return {
       fallen: z < -v.table_thickness_mm, edge_margin_mm: margin, z_mm: z,
       cliff_flags: this.hazards.cliff.slice(), wheel_speeds_mmps: this._wheelSpeeds(),
