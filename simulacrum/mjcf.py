@@ -478,21 +478,35 @@ MESH_PARTS = ("chassis", "head", "lift_upper", "lift_lower", "fork")
 _CARRIER = 'contype="0" conaffinity="0" group="3" rgba="0 0 0 0"'
 
 
+# A visual mesh from a build that predates looks (body_mesh.LOOKS) is drawn in one flat grey.
+_PLAIN_VISUAL = 'rgba="0.18 0.18 0.2 1"'
+_LOOK_KEYS = ("rgba", "specular", "shininess", "reflectance", "emission")
+
+
 def _mesh_assets_xml(body: Dict[str, Any]) -> str:
     folder = Path(body["dir"])
     assert folder.is_dir() and set(body["parts"]) == set(MESH_PARTS), "body manifest is incomplete"
     out = "  <asset>\n"
+    looks = body.get("looks", {})
+    for name in sorted(looks):
+        look = looks[name]
+        assert set(_LOOK_KEYS) <= set(look) and len(look["rgba"]) == 4, f"look {name} is incomplete"
+        out += (f'    <material name="rig_{name}" rgba="{" ".join(num(c) for c in look["rgba"])}" '
+                f'specular="{num(look["specular"])}" shininess="{num(look["shininess"])}" '
+                f'reflectance="{num(look["reflectance"])}" emission="{num(look["emission"])}"/>\n')
     for part in MESH_PARTS:
         entry = body["parts"][part]
         for k, item in enumerate(entry["collision"]):
             out += f'    <mesh name="{part}_hull_{k}" file="{folder / item["file"]}" scale="0.001 0.001 0.001"/>\n'
-        out += (f'    <mesh name="{part}_visual" file="{folder / entry["visual"][0]["file"]}" '
-                f'scale="0.001 0.001 0.001" inertia="shell"/>\n')
+        assert entry["visual"], f"{part} has no visual mesh"
+        for k, item in enumerate(entry["visual"]):
+            out += (f'    <mesh name="{part}_visual_{k}" file="{folder / item["file"]}" '
+                    f'scale="0.001 0.001 0.001" inertia="shell"/>\n')
     return out + "  </asset>\n"
 
 
 def _mesh_geoms_xml(v: Dict[str, Any], body: Dict[str, Any], part: str, indent: str) -> str:
-    """One part's collision pieces (massless, contact as the table says) and its visual mesh."""
+    """One part's collision pieces (massless, contact as the table says) and its visual meshes."""
     entry = body["parts"][part]
     friction = {"chassis": v["chassis_friction"], "tread": v["tread_friction"]}
     out = ""
@@ -501,8 +515,12 @@ def _mesh_geoms_xml(v: Dict[str, Any], body: Dict[str, Any], part: str, indent: 
         out += (f'{indent}<geom name="{part}_hull_{k}" type="mesh" mesh="{part}_hull_{k}" mass="0" '
                 f'rgba="0.4 0.4 0.45 0.25" group="{ROBOT_GEOM_GROUP}" '
                 f'{_contact_attrs(v, friction[item["friction"]])}/>\n')
-    out += (f'{indent}<geom name="{part}_visual" type="mesh" mesh="{part}_visual" mass="0" contype="0" '
-            f'conaffinity="0" group="2" rgba="0.18 0.18 0.2 1"/>\n')
+    for k, item in enumerate(entry["visual"]):
+        look = item.get("look")
+        assert look is None or look in body.get("looks", {}), f"{part}: look {look!r} missing from the manifest"
+        drawn = _PLAIN_VISUAL if look is None else f'material="rig_{look}"'
+        out += (f'{indent}<geom name="{part}_visual_{k}" type="mesh" mesh="{part}_visual_{k}" mass="0" contype="0" '
+                f'conaffinity="0" group="2" {drawn}/>\n')
     return out
 
 

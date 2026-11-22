@@ -20,6 +20,23 @@ from PIL import Image, ImageDraw
 
 JOINTS = ("head", "lift", "wheel_fl", "wheel_fr", "wheel_rl", "wheel_rr")
 MAX_FRAMES = 5000
+# Drawing only: a key light from above the camera side, with shadows, and a soft fill from the other side.
+# They go into a copy of the scene that is only rendered (scene-render.xml); the run itself is not changed.
+RENDER_LIGHTS = (
+    '<light name="render_key" type="directional" dir="0.35 0.45 -0.82" diffuse="0.5 0.5 0.49" '
+    'specular="0.5 0.5 0.5" castshadow="true"/>'
+    '<light name="render_fill" type="directional" dir="-0.6 -0.3 -0.74" diffuse="0.16 0.16 0.18" '
+    'specular="0.1 0.1 0.1" castshadow="false"/>'
+)
+
+
+def lit_scene(run_dir: Path) -> Path:
+    """The run's scene with the drawing lights added, written next to it."""
+    text = (run_dir / "scene.xml").read_text()
+    assert text.count("<worldbody>") == 1, "scene needs exactly one worldbody"
+    out = run_dir / "scene-render.xml"
+    out.write_text(text.replace("<worldbody>", "<worldbody>" + RENDER_LIGHTS, 1))
+    return out
 
 
 def set_robot(model, data, prefix, pose):
@@ -67,15 +84,17 @@ def main():
     run = json.loads((a.run_dir / "run.json").read_text())
     sides = {name: json.loads((a.run_dir / f"{name}.json").read_text()) for name in ("right", "left")}
     assert len(sides["right"]) == len(sides["left"]) and 0 < len(sides["right"]) <= MAX_FRAMES, "paired frames"
-    model = mj.MjModel.from_xml_path(str(a.run_dir / "scene.xml"))
+    model = mj.MjModel.from_xml_path(str(lit_scene(a.run_dir)))
     model.vis.global_.offwidth, model.vis.global_.offheight = max(width, 640), max(height, 480)
+    model.vis.quality.shadowsize = 8192  # a coarse shadow map speckles across the wide table
     data = mj.MjData(model)
     renderer = mj.Renderer(model, height, width)
     camera = mj.MjvCamera()
     camera.lookat[:] = (-0.04, 0.0, 0.02)
     camera.distance, camera.azimuth, camera.elevation = 0.36, 215.0, -32.0
-    model.vis.headlight.ambient[:] = (0.45, 0.45, 0.45)
-    model.vis.headlight.diffuse[:] = (0.6, 0.6, 0.6)
+    model.vis.headlight.ambient[:] = (0.22, 0.22, 0.22)
+    model.vis.headlight.diffuse[:] = (0.25, 0.25, 0.25)
+    model.vis.headlight.specular[:] = (0.2, 0.2, 0.2)
     option = mj.MjvOption()
     real_body = bool(run.get("body"))
     option.geomgroup[1] = 0 if real_body else 1  # the real body is drawn by its visual meshes (group 2)

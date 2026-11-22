@@ -189,6 +189,50 @@ class Fidelity(unittest.TestCase):
         self.assertLess(f["excess_mm"]["p99"], 1.5 * body_mesh.SAMPLE_SPACING_MM)
 
 
+class Looks(unittest.TestCase):
+    OBJ = ("v 0 0 0\nv 1 0 0\nv 1 1 0\nv 0 1 0\n"
+           "g body_grp shell\nusemtl pianoBlack_matSG\nf 1 2 3 4\n"   # a quad: two triangles
+           "usemtl blinn2SG\nf 1 2 3\n"                                 # same group, another material
+           "g R_Rubber_Chain\nusemtl lambert5SG2\nf 2 3 4\n")
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "rig.obj"
+        self.path.write_text(self.OBJ)
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def test_every_triangle_gets_the_look_of_its_material(self) -> None:
+        looks = body_mesh.read_obj_looks(self.path)
+        _, groups = body_mesh.read_obj(self.path)
+        self.assertEqual({name: len(t) for name, t in groups}, {name: len(per) for name, per in looks.items()})
+        self.assertEqual(list(looks["body_grp shell"]), ["gloss_black", "gloss_black", "gunmetal"])
+        self.assertEqual(list(looks["R_Rubber_Chain"]), ["rubber"])
+
+    def test_a_material_without_a_look_stops_the_build(self) -> None:
+        self.path.write_text(self.OBJ.replace("lambert5SG2", "someNewSG"))
+        with self.assertRaises(ValueError):
+            body_mesh.read_obj_looks(self.path)
+
+    def test_every_rig_material_has_a_defined_look(self) -> None:
+        self.assertTrue(set(body_mesh.MATERIAL_LOOK.values()) <= set(body_mesh.LOOKS))
+        for look in body_mesh.LOOKS.values():
+            self.assertEqual(len(look["rgba"]), 4)
+
+    def test_visual_meshes_are_split_by_look_and_keep_every_triangle(self) -> None:
+        verts = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]], dtype=float)
+        part = {"visual": [("a", verts, np.array([[0, 1, 2], [0, 2, 3]])), ("b", verts, np.array([[1, 2, 3]]))],
+                "visual_looks": [np.array(["gloss_black", "rubber"]), np.array(["rubber"])]}
+        entries = body_mesh.visual_entries(Path(self.tmp.name), "chassis", part)
+        self.assertEqual([(e["look"], e["triangles"]) for e in entries], [("gloss_black", 1), ("rubber", 2)])
+        for e in entries:
+            text = (Path(self.tmp.name) / e["file"]).read_text().splitlines()
+            self.assertEqual(sum(line.startswith("f ") for line in text), e["triangles"])
+        plain = body_mesh.visual_entries(Path(self.tmp.name), "head", dict(part, visual_looks=[None, None]))
+        self.assertEqual([("look" in e, e["triangles"]) for e in plain], [(False, 3)])
+
+
 def boxes_body(folder: Path) -> dict:
     """A stand-in for a built body: one box per part, written where mjcf will look."""
     v = params.values(params.load())
@@ -206,7 +250,16 @@ def boxes_body(folder: Path) -> dict:
         parts[name] = {"collision": [{"file": f"{name}_c00.obj", "friction": "chassis", "sha256": sha_c}],
                        "visual": [{"file": f"{name}_visual.obj", "sha256": sha_v}]}
     parts["chassis"]["collision"].append(dict(parts["chassis"]["collision"][0], friction="tread"))
-    body = {"rig": dict(body_mesh.RIG), "frames": frames, "parts": parts}
+    # The chassis is drawn in two looks, as a build from the rig's materials writes it; the other parts
+    # carry one plain mesh, as a build from before looks did.
+    looked = []
+    for look, (lo, hi) in (("gloss_black", ((-5, -5, 4), (5, 5, 12))), ("rubber", ((-5, -5, 2), (5, 5, 4)))):
+        lv, lt = box_mesh(lo, hi)
+        looked.append({"file": f"chassis_visual_{look}.obj", "look": look,
+                       "sha256": body_mesh.write_obj(folder / f"chassis_visual_{look}.obj", lv, lt)})
+    parts["chassis"]["visual"] = looked
+    body = {"rig": dict(body_mesh.RIG), "frames": frames, "parts": parts,
+            "looks": {name: body_mesh.LOOKS[name] for name in ("gloss_black", "rubber")}}
     (folder / body_mesh.MANIFEST).write_text(json.dumps(body))
     return dict(body, dir=str(folder))
 
@@ -255,7 +308,22 @@ class MeshModeModel(unittest.TestCase):
         self.assertEqual(float(geoms["chassis_hull_1"].get("friction").split()[0]), self.v["tread_friction"])
         for part in body_mesh.PARTS:
             self.assertEqual(geoms[f"{part}_hull_0"].get("contype"), "1")
-            self.assertEqual(geoms[f"{part}_visual"].get("contype"), "0")
+            self.assertEqual(geoms[f"{part}_visual_0"].get("contype"), "0")
+
+    def test_visual_meshes_take_their_looks(self) -> None:
+        materials = {m.get("name"): m for m in self.root.iter("material")}
+        self.assertEqual(set(materials), {"rig_gloss_black", "rig_rubber"})
+        for name in ("gloss_black", "rubber"):
+            look = body_mesh.LOOKS[name]
+            self.assertEqual([float(c) for c in materials[f"rig_{name}"].get("rgba").split()], list(look["rgba"]))
+            self.assertEqual(float(materials[f"rig_{name}"].get("emission")), look["emission"])
+        geoms = {g.get("name"): g for g in self.root.iter("geom")}
+        self.assertEqual((geoms["chassis_visual_0"].get("material"), geoms["chassis_visual_1"].get("material")),
+                         ("rig_gloss_black", "rig_rubber"))
+        self.assertIsNone(geoms["chassis_visual_0"].get("rgba"))
+        self.assertNotIn("chassis_visual_2", geoms)
+        self.assertIsNone(geoms["head_visual_0"].get("material"))  # a mesh with no look is drawn plain
+        self.assertEqual(geoms["head_visual_0"].get("rgba"), "0.18 0.18 0.2 1")
 
     @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
     def test_compiles_with_the_same_mass(self) -> None:

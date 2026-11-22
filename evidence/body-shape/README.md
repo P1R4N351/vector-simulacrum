@@ -3,7 +3,7 @@
 Before this change the parametric model drew Vector as boxes and cylinders measuring 86.1 × 56.0 × 66.0 mm at rest. Retail listings give the robot as 9.98 × 5.99 × 6.93 cm. This change does two things:
 
 - `simulacrum/body_mesh.py` builds the real outer shape from the rig Anki's animators used. `mjcf.build_mjcf(v, body=...)` and `VectorSim(body=...)` use it when asked.
-- The parameter table takes the rig's dimensions where the boxes had them wrong: tread width and spacing, head box, chassis box, ground clearance and the cube's outer size. The parametric model now measures 86.1 × 59.4 × 69.4 mm. The tread contact inset is refitted for the new geometry.
+- The parameter table takes the rig's dimensions where the boxes had them wrong: tread width and spacing, head box, chassis box, ground clearance and the cube's outer size. The parametric model now measures 86.1 × 59.4 × 69.4 mm. The tread contact inset is refitted for the new geometry on the reference MuJoCo, 4.0.1.
 
 ![Parametric vs rig body envelope, joint pivots, printed references, and surface fidelity](envelope_and_joints.png)
 
@@ -47,7 +47,7 @@ These checks do not come from Anki's CAD.
 | Parametric model, corrected table | 86.1 × 59.4 × 69.4 | −13.7, −0.5, +0.1 |
 | Parametric model, table before this change | 86.1 × 56.0 × 66.0 | −13.7, −3.9, −3.3 |
 
-The parametric model is still short at both ends: by 8.2 mm at the back (x −58.5 against −66.7), where only the rig has the body behind the rear axle, and by 6.2 mm at the fork (27.7 against 33.9).
+The parametric model is still short at both ends: by 8.3 mm at the back (x −58.4 against −66.7), where only the rig has the body behind the rear axle, and by 6.2 mm at the fork (27.7 against 33.9).
 
 **Parts printed to fit a real Vector.** Each was designed by a hobbyist against a physical robot, and none was taken from the rig. Files are read from the Internet Archive mirrors of their Thingiverse pages, measured, and not kept: most are CC BY-NC.
 
@@ -88,33 +88,33 @@ The animation cube is 42.2 mm. Two parts printed to fit the real cube are 45.0 m
 | `chassis_length_mm`, `chassis_center_x_mm` | 56, −15 | 61, −17.5 | the box now reaches the rear axle (x −48 … 13); the rig body runs to x −66.7, up to 67.9 mm high at the back |
 | `chassis_ground_clearance_mm` | 3.0 (assumed) | 1.2 | rig body's lowest point; WEBOTS:97,185 gave 1.2 |
 | `cube_outer_mm` (new) | — | 45.0 | two printed cube parts |
-| `tread_contact_inset_mm` | 3.1 | 3.17 | refitted, below |
+| `tread_contact_inset_mm` | 3.1 | 3.41 | refitted, below |
 
 The masses are unchanged. With the head box moved, `mjcf.derive` places the head's mass at the box's centre, so the robot keeps the table's centre of mass.
 
 ### Refits
 
-Every fit was run before and after on MuJoCo 3.11.0, Linux x86_64, where the stored inset of the base commit reproduces (3.105 mm). "Before" is a pristine `git archive` of the base commit. The outputs are in [`refit/`](refit): `fit_spins.json`, `fit_drive.txt` and `fit_servos.txt`, each with its `-before` twin.
+Every fit was run before and after on the reference MuJoCo 4.0.1, Linux x86_64, through `run_in_ct.sh` (which checks the libmujoco actually loaded). "Before" is the base commit's own tree, at its own fit. The outputs are in [`refit/`](refit): `fit_spins.json`, `fit_drive.txt` and `fit_servos.txt`, each with its `-before` twin; [`refit/mujoco-3.11.0/`](refit/mujoco-3.11.0) holds the same fits on 3.11.0.
 
 **Tread contact inset** (`fit_spins.py`: fitted on unit 1's four spins, held out on unit 3's four camera spins; RMS of each spin's turn-rate ratio from 1):
 
-| | Table before | Corrected table |
+| | Table before, at its 4.0.1 fit | Corrected table |
 |---|---:|---:|
-| Fitted inset | 3.105 mm (stored 3.1) | 3.168 mm (stored 3.17), per spin 2.62 to 3.40 |
-| Unit 1, the fitted spins | 1.95 % | 0.88 % |
-| Unit 3, held out | 3.61 % | 2.12 % |
-| Unit 3 with no inset | 16.03 % | 16.28 % |
+| Fitted inset | 3.242 mm (the table held 3.1) | 3.415 mm (stored 3.41), per spin 3.34 to 3.53 |
+| Unit 1, the fitted spins | 0.77 % | 1.50 % |
+| Unit 3, held out | 2.19 % | 1.61 % |
+| Unit 3 with no inset | 16.23 % | 15.96 % |
 
-The corrected geometry fits both robots' spins better. On MuJoCo 4.0.1 the same fit gives 3.415 mm; the stored value is the 3.11.0 one.
+The corrected geometry fits the held-out robot better and the fitted one less well. On MuJoCo 3.11.0 the same geometry fits 3.168 mm (held out 2.12 %, fitted 0.88 %). `tests/test_spin_fit.py` now compares the table with `refit/fit_spins.json` and, on Linux x86_64 with the pinned MuJoCo, checks that the fit reproduces it.
 
 **Drive and servos** (`fit_recording.py --wheels-held-noload` and `--servos`). Each segment's error is a fraction of its own scale, averaged: wheel speed error over the commanded speed, plus gyro error over the nominal turn rate in spins; head and lift error over the joint's range.
 
 | | Table before | Corrected table |
 |---|---:|---:|
-| Wheel segments fitted / held out | 0.129 / 0.128 | 0.125 / 0.130 |
+| Wheel segments fitted / held out | 0.126 / 0.128 | 0.125 / 0.129 |
 | Head and lift segments fitted / held out | 0.033 / 0.035 | 0.032 / 0.035 |
 
-On the corrected table neither fit moves any value, so the drive and servo values stay as they were. (On the table before, the drive fit would have lowered the fitted segments to 0.120 and raised the held-out ones to 0.132.)
+The drive fit would lower the fitted wheel segments (to 0.115 on the corrected table, 0.117 before) without improving the held-out ones (0.129, and 0.133 before), so no drive value changes. The servo fit moves nothing.
 
 ## How the collision shape is built
 
@@ -141,6 +141,22 @@ Each side's treads and wheels become one convex hull, cut 0.3 mm above the table
 
 In the model the pieces carry contact, with the table's friction (tread hulls `tread_friction`, the rest `chassis_friction`) and no mass. The primitive geoms keep their names and masses but lose contact and drawing, so total mass and every part's mass are unchanged. The upper and lower links share the arm mass equally. The lower links turn on their own hinge, held to the lift's angle by an equality. Visual meshes are the rig's own triangles in geom group 2.
 
+## How it is drawn
+
+The rig names a material for every face. Its material file (`Victor_rig_01.mtl` at the same commit, 1,444 bytes, sha256 `df0a22584d80b173c410e156d1450455ff17325654342991f42ceef90f70350b`) gives 13 of its 16 materials a diffuse colour of 0.00 to 0.10, one a mid grey (0.61) and the eyes a dark teal; it has no textures. The real robot is black too. `build` therefore writes one visual mesh per look, and mesh mode gives each look a MuJoCo material:
+
+| Look | Where the rig uses it |
+|---|---|
+| gloss black | main body, wheels and cogs, the fork's back and bottom |
+| dark grey | lift links, the fork's front, rims, head top and sides |
+| gunmetal | the head's side parts, one back panel |
+| rubber | both tread chains |
+| screen | the face, mouth, eyelids and screen edges |
+| light diffuser | the backpack's three lights and its wifi light |
+| eye, eye glow | the eyes, lit teal |
+
+The colours keep the rig's order of dark and light, and the finishes are chosen to look like the robot. They are display values, not measurements, and visual geoms take no part in contact. A build from before looks is drawn in one flat grey; `python3 -m simulacrum.body_mesh visuals` rewrites an existing build's visual meshes by look without decomposing it again. `render_mj.py` adds a key and a fill light to the copy of the scene it draws.
+
 ## Fidelity of the built body
 
 Scored over the whole robot at the rig's pose:
@@ -164,9 +180,9 @@ Samples are 0.35 mm apart. Piece surface within 1.5 mm of another piece counts a
 
 ## Checks of the model
 
-`validate.py BODY_DIR` checks five things (MuJoCo 3.11.0):
+`validate.py BODY_DIR` checks five things (MuJoCo 4.0.1):
 
-- **Envelope.** The table above. The primitive model runs from x −58.5 to 27.7, the rig shape from −66.7 to 33.9.
+- **Envelope.** The table above. The primitive model runs from x −58.4 to 27.7, the rig shape from −66.7 to 33.9.
 - **Drag.** Over 900 control ticks of driving straight, spinning, stopping and reversing on the table, no piece other than the wheels touched it.
 - **Faults.** The fidelity measure on the fork, with its largest piece (20.2 mm across):
   - moved 2 mm: protrusion p99 1.50, fails;
@@ -174,24 +190,24 @@ Samples are 0.35 mm apart. Piece surface within 1.5 mm of another piece counts a
   - grown 30 % about its centroid: excess p95 2.19, fails;
   - unbroken: protrusion p99 0.15, excess p95 1.42, passes. 4 of 4 as expected.
 - **Rear touchdown.** The section above.
-- **Cost.** Driving straight at 150 mm/s, the median of five 5 s runs was 243.8 ms per simulated second with the rig shape and 195.5 ms with the primitives, 25 % more. The 8-core container was carrying other work, at a load average of about 4.
+- **Cost.** Driving straight at 150 mm/s took 205.2 ms per simulated second with the rig shape and 182.4 ms with the primitives, 12 % more (one run each, holding the container's run lock).
 
 ## Wheelstands and the rescue
 
-**Wheelstands.** Replayed with `evidence/unit3-wheelstand/reproduction/replay.py` from the wheelstand pull request, given a `--body` option that is not part of this change: driven tip supports, a 60 mN m lift stall, the corrected table, MuJoCo 3.11.0. Medians over its four cases (two release times, two onset times):
+**Wheelstands.** Replayed with `evidence/unit3-wheelstand/reproduction/replay.py` from the wheelstand pull request, given a `--body` option that is not part of this change: driven tip supports, a 60 mN m lift stall, the corrected table, MuJoCo 4.0.1. Medians over its four cases (two release times, two onset times):
 
 | | Peak | Time to peak | Hold | Pitch RMSE | Cube travel |
 |---|---:|---:|---:|---:|---:|
 | Unit 3, W4 | 72.25° | 0.284 s | 70.14° | — | 9.5–10.1 mm |
-| Real body, W4 | 69.5° | 0.447 s | 69.4° | 9.8° | 10.2 mm |
-| Primitive model, W4 | 56.5° | 0.670 s | 55.0° | 21.0° | 25.0 mm |
+| Real body, W4 | 69.6° | 0.520 s | 69.5° | 11.2° | 10.9 mm |
+| Primitive model, W4 | 33.8° | 0.576 s | 32.8° | 42.7° | 12.0 mm |
 | Unit 3, W8 | 72.50° | 0.275 s | 70.15° | — | — |
-| Real body, W8 | 69.6° | 0.488 s | 69.1° | 8.9° | 8.7 mm |
-| Primitive model, W8 | 33.7° | 0.577 s | 33.6° | 41.7° | 14.4 mm |
+| Real body, W8 | 69.5° | 0.458 s | 69.2° | 8.7° | 5.2 mm |
+| Primitive model, W8 | 33.5° | 0.693 s | 20.7° | 46.2° | 15.4 mm |
 
-With the real shape the robot stops where the rig's rear body meets the table. In every case it holds 69.10 to 69.40°, within 1.05° of unit 3. The peak is 2.7 to 2.9° low, and it comes 0.16 to 0.21 s late. The lift is the likely cause, not tested here: the reproduction's 60 mN m stall cap is a choice, since no recording identifies the lift's torque (its Finding 2), and under load unit 3's lift kept to its profile. The primitive model has no body behind the rear axle to stop it; one of its four W4 cases rolls over onto its back (peak 121.5°).
+With the real shape the robot stops where the rig's rear body meets the table. In every case it holds 69.08 to 69.55°, within 1.07° of unit 3. The peak is 2.6 to 3.0° low, and it comes 0.18 to 0.24 s late. The lift is the likely cause, not tested here: the reproduction's 60 mN m stall cap is a choice, since no recording identifies the lift's torque (its Finding 2), and under load unit 3's lift kept to its profile. The primitive model has no body behind the rear axle to stop it and settles at 20.7 to 32.8°. On MuJoCo 3.11.0 the real body holds 69.10 to 69.40°.
 
-**Rescue.** `experiments/righting/rescue_pipeline.py --no-cube`, corrected table, MuJoCo 3.11.0. With the real body (`--body`) both patients, one on each side, are upright (under 10° of tilt) at 10.83 s and 10.87 s and end at 0.0°. With the primitive model they are upright at 10.90 s and 10.87 s. `render_mj.py` films a run with MuJoCo's renderer.
+**Rescue.** `experiments/righting/rescue_pipeline.py --no-cube`, corrected table, MuJoCo 4.0.1. With the real body (`--body`) both patients, one on each side, are upright (under 10° of tilt) at 10.83 s and end at 0.0°. With the primitive model they are upright at 10.97 s. `render_mj.py` films a run with MuJoCo's renderer.
 
 ## Tests
 

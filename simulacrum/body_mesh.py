@@ -16,7 +16,8 @@ uses them when asked; without them the parametric model is unchanged.
 What `build` writes, per moving part (chassis, head, upper lift links, lower lift links, fork):
   * collision hulls: convex pieces in the part's body frame (CoACD when importable, else one
     hull per rig group), each scored against the rig surface by `fidelity`;
-  * one visual mesh: the rig's own triangles in the same frame.
+  * visual meshes: the rig's own triangles in the same frame, one mesh per look (LOOKS), chosen
+    from the material the rig names for each face.
 The lower lift links become their own body in the model (the real lift is a parallelogram; the
 parametric model has only the upper link). Masses stay where the parameter table puts them:
 the hulls carry contact, not mass.
@@ -25,6 +26,7 @@ the hulls carry contact, not mass.
   python3 -m simulacrum.body_mesh build [--rig FILE] [--out DIR] [--method coacd|groups]
   python3 -m simulacrum.body_mesh check [--out DIR]       fidelity report of a built body
   python3 -m simulacrum.body_mesh rescore [--out DIR]     score an existing build again, no decomposition
+  python3 -m simulacrum.body_mesh visuals [--out DIR]     rewrite an existing build's visual meshes by look
 Exit: 0 done, 1 check failed, 2 bad arguments, 3 rig missing, 4 hash mismatch, 5 rig drifted.
 """
 
@@ -87,6 +89,40 @@ PIECE_PART = {"body": ("chassis", True), "tread": ("chassis", False), "wheel": (
               "head": ("head", True), "face": ("head", False), "arm_upper": ("lift_upper", True),
               "arm_lower": ("lift_lower", True), "fork": ("fork", True)}
 
+# How the visual meshes are drawn. The rig names a material for every face (usemtl); its material file,
+# Victor_rig_01.mtl at the same commit (1444 bytes, sha256 df0a2258...0350b, not fetched by this module),
+# gives 13 of its 16 materials a diffuse colour of 0.00 to 0.10, one a mid grey (blinn2SG, 0.61, specular
+# 0.5) and the eyes a dark teal (0.01 0.08 0.09); it has no textures. The looks keep those colours' order
+# and the real robot's finish: a gloss black shell and wheels, matte rubber treads, dark grey arms and head
+# top, gunmetal head sides, a black glass face with lit teal eyes, and the backpack's light diffuser. The
+# values are chosen for display; they are not measurements and play no part in contact.
+LOOKS = {
+    "gloss_black": {"rgba": (0.035, 0.035, 0.04, 1.0), "specular": 0.9, "shininess": 0.9, "reflectance": 0.06,
+                    "emission": 0.0},
+    "dark_grey": {"rgba": (0.1, 0.1, 0.11, 1.0), "specular": 0.35, "shininess": 0.5, "reflectance": 0.0, "emission": 0.0},
+    "gunmetal": {"rgba": (0.42, 0.42, 0.45, 1.0), "specular": 0.8, "shininess": 0.8, "reflectance": 0.05, "emission": 0.0},
+    "rubber": {"rgba": (0.03, 0.03, 0.03, 1.0), "specular": 0.05, "shininess": 0.1, "reflectance": 0.0, "emission": 0.0},
+    "screen": {"rgba": (0.015, 0.015, 0.02, 1.0), "specular": 0.7, "shininess": 0.95, "reflectance": 0.05,
+               "emission": 0.0},
+    "light_diffuser": {"rgba": (0.7, 0.74, 0.76, 1.0), "specular": 0.6, "shininess": 0.7, "reflectance": 0.0,
+                       "emission": 0.15},
+    "eye": {"rgba": (0.0, 0.85, 0.72, 1.0), "specular": 0.2, "shininess": 0.5, "reflectance": 0.0, "emission": 1.0},
+    "eye_glow": {"rgba": (0.0, 0.85, 0.72, 0.35), "specular": 0.0, "shininess": 0.0, "reflectance": 0.0, "emission": 0.6},
+}
+# Rig material (usemtl) -> look. Every material the rig uses is listed; an unlisted one stops the build.
+MATERIAL_LOOK = {
+    "pianoBlack_matSG": "gloss_black",      # main body, wheels and cogs, the fork's back and bottom
+    "blinn1SG": "dark_grey",                # lift links, the fork's front, rims, head top and sides, a back panel
+    "blinn2SG": "gunmetal",                 # the head's left and right parts, a back panel
+    "lambert5SG2": "rubber",                # both tread chains
+    "anisotropic1SG3": "screen",            # the face
+    "lambert2SG3": "screen", "lambert2SG4": "screen", "pasted__lambert8SG1": "screen",  # mouth, eyelids, screen edges
+    "lambert4SG": "light_diffuser", "backpackMidSG": "light_diffuser", "backpackBttmSG": "light_diffuser",
+    "lambert4SG2": "light_diffuser",        # the backpack's three lights and its wifi light
+    "shadingMap1SG3": "eye", "pasted__eye_l_mat2SG": "eye",
+    "shadingMap1SG2": "eye_glow", "eye_r_glowSG": "eye_glow",
+}
+
 
 def piece_of(group: str) -> Optional[str]:
     """Which rig piece a group belongs to."""
@@ -122,6 +158,24 @@ def read_obj(path: Path) -> Tuple[np.ndarray, List[Tuple[str, np.ndarray]]]:
     out = [(name, np.asarray(t, dtype=np.int64)) for name, t in groups.items()]
     assert all(t.max() < len(v) for _, t in out), "face index past the vertex list"
     return v, out
+
+
+def read_obj_looks(path: Path) -> Dict[str, np.ndarray]:
+    """Per face group, the look of each of its triangles, in the order read_obj gives them."""
+    looks: Dict[str, List[str]] = {}
+    current, material = "default", None
+    with path.open(errors="replace") as source:
+        for count, line in enumerate(source):
+            assert count < MAX_OBJ_LINES, "OBJ longer than the rig"
+            if line.startswith(("g ", "o ")):
+                current = line[2:].strip() or "default"
+            elif line.startswith("usemtl "):
+                material = line.split(None, 1)[1].strip()
+            elif line.startswith("f "):
+                if material not in MATERIAL_LOOK:
+                    raise ValueError(f"rig material without a look: {material!r}")
+                looks.setdefault(current, []).extend([MATERIAL_LOOK[material]] * (len(line.split()) - 3))
+    return {name: np.asarray(per_tri) for name, per_tri in looks.items()}
 
 
 def sha256_file(path: Path) -> str:
@@ -298,10 +352,13 @@ def to_part(points_mm: np.ndarray, frame: Dict[str, Any]) -> np.ndarray:
 
 
 def split_parts(v_mm: np.ndarray, groups: Sequence[Tuple[str, np.ndarray]],
-                frames: Dict[str, Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+                frames: Dict[str, Dict[str, Any]],
+                looks: Optional[Dict[str, np.ndarray]] = None) -> Dict[str, Dict[str, Any]]:
     """Per part: (vertices, triangles) of its visual surface, and of its collision source surface,
-    plus each tread side's points for the chassis's tread hulls. All in body frames."""
-    out = {p: {"visual": [], "collide": [], "plug": [], "tread": {"left": [], "right": []}} for p in PARTS}
+    plus each tread side's points for the chassis's tread hulls. All in body frames. With looks
+    (read_obj_looks), each visual entry's per-triangle looks are kept alongside it in visual_looks."""
+    out = {p: {"visual": [], "visual_looks": [], "collide": [], "plug": [], "tread": {"left": [], "right": []}}
+           for p in PARTS}
     for name, tris in groups:
         piece = piece_of(name)
         if piece is None:
@@ -311,6 +368,7 @@ def split_parts(v_mm: np.ndarray, groups: Sequence[Tuple[str, np.ndarray]],
         local = to_part(v_mm[ids], frames[part])
         entry = (name, local, local_tris.reshape(-1, 3))
         out[part]["visual"].append(entry)
+        out[part]["visual_looks"].append(None if looks is None else looks[name])
         if collides:
             out[part]["collide"].append(entry)
         if piece in ("tread", "wheel"):
@@ -762,7 +820,7 @@ def build(rig: Path, out: Path, v: Dict[str, Any], method: str) -> Dict[str, Any
     if drift:
         raise ValueError("rig disagrees with the parameter table: " + "; ".join(drift))
     frames = part_frames(v, feats)
-    parts = split_parts(v_mm, groups, frames)
+    parts = split_parts(v_mm, groups, frames, read_obj_looks(rig))
     out.mkdir(parents=True, exist_ok=True)
     manifest: Dict[str, Any] = {"rig": dict(RIG, url=RIG_URL), "registration": reg, "features": feats,
                                 "frames": frames, "method": method, "coacd_threshold": COACD_THRESHOLD, "piece_budget": PIECE_BUDGET,
@@ -770,9 +828,58 @@ def build(rig: Path, out: Path, v: Dict[str, Any], method: str) -> Dict[str, Any
                                 "tread_hull_clearance_mm": TREAD_HULL_CLEARANCE_MM, "parts": {}}
     for name in PARTS:
         manifest["parts"][name] = build_part(out, name, parts[name], method)
+    manifest["looks"] = used_looks(manifest)
     score_build(out, manifest, v_mm, groups, v)
     (out / MANIFEST).write_text(json.dumps(manifest, indent=1) + "\n")
     return manifest
+
+
+def used_looks(manifest: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    """The LOOKS entries the manifest's visual meshes name."""
+    names = {item["look"] for entry in manifest["parts"].values() for item in entry["visual"] if "look" in item}
+    assert names <= set(LOOKS), "a visual mesh names an unknown look"
+    return {name: LOOKS[name] for name in sorted(names)}
+
+
+def rewrite_visuals(out: Path, rig: Path) -> Dict[str, Any]:
+    """Replace an existing build's visual meshes with one per look, without decomposing again."""
+    if sha256_file(rig) != RIG["sha256"]:
+        raise RuntimeError("rig file does not match the pinned sha256")
+    manifest = load(out)
+    verts_cm, groups = read_obj(rig)
+    parts = split_parts(to_robot(verts_cm, manifest["registration"]), groups, manifest["frames"], read_obj_looks(rig))
+    for name in PARTS:
+        manifest["parts"][name]["visual"] = visual_entries(out, name, parts[name])
+    manifest["looks"] = used_looks(manifest)
+    manifest.pop("dir")
+    (out / MANIFEST).write_text(json.dumps(manifest, indent=1) + "\n")
+    return load(out)
+
+
+def visual_entries(out: Path, name: str, part: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Write a part's visual meshes and describe them: one per look when every entry has its looks,
+    else one plain mesh."""
+    looks = part.get("visual_looks") or []
+    if len(looks) != len(part["visual"]) or any(per_tri is None for per_tri in looks):
+        vis_v, vis_t = merge(part["visual"])
+        return [{"file": f"{name}_visual.obj", "sha256": write_obj(out / f"{name}_visual.obj", vis_v, vis_t),
+                 "triangles": int(len(vis_t))}]
+    entries = []
+    for look in sorted({str(x) for per_tri in looks for x in per_tri}):
+        assert look in LOOKS, f"unknown look {look!r}"
+        picked = []
+        for (group, verts, tris), per_tri in zip(part["visual"], looks):
+            assert len(per_tri) == len(tris), f"{group}: {len(per_tri)} looks for {len(tris)} triangles"
+            chosen = tris[per_tri == look]
+            if len(chosen):
+                ids, inverse = np.unique(chosen, return_inverse=True)
+                picked.append((group, verts[ids], inverse.reshape(-1, 3)))
+        vis_v, vis_t = merge(picked)
+        file = f"{name}_visual_{look}.obj"
+        entries.append({"file": file, "look": look, "sha256": write_obj(out / file, vis_v, vis_t),
+                        "triangles": int(len(vis_t))})
+    assert sum(e["triangles"] for e in entries) == sum(len(t) for _, _, t in part["visual"]), "visual triangles lost"
+    return entries
 
 
 def rescore(out: Path, rig: Path, v: Dict[str, Any]) -> Dict[str, Any]:
@@ -793,9 +900,7 @@ def build_part(out: Path, name: str, part: Dict[str, Any], method: str) -> Dict[
         file = f"{name}_c{k:02d}.obj"
         entry["collision"].append({"file": file, "friction": friction, "sha256": write_obj(out / file, pv, pt),
                                    "vertices": int(len(pv))})
-    vis_v, vis_t = merge(part["visual"])
-    entry["visual"].append({"file": f"{name}_visual.obj", "sha256": write_obj(out / f"{name}_visual.obj", vis_v, vis_t),
-                            "triangles": int(len(vis_t))})
+    entry["visual"] = visual_entries(out, name, part)
     return entry
 
 
@@ -814,7 +919,7 @@ def load(out: Path) -> Dict[str, Any]:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
-    parser.add_argument("command", choices=("fetch", "build", "check", "rescore"))
+    parser.add_argument("command", choices=("fetch", "build", "check", "rescore", "visuals"))
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--rig", type=Path, default=None)
     parser.add_argument("--method", choices=("coacd", "groups"), default=None)
@@ -834,6 +939,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.command == "rescore":
         from . import params
         return report(rescore(args.out, rig, params.values(params.load())))
+    if args.command == "visuals":
+        manifest = rewrite_visuals(args.out, rig)
+        for name in PARTS:
+            print(name, ", ".join(f"{item.get('look', 'plain')} {item['triangles']}" for item in manifest["parts"][name]["visual"]))
+        return 0
     from . import params
 
     method = args.method or ("coacd" if _has_coacd() else "groups")

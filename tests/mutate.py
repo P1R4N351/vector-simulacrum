@@ -676,6 +676,14 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
      "lift = lift", (TBM + "MeshModeModel.test_primitives_keep_mass_but_lose_contact",), False),
     ("head mass left at the neck", M, '    hx, _, hz = v["head_box_center_wrt_neck_mm"]\n', "    hx, hz = 0.0, 0.0\n",
      (TBM + "MeshModeModel.test_the_real_body_keeps_the_tables_centre_of_mass",), False),
+    ("visual looks ignored", M, "        drawn = _PLAIN_VISUAL if look is None else f'material=\"rig_{look}\"'\n",
+     "        drawn = _PLAIN_VISUAL\n", (TBM + "MeshModeModel.test_visual_meshes_take_their_looks",), False),
+    ("polygon looks miscounted", BM, "[MATERIAL_LOOK[material]] * (len(line.split()) - 3))",
+     "[MATERIAL_LOOK[material]] * (len(line.split()) - 2))",
+     (TBM + "Looks.test_every_triangle_gets_the_look_of_its_material",), False),
+    ("a group keeps its first material", BM, "                material = line.split(None, 1)[1].strip()\n",
+     "                material = material or line.split(None, 1)[1].strip()\n",
+     (TBM + "Looks.test_every_triangle_gets_the_look_of_its_material",), False),
 )
 NEUTRAL = ("docstring reworded", R, '"""A simulated Vector on a table. One instance is one robot and one scene."""',
            '"""A simulated Vector on a table: one instance is one robot and one scene."""')
