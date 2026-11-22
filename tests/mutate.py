@@ -32,7 +32,9 @@ sys.path.insert(0, str(HERE))
 
 import _common  # noqa: E402
 
-RUN_TIMEOUT_S = 300
+# A run that has not finished by then is reported as a set-up error. The contact-trial
+# check replays four spins at eight table turns, about seven minutes on its own.
+RUN_TIMEOUT_S = 1800
 P, M, R, H = "simulacrum/params.py", "simulacrum/mjcf.py", "simulacrum/robot.py", "simulacrum/hazards.py"
 T, V, TR, O, RP = ("simulacrum/task.py", "simulacrum/vec_env.py", "simulacrum/training.py",
                    "simulacrum/onnx_policy.py", "run_policy.py")
@@ -216,6 +218,8 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
     ("head and lift commands act without their delay", R,
      "servos = self._delay[(self._delay_at - self._servo_delay) % size]", "servos = slot",
      (TRP + "test_head_and_lift_match_the_robot_on_fit_and_held_out_moves",), True),
+    ("contact trial span typed 1.5 mm long", "contact_trial.py", "SPAN_MM = 42.0\n", "SPAN_MM = 43.5\n",
+     (TRP + "test_contact_trial_medium_ccw_trace_and_fast_turn_rates",), True),
     ("replay compares the left wheel's model speed with the right wheel's record", RP2,
      '+ [(m["wr"], r["wr"]) for m, r in zip(model, rows)])', '+ [(m["wl"], r["wr"]) for m, r in zip(model, rows)])',
      (TRP + "test_the_fast_spins_of_the_second_recording_replay",), True),
@@ -386,7 +390,7 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
       TSF + "test_the_table_holds_the_fitted_inset_and_its_range_covers_each_spins_fit"), True),
     ("held-out spins get the fitted inset both times", SF, "dict(values, tread_contact_inset_mm=0.0)",
      "dict(values, tread_contact_inset_mm=inset)", (TSF + "test_held_out_unit3_spins_come_closer_to_the_robots_rate",), True),
-    ("contact inset typed by hand", J, '"tread_contact_inset_mm": {"value": 3.1,', '"tread_contact_inset_mm": {"value": 3.5,',
+    ("contact inset typed by hand", J, '"tread_contact_inset_mm": {"value": 3.41,', '"tread_contact_inset_mm": {"value": 3.5,',
      (TSF + "test_the_table_holds_the_fitted_inset_and_its_range_covers_each_spins_fit",), True),
     ("camera turn centre read behind the lens", CS, '"centre_x_mm": LENS_X_MM + float(np.median(fwd))',
      '"centre_x_mm": LENS_X_MM - float(np.median(fwd))',

@@ -1,6 +1,6 @@
 """42 mm tread-contact experiment at the stock axle locations.
 
-Run e.g. python contact_trial.py replay, spin or tip. The web exporter
+Run e.g. python contact_trial.py replay, spin, tip or turns. The web exporter
 uses the same transform on the normal obstacle scene for ?contact=42.
 """
 import argparse
@@ -14,6 +14,21 @@ from unittest.mock import patch
 from xml.etree import ElementTree as ET
 
 from simulacrum import mjcf
+
+# Turns of the table about its own vertical axis, in radians as the model's compiler
+# reads them. Within the square table's quarter-turn symmetry they are 0, 14.6, 29.2,
+# 43.7, 58.3, 72.9, 87.5 and 12.0 degrees. Physically they change nothing, but each
+# moves a spin's steady rate by about 1.4 % (one standard deviation), because a
+# cylinder on a box goes through MuJoCo's general convex collider.
+# evidence/stock-shell-physics-20261118.md, "Table turns".
+TABLE_TURNS_RAD = tuple(11.25 * k for k in range(8))
+# Fore-aft distance between the front and rear load-bearing patches: an equivalent
+# span fitted to run E's spins, not a measured one. It was fitted with the treads 46 mm
+# apart and 10 mm wide; with the rig's 47.9 and 11.5 mm every spin runs about 1.2 %
+# slow over the table turns. A 41.5 mm span removes that but takes the 100 mm/s CCW
+# trace to 22.6 deg/s RMS, over its limit, so 42 mm stays
+# (evidence/stock-shell-physics-20261118.md, "Table turns").
+SPAN_MM = 42.0
 
 
 def contact_model(xml, values, previous=False):
@@ -29,7 +44,8 @@ def contact_model(xml, values, previous=False):
             support = chassis.find(f"geom[@name='tip_{end}_{side}']")
             if support is not None:
                 chassis.remove(support)
-    inset = (values["wheel_base_mm"] - 42.0) * mjcf.MM / 2
+    assert 0.0 < SPAN_MM < values["wheel_base_mm"], "the patches sit between the axles"
+    inset = (values["wheel_base_mm"] - SPAN_MM) * mjcf.MM / 2
     # The auxiliary shaft is a numerical belt follower. Allow its equality
     # constraint to settle over 10 ms; the real axle and motor use the
     # original parameters. The old minimum was two integration steps.
@@ -117,12 +133,51 @@ def write_spin_trace(label, rest_tilt=False):
                         + ((tilted[i][1]["gyro_z_dps"],) if rest_tilt else ()))
 
 
+def table_turn_errors(states, spins, values):
+    """{spin label: [steady rate error, model over robot minus 1, at each table turn]}, read as diagnose_turns does."""
+    from diagnose_turns import steady_spin
+    original = mjcf.build_mjcf
+    errors = {segment.label: [] for segment in spins}
+    for turn in TABLE_TURNS_RAD:
+        def build(v, obstacles=(), cube=None, turn=turn):
+            root = ET.fromstring(contact_model(original(v, obstacles, cube), v))
+            root.find(".//geom[@name='table']").set("euler", f"0 0 {turn}")
+            return ET.tostring(root, encoding="unicode")
+        with patch.object(mjcf, "build_mjcf", build):
+            for segment in spins:
+                stock, model = steady_spin(segment, states, values)
+                errors[segment.label].append(float(model[0] / stock[0] - 1))
+    assert all(len(e) == len(TABLE_TURNS_RAD) for e in errors.values()), "one error per turn"
+    return errors
+
+
+def write_table_turns():
+    """CSV of the run E spin errors at each table turn, then each spin's mean and standard deviation."""
+    from simulacrum import params, recording
+    values = params.values(params.load())
+    states, commands = recording.load(Path(__file__).with_name("evidence") / "hw-rec-20261118" / "run-e-spins.jsonl")
+    spins = [s for s in recording.segments(commands, values).values() if s.kind == "wheels" and s.left * s.right < 0]
+    assert len(spins) == 4, "run E has four spins"
+    errors = table_turn_errors(states, spins, values)
+    writer = csv.writer(sys.stdout)
+    writer.writerow(("spin", *(f"turn_{turn}_rad" for turn in TABLE_TURNS_RAD), "mean", "sd"))
+    for label, values_ in errors.items():
+        mean = fmean(values_)
+        sd = math.sqrt(sum((e - mean) ** 2 for e in values_) / (len(values_) - 1))
+        writer.writerow((label, *(f"{e:+.4f}" for e in values_), f"{mean:+.4f}", f"{sd:.4f}"))
+
+
 if __name__ == "__main__":
     targets = {"replay": "replay_recording.py", "tip": "wheelstand_check.py", "spin": "diagnose_turns.py"}
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("check", choices=[*targets, "trace"])
+    parser.add_argument("check", choices=[*targets, "trace", "turns"])
     parser.add_argument("--rest-tilt", action="store_true", help="include a trace using the pre-command IMU vertical")
     args, remaining = parser.parse_known_args()
+    if args.check == "turns":
+        if remaining or args.rest_tilt:
+            parser.error("turns takes no arguments")
+        write_table_turns()
+        sys.exit(0)
     if args.check == "trace":
         if len(remaining) > 1:
             parser.error("trace takes one optional recorded spin label")

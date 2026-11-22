@@ -9,6 +9,7 @@ change that makes the model fit the robot worse fails.
 from __future__ import annotations
 
 import math
+from statistics import fmean
 import unittest
 from unittest.mock import patch
 from pathlib import Path
@@ -17,8 +18,7 @@ import _common
 from simulacrum import params, recording
 
 if _common.HAVE_MUJOCO:
-    from contact_trial import contact_model, resting_up_vector
-    from diagnose_turns import steady_spin
+    from contact_trial import TABLE_TURNS_RAD, contact_model, resting_up_vector, table_turn_errors
     from simulacrum import mjcf, replay
 
 BEFORE_THE_FIT = {
@@ -71,11 +71,17 @@ class Replay(unittest.TestCase):
         self.assertEqual(len(spins), 4)
         with patch.object(mjcf, "build_mjcf", trial):
             medium, = replay.compare(self.v, ["spin_ccw_100"])
-            self.assertLess(medium["gyro_rmse_dps"], 21)
-            for seg in spins:
-                with self.subTest(segment=seg.label):
-                    stock, model = steady_spin(seg, states, self.v)
-                    self.assertLess(abs(model[0] / stock[0] - 1), 0.02)
+        self.assertLess(medium["gyro_rmse_dps"], 21)
+        # Turning the table changes nothing physical but moves each spin's rate by about
+        # 1.4 % (sd) in this trial, so one orientation cannot resolve the 2 % limit. The
+        # limit holds the mean over the eight turns (evidence/stock-shell-physics-20261118.md,
+        # "Table turns"). Spans of 43.5 and 48 mm fail it, worst spin 4.3 and 11.5 % slow.
+        errors = table_turn_errors(states, spins, self.v)
+        self.assertEqual(sorted(errors), sorted(seg.label for seg in spins))
+        for label, at_turns in errors.items():
+            with self.subTest(segment=label):
+                self.assertEqual(len(at_turns), len(TABLE_TURNS_RAD))
+                self.assertLess(abs(fmean(at_turns)), 0.02)
 
     def test_fit_and_hold_out_segments_do_not_overlap(self) -> None:
         self.assertEqual(set(replay.FIT_WHEELS) & set(replay.HOLD_WHEELS), set())
