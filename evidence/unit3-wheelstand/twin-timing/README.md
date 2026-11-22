@@ -30,3 +30,16 @@ The equidistant focal length transfers the earlier single-camera shelf estimate 
 We reran the three-pulse test through the corrected view. All six edge brackets agree with the earlier scoring. In the four LED-off windows the 95th-percentile apparent motion of stationary glyph corners ranged from 1.03 to 1.71 corrected pixels on A and 0.20 to 0.30 on B. With the LEDs on, A lost all 60 attempted corner matches under a one-pixel round-trip consistency check. B retained all 56. Use lit corners for timing and unlit glyphs for position on A. Neither pixel result measures millimetres or establishes accuracy on moving targets.
 
 [Glyph landmarks and residuals](glyph-tracking.png) · [Per-frame scores](glyph-tracking.csv) · [Analysis](glyph_tracking.py)
+
+### Does the LED marker perturb the cube accelerometer at rest?
+
+Two separate direct BLE sessions each alternated four short green dwells with five dark dwells. For each light write we scored samples received 150–700 ms after acknowledgement. For each green dwell we subtracted the average of its two neighboring dark-window means on each axis. This suppresses slow baseline drift. All four corners used the same light command as the camera timing experiment. These sensor-only repeats did not independently film or time diode emission.
+
+| Session | Three-sample packets | Tap-counter changes | Largest absolute paired axis shift |
+|---|---:|---:|---:|
+| First | 213 | 0 | 1.20 mg |
+| Independent repeat | 224 | 0 | 0.60 mg |
+
+Across both sessions the nine received rail reports all decoded to 1.561 V. Their sparse timing cannot resolve supply transients. The first three green dwells in the first session had positive X and Y differences; this did not repeat consistently. These records support using the marker for stationary synchronization on this cube. They do not establish a bound during switching or mechanical impacts. Both sessions ended dark and disconnected.
+
+[First sensor trace](led-accel.png) · [Repeat](led-accel-repeat.png) · [First packet log](led-accel.csv) · [Repeat log](led-accel-repeat.csv) · [Capture](led_accel_capture.py) · [Analysis](led_accel.py). Run the analysis once without flags and once with `--repeat`.
