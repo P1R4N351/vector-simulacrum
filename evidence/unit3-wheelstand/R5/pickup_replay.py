@@ -37,12 +37,14 @@ parser.add_argument("--mute-links-before-raise", action="store_true",
                     help="Diagnostic only: disable link contacts during the approach")
 parser.add_argument("--fork-rubber-scale", type=float, choices=(0.5, 1., 2.),
                     help="Scale sliding friction only between printed fork and rubber pads")
+parser.add_argument("--tool-velocity", choices=("zero", "measured"),
+                    help="Prescribe the same tool poses on massive free bodies with zero or measured velocity")
 motion = parser.add_mutually_exclusive_group()
 motion.add_argument("--wheel-translation", action="store_true", help="Integrate reported wheel speeds after lift onset")
 motion.add_argument("--freeze-at-raise", choices=("planar", "pitch", "both"),
                     help="Hold selected chassis motion at its value when the wrist first rises 1 mm")
 args = parser.parse_args()
-if (args.fork_rubber_scale is not None or args.mute_links_before_raise or args.mute_links_at_raise or args.freeze_at_raise or args.wheel_translation or args.sighting is not None or args.shelf_friction_scale is not None) and not args.output:
+if (args.tool_velocity or args.fork_rubber_scale is not None or args.mute_links_before_raise or args.mute_links_at_raise or args.freeze_at_raise or args.wheel_translation or args.sighting is not None or args.shelf_friction_scale is not None) and not args.output:
     parser.error("Use --output for counterfactual runs to preserve the recorded baseline")
 tree = ET.parse(args.fixture)
 require_printed_fork(tree)
@@ -73,6 +75,16 @@ if args.shelf_friction_scale is not None:
         mu, torsion, rolling = geom.get("friction").split()
         pad.set("friction", f"{float(mu)*args.shelf_friction_scale} {torsion} {rolling}")
         body.append(pad)
+if args.tool_velocity:
+    if args.shelf_friction_scale is not None or args.fork_rubber_scale is not None:
+        parser.error("Use the original contact masks for the tool velocity comparison")
+    tree.find("worldbody/geom[@name='table']").set("conaffinity", "4")
+    for name in ("fork", "rail0", "rail1"):
+        body = tree.find(f"worldbody/body[@name='{name}']")
+        del body.attrib["mocap"]
+        body.set("gravcomp", "1")
+        ET.SubElement(body, "freejoint", name=name + "_path")
+        ET.SubElement(body, "inertial", pos="0 0 0", mass="1000", diaginertia="1 1 1")
 m = mj.MjModel.from_xml_string(ET.tostring(tree.getroot(), encoding="unicode"))
 m.opt.timestep /= args.substeps
 v = params.values(params.load(model="vector_2"))
@@ -121,6 +133,18 @@ h = Rotation.from_quat([s[k] for k in ("qx","qy","qz","qw")]).as_euler("xyz")[2]
 cube[:] = [s["x"]*.001,s["y"]*.001,.0222,np.cos(h/2),0,0,np.sin(h/2)]
 fork = m.body("fork").mocapid[0]
 links = [m.body(f"rail{i}").mocapid[0] for i in range(2)]
+if args.tool_velocity:
+    drivers = []
+    for name, xyz, quat in (("fork", wrist, fork_q), ("rail0", rails[:,0], link_q),
+                            ("rail1", rails[:,1], link_q)):
+        # Free-joint translations are world velocities, rotations are body-local.
+        orientation = Rotation.from_quat(quat, scalar_first=True)
+        angular = (orientation[:-1].inv()*orientation[1:]).as_rotvec()/m.opt.timestep
+        velocity = np.column_stack((np.diff(xyz, axis=0)/m.opt.timestep, angular))
+        velocity = np.vstack((velocity, velocity[-1]))
+        if args.tool_velocity == "zero":
+            velocity.fill(0)
+        drivers.append((d.joint(name + "_path"), np.column_stack((xyz, quat)), velocity))
 floor = m.geom("table").id
 traces = []
 loads = []
@@ -133,6 +157,7 @@ link_bodies = [m.body(f"rail{j}").id for j in range(2)]
 link_geoms = np.isin(m.geom_bodyid, link_bodies)
 link_patch = []
 normals = []
+tool_rates = []
 contact_materials = set()
 geom_affinity = m.geom_conaffinity[link_geoms].copy()
 body_affinity = m.body_conaffinity[link_bodies].copy()
@@ -146,8 +171,13 @@ for i, tick in enumerate(t):
     if args.mute_links_at_raise and i == onset:
         m.geom_conaffinity[link_geoms] = 0
         m.body_conaffinity[link_bodies] = 0
-    d.mocap_pos[fork], d.mocap_quat[fork] = wrist[i], fork_q[i]
-    d.mocap_pos[links], d.mocap_quat[links] = rails[i], link_q[i]
+    if args.tool_velocity:
+        for joint, poses, velocities in drivers:
+            joint.qpos[:] = poses[i]
+            joint.qvel[:] = velocities[i]
+    else:
+        d.mocap_pos[fork], d.mocap_quat[fork] = wrist[i], fork_q[i]
+        d.mocap_pos[links], d.mocap_quat[links] = rails[i], link_q[i]
     if i == 0:
         mj.mj_forward(m,d)
         assert all(c.dist >= 0 for c in d.contact)
@@ -184,6 +214,12 @@ for i, tick in enumerate(t):
         loads.append([tick, height[i], *contact_load(m,d,cube_id,floor,fork_id)/weight, overlap_mm])
         collect(m,d,cube_id,fork_id,tick,m.opt.timestep,patch)
     if i % (10*args.substeps) == 0:
+        # cvel retains the pre-integration velocity; shift it from subtree COM to wrist.
+        twist = d.cvel[fork_id]
+        origin = d.subtree_com[m.body_rootid[fork_id]]
+        speed = twist[3:] + np.cross(twist[:3], wrist[i] - origin)
+        commanded = (wrist[min(i+1, len(t)-1)]-wrist[i])/m.opt.timestep
+        tool_rates.append([tick, *commanded, *speed])
         normals.append([tick, *Rotation.from_quat(cube[3:7], scalar_first=True).as_matrix()[:, 2]])
         lean = np.degrees(np.arccos(np.clip(1-2*np.sum(cube[4:6]**2),-1,1)))
         traces.append([tick,cube[2]*1000,lean,any(floor in c.geom for c in d.contact),
@@ -197,6 +233,8 @@ with (output/"fork-materials.csv").open("w") as stream:
     writer = csv.writer(stream, lineterminator="\n")
     writer.writerow(("material", "mu_tangent1", "mu_tangent2"))
     writer.writerows(sorted(contact_materials))
+np.savetxt(output/"tool-velocity.csv", tool_rates, delimiter=",", comments="",
+           header="s,path_x,path_y,path_z,solver_x,solver_y,solver_z")
 np.savetxt(output/"top-normal.csv", normals, delimiter=",", comments="", header="sec,nx,ny,nz")
 with (output/"link-patch.csv").open("w") as stream:
     writer = csv.writer(stream, lineterminator="\n")
