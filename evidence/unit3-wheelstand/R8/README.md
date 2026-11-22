@@ -120,3 +120,11 @@ Free-running phase on this simulation grid cannot reconcile the late impact. The
 Branch the simulated R8 replay at 4.765 s after roll command. All five trials have identical cube velocity at that step (vertical −0.590 m/s, angular speed 12.16 rad/s) and subsequently contact only the shelf. Changing the rubber geoms' MuJoCo contact time constant from 4 to 64 ms gave nominal-phase packet peaks from 4.11 to 6.58 g. The physical peak in the common window was 1.11 g. Increasing the time constant from 8 to 16 ms lowered the peak from 5.32 to 4.11 g while increasing maximum contact penetration from 1.95 to 3.67 mm. Still softer settings increased penetration and did not further improve the peak. All cases settled at 90° tilt by the replay endpoint. This sensitivity test does not measure the rubber's stiffness; no contact parameters were adopted.
 
 [Five landing traces](landing-compliance.png) · [Release and landing metrics](landing-compliance.csv) · [Replay](landing_compliance.py)
+
+### Does the physical cube unload before the simulated landing?
+
+In the 4.600–4.78125 s interval before the simulated peak raw impact, 10–13 of the 18 simulated slots fell below 0.50 g for every one of the 320 frame/tick phase pairs. Even the phase with the highest minimum fell below 0.004 g. The physical recording delivered 21 slots in that receipt-time window. The lowest was 0.915 g. Across the entire 957-slot recording, including the approach and all available post-command samples, the lowest magnitude was 0.849 g. A separate R5 set-down provides a positive control for this recording path: six of its 762 slots fell below 0.50 g, with a minimum of 0.031 g.
+
+The mismatch therefore precedes the simulated shelf impact. This favors testing how long the cube remains supported and the path it follows as it rolls. Hardware receipt time differs from chip time, and packet gaps can hide physical motion. The readings alone cannot identify a supporting contact or exclude a short unobserved airborne interval. No physical test was run for this comparison.
+
+[Measured and simulated slots](unloading.png) · [All clock phases](unloading.csv) · [Reproduce](impact_phase.py)
