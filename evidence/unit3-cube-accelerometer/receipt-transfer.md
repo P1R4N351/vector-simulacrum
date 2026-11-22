@@ -53,3 +53,11 @@ On the earlier pickup recording, passing the last reported carry ID before each 
 Stock firmware also checks whether this particular cube is the docking target. As a retrospective sensitivity check, marking it as handled while the pickup command is active suppresses the early start and reproduces the single delivered stop. Command lifetime is only a proxy for the unlogged docking target. Extending suppression through the whole placement command would incorrectly remove the real stop, which preceded command completion by 0.39 s. The earlier seven-event carry-only result therefore does not generalize to the pre-acquisition part of pickup.
 
 [Physical episode](release-broadcast.png) · [Carry-only and pickup-target predictions](release-broadcast.csv). Run release_broadcast.py.
+
+### Recovering pickup state before the carry ID changed
+
+We recovered 1,494 original SDK robot states and matched every timestamp and carry ID to robot.csv. The pick/place flag first rose 1.210 s into pickup. At the unreported 3.710 s movement start, both bracketing states had the flag set and no carried object. The carry flag and ID 1 first appeared at 4.242 s. During release the carry bit cleared at 11.892 s and the pick/place bit cleared at 12.440 s. The listener stop at 12.645 s therefore occurred after both bits cleared, although the placement command was still active.
+
+Suppressing while carrying, or while the picking flag is set during a pickup of the monitored cube, selects the one SDK callback out of four transitions here. Applying that same rule to the earlier eleven candidates retains all seven captured SDK callbacks and suppresses the four R5 candidates. These are retrospective comparisons. Several positive transitions occurred during a charger-dock command, which illustrates why docking must be specific to the target cube. The telemetry does not identify the engine's internal docking target or distinguish this proxy from another rule that yields the same outcomes.
+
+[State intervals and event times](pickup-status.png) · [Status edges](pickup-status-edges.csv) · [Pickup transitions](pickup-status-events.csv) · [Other captures](targeted-pick-transfer.csv). Run pickup_status.py with the original cube-second-local.jsonl archive.
