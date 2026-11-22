@@ -82,3 +82,11 @@ Both cameras filmed the same cube run. B independently checks optical timing, wh
 [Edge timing overlay](blink-prediction.png) · [Every observed bracket and prediction](blink-prediction.csv) · [Reproduce the prediction](blink_prediction.py)
 
 Use `python live_view.py HOST preview.jpg --mirror` for A, mirrored B in A's image coordinates, and a 50/50 blend of the common field. The inset rectifies the cube's physical top glyph into the same orientation in each camera. The overview uses ten manually picked equivalent silhouette landmarks from the stationary dock and cube. Perspective and occlusion leave visible double edges; this is a visual comparison, not a metric stereo reconstruction. The inset is fixed to the cube position at calibration. Refresh the landmarks after moving a camera and the inset after moving the cube. [Example after the robot was moved](mirror-preview.jpg)
+
+### Independent stationary cube capture with robot motion in view
+
+The camera host subscribed directly to the physical cube during a pod restart. Both cameras recorded the shelf; no robot movement or cube light commands were issued by this recorder. The stream contains 2,425 acceleration packets (7,275 slots) over 86.98 seconds. The largest deviation of an individual sample from the initial median gravity vector was 0.082 g, the largest magnitude was 1.046 g, and the tap count stayed at four. There was no identifiable release or landing. Corrected video shows the robot moving in the earlier cube region. Pixel changes in that region alone would give false evidence of cube movement.
+
+The trace contains 71 receipt gaps longer than 150 ms (median 262 ms). Of 130 successive acceleration packet pairs arriving less than 5 ms apart, 43 had identical complete payloads. Byte equality cannot distinguish repeated reports from identical readings. These pairs are preserved in the receipt log. The optics panel uses only recorded frames, comparing every third frame in each corrected camera's original cube region. Camera B reached its frame limit earlier than A. The paired portion spans about 77 s.
+
+[Physical sensor and optical traces](stationary-paired.png) · [Complete BLE receipts](stationary-paired.csv.gz) · [Capture](stationary_pair_capture.py) · [Analysis](stationary_pair.py)
