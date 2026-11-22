@@ -24,6 +24,7 @@ def read(name):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("fixture")
+parser.add_argument("--output", type=Path, help="Directory for this replay’s generated evidence")
 parser.add_argument("--substeps", type=int, default=1, choices=(1,2,4))
 args = parser.parse_args()
 tree = ET.parse(args.fixture)
@@ -80,7 +81,7 @@ for i, tick in enumerate(t):
                        cube[0]*1000-s["x"], cube[1]*1000-s["y"]])
 # Finer solver steps are a sensitivity check on the same measured pose trajectory.
 a = np.array(traces)
-output = here if args.substeps == 1 else here/f"substeps-{args.substeps}"
+output = args.output or (here if args.substeps == 1 else here/f"substeps-{args.substeps}")
 output.mkdir(exist_ok=True)
 np.savetxt(output/"pickup-replay.csv",a,fmt="%.5f",delimiter=",",comments="",
            header="sec,center_height_mm,tilt_deg,floor_contact,robot_contact,dx_mm,dy_mm")
