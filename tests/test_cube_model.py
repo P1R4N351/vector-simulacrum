@@ -331,6 +331,18 @@ class MovementTests(unittest.TestCase):
         self.assertFalse(listener.moving)
         self.assertEqual([state for _, state in listener.events], [True, False])
 
+    def test_handling_filters_broadcast_at_transition_only(self):
+        listener = cube.MovementListener()
+        for tick in range(80):
+            accel = np.array([5000 * (-1)**tick, 0, 0], dtype=np.float32)
+            listener.update(tick / 100, accel, handling_cube=True)
+        self.assertTrue(listener.moving)
+        self.assertEqual(listener.broadcast_events, [])
+        for tick in range(80, 200):
+            listener.update(tick / 100, accel)
+        self.assertEqual(listener.broadcast_events, listener.events[1:])
+        self.assertEqual([state for _, state in listener.broadcast_events], [False])
+
     def test_packet_delivery_and_reset(self):
         chip = run(OPEN, 1.2, lambda n: [(-1)**(n//10), 0, 1])
         self.assertTrue(chip.movement.moving)

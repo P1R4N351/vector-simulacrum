@@ -37,3 +37,11 @@ Passing each physical packet's three slots through the simulator's movement list
 The listener also produced two starts and two stops in R5 without SDK movement callbacks. In host time, the first episode (26.800–29.252 s) was inside the pickup action; the second (32.844–38.343 s) ran from reversing with the cube into placement. All four occur during manipulation. This is consistent with the stock engine's separate carry/docking broadcast rules. Exact internal suppression state was not logged. The other ten nonempty captures had neither listener nor SDK movement transitions. Input packets came from real hardware, so no contact parameters were changed.
 
 [Listener score and SDK events](sdk-move-transfer.png) · [Per-run and per-transition results](sdk-move-transfer.csv). Run sdk_move_transfer.py.
+
+### Carry state explains which movement transitions reached the SDK
+
+The four R5 candidates without an SDK callback were bracketed by robot states with IS_CARRYING_BLOCK (0x02) on. The five recorded SDK transitions in the wheelstand series all had the bit off. In a separate physical repeat (A), both movement transitions had the bit off and both reached the SDK. The broader IS_PICKING_OR_PLACING bit (0x04) would incorrectly suppress the genuine R8 movement start. The archived runs here each use one cube. Firmware checks the actual object ID for both carrying and docking, which a chassis-wide status bit cannot establish in a multi-cube scene.
+
+The simulator now exposes movement.broadcast_events on the cube alongside movement.events. The former records eligible broadcasts at packet time. The latter retains every listener transition. VectorSim marks the cube mounted on the lift as handled. A caller with a dynamic carry/docking state can set cube.handling_cube when that particular cube is acquired or released. The packet filter and movement score continue to evolve while handled. Releasing a cube does not synthesize a movement transition. SDK transport delay is separate.
+
+[Four candidate rules](movement-status.png) · [Bracketing states and SDK matches](movement-status.csv). Run movement_status.py to replay both collections and verify emitted events against the SDK.
