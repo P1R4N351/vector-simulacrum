@@ -70,3 +70,11 @@ The 8160 × 6120 Flip photos at 60° and 195° show the installed fork cheek fro
 The turquoise outline is the near-side portion of forks7.stl at an assumed 32 mm wrist height and nominal reach. The fork crest and tab are visible, but the two pin centers are covered by the linkage. The photos constrain external size more directly than wrist-to-crossbar registration. The outer contour includes geometry that is obscured by an arm in the photograph. These exposures do not verify the installed STL identity.
 
 [Opposite-side overlays](orbit-fork.png) · [Native picks and depth sensitivity](orbit-fork.csv). Run orbit_fork.py with the full-resolution orbit archive as its argument.
+
+### Does the outside edge locate the contacting face?
+
+Using the rim calibrations, we projected the near-side STL shell at an assumed 32 mm wrist height and varied fore–aft reach in 0.25 mm steps. Five horizontal bands per view locate the transition from dark fork to bright background. One 60° pick falls on the background structure, visible in the overlay. At 60° the best offset was −2.5 mm. Without refitting, this reduced mean absolute edge error in the opposite 195° view from 58.5 to 12.1 native pixels. Fitting the first view at heights of 30 and 34 mm gave offsets of −2.0 and −2.5 mm.
+
+We then applied the same −2.5 mm displacement to the entire 58-piece printed fork in the five physical push replays. All five settled endpoint errors increased. Trials 2–5 went from a mean 1.26 to 3.51 mm. In the improper lift the predicted tilt fell from 2.29° to 0.12°. The photo measures the visible outer cheek and the contact test constrains the assembled fork, cube registration and command path together. A single translation cannot reconcile those measurements. We retained the nominal contact model.
+
+[Opposite-side overlay](orbit-reach.png) · [Native picks](orbit-reach-picks.csv) · [Height and offset sensitivity](orbit-reach.csv) · [Five paired replays](../unit3-printed-fork-contact/orbit-reach-replay.csv). Run orbit_reach.py with the photo archive, then orbit_reach_replay.py with the same arguments as evaluate.py.
