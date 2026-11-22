@@ -290,7 +290,7 @@ class SyntheticParts(WithSyntheticParts):
 
     def test_tread_masses_follow_the_wheel_bodies_not_the_table(self) -> None:
         moved = ET.fromstring(self.stock)
-        dy = 0.95  # the refit moves the treads from 23.0 to 23.95 mm off the middle
+        dy = 0.95  # moves each tread 0.95 mm further out
         for name, sign in (("wheel_fl", 1), ("wheel_rl", 1), ("wheel_fr", -1), ("wheel_rr", -1)):
             body = _find(moved, "body", name)
             x, y, z = _floats(body.get("pos"))
@@ -300,7 +300,7 @@ class SyntheticParts(WithSyntheticParts):
         report = pp.part_report(self.v, ("treads:synthetic",))
         stock, runs = report["stock_tread"]["share_g"], report["treads"]["left"]["share_g"]["runs"]
         m = 2 * (runs - stock["front"] - stock["rear"] - stock["runs"])  # both sides, g
-        y0 = 0.5 * self.v["tread_spacing_mm"]
+        y0 = 0.5 * self.v["tread_center_spacing_mm"]  # where mjcf builds the wheel bodies
         expected = m * ((y0 + dy) ** 2 - y0 ** 2) * mjcf.GRAM * mjcf.MM ** 2
         ixx = lambda e: _floats(e.get("diaginertia"))[0]
         self.assertAlmostEqual(ixx(there) - ixx(here), expected, delta=1e-12)
