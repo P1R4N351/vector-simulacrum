@@ -154,6 +154,8 @@ export class VectorSim {
     );
     this._headTarget = this._headCmd = 0;
     this._liftTarget = this._liftCmd = this.d.lift_angle_min;
+    this._liftInPos = true;
+    this._liftInToleranceSince = null;
     this._headSpeed = v.head_speed_default_radps;
     this._liftSpeed = v.lift_speed_default_radps;
     this._headAccel = v.head_accel_default_radps2;
@@ -480,6 +482,7 @@ export class VectorSim {
       picked_up: this.hazards.pickedUp, falling: this.hazards.falling,
       wheels_moving: Math.abs(left) + Math.abs(right) > this.v.wheel_stopped_threshold_mmps,
       has_control: this.hasControl,
+      lift_in_pos: this._liftInPos,
     };
   }
 
@@ -630,6 +633,19 @@ export class VectorSim {
     for (let i = 0; i < 2; i++) this.treadHeat[i] += (Math.abs(duties[i]) - this.treadHeat[i]) * Math.min(1, this.dt / tau);
   }
 
+  _updateLiftStatus() {
+    if (this._liftInPos) return;
+    const angleError = Math.abs(this.data.qpos[this._q.lift] - this._liftTarget);
+    const finalCommand = this.data.ctrl[this._act.lift] === this._liftTarget;
+    if (!finalCommand || angleError >= this.v.lift_angle_tol_deg * DEG) {
+      this._liftInToleranceSince = null;
+    } else if (this._liftInToleranceSince === null) {
+      this._liftInToleranceSince = this.tick_;
+    } else if ((this.tick_ - this._liftInToleranceSince) * this.dt > 0.100) {
+      this._liftInPos = true;
+    }
+  }
+
   _tickOnce() {
     const travel = this._treadTravelMm();
     this._encoders[0].update(travel[0]);
@@ -643,6 +659,7 @@ export class VectorSim {
     this._writeControls();
     this._physicsStep();
     this.tick_ += 1;
+    this._updateLiftStatus();
 
     if (this.bodyRangeClock) this._advanceRangeClock();
     const yaw = this._yaw();
@@ -719,7 +736,12 @@ export class VectorSim {
   // Set the lift target and return at once.
   _startLift(heightMm, speedRadps, durationS) {
     assert(Number.isFinite(durationS) && durationS >= 0, "bad lift duration");
-    this._liftTarget = liftAngleOfHeight(this.v, heightMm);
+    const target = liftAngleOfHeight(this.v, heightMm);
+    if (target !== this._liftTarget || Math.abs(target - this.data.qpos[this._q.lift]) >= this.v.lift_angle_tol_deg * DEG) {
+      this._liftInPos = false;
+    }
+    this._liftInToleranceSince = null;
+    this._liftTarget = target;
     this._liftSpeed = speedRadps ? Math.abs(speedRadps) : this.v.lift_speed_default_radps;
     this._liftAccel = this.v.lift_accel_default_radps2;
     this._servoRate[1] = 0;

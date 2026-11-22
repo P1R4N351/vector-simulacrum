@@ -76,6 +76,7 @@ class RobotState:
     has_control: bool
     prox_signal_quality: float = 0.0
     prox_unobstructed: bool = True
+    lift_in_pos: bool = True
 
 
 @dataclass(frozen=True)
@@ -214,6 +215,8 @@ class VectorSim:
         self._head_speed, self._lift_speed = v["head_speed_default_radps"], v["lift_speed_default_radps"]
         self._head_accel, self._lift_accel = v["head_accel_default_radps2"], v["lift_accel_default_radps2"]
         self._servo_rate = [0.0, 0.0]
+        self._lift_in_pos = True
+        self._lift_in_tolerance_since = None
         self._wheel_delay = int(round(v["command_delay_ms"] / v["control_period_ms"]))
         self._servo_delay = int(round(v["servo_command_delay_ms"] / v["control_period_ms"]))
         assert self._wheel_delay >= 0 and self._servo_delay >= 0, "command delays must not be negative"
@@ -439,7 +442,7 @@ class VectorSim:
             prox_signal_quality=prox.signal_quality, prox_unobstructed=prox.unobstructed,
             accel_mmps2=accel, gyro_radps=gyro, cliff_detected=self.hazards.cliff_any,
             picked_up=self.hazards.picked_up, falling=self.hazards.falling, wheels_moving=moving,
-            has_control=self.has_control)
+            has_control=self.has_control, lift_in_pos=self._lift_in_pos)
         self.states.append(self.state)
 
     def sim_truth(self) -> Dict[str, Any]:
@@ -576,6 +579,19 @@ class VectorSim:
         for i in range(2):
             self.tread_heat[i] += (abs(duties[i]) - self.tread_heat[i]) * min(1.0, self.dt / tau)
 
+    def _update_lift_status(self) -> None:
+        """LiftController latches in-position after the final target stays within tolerance for >100 ms."""
+        if self._lift_in_pos:
+            return
+        angle = float(self.data.qpos[self._q["lift"]])
+        final_command = self.data.ctrl[self._act["lift"]] == self._lift_target
+        if not final_command or abs(angle - self._lift_target) >= math.radians(self.v["lift_angle_tol_deg"]):
+            self._lift_in_tolerance_since = None
+        elif self._lift_in_tolerance_since is None:
+            self._lift_in_tolerance_since = self.tick
+        elif (self.tick - self._lift_in_tolerance_since) * self.dt > 0.100:
+            self._lift_in_pos = True
+
     def _tick_once(self) -> None:
         for encoder, travel in zip(self._encoders, self._tread_travel_mm()):
             encoder.update(travel)
@@ -588,6 +604,7 @@ class VectorSim:
         self._write_controls()
         self._physics_step()
         self.tick += 1
+        self._update_lift_status()
         if self.body_range_clock:
             self._advance_range_clock()
         yaw = self._yaw()
@@ -673,7 +690,11 @@ class VectorSim:
 
     def _start_lift(self, height_mm: float, speed_radps: Optional[float], duration_s: float) -> None:
         assert math.isfinite(duration_s) and duration_s >= 0.0, "bad lift duration"
-        self._lift_target = mjcf.lift_angle_of_height(self.v, height_mm)
+        target = mjcf.lift_angle_of_height(self.v, height_mm)
+        if target != self._lift_target or abs(target - self.data.qpos[self._q["lift"]]) >= math.radians(self.v["lift_angle_tol_deg"]):
+            self._lift_in_pos = False
+        self._lift_in_tolerance_since = None
+        self._lift_target = target
         self._lift_speed = abs(speed_radps) if speed_radps else self.v["lift_speed_default_radps"]
         self._lift_accel = self.v["lift_accel_default_radps2"]
         self._servo_rate[1] = 0.0
