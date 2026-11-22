@@ -97,3 +97,5 @@ The SDK sighted the cube at 113 mm and the native pickup raised it. The operator
 During pickup the maximum reported cube acceleration was 2.01 g and the tap counter advanced three times. During reverse transport the peak was 1.58 g with zero increments. Set-down reached 4.02 g with two increments. These windows follow SDK action boundaries on the receiving pod. Exact fork seating remains unmeasured. [Carry video](R5/carry.mp4) · [sensor traces](R5/sensor-traces.png) · [cube packets](R5/cube.csv.gz) · [SDK actions](R5/actions.csv).
 
 On retry W5, P2Y8 undocked and searched but never obtained a recent cube glyph sighting. No wheelstand command was issued. [Search actions](W5/actions.csv).
+
+The [four-stage photo and telemetry overlay](R5/rectified-carry.jpg) uses CPCS's feed-annotator rectifier on the original 1920 × 1080 See3CAM frames. It uses the provisional equidistant lens and a 130° horizontal view tipped 10°. Time is seconds from the undock command. Lift comes from the closest SDK report, acceleration from the peak reported magnitude in the preceding 300 ms. No arena-anchor registration was available for this run.
