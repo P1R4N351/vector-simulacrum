@@ -99,3 +99,18 @@ Wheel alignment reverses the sign of the integrated error for both repeats. A bl
 Across four archived 100 mm/s stops, the 5 ms encoder and head gyro traces gave **4.35–4.78°** of rotation in the 300 ms after the wheels crossed 80% of steady speed. We repeated the measurement on every twelfth controller frame, trying all twelve phases independently. This changes only the sampling. Measured angle moved by **−1.56 to +4.58°** and the inferred crossing by **−22.6 to +6.3 ms**. The archive has some missing frames, so the CSV includes the largest gap in each retained series.
 
 We separated interpolated wheel-crossing error from sparse gyro integration by integrating the native gyro from each sparse crossing. Moving the crossing alone gave **1.81° RMS** across the 48 stop/phase combinations. Sampling the gyro sparsely added **0.73° RMS** relative to that shifted dense integral. The combined error was **2.38° RMS**. These are deterministic phase comparisons on four physical moves. The window used to estimate steady speed was 250–500 ms before the last wheel edge, and stationary gyro bias was subtracted per stop. The 150 mm/s spins above have different braking profiles and SDK host timestamps, so the 100 mm/s phase errors cannot be subtracted from them. [Per-phase results](braking-cadence.csv) · [Reproduce](braking_cadence.py) · [Original native captures](../hw-rec-20261119/native-stops.md)
+
+### The SDK samples actually delivered during braking
+
+![Native and SDK yaw on robot and host clocks through the four physical stops](sdk-stop-clock.png)
+
+We recovered the simultaneous SDK receipt log for the four 100 mm/s native stops. Matching both reported wheel speeds and all three gyro components uniquely to native frames gave 9–11 consecutive SDK samples per stop with no omitted receipts between the first and last matches. This permits an 80 ms integral after the 80% wheel-speed crossing in every stop without extrapolation. Each series uses the same native steady-speed threshold and gyro bias. The shaded area shows the integration window.
+
+| Stop | All native frames | SDK frames, robot time | Same SDK frames, host time |
+|---|---:|---:|---:|
+| CCW 1 | 4.34° | 7.53° | 8.05° |
+| CW 1 | 4.42° | 5.74° | 5.85° |
+| CCW 2 | 4.64° | 7.59° | 5.55° |
+| CW 2 | 4.79° | 6.84° | 5.80° |
+
+The actual frame selection and interpolation overestimated braking travel in all four cases by 1.32–3.18°. Using host receipt intervals for those same values changed the estimate by −2.04 to +0.53°. For the second CCW stop, receipt timing masked about two degrees of sampling error. The native angle over 80 ms is within 0.02° of the earlier 300 ms integral for every stop. No host-to-robot clock offset was fitted. Each clock is aligned to its own interpolated wheel crossing. [Matched-clock results](sdk-stop-clock.csv) · [SDK receipt excerpt](sdk-stop-receipts.csv) · [Reproduce](sdk_stop_clock.py)
