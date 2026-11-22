@@ -40,3 +40,13 @@ On the held-out P2Y8 pair, the frozen 1 mm forward contact shift reduced longitu
 The longitudinal registration of the backpack landmark matters more. At nominal calibration, moving the *measured* pivots **2.00 mm forward relative to the front axle** would equalize held-out RMS for the two models. The crossover ranges from 1.52 to 2.48 mm across the grid. This is a calculated break-even offset. Its physical size and sign need an independent side-view measurement of the backpack landmark relative to the front axle. The gyro comparison is independent of this camera calculation.
 
 [Per-pair RMS and crossover](camera-sensitivity.csv) · [Reproduce the calculation](camera_sensitivity.py)
+
+### Backpack landmark relative to the front axle
+
+![Indicator tip (yellow) and rim centers (cyan) used for the independent A measurement](landmark-stereo.jpg)
+
+We recovered the six See3CAM landmark triples used for the crown survey. Five B headings fit a common backpack location, allowing its height, longitudinal location and lateral distance from the visible rim to vary. Each pose uses the observed hubs and released hub heights. The nominal wheel-calibrated rig placed the tip **35.51 mm behind the front axle** and **64.66 mm above the shelf**. B reprojection RMS was 3.00 working pixels. The frozen prediction missed the tip by **18.27 px** at A.
+
+A separate triangulation at A used three points picked in the full-resolution Flip ultrawide photo and their See3CAM counterparts. The tip measured **43.42 mm behind the front axle** and **66.12 mm high**. Free horizontal axle spacing measured 50.16 mm against the released 48 mm. The difference between B and A exceeds the 2 mm pivot crossover. The A measurement depends on locating nearly edge-on printed rims in the phone view and on camera calibration at the robot. Both checks use the same See3CAM at A. The physical landmark registration remains unresolved. Keep the pivot comparison conditional on its assumed landmark position.
+
+[Original calibration and held-out fit](landmark-registration.csv) · [Held-out stereo check across three rig calibrations](landmark-stereo.csv) · [Image coordinates and reproduction script](landmark_registration.py)
