@@ -1,0 +1,35 @@
+sec,event,value
+-20.7741916179657,look down,{}
+-20.171379327774048,look down,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}
+"
+-20.170921564102173,connect cube,{}
+-5.005730628967285,connect cube,"status {
+  code: RESPONSE_RECEIVED
+}
+"
+0.0,sighting_check,"{'visual_id': 1, 'connected_id': None}"
+0.09725522994995117,pop_a_wheelie,"{'from_dock': True, 'cube_stream_age': 180054.435151041}"
+6.001315593719482,pop_a_wheelie,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+  code: UNEXPECTED_PITCH_ANGLE
+}
+"
+6.6852052211761475,dock,{}
+34.53737211227417,dock,"status {
+  code: RESPONSE_RECEIVED
+}
+result: BEHAVIOR_COMPLETE_STATE
+"
+35.42946648597717,battery,"status {
+  code: RESPONSE_RECEIVED
+}
+battery_level: BATTERY_LEVEL_FULL
+battery_volts: 4.046875
+is_on_charger_platform: true
+"
