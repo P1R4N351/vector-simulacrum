@@ -1,0 +1,5 @@
+corner,image_x,image_y,face_x_mm,face_z_mm
+left upper,390,597,-13.58894,9.369548
+left lower,414,1023,-13.929944,-8.651804
+right upper,1038,669,14.427796,9.087634
+right lower,1035,1131,14.108627,-8.920687
