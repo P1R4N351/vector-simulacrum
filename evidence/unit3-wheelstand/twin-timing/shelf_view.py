@@ -45,7 +45,15 @@ class ShelfView:
     def apply(self, frame):
         if frame.shape != (720,1280,3):
             raise ValueError('Shelf correction expects a 1280x720 BGR frame')
-        return cv2.LUT(cv2.remap(frame,*self.maps,cv2.INTER_LINEAR),self.lut)
+        color = cv2.LUT(cv2.remap(frame,*self.maps,cv2.INTER_LINEAR),self.lut)
+        # Filter luminance only so colored LED boundaries keep their hue.
+        ycc = cv2.cvtColor(color,cv2.COLOR_BGR2YCrCb)
+        luma = ycc[:,:,0]
+        smooth = cv2.bilateralFilter(luma,5,9,1.2)
+        detail = smooth.astype(np.float32) - cv2.GaussianBlur(smooth,(0,0),1.0)
+        lifted = smooth + np.clip(.30*detail,-4.,4.)
+        ycc[:,:,0] = np.uint8(np.clip(np.rint(lifted),0,255))
+        return cv2.cvtColor(ycc,cv2.COLOR_YCrCb2BGR)
 
     def points(self, raw):
         xy = np.asarray(raw,dtype=float)
