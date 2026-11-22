@@ -25,7 +25,7 @@ for delay, marker in [(0, 'o'), (.071, 'x')]:
         physical.extend(rows['real_mm'])
     axes[1].scatter(hits, physical, marker=marker, label=f'{int(delay * 1000)} ms delay', alpha=.8)
     print(int(delay * 1000), list(zip(hits, physical)))
-axes[1].set(xlabel='Printed fork rays intercepted at sample time', ylabel='P2Y8 range (mm)',
+axes[1].set(xlabel='Printed fork rays intercepted at sample time', ylabel='Unit 3 range (mm)',
             title='Nine in-window readings from push trials 3–5', xticks=[0, 4, 8, 12, 16, 19])
 axes[1].legend()
 fig.savefig(here / 'fork-beam.png', dpi=160)

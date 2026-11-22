@@ -1,4 +1,4 @@
-"""Forecast changes of P2Y8's docked range/quality pair without resynchronizing."""
+"""Forecast changes of unit 3's docked range/quality pair without resynchronizing."""
 import csv
 import json
 from pathlib import Path
