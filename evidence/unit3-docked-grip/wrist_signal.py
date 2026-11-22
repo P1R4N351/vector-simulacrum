@@ -12,7 +12,7 @@ from simulacrum import mjcf, params
 from simulacrum.cube import CubeAccelerometer, packet
 
 
-def replay(path, pitched, v, clock, heights, pitches):
+def replay(path, pitched, v, clock, heights, pitches, contact_observer=None):
     tree = ET.parse(path)
     cube = tree.find(".//body[@name='cube']")
     cube.append(ET.fromstring(mjcf._cube_chip_xml(v)))
@@ -62,6 +62,8 @@ def replay(path, pitched, v, clock, heights, pitches):
         pose(i)
         mj.mj_step(model, d)
         chip.step(d.time, d.sensordata/g)
+        if contact_observer is not None:
+            contact_observer(clock[i], model, d, fork, cube)
     return [(t-start, p) for t, p in chip.messages]
 
 
