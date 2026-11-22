@@ -91,3 +91,11 @@ For the shifted model at measured steady targets, the original heat parameters r
 | CW | 146 / 81 ms | 40.4° / 30.4° | 11.4° / 12.9° |
 
 Wheel alignment reverses the sign of the integrated error for both repeats. A blanket increase in braking travel would worsen the CCW wheel-aligned result. Equalizing motor heat-loss rates moves the wheel-aligned sim values to 8.6° CCW and 11.6° CW. These timings combine command delivery, encoder filtering and SDK receipt timing. The threshold interpolates the first descending crossing of 80% of the recorded steady mean absolute wheel speed, using the same threshold in hardware and sim. The roughly 60 ms SDK sampling period limits timing precision. [All ablations and both clocks](heat-transient.csv) · [Reproduce](heat_transient.py)
+
+### Sampling the native 100 mm/s stops at SDK cadence
+
+![Wheel crossing and integrated yaw errors by sampling phase](braking-cadence.png)
+
+Across four archived 100 mm/s stops, the 5 ms encoder and head gyro traces gave **4.35–4.78°** of rotation in the 300 ms after the wheels crossed 80% of steady speed. We repeated the measurement on every twelfth controller frame, trying all twelve phases independently. This changes only the sampling. Measured angle moved by **−1.56 to +4.58°** and the inferred crossing by **−22.6 to +6.3 ms**. The archive has some missing frames, so the CSV includes the largest gap in each retained series.
+
+We separated interpolated wheel-crossing error from sparse gyro integration by integrating the native gyro from each sparse crossing. Moving the crossing alone gave **1.81° RMS** across the 48 stop/phase combinations. Sampling the gyro sparsely added **0.73° RMS** relative to that shifted dense integral. The combined error was **2.38° RMS**. These are deterministic phase comparisons on four physical moves. The window used to estimate steady speed was 250–500 ms before the last wheel edge, and stationary gyro bias was subtracted per stop. The 150 mm/s spins above have different braking profiles and SDK host timestamps, so the 100 mm/s phase errors cannot be subtracted from them. [Per-phase results](braking-cadence.csv) · [Reproduce](braking_cadence.py) · [Original native captures](../hw-rec-20261119/native-stops.md)
