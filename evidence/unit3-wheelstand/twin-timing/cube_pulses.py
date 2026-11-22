@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+from shelf_view import ShelfView
+
+
 def extract(path, commands):
     times = np.fromstring(subprocess.check_output(['ffprobe','-v','error','-show_entries',
         'packet=pts_time','-of','csv=p=0',str(path)], text=True), sep='\n')
@@ -18,7 +21,10 @@ def extract(path, commands):
         ok, frame = cap.read()
         if not ok:
             break
-        b,g,r = cv2.split(cv2.resize(frame,(400,225)).astype(np.float32))
+        if not images:
+            view = ShelfView(path.stem,frame)
+        corrected = view.apply(frame)
+        b,g,r = cv2.split(cv2.resize(corrected,(500,220)).astype(np.float32))
         images.append(g-(r+b)/2)
     cap.release()
     values = np.stack(images)
