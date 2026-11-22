@@ -69,3 +69,11 @@ Replaying 22,802 recorded packets across 16 captures yielded zero up-axis transi
 These recordings test false alarms during partial tilts and impacts. Run S contains 22 actual face-change callbacks but lacks the corresponding acceleration packets. Positive transition timing still needs a paired recording of a completed quarter-turn.
 
 [Per-run margins and R5 trace](sdk-axis-transfer.png) · [Counts and angular margins](sdk-axis-transfer.csv). Reproduce with sdk_axis_transfer.py.
+
+### Timing resolution of docked run S
+
+The first burst of face changes in run S gives a 254 ms payload timestamp interval. With that period frozen, all 32 other same-event intervals with callback spacing ≤3 seconds fell within 2 ms of a multiple (median absolute residual 1 ms). Three successive face-change pairs had identical payload stamps even though their SDK callbacks were 19.4, 115.4 and 115.4 ms apart. The SDK still delivered both face identities in each pair.
+
+Stock CubeAccelComponent stamps face events with the last robot message timestamp. The register can therefore repeat across cube readings. In active R10, consecutive tap stamps differ by 153 ms and the movement start-to-stop interval is 640 ms, so applying a universal 254 ms event clock would introduce error. Keep packet times for detector replay and use the contemporaneous robot state clock when comparing SDK payload times. Neither timestamp stream in run S resolves the physical instant of a face crossing.
+
+[Held-out timestamp intervals](sdk-axis-clock.png) · [Per-event intervals](sdk-axis-clock.csv) · [R10 active events](../unit3-wheelstand/R10/events.csv). Run sdk_axis_clock.py.
