@@ -43,3 +43,17 @@ Two separate direct BLE sessions each alternated four short green dwells with fi
 Across both sessions the nine received rail reports all decoded to 1.561 V. Their sparse timing cannot resolve supply transients. The first three green dwells in the first session had positive X and Y differences; this did not repeat consistently. These records support using the marker for stationary synchronization on this cube. They do not establish a bound during switching or mechanical impacts. Both sessions ended dark and disconnected.
 
 [First sensor trace](led-accel.png) · [Repeat](led-accel-repeat.png) · [First packet log](led-accel.csv) · [Repeat log](led-accel-repeat.csv) · [Capture](led_accel_capture.py) · [Analysis](led_accel.py). Run the analysis once without flags and once with `--repeat`.
+
+### Periodic gaps persist when the camera host connects directly to the cube
+
+The two LED recordings and a separate ten-second stationary recording with no light writes used the camera host as the BLE central. All three show intervals over 150 ms between consecutive acceleration packet receipts. The period of 1.22746 s was fitted previously on the robot's rest capture. Here each session's first gap return establishes phase. The periods and widths were never fitted on these three captures.
+
+| Direct session | Acceleration packets | Gaps | Median gap | Max return prediction error |
+|---|---:|---:|---:|---:|
+| Green pulses | 213 | 6 | 262.1 ms | 43.1 ms |
+| Green repeat | 224 | 6 | 262.1 ms | 25.7 ms |
+| No light writes | 285 | 7 | 261.9 ms | 43.5 ms |
+
+Of the voltage reports received from the start of the first complete gap through the last acceleration packet, all nine were within 25 ms of a gap return. Ten of the 19 gaps lacked a nearby received voltage report. Before the first complete gap, each capture also had one voltage report. The published firmware calls the battery ADC before the accelerometer in each app tick and measures battery every 100 ticks. The timer schedules the next tick after the current callback returns. Battery sampling or how the resulting notification is delivered is a plausible contributor; receipt timestamps cannot distinguish a pause in sampling from a delay or loss in transmission. The gap recurs even when the robot, SDK and light commands are absent. Direct capture alone will not fill the missing interval in a roll replay.
+
+[Voltage receipts and predicted returns](gap-voltage.png) · [Dark control packets](dark-direct.csv) · [Acquisition](dark_capture.py) · [Analysis](gap_voltage.py) · [Cube ADC firmware](https://github.com/kercre123/victor/blob/snowboy/robot/cube_firmware/app/adc.c)
