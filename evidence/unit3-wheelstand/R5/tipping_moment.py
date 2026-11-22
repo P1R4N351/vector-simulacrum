@@ -6,7 +6,7 @@ import numpy as np
 def moments(model, data, cube, floor, fork):
     rotation = data.xmat[cube].reshape(3,3)
     axis = np.cross([0.,0.,1.],rotation[:,2])
-    axis /= np.linalg.norm(axis)
+    axis_length = np.linalg.norm(axis)
     torque = np.zeros((3,3))
     wrench = np.empty(6)
     for j,c in enumerate(data.contact):
@@ -25,4 +25,5 @@ def moments(model, data, cube, floor, fork):
     adr = model.jnt_dofadr[joint]+3
     solver = rotation @ data.qfrc_constraint[adr:adr+3]
     np.testing.assert_allclose(torque.sum(axis=0), solver, atol=1e-8, rtol=1e-7)
-    return torque @ axis * 1000
+    projected = torque @ axis / axis_length if axis_length > 1e-10 else np.full(3,np.nan)
+    return projected * 1000, torque, axis
