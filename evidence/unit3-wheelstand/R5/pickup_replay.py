@@ -31,12 +31,14 @@ parser.add_argument("--substeps", type=int, default=1, choices=(1,2,4,8))
 parser.add_argument("--sighting", type=int, help="Camera sighting row (zero-based) for a fresh stationary cube start")
 parser.add_argument("--shelf-friction-scale", type=float, choices=(0.25, 0.5, 1., 2.),
                     help="Scale only sliding friction at cube-to-table contacts")
+parser.add_argument("--mute-links-at-raise", action="store_true",
+                    help="Diagnostic only: disable both link contacts once the wrist rises 1 mm")
 motion = parser.add_mutually_exclusive_group()
 motion.add_argument("--wheel-translation", action="store_true", help="Integrate reported wheel speeds after lift onset")
 motion.add_argument("--freeze-at-raise", choices=("planar", "pitch", "both"),
                     help="Hold selected chassis motion at its value when the wrist first rises 1 mm")
 args = parser.parse_args()
-if (args.freeze_at_raise or args.wheel_translation or args.sighting is not None or args.shelf_friction_scale is not None) and not args.output:
+if (args.mute_links_at_raise or args.freeze_at_raise or args.wheel_translation or args.sighting is not None or args.shelf_friction_scale is not None) and not args.output:
     parser.error("Use --output for counterfactual runs to preserve the recorded baseline")
 tree = ET.parse(args.fixture)
 require_printed_fork(tree)
@@ -69,7 +71,7 @@ if args.sighting is not None and s["sec"] > 0:
     t = t[t >= s["sec"]]
 x, y, pitch, height = [np.interp(t, p["sec"], p[k]) for k in ("x","y","pitch","lift")]
 yaw = np.interp(t, p["sec"], np.unwrap(p["yaw"]))
-if args.freeze_at_raise or args.wheel_translation:
+if args.mute_links_at_raise or args.freeze_at_raise or args.wheel_translation:
     onset = np.flatnonzero(height > height[0] + 1)[0]
 if args.wheel_translation:
     from wheel_retreat import wheel_path
@@ -107,13 +109,32 @@ torque = []
 world_torque = []
 cube_id, fork_id = m.body("cube").id, m.body("fork").id
 weight = m.body_mass[cube_id] * np.linalg.norm(m.opt.gravity)
+link_bodies = [m.body(f"rail{j}").id for j in range(2)]
+link_geoms = np.isin(m.geom_bodyid, link_bodies)
+link_patch = []
 for i, tick in enumerate(t):
+    if args.mute_links_at_raise and i == onset:
+        m.geom_conaffinity[link_geoms] = 0
+        m.body_conaffinity[link_bodies] = 0
     d.mocap_pos[fork], d.mocap_quat[fork] = wrist[i], fork_q[i]
     d.mocap_pos[links], d.mocap_quat[links] = rails[i], link_q[i]
     if i == 0:
         mj.mj_forward(m,d)
         assert all(c.dist >= 0 for c in d.contact)
     mj.mj_step(m,d)
+    if 2.559 <= tick < 2.655:
+        for index, contact in enumerate(d.contact):
+            a, b = contact.geom
+            if link_geoms[b]:
+                a, b = b, a
+            if not link_geoms[a] or m.geom_bodyid[b] != cube_id:
+                continue
+            wrench = np.empty(6)
+            mj.mj_contactForce(m, d, index, wrench)
+            if wrench[0] > 0:
+                point = (contact.pos - d.xipos[cube_id]) @ d.xmat[cube_id].reshape(3, 3)
+                link_patch.append((tick, m.geom(a).name, m.geom(b).name,
+                                   * (1000 * point), wrench[0] * m.opt.timestep))
     if 1.98 <= tick < 2.91:
         projected, world, lean_axis = moments(m,d,cube_id,floor,fork_id)
         # cvel is the pre-integration world velocity used by this step.
@@ -134,6 +155,10 @@ for i, tick in enumerate(t):
 a = np.array(traces)
 output = args.output or (here if args.substeps == 1 else here/f"substeps-{args.substeps}")
 output.mkdir(exist_ok=True)
+with (output/"link-patch.csv").open("w") as stream:
+    writer = csv.writer(stream, lineterminator="\n")
+    writer.writerow("sec rail cube x_mm y_mm z_mm normal_Ns".split())
+    writer.writerows(link_patch)
 np.savetxt(output/"world-moment.csv",world_torque,delimiter=",",comments="",
            header="s,height_mm,ax,ay,az,wx,wy,wz,shelf_x,shelf_y,shelf_z,fork_x,fork_y,fork_z,link_x,link_y,link_z")
 np.savetxt(output/"tipping-moment.csv",torque,delimiter=",",comments="",
