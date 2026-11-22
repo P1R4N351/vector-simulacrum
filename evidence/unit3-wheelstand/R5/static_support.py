@@ -18,7 +18,9 @@ from simulacrum import params
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("fixture")
-parser.add_argument("--depth-sweep", action="store_true",
+mode = parser.add_mutually_exclusive_group()
+mode.add_argument("--entry-scan", action="store_true", help="Locate first contact approaching horizontally")
+mode.add_argument("--depth-sweep", action="store_true",
                     help="Test deeper, centered seats at several heights, omitting initially overlapping poses")
 args = parser.parse_args()
 tree = ElementTree.parse(args.fixture)
@@ -38,6 +40,10 @@ up = np.array([float(row[f"mean_{axis}_g"]) for axis in "xyz"])
 up /= np.linalg.norm(up)
 z = np.array([0., 0., 1.])
 attitude = Rotation.from_quat(np.r_[np.cross(up, z), 1 + up@z])
+if args.entry_scan:
+    from entry_scan import scan
+    scan(here, model, wrist, rails, rq, attitude, v["cube_carry_offset_mm"])
+    sys.exit(0)
 floor = model.geom("table").id
 filename = "static-depth.csv" if args.depth_sweep else "static-support.csv"
 with (here/filename).open("w") as f:
