@@ -19,3 +19,11 @@ In the pre-command sideways sighting the nominal SDK-cube-to-sensor transform pr
 Applying the registration to the preceding rolling-tread replay gives +Y as the final filtered up-axis, matching the later physical rest face. The real cube still reported +Z during the simultaneous captured interval, so the simulated change is early. The vector RMS error over the common dynamic packet window falls from 0.775 g to 0.588 g; adding the earlier gain reduces it to 0.580 g. The adjusted simulation still produces four tap-counter changes versus two measured and peaks at 5.32 g versus 1.43 g. This distinguishes an axis registration error from the remaining contact dynamics and timing errors.
 
 [Sensor comparison](frame-gain.png) · [Resting gain](side-gravity.csv) · [SDK pose registration](frame-sign.csv) · [Dynamic transfer](dynamic-frame.csv) · [Reproduce with printed fixture](frame_gain.py)
+
+### Independent check of cube placement
+
+The camera saw the dock and cube in both sessions. We fit camera pose to the dock glyph and lip using the existing lens correction, then added the nominal 23 mm square on the top of the first cube as a local scale constraint. The second cube view was held out. Its reconstructed glyph measures 22.0 by 24.8 mm; with the dock alone it measures 21.4 by 28.5 mm. The remaining depth error limits absolute registration.
+
+The fitted camera sees 13.8 mm forward and 8.8 mm left between the two cube centers. Subtracting the two SDK sightings gives 15.1 and 8.4 mm respectively, assuming the dock-based odometry origins coincide. The apparent two-axis discrepancy is 1.4 mm. The first view's optical grid differs from SDK yaw by 7.4° modulo 90°; the second differs by −1.2°. Bars on the plot show 5th–95th percentiles under random ±1 px landmark and ±1 mm height variations, not overall measurement confidence. The cube moved between runs; this agreement in displacement cannot identify a shared absolute translation error or establish where the fork touched.
+
+[Landmark picks](registration-picks.png) · [Camera versus SDK](optical-registration.png) · [Calibrations](optical-registration.csv) · [Reproduce](optical_registration.py)
