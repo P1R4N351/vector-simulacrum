@@ -68,3 +68,13 @@ Using each survey's measured longitudinal coordinate and height together, the he
 We targeted each tread's recorded mean speed magnitude from 0.7–1.4 s with its commanded sign. On the held-out CW/CCW pair, the simulated steady wheel-speed errors were within **0.42 mm/s**. The 1 mm forward shift still improved longitudinal pivot RMS, from **6.49 to 4.09 mm**, while yaw RMS worsened from **1.61% to 2.92%**. The adverse yaw result comes from the CCW repeat (+0.64% centered, −4.00% shifted). CW improved from −2.19% to −1.00%. The shifted proxy also underestimated steady roll and pitch magnitudes in both directions. Neither geometry was refitted.
 
 Both simulated and observed lens paths now use the same A-repeat landmark position. With the original commands the pivot RMS values are 6.65 and 3.45 mm. The preceding survey comparison adjusted only the observed landmark and reported 3.47 mm for the shifted case. These steady-speed inputs do not reproduce the encoder history through braking. [Per-spin wheel, gyro and pivot errors](shift-speed.csv) · [Replay script](shift_speed_check.py)
+
+### Does the simulated turn mirror at fixed posture?
+
+![Mirrored yaw comparison for the four recorded inputs](mirror-spins.png)
+
+For each of the four recordings we kept its head/lift start, stop time and two steady-speed targets, then exchanged the signed targets between treads. Only the original direction has a matching physical observation. With the 1 mm forward shift, the second CCW recording's inputs gave 3.398 rad/s CCW and 3.673 rad/s CW. The **7.80%** difference relative to their mean also appeared in the simulated heading trajectory (**7.32%**). The mirrored wheel speed magnitudes agreed within **0.17 mm/s**. The other three inputs gave gyro differences of +2.95%, +3.60% and +0.14%, so a constant directional correction would miss the sign change.
+
+Reversing only the four auxiliary roller bodies' XML order reproduced the gyro asymmetries to within 0.000001 percentage points. Giving both treads the mean of the two configured heat-loss rates reduced the −7.80% case to −2.95%. Across the two recorded hold-out directions, equalizing those rates improved the shifted model's physical yaw RMS from 2.92% to 1.57%, but worsened the centered model from 1.61% to 2.54%. These are sensitivity results on a previously examined pair. They show an interaction between drive and contact assumptions. A physical temperature difference was never measured in these recordings.
+
+[All mirrored runs and heading slopes](mirror-spins.csv) · [Reproduce](mirror_spins.py)
