@@ -240,3 +240,11 @@ Track two overlapping head-crown patches and the fixed dock in the overhead fram
 At the 5.498 s raised exposure the two estimates exceed the SDK forward position by 6.74 and 3.73 mm. Replay each longitudinal residual, zeroed at the stationary start, with the original lateral position, yaw, lift, printed fork and rails. Simulated peak tilt falls from 2.29° to 1.06° (vents) or 1.53° (seam). Predicted rightward sweep remains below 0.41 mm against 26.72 mm measured. The forward corrections inferred from this view do not recover engagement. A calibrated lateral trajectory remains open.
 
 [Camera and odometry](chassis-track.png) · [Tracks and match scores](chassis-track.csv) · [Three replay outcomes](chassis-replay.csv). Run chassis_track.py with the repo root and the paired overhead frame directory, then chassis_replay.py with the repo root and printed-fork XML.
+
+### Does lateral chassis travel explain the sweep?
+
+Back-project each tracked crown patch through the calibrated See3CAM division model. The stationary 23 mm cube glyph registers the camera. Intersect rays at 60, 70 and 80 mm above the shelf, align heading to the SDK during the initial three seconds, and keep the resulting metric scale. At 5.498 s all six estimates put the landmark 0.34–0.54 mm farther left than the SDK trajectory. The independent 8–10 s retreat window has 0.48–0.80 mm lateral RMS disagreement. This small residual cannot resolve actual tread slip. Changes of chassis yaw also move a crown landmark relative to the odometry origin.
+
+Forward displacement at the raised frame ranges from −11.63 to +11.69 mm relative to SDK, depending on the patch and assumed height. This wider sensitivity revises the preceding linear-calibration result: even the sign of the inferred extra forward travel lacks independent confirmation. Across the six lateral-only and six two-axis replays, maximum simulated tilt is 2.30° and maximum rightward travel is 0.49 mm. The 26.72 mm physical sweep remains unexplained.
+
+[Plane-height and landmark sensitivity](chassis-plane.png) · [Checks and replay scores](chassis-plane.csv). Run chassis_plane.py with the same repository and printed-fork fixture arguments as evaluate.py after producing chassis-track.csv.
