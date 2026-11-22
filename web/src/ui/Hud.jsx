@@ -118,8 +118,8 @@ function About({ model, robotLook }) {
     <details className="about">
       <summary>What this is</summary>
       <p>
-        The same MuJoCo model and firmware control law as the Python simulacrum, running in this page.
-        Of its {total} parameters, {c.measured} are measured on a recording of one real robot, {c.fitted} are
+        Vector {model.robot_model === "vector_2" ? "2.0" : "1.0"} uses the same MuJoCo model and control law as the Python simulacrum.
+        Of its {total} parameters, {c.measured} are measured on hardware, {c.fitted} are
         fitted to it, {c.manual} come from the manual, {c.sdk} from vendor or household software, {c.assumed} are
         still assumed and {c.chosen} are scene and solver settings.
       </p>

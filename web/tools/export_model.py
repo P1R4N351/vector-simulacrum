@@ -385,38 +385,43 @@ def main(argv: Sequence[str]) -> int:
 
     from contact_trial import contact_model
 
-    table_bytes = (root / "parameters.json").read_bytes()
-    # The base table, which the simulacrum calls vector_1. The recorded robot is a Vector 1.0
-    # (the table's REC and REC2 sources, on its word).
+    outputs = {}
+    for generation, directory in [(ROBOT_MODEL, "public/robot"), ("vector_2", "public/robot/vector2")]:
+        doc = params.load(model=generation)
+        values = params.values(doc)
+        # Preserve the base table's published file hash. The variant table is the
+        # resolved base plus overrides, so its hash covers both sets of inputs.
+        table_bytes = ((root / "parameters.json").read_bytes() if generation == ROBOT_MODEL
+                       else json.dumps(doc, sort_keys=True).encode())
+        xml = mjcf.build_mjcf(values, SCENE_OBSTACLES)
+        free = mjcf.build_mjcf(values, SCENE_OBSTACLES, cube="free")
+        source = {"table_sha256": hashlib.sha256(table_bytes).hexdigest()}
+        for name, key, scene in [
+            ("vector", "xml_sha256", xml),
+            ("vector-contact42", "trial_xml_sha256", contact_model(xml, values)),
+            ("vector-free", "vector-free_sha256", free),
+            ("vector-contact42-free", "vector-contact42-free_sha256", contact_model(free, values)),
+        ]:
+            outputs[f"{directory}/{name}.xml"] = scene
+            source[key] = hashlib.sha256(scene.encode()).hexdigest()
+        derived = mjcf.derive(values)
+        assert all(math.isfinite(x) for x in derived["chassis_inertia"])
+        model = {"source": source, "robot_model": generation, "values": _jsonable(values),
+                 "derived": _jsonable(derived), "cliff_names": list(mjcf.CLIFF_NAMES),
+                 "provenance_counts": _provenance_counts(table_bytes), "camera": camera_block(values),
+                 "obstacles": _jsonable(SCENE_OBSTACLES)}
+        outputs[f"{directory}/model.json"] = json.dumps(model, indent=1, sort_keys=True) + "\n"
+
     v = params.values(params.load(model=ROBOT_MODEL))
-    d = mjcf.derive(v)
-    xml = mjcf.build_mjcf(v, SCENE_OBSTACLES)
-    assert all(math.isfinite(x) for x in d["chassis_inertia"]), "derived inertia is not finite"
-    trial_xml = contact_model(xml, v)
-    model = {"source": {"trial_xml_sha256": hashlib.sha256(trial_xml.encode()).hexdigest(),
-                        "table_sha256": hashlib.sha256(table_bytes).hexdigest(),
-                        "xml_sha256": hashlib.sha256(xml.encode("utf-8")).hexdigest()},
-             "robot_model": ROBOT_MODEL,
-             "values": _jsonable(v), "derived": _jsonable(d), "cliff_names": list(mjcf.CLIFF_NAMES),
-             "provenance_counts": _provenance_counts(table_bytes), "camera": camera_block(v),
-             "obstacles": _jsonable(SCENE_OBSTACLES)}
     shelf_values = params.values(params.load(model="vector_2"))
     shelf_chip = {k: value for k, value in shelf_values.items()
                   if k.startswith("cube_accel_") or k == "cube_tick_ms"}
-    outputs = {
+    outputs.update({
         "src/sim/shelf_cube.json": json.dumps(shelf_chip, indent=2, sort_keys=True) + "\n",
-        "public/robot/vector.xml": xml,
-        "public/robot/vector-contact42.xml": trial_xml,
-        "public/robot/model.json": json.dumps(model, indent=1, sort_keys=True) + "\n",
         "test/fixtures/drive.json": json.dumps(drive_fixture(v, drive)) + "\n",
         "test/fixtures/hazards.json": json.dumps(hazards_fixture(v, hazards)) + "\n",
         "test/fixtures/prox.json": json.dumps(prox_fixture(v, prox)) + "\n",
-    }
-    free_cube = mjcf.build_mjcf(v, SCENE_OBSTACLES, cube="free")
-    for name, scene in [("vector-free", free_cube), ("vector-contact42-free", contact_model(free_cube, v))]:
-        outputs[f"public/robot/{name}.xml"] = scene
-        model["source"][name + "_sha256"] = hashlib.sha256(scene.encode()).hexdigest()
-    outputs["public/robot/model.json"] = json.dumps(model, indent=1, sort_keys=True) + "\n"
+    })
     if args.check:
         return _check(outputs)
     for relative, text in outputs.items():
