@@ -22,6 +22,12 @@ fig,ax=plt.subplots(2,1,figsize=(8,6),sharex=True,layout='constrained')
 summary=[]
 early_path="--early-path" in sys.argv[3:]
 early_rows=[]
+lift_check="--lift-check" in sys.argv[3:]
+if lift_check:
+ from lift_check import LiftCheck
+ lift=LiftCheck(folder)
+ if not early_path or "--face-test" not in sys.argv[3:]:
+  raise ValueError("lift check requires --face-test --early-path")
 inertia_test="--inertia-test" in sys.argv[3:]
 com_test="--com-test" in sys.argv[3:]
 mass_test=inertia_test or com_test
@@ -120,13 +126,14 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
   offsets=list(product((-2,0,2),(-3,0,3))) if pose_grid else [(0,0)]
   if pose_grid:
    layouts=[item for item in layouts if item[0]=='2']
-  if mass_test:
+  if mass_test or lift_check:
    layouts=[item for item in layouts if item[0]=='2']
   multipliers=(.5,1.,5/3) if inertia_test else (1.,)
   centers=[(0,0,0)]
   if com_test:
    centers.extend(tuple(sign*3 if i==axis else 0 for i in range(3)) for axis in range(3) for sign in (-1,1))
-  for dt,omitted,(layout,asset_rotation),(df,dl),multiplier,center in product(timesteps,conditions,layouts,offsets,multipliers,centers):
+  gains=(1,4,16) if lift_check else (1,)
+  for dt,omitted,(layout,asset_rotation),(df,dl),multiplier,center,gain in product(timesteps,conditions,layouts,offsets,multipliers,centers,gains):
    replay_fixture=fixture
    if multiplier!=1. or any(center):
     tree=ET.parse(fixture)
@@ -151,7 +158,11 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    initial_pair=[]
    first_patch=[]
    iterations=[]
+   if lift_check:
+    lift.begin()
    def observe(m,data):
+    if lift_check:
+     lift.sample(data)
     if impulse_test:
      wrench_recorder.sample(m,data)
     b=data.body('cube')
@@ -176,8 +187,11 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    initial=R.from_euler('z',yaw)
    if layout!='upright':
     initial=initial*asset_rotation
-   t,tilt,hit,speed,sensor=run(replay_fixture,dt,True,d,initial,observer=observe,articulated=True,shelf_support=True,chassis_contact=True,omit_contacts=omitted,
+   t,tilt,hit,speed,sensor=run(replay_fixture,dt,True,d,initial,sensor_overrides=lift.override(gain) if lift_check else None,observer=observe,articulated=True,shelf_support=True,chassis_contact=True,omit_contacts=omitted,
        initial_xy_mm=pos+R.from_euler("z",heading).apply([df,dl,0])[:2] if pose_grid else None)
+   if lift_check:
+    lift.finish(reg["view"],gain,start_offset,dt,np.array(out),s,dock)
+    continue
    if impulse_test:
     wrench_recorder.save(reg['view'],start_offset,dt)
     path=np.asarray(out)[:,:2]
@@ -225,6 +239,9 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    if dt==.00025:
     ax[0].plot(t+start_offset,travel,label=reg['view']+' · '+(layout if face_test else ','.join(omitted) or 'all contacts'))
     ax[1].plot(t+start_offset,turn)
+if lift_check:
+ lift.save()
+ sys.exit(0)
 if impulse_test:
  with (folder/'sim-onset.csv').open('w') as f:
   w=csv.writer(f,lineterminator='\n')
