@@ -1,0 +1,44 @@
+1795391351415 behaviors ["InitNormalOperation","ModeSelector","SleepCycle","CoordinateInHabitat","HabitatMutedDispatcher","CoordinateGlobalInterrupts","CoordinateWhileHeldInPalm","CoordinateWhileInAir","GlobalInterruptions","ReactToPutDown","@ReactToPutDownInternal73"]
+1795391351440 cubes {"connectionState":"Unconnected","stateCountdown":[],"subscriberData":[]}
+1795391351540 behaviors ["InitNormalOperation","ModeSelector","SleepCycle","CoordinateInHabitat","HabitatMutedDispatcher","CoordinateGlobalInterrupts","CoordinateWhileHeldInPalm","CoordinateWhileInAir","GlobalInterruptions","ReactToPutDown","@ReactToPutDownInternal73"]
+1795391352646 cubes {"connectedCube":"(none)","connectionState":"UnconnectedIdle","cubeData":[],"preferredCube":"(none)"}
+1795391352651 cubes {"connectionState":"Unconnected","stateCountdown":[],"subscriberData":[]}
+1795391353807 cubes {"connectedCube":"(none)","connectionState":"UnconnectedIdle","cubeData":[],"preferredCube":"(none)"}
+1795391353870 cubes {"connectionState":"Unconnected","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Background"}]}
+1795391353879 behaviors ["DevExecuteBehaviorRerun","ConnectToCube"]
+1795391353887 cubes {"connectionState":"Unconnected","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Background"}]}
+1795391353896 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Background"}]}
+1795391355226 cubes {"connectedCube":"(none)","connectionState":"ScanningForCubes","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"(none)"}
+1795391355228 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Background"}]}
+1795391355584 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[]}
+1795391355584 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391356421 cubes {"connectedCube":"(none)","connectionState":"ScanningForCubes","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"(none)"}
+1795391356423 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391357993 cubes {"connectedCube":"(none)","connectionState":"ScanningForCubes","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"(none)"}
+1795391358002 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391359361 cubes {"connectedCube":"(none)","connectionState":"ScanningForCubes","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"(none)"}
+1795391359363 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391360448 cubes {"connectedCube":"(none)","connectionState":"ScanningForCubes","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"(none)"}
+1795391360450 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391362201 cubes {"connectedCube":"(none)","connectionState":"ScanningForCubes","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"(none)"}
+1795391362206 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391363390 cubes {"connectedCube":"(none)","connectionState":"ScanningForCubes","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"(none)"}
+1795391363395 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391364461 cubes {"connectedCube":"(none)","connectionState":"ScanningForCubes","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"(none)"}
+1795391364465 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391366272 cubes {"connectedCube":"(none)","connectionState":"ScanningForCubes","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"(none)"}
+1795391366278 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391367341 cubes {"connectedCube":"(none)","connectionState":"ScanningForCubes","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"(none)"}
+1795391367343 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391369282 cubes {"connectionState":"Connecting","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391369352 cubes {"connectedCube":"AA:BB:CC:DD:EE:01","connectionState":"Connected (battery: -1.000000V)","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"AA:BB:CC:DD:EE:01"}
+1795391369361 cubes {"connectionState":"ConnectedInteractable","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391371547 cubes {"connectedCube":"AA:BB:CC:DD:EE:01","connectionState":"Connected (battery: -1.000000V)","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"AA:BB:CC:DD:EE:01"}
+1795391371547 cubes {"connectionState":"ConnectedInteractable","stateCountdown":[],"subscriberData":[{"SubscriberName":"ConnectToCube","SubscriptionType":"Interactable"}]}
+1795391371784 cubes {"connectionState":"ConnectedInteractable","stateCountdown":[{"SwitchingToBackgroundIn":15}],"subscriberData":[]}
+1795391371785 behaviors ["DevExecuteBehaviorRerun"]
+1795391371844 behaviors []
+1795391373250 cubes {"connectedCube":"AA:BB:CC:DD:EE:01","connectionState":"Connected (battery: -1.000000V)","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"AA:BB:CC:DD:EE:01"}
+1795391373259 cubes {"connectionState":"ConnectedInteractable","stateCountdown":[{"SwitchingToBackgroundIn":14}],"subscriberData":[]}
+1795391374301 cubes {"connectedCube":"AA:BB:CC:DD:EE:01","connectionState":"Connected (battery: 1.497656V)","cubeData":[{"address":"AA:BB:CC:DD:EE:01","lastRssi":0}],"preferredCube":"AA:BB:CC:DD:EE:01"}
+1795391374304 cubes {"connectionState":"ConnectedInteractable","stateCountdown":[{"SwitchingToBackgroundIn":13}],"subscriberData":[]}

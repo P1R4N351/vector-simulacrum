@@ -21,10 +21,15 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 mkdir -p "$state"/{tmp,run,devsocket,data/data/com.anki.victor/{cache,persistent}}
+# The stock engine forks to invoke sudo for appliance OS settings. If exec
+# fails, the multithreaded ARM child can hang in its libc exit handlers.
+# Return failure from a fresh process inside the sandbox instead.
+printf '%s\n' 'int main(void) { return 1; }' | cc -static -x c -o "$state/deny-os-setting" -
 cp -r "$build/data" "$state/resources"
 for name in vic-robot vic-engine vic-anim; do
   bwrap --die-with-parent --unshare-user --unshare-pid \
-    --ro-bind "$sdk/sysroot/usr" /usr --symlink usr/lib /lib \
+    --ro-bind "$sdk/sysroot/usr/lib" /usr/lib --ro-bind "$sdk/sysroot/usr/share" /usr/share --symlink usr/lib /lib \
+    --ro-bind "$state/deny-os-setting" /usr/bin/sudo \
     --ro-bind "$build" /anki --ro-bind "$state/resources" /anki/data \
     --ro-bind "$repo/3rd/avs-device-sdk/vicos/lib" /avs --ro-bind "$repo/3rd/mpg123/vicos/lib" /mpg \
     --ro-bind "$repo/platform/config/etc/config/platform_config.json" /platform.json \
