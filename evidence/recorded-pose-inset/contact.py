@@ -8,10 +8,12 @@ import math
 import xml.etree.ElementTree as ET
 
 
-def contact_xml(xml, inset_mm):
+def contact_xml(xml, inset_mm, forward_shift_mm=0.0):
     """Move only the load-bearing roller centers inward along chassis x."""
     if not math.isfinite(inset_mm) or not 0 <= inset_mm < 12:
         raise ValueError("inset must be finite, in [0, 12) mm per end")
+    if not math.isfinite(forward_shift_mm) or abs(forward_shift_mm) > inset_mm:
+        raise ValueError("contact centers must remain between the axles")
     root = ET.fromstring(xml)
     root.find("option/flag").set("multiccd", "disable")
     timestep = float(root.find("option").get("timestep"))
@@ -25,6 +27,7 @@ def contact_xml(xml, inset_mm):
         if abs(position[0] - original_x) > 1e-9:
             raise ValueError(f"{name} expected at stock axle, got {position[0]} m")
         position[0] += (-1 if suffix[0] == "f" else 1) * inset_mm / 1000
+        position[0] += forward_shift_mm / 1000
         roller = ET.SubElement(chassis, "body", name="patch_" + suffix,
                                pos=" ".join(f"{x:.12g}" for x in position))
         shaft = axle.find("joint")

@@ -65,7 +65,7 @@ def read_inputs(data):
     runs=[]; truth=[]; measures=[]
     for i,seg in enumerate(spins):
         # ACK is logged after stop reaches the robot; the available issued_t marks dispatch instead.
-        stop=next(c for c in commands if c.get('name')=='stop' and c['t']==seg.t_stop)
+        stop=next(c for c in commands if c.get('name')=='stop' and seg.t_stop in (c['t'],c.get('issued_t')))
         seg=recording.Segment(seg.label,seg.kind,seg.t_cmd,stop['issued_t'],seg.left,seg.right)
         rows=[row(seg.label,'recorded',s['t']-seg.t_cmd,s['gyro'],s['head'],s['wl'],s['wr'],s['lift'],
                   *s['pose'][:2],s['yaw'],values['imu_pitch_offset_deg']) for s in states
