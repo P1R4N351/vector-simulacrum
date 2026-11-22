@@ -224,3 +224,11 @@ The paired log contains head angle and planar odometry. To estimate camera pitch
 During the lift the recorded head angle stays constant. The 5.430 s image gives −0.20° apparent camera pitch relative to the reference (34 features, 2.23 px reprojection RMS). At 6.160 s it is −0.19° (16 features, 0.96 px RMS). At the intervening 5.848 s exposure the cube occludes the room and no patches pass. Times here are host receipt times; encoder interpolation uses the existing 232 ms offset. This makes a sustained multi-degree chassis pitch unlikely across the two visible samples. A short excursion during the missing exposure remains unresolved.
 
 [Measured pitch and missing exposure](background-pitch.png) · [Per-image quality and encoder values](background-pitch.csv). Run background_pitch.py with the repository root and the paired capture's onboard JPEG directory.
+
+### Could an off-center battery explain the missed tilt?
+
+Neither the household cube's mass nor its mass distribution was measured in this session. We tested the existing 50 g assumption and the 85 g vendor Webots reference. At each mass we compared a uniform 44 mm cube with nine idealized insert cases: 80% uniform and 20% concentrated at the center or at each combination of ±14 mm on three axes. The extreme cases shift the total center of mass 2.8 mm per axis (4.85 mm diagonally). The tensor about the new center includes the parallel-axis terms for both components. The point insert is a sensitivity model, not a measured battery assembly.
+
+Across five replays per case, trial 1 peak tilt ranged from 1.89° to 2.55°, and its endpoint missed by 26.39–27.12 mm. In separate uniform-mass controls changing the solver step from 1 ms to 0.25 ms gave peak tilts of 2.21° (50 g) and 2.27° (85 g), scored on a common 20 ms grid. Within these tests neither mass distribution nor finer time integration explains the physical lift. The contact model still misses the onset of asymmetric engagement.
+
+[Five-trial comparison](cube-mass-distribution.png) · [Mass and inertia cases](cube-mass-distribution.csv) · [Step-size controls](mass-step-check.csv). Run cube_mass_distribution.py and mass_step_check.py with the same arguments as evaluate.py.
