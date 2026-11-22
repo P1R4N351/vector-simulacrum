@@ -105,3 +105,13 @@ The unit 3 shelf-cube profile now uses the previously fitted effective gain of 0
 We placed a free cube upright or sideways in VectorSim, let it settle and decoded three seconds of its normal packets with the standard noise and word format. Across the four windows the absolute error in the magnitude of the mean acceleration vector drops from 29.66–30.32 mg to 0.37–1.03 mg. The generic Vector 1 profile retains nominal gain. This transfer validates resting magnitude for this cube; negative faces, X gain and impact response still need separate measurements. A bias could account for part of the apparent gain.
 
 [Free-cube output comparison](free-sensor.png) · [Window errors](free-sensor.csv) · [Simulator entry-point check](free_sensor.py)
+
+### When does the receiver stop seeing cube packets?
+
+Long intervals between incoming packets recur regularly in the robot-uptime trace. Using only the original rest recording, we fit 1.22746 s between returning packets (linear fit across 18 gaps) and a median gap width of 0.260 s. In each of five separate sessions we used the first return to establish phase and predicted subsequent gaps without refitting. A gap is an interarrival interval over 150 ms. Scoring excludes the phase-setting gap and uses complete return times within the trace.
+
+The schedule predicted the count of subsequent returns in every session (179 overall). Per-session median absolute return error ranged from 6 to 25 ms; maximum error reached 113 ms. Time overlap between observed and predicted gap intervals, divided by their union, ranged from 0.832 to 0.948. In R8, on the command-relative host receipt clock, no new packet arrived between +3.128 and +3.372 s or between +4.327 and +4.599 s. The latter interval ends just before the previously scored late acceleration rise. Interpolating the data across it cannot locate motion onset within the gap.
+
+The simulation emits one packet every 30 ms at its firmware interface. This result describes downstream availability to the recorder, and does not establish whether frames were lost, deferred or never generated. Keep raw simulation and actual observations on separate clocks; use measured arrival times where available. The interval predictor is useful for sensitivity checks where only an initial observed phase is available.
+
+[Held-out timing overlays](receipt-gaps.png) · [Interval scores](receipt-gaps.csv) · [Reproduce](receipt_gaps.py)
