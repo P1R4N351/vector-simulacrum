@@ -9,7 +9,7 @@ from scipy.spatial import ConvexHull
 from scipy.spatial.transform import Rotation
 
 
-def scan(here, model, wrist, rails, rail_q, attitude, carry_offset):
+def scan(here, model, wrist, rails, rail_q, attitude, carry_offset, shell_only=False):
     data = mj.MjData(model)
     data.mocap_pos[model.body("fork").mocapid[0]] = wrist
     for i in range(2):
@@ -47,10 +47,14 @@ def scan(here, model, wrist, rails, rail_q, attitude, carry_offset):
         normal = c.frame[:3] * (-1 if cube_first else 1)
         rows.append([yaw, dz, clear, blocked, a if cube_first else b,
                      b if cube_first else a, *np.round((c.pos - wrist) * 1000, 3), normal[2]])
-    with (here / "entry-scan.csv").open("w") as stream:
+    basename = "shell-entry" if shell_only else "entry-scan"
+    with (here / f"{basename}.csv").open("w") as stream:
         writer = csv.writer(stream)
         writer.writerow("yaw_deg vertical_mm clear_dx_mm contact_dx_mm cube_geom robot_geom wrist_x_mm wrist_y_mm wrist_z_mm upward_normal".split())
         writer.writerows(rows)
+    if shell_only:
+        plot_shell_clearance(here, rows)
+        return
     fig, axes = plt.subplots(1, 2, figsize=(9, 4), layout="constrained")
     for yaw in range(0, 360, 45):
         group = [r for r in rows if r[0] == yaw]
@@ -75,3 +79,21 @@ def scan(here, model, wrist, rails, rail_q, attitude, carry_offset):
     axes[1].set(xlabel="Lateral position from wrist (mm)", ylabel="Height above wrist (mm)")
     axes[1].legend(title="Cube contact")
     fig.savefig(here / "entry-scan.png", dpi=155)
+
+def plot_shell_clearance(here, rigid_rows):
+    with (here / "entry-scan.csv").open() as stream:
+        original = {(int(r["yaw_deg"]), int(r["vertical_mm"])): r for r in csv.DictReader(stream)}
+    fig, axes = plt.subplots(1, 2, figsize=(9, 4), layout="constrained")
+    for yaw in range(0, 360, 45):
+        group = [r for r in rigid_rows if r[0] == yaw]
+        shifts = [float(original[yaw, r[1]]["contact_dx_mm"]) - r[3] for r in group]
+        assert min(shifts) >= -.001
+        vertical = [r[1] for r in group]
+        axes[0].plot(vertical, shifts, ".-", label=f"{yaw}°")
+        axes[1].plot(vertical, [r[3] for r in group], ".-")
+    axes[0].legend(ncol=2, fontsize=7, title="Cube yaw")
+    axes[0].set_ylabel("Extra inward travel with corners omitted (mm)")
+    axes[1].axhline(0, color=".4", ls=":")
+    axes[1].set_ylabel("Rigid shell stop ahead of nominal center (mm)")
+    fig.supxlabel("Cube vertical offset (mm)")
+    fig.savefig(here / "shell-entry.png", dpi=155)
