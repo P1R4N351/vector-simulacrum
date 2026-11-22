@@ -45,3 +45,13 @@ We used only the six full D1 raises to estimate vibration above the pre-stroke b
 Scaling the added RMS vibration amplitude in proportion to total lift travel reduced partial-raise error to 0.62 mg, versus 0.76 mg using the pre-stroke baseline alone. This assumed proportionality has no exponent fitted on the partial raises. It still overpredicted all six. Across all ten evaluation raises (three valid D2, six partial, one full native), none of those travel-scaled predictions was within 5% of the measured SD. The lower portion of a commanded full stroke already vibrates more than a whole native undock raise. Stroke length, the motor profile and mechanical setup remain confounded. Keep the proportional rule offline.
 
 [Per-stroke predictions](lift-reach-transfer.csv) · [Reproduce](lift_reach_transfer.py)
+
+## Could cube heading explain the lateral vibration discrepancy?
+
+We took successive XYZ accelerometer differences within each three-sample BLE packet and projected them onto the plane perpendicular to each stroke's pre-command mean gravity. We used the same rest and 10–90% lift windows as the original comparison. The sum of the two horizontal mean squared steps, divided by two, is invariant under any rotation about that gravity direction. Its square root gives the plotted vibration amplitude. This assumes gravity direction stays effectively fixed during each stroke.
+
+Twelve docked D1 strokes supplied the added horizontal variance separately for raises and lowers. On all seven timing-valid off-dock D2 strokes the prediction exceeded the observation. Across the three raises D2 measured 3.74–4.60 mg against 5.96–6.07 mg predicted. Across the four lowers it measured 3.00–3.75 mg against 6.18–6.55 mg. Taking the median of the individual D1 variance increments reduced mean absolute amplitude error from 2.43 to 1.26 mg. Using each D2 stroke's quiet baseline alone gave 0.76 mg. Errors weight each stroke equally.
+
+A cube heading change can redistribute vibration across its axes but preserves this horizontal total. Even allowing a separate best-case horizontal rotation on each D2 stroke leaves a residual in the second-moment matrix (reported in mg²). Dock coupling, lift profile and cube location still differ between sessions. These recordings support keeping the D1 horizontal vibration gain out of the shared sensor model.
+
+[Overlay](horizontal-vibration.png) · [Per-stroke scores](horizontal-vibration.csv) · [Reproduce](horizontal_vibration.py)
