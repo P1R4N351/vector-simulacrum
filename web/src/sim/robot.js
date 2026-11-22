@@ -63,6 +63,7 @@ export class VectorSim {
     assert(mujoco && opts && typeof opts.xml === "string", "VectorSim needs the mujoco module and the MJCF");
     this.mujoco = mujoco;
     this.shelfOutline = opts.shelfOutline;
+    this.cubeStartXY = opts.cubeStartXY;
     this.v = opts.values;
     this.d = opts.derived;
     this.dt = this.v.control_period_ms * 0.001;
@@ -95,6 +96,11 @@ export class VectorSim {
     this.mujoco.mj_resetData(this.model, this.data);
     this._initCommands();
     this.hazards = new Hazards(this.v);
+    if (this.cubeStartXY) {
+      const joint = this.mujoco.mj_name2id(this.model, this.mujoco.mjtObj.mjOBJ_JOINT.value, "cube_root");
+      assert(joint >= 0, "mapped cube placement requires a free cube");
+      this.data.qpos.set(this.cubeStartXY.map(mm => mm * MM), this.model.jnt_qposadr[joint]);
+    }
     this._place(opts.startXyMm ?? [0, 0], opts.headingDeg ?? 0);
     this._poseServos(opts.headDeg ?? 0, opts.liftMm ?? null);
     this._settle();

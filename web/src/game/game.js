@@ -18,6 +18,7 @@ import { CONTROL_DEFAULT, CONTROL_OVERRIDE, VectorSim } from "../sim/robot.js";
 import { bootHalt, bootLine, gameApi, useGame } from "../store.js";
 import { HIDDEN_FROM_ROBOT } from "./headcam.js";
 import { createInput } from "./input.js";
+import { mappedCubeXY } from "../sim/shelf_cube_pose.js";
 import shelfCube from "../sim/shelf_cube.json";
 import { loadCubeLook } from "./cube.js";
 import { buildVisuals } from "./scene.js";
@@ -95,12 +96,13 @@ async function loadEverything() {
   doneCheck(await checkModel(xml, free ? model.source[sceneName + "_sha256"] : (trial ? model.source.trial_xml_sha256 : model.source.xml_sha256)));
   const mujoco = await traced("WEBASSEMBLY", loadMujoco({ locateFile: (p) => (p.endsWith(".wasm") ? mujocoWasmUrl : p) }));
   const doneCompile = bootLine("COMPILE AND SETTLE");
+  const mapFile = options.get("map") === "live" ? "shelf-navmap-live.json" : "shelf-navmap.json";
+  const navMap = shelf ? JSON.parse(await fetchText("./robot/vector2/" + mapFile)) : null;
   const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
+    cubeStartXY: shelf ? mappedCubeXY(navMap, model.values.cube_size_mm, -66, 30) : null,
     shelfOutline: shelf ? model.shelf_outline_mm : null,
     bodyRangeClock: options.get("rangeClock") === "body", chargerContact: options.get("chargerContact") === "1" });
   doneCompile("OK");
-  const mapFile = options.get("map") === "live" ? "shelf-navmap-live.json" : "shelf-navmap.json";
-  const navMap = shelf ? JSON.parse(await fetchText("./robot/vector2/" + mapFile)) : null;
   return { mujoco, model, sim, free, navMap };
 }
 

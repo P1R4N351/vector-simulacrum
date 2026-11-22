@@ -27,3 +27,5 @@ Grouping edge-connected leaves before computing their area-weighted centres sepa
 ![W13 camera footprint and native obstacle components](cube-map-check.png)
 
 Reproduce with `PYTHONPATH=. python evidence/unit3-wheelstand/shelf-scene/cube_map_check.py`.
+
+The shelf web scene now initializes the free cube's horizontal position from a single cube-sized, edge-connected observable region entirely ahead of the dock lip. Missing or ambiguous regions keep the scenario's nominal placement. The map supplies XY only. At W13 the original (100, 0) mm placement was 12.02 mm from the optical sighting and the map placement was 9.25 mm away. A subsequent 50-revision export moved the estimated centre by 0.11 mm. Both exports include the same physical placement.
