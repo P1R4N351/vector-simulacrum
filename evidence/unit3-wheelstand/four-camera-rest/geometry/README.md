@@ -9,3 +9,11 @@ The image alone cannot distinguish lens distortion, principal point or pixel sca
 ![Observed border intersections in green, nominal camera predictions in magenta, and free projective predictions in orange](face-transfer.jpg)
 
 [All three edge thresholds and fit errors](face-transfer.csv) · [processed source crop](source.png) · [reproduce with Python, SciPy and OpenCV](check.py).
+
+### Browser glyph dimensions
+
+We measured the browser's actual optical model using the pinned SDK mesh and atlas, the browser's per-axis scaling to 44 mm, and its top-origin UV convention. We located the atlas border at grayscale 128 and mapped its edge midpoints to the mesh. All six glyph planes coincide with the outer face planes to numerical precision. Their apparent dimensions span 21.89–23.28 mm and their centers lie 0.48–1.19 mm off the face centers. One border midpoint falls just outside the UV panel and uses slight extrapolation. These measurements describe the SDK artwork. The physical cube still requires independent metric reference.
+
+For the camera comparison we extrapolated straight border lines from the interior mapping and compared the three rectified physical symbol interiors to all 24 proper cube rotations. The two best mean correlation scores were 0.672 and 0.662. Orientation is ambiguous, so we scored both. With the general projective camera, nominal centered squares yielded held-out RMS of 2.74/4.27/3.05 px (top/left/right). The browser artwork yielded 4.10/6.29/5.95 px for the first orientation and 4.01/7.15/3.29 px for the second. Switching the calibration target to the SDK artwork worsens every face in both hypotheses. We retain nominal squares for physical camera reconstruction. No physical recess or offset has been inferred from the SDK.
+
+[Six-face dimensions](sdk-glyphs.csv) · [per-face scores](sdk-projection.csv). To reproduce, install the optional SDK assets with the repository's web/tools/fetch_sdk_model.py, then run sdk_glyphs.py and sdk_projection.py. Only measurements and analysis code are included here.
