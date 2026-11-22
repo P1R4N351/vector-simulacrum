@@ -152,6 +152,7 @@ patch = []
 torque = []
 world_torque = []
 approach_yaw = []
+relative_tool = []
 cube_id, fork_id = m.body("cube").id, m.body("fork").id
 weight = m.body_mass[cube_id] * np.linalg.norm(m.opt.gravity)
 link_bodies = [m.body(f"rail{j}").id for j in range(2)]
@@ -208,6 +209,10 @@ for i, tick in enumerate(t):
         samples = [] if tick < 2.335 else None
         projected, world, lean_axis = moments(m,d,cube_id,floor,fork_id,samples)
         if samples is not None:
+            cube_axes = d.xmat[cube_id].reshape(3,3)
+            tool_axes = d.xmat[fork_id].reshape(3,3)
+            relative_tool.append([tick, *((d.xpos[fork_id]-d.xpos[cube_id]) @ cube_axes),
+                                  *(cube_axes.T @ tool_axes).ravel()])
             approach_yaw.extend((tick, *sample) for sample in samples)
         # cvel is the pre-integration world velocity used by this step.
         world_torque.append([tick,height[i],*lean_axis,*d.cvel[cube_id,:3],*world.ravel()])
@@ -235,6 +240,8 @@ for i, tick in enumerate(t):
 a = np.array(traces)
 output = args.output or (here if args.substeps == 1 else here/f"substeps-{args.substeps}")
 output.mkdir(exist_ok=True)
+np.savetxt(output/"relative-tool.csv",relative_tool,delimiter=",",comments="",
+           header="sec,x_m,y_m,z_m,r00,r01,r02,r10,r11,r12,r20,r21,r22")
 with (output/"approach-yaw-contacts.csv").open("w") as stream:
     writer = csv.writer(stream, lineterminator="\n")
     writer.writerow("sec cube_geom fork_x_m fork_y_m fork_z_m normal_N normal_yaw_Nm other_yaw_Nm cube_x_m cube_y_m cube_z_m".split())
