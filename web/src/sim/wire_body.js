@@ -16,6 +16,10 @@ export class WireBody {
     sim.bodyRangeClock = true;
     this.seq = 0;
     this.prev = null;
+    this.cubeTick = sim.cubeSensor?.ticks ?? 0;
+    this.cubeTaps = sim.cubeSensor?.packet?.taps ?? 0;
+    this.lastAdvertisementSeq = null;
+    this.cubeSensor = sim.cubeSensor;
     this.elapsed = [0, 0, 0, 0];
     this.delta = [0, 0, 0, 0];
     this.period = [0, 0, 0, 0];
@@ -65,15 +69,42 @@ export class WireBody {
     this.seq = (this.seq+1)>>>0;
     return bytes;
   }
+
+  // simCubeClient assembles three consecutive v1 messages into a single BLE report.
+  cubeFrames() {
+    const sensor = this.sim.cubeSensor;
+    if (!sensor) return [];
+    if (sensor !== this.cubeSensor) {
+      this.cubeSensor = sensor;
+      this.cubeTick = this.cubeTaps = 0;
+    }
+    const frames = [];
+    if ((this.seq - 1) % 200 === 0 && this.lastAdvertisementSeq !== this.seq) {
+      frames.push(cubeFrame([0, 0, 0], true, false));
+      this.lastAdvertisementSeq = this.seq;
+    }
+    // The sensor only retains its latest three slots after a delivery interruption.
+    this.cubeTick = Math.max(this.cubeTick, sensor.ticks - sensor.slots.length);
+    while (this.cubeTick < sensor.ticks) {
+      const slot = sensor.slots[this.cubeTick % 3];
+      this.cubeTick++;
+      // tap_count belongs to the completed three-slot report, including its wrap.
+      const reportEnd = this.cubeTick % 3 === 0;
+      const tapped = reportEnd && sensor.packet.taps !== this.cubeTaps;
+      if (reportEnd) this.cubeTaps = sensor.packet.taps;
+      frames.push(cubeFrame(slot, false, tapped));
+    }
+    return frames;
+  }
 }
 
-export function cubeFrame(sim, advertised, tapped) {
+function cubeFrame(slot, advertised, tapped) {
   const bytes = new Uint8Array(40), v = new DataView(bytes.buffer);
   v.setUint32(0,0x56494343,true);
   v.setUint32(4,1,true);
   bytes[8] = advertised ? 1 : 2;
   bytes.set(new TextEncoder().encode("AA:BB:CC:DD:EE:01"),9);
-  sim._cubeForce().forEach((g,i) => v.setInt16(30+2*i,Math.max(-32768,Math.min(32767,Math.round(g*32767/4))),true));
+  slot.forEach((counts,i) => v.setInt16(30+2*i,counts,true));
   bytes[36] = tapped ? 1 : 0;
   v.setUint16(38,Math.trunc(1.5*1024/3.6),true);
   return bytes;

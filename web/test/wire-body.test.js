@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { motorCommand, WireBody, cubeFrame } from "../src/sim/wire_body.js";
+import { motorCommand, WireBody } from "../src/sim/wire_body.js";
 import { VectorSim } from "../src/sim/robot.js";
 import { mujoco, readJson, readText } from "./helpers.js";
 
@@ -15,17 +15,25 @@ test("upstream v6 motor packet drives the WASM body and v1 free cube returns spe
   try {
     const body=new WireBody(sim), power=motorCommand(bytes);
     const first=new DataView(body.frame(power).buffer);
-    for(let i=0;i<80;i++) body.frame(power);
+    const frames = body.cubeFrames();
+    for(let i=0;i<80;i++) {
+      body.frame(power);
+      frames.push(...body.cubeFrames());
+    }
     const last=new DataView(body.frame(power).buffer);
     assert.equal(last.byteLength,812);
     assert.equal(last.getUint32(16,true),81);
     assert.ok(last.getInt32(24,true)>first.getInt32(24,true));
     assert.ok(last.getInt32(36,true)<first.getInt32(36,true));
     assert.ok(Number.isFinite(last.getFloat32(804,true)));
-    const cube=new DataView(cubeFrame(sim,false,true).buffer);
+    assert.equal(frames.filter(bytes => bytes[8] === 1).length, 1);
+    const accel = frames.filter(bytes => bytes[8] === 2);
+    assert.equal(accel.length, 40);
+    const cube=new DataView(accel.at(-1).buffer);
     assert.equal(cube.getUint8(8),2);
-    assert.equal(cube.getUint8(36),1);
-    assert.ok(Math.abs(cube.getInt16(34,true)-8192)<150);
+    assert.equal(cube.getInt16(34,true),sim.cubeSensor.slots[0][2]);
+    const expectedZ = profile.values.cube_accel_counts_per_g * profile.values.cube_accel_scale[2];
+    assert.ok(Math.abs(cube.getInt16(34,true)-expectedZ)<150);
   } finally { sim.dispose(); }
 });
 
@@ -87,4 +95,20 @@ test("shelf charger supply follows both pads through seating and displacement", 
     assert.equal(previous, 0);
     assert.equal(releases, 1);
   } finally { sim.dispose(); }
+});
+
+test("cube v1 preserves physical slot ordering and a wrapping firmware tap count", () => {
+  const sensor = {ticks: 0, slots: [[-731,202,8001],[12,85,7909],[4,1,8157]], packet: null};
+  const body = new WireBody({cubeSensor: sensor});
+  body.seq = 2;
+  body.cubeTaps = 255;
+  sensor.packet = {taps: 0};
+  for (let i = 0; i < 6; i++) {
+    sensor.ticks++;
+    const [bytes] = body.cubeFrames();
+    const view = new DataView(bytes.buffer);
+    assert.deepEqual([30,32,34].map(offset => view.getInt16(offset,true)), sensor.slots[i%3]);
+    assert.equal(bytes[36], Number(i === 2));
+    assert.deepEqual(body.cubeFrames(), []);
+  }
 });

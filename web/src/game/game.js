@@ -11,7 +11,7 @@
 // slower than real time (and says so in the readout) rather than stall the page.
 
 import { attachWireCamera } from "./wire_camera.js";
-import { WireBody, cubeFrame } from "../sim/wire_body.js";
+import { WireBody } from "../sim/wire_body.js";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
@@ -284,7 +284,6 @@ function startLoop(ctx) {
     attachWireCamera(hot, ctx);
     hot.on("wire:cube-lights", colors => visuals.updateCubeLights(colors));
     hot.on("wire:face", frame => visuals.updateFirmwareFace(frame));
-    let lastTap = 0;
     hot.on("wire:power", values => { power = values; receivedAt = performance.now(); });
     hot.on("wire:error", bootHalt);
     hot.on("wire:ready", () => {
@@ -294,11 +293,8 @@ function startLoop(ctx) {
         if (useGame.getState().paused) return;
         const bytes = body.frame(performance.now()-receivedAt < 250 ? power : [0,0,0,0]);
         hot.send("wire:frame",btoa(String.fromCharCode(...bytes)));
-        if (sim.cubeSensor) {
-          const taps = sim.cubeSensor.listeners.tapEvents;
-          if ((body.seq-1)%200===0) hot.send("wire:cube",btoa(String.fromCharCode(...cubeFrame(sim,true,false))));
-          hot.send("wire:cube",btoa(String.fromCharCode(...cubeFrame(sim,false,taps>lastTap))));
-          lastTap=taps;
+        for (const cube of body.cubeFrames()) {
+          hot.send("wire:cube", btoa(String.fromCharCode(...cube)));
         }
         ticksInWindow++;
       }, sim.dt*1000);
