@@ -23,3 +23,19 @@ The fork progressively obscures the lower marker corners. Optical flow on featur
 ## Reproduction
 
 From this directory run `python scale.py`, `python contact.py 10379.5644` and `python endpoints.py` with the dependencies listed in the contact replay. The first argument to contact.py sets the optical scale for two sensitivity checks. The unit 3 result always reads the checked-in camera profile. The Python Vector 2 model now builds the head camera at this stream resolution and vertical field of view. The web optics exporter can construct the matching off-axis camera block from the Vector 2 parameters. The default web scene still selects Vector 1. The calibration RPC exposed no distortion coefficients. These measurements cover the shelf and this individual robot.
+
+## Predicting recorded pixels after robot motion
+
+![Observed marker and camera projections on the recorded final views](reprojection.png)
+
+The initial onboard outline gives a six-degree-of-freedom pose for a 23 mm square. Hold its four corners fixed in world coordinates, move the simulated camera using the recorded chassis odometry and head angle, and project into the final image. Only the initial view enters the pose solve. The yellow outline is the settled median of the four measured printed edges extrapolated to their intersections. The background images are the nearest recorded JPEGs to the final sample, 0.17 and 0.25 seconds later respectively. Both are cropped from the native 800 × 600 stream.
+
+| Motion | Legacy 537 px camera | Unit 3 factory camera |
+|---|---:|---:|
+| 16.8° reorientation between pushes | 35.91 px | 3.29 px |
+| 18 mm retreat after final push | 8.22 px | 5.90 px |
+| Three settled intervals, individually | 0.20–0.33 px | 0.14–0.38 px |
+
+Errors are RMS Euclidean distances between corresponding image corners. During retreat the factory camera predicts every x coordinate to within 0.43 px, while every y coordinate lands 5.27–6.47 px high. The overhead camera measured 0.06 mm of horizontal cube travel during that retreat. The head encoder reported the same angle at both endpoints. Chassis pitch was absent from this recording. The residual could reflect body attitude, camera geometry or marker pose estimation. These two moving pairs come from a single robot and recording. No parameter was fitted to their final views.
+
+Run `python reprojection.py` here to regenerate the overlay and per-corner CSV.
