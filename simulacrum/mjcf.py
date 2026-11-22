@@ -71,30 +71,39 @@ def _fork_center_wrt_wrist(v: Dict[str, Any]) -> Tuple[float, float]:
     return x_c, z_c
 
 
-def _moving_part_points(v: Dict[str, Any]) -> List[Tuple[float, float, float]]:
-    """(mass g, x mm, z mm) of every part except the chassis, lift down, head level."""
+def _moving_part_points(v: Dict[str, Any], lower_link_offset: Any = None) -> List[Tuple[float, float, float]]:
+    """(mass g, x mm, z mm) of every part except the chassis, lift down, head level. The head's mass sits at
+    the centre of its box. With lower_link_offset (x, z of the lower links' pivot from the upper one, mm;
+    the real body's parallelogram) half the arm mass is on each pair of links."""
     m = _part_masses(v)
+    hx, _, hz = v["head_box_center_wrt_neck_mm"]
     a0 = lift_angle_of_height(v, v["lift_height_min_mm"])
     sx, _, sz = v["lift_base_position_mm"]
     arm_len = v["lift_arm_length_mm"]
     wrist = (sx + arm_len * math.cos(a0), sz + arm_len * math.sin(a0))
     fx, fz = _fork_center_wrt_wrist(v)
+    arm_x, arm_z = 0.5 * (sx + wrist[0]), 0.5 * (sz + wrist[1])
+    arm = [(m["arm"], arm_x, arm_z)]
+    if lower_link_offset is not None:
+        ox, oz = lower_link_offset
+        arm = [(0.5 * m["arm"], arm_x, arm_z), (0.5 * m["arm"], arm_x + ox, arm_z + oz)]
     points = [
-        (m["head"], v["neck_joint_position_mm"][0], v["neck_joint_position_mm"][2]),
-        (m["arm"], 0.5 * (sx + wrist[0]), 0.5 * (sz + wrist[1])),
+        (m["head"], v["neck_joint_position_mm"][0] + hx, v["neck_joint_position_mm"][2] + hz),
+        *arm,
         (m["fork"], wrist[0] + fx, wrist[1] + fz),
         (2.0 * m["wheel"], wheel_x_mm(v)[0], v["wheel_front_radius_mm"]),
         (2.0 * m["wheel"], wheel_x_mm(v)[1], v["wheel_rear_radius_mm"]),
     ]
     assert all(p[0] > 0.0 for p in points), "non-positive part mass"
-    assert len(points) == 5, "part list changed"
+    assert len(points) == (5 if lower_link_offset is None else 6), "part list changed"
     return points
 
 
-def derive(v: Dict[str, Any]) -> Dict[str, Any]:
-    """Quantities computed from the table: chassis inertial, limits, gear ratio."""
+def derive(v: Dict[str, Any], lower_link_offset: Any = None) -> Dict[str, Any]:
+    """Quantities computed from the table: chassis inertial, limits, gear ratio. lower_link_offset as in
+    _moving_part_points, for the real body, so that the whole robot keeps the table's centre of mass."""
     masses = _part_masses(v)
-    points = _moving_part_points(v)
+    points = _moving_part_points(v, lower_link_offset)
     total = v["total_mass_g"]
     com_x = (total * v["com_x_mm"] - sum(p[0] * p[1] for p in points)) / masses["chassis"]
     com_z = (total * v["com_z_mm"] - sum(p[0] * p[2] for p in points)) / masses["chassis"]
@@ -178,7 +187,7 @@ def _tip_supports_xml(v: Dict[str, Any]) -> str:
     assert gap > 0.0, "tip supports must clear the table"
     if inset <= 0.0:
         return ""
-    half, half_w = 0.5 * v["tread_spacing_mm"] * MM, 0.5 * v["tread_width_mm"] * MM
+    half, half_w = 0.5 * v["tread_center_spacing_mm"] * MM, 0.5 * v["tread_width_mm"] * MM
     rf, rr, base = v["wheel_front_radius_mm"], v["wheel_rear_radius_mm"], v["wheel_base_mm"]
     assert gap < min(rf, rr), "tip supports would have no size"
     out = ""
@@ -192,7 +201,7 @@ def _tip_supports_xml(v: Dict[str, Any]) -> str:
 
 
 def _wheels_xml(v: Dict[str, Any]) -> str:
-    half = 0.5 * v["tread_spacing_mm"]
+    half = 0.5 * v["tread_center_spacing_mm"]  # as built; tread_spacing_mm is the firmware's constant
     assert half > 0.5 * v["chassis_width_mm"], "treads overlap the chassis"
     rf, rr = v["wheel_front_radius_mm"], v["wheel_rear_radius_mm"]
     front, rear = wheel_x_mm(v)
@@ -204,6 +213,10 @@ def _head_xml(v: Dict[str, Any]) -> str:
     lo, hi = math.radians(v["head_angle_min_deg"]), math.radians(v["head_angle_max_deg"])
     assert lo < 0.0 < hi, "head range must straddle level"
     bx, by, bz = (0.5 * s * MM for s in v["head_box_mm"])
+    offset = v["head_box_center_wrt_neck_mm"]
+    assert len(offset) == 3, "head box offset has three axes"
+    # Written only when set, so a centred box gives the same text as before the offset existed.
+    box_pos = f' pos="{vec([c * MM for c in offset])}"' if any(offset) else ""
     arm = v["servo_armature_gcm2"] * 1e-7
     cam, imu = v["head_camera_position_mm"], v["imu_position_mm"]
     res = v["camera_resolution_px"]
@@ -218,7 +231,7 @@ def _head_xml(v: Dict[str, Any]) -> str:
         f'    <body name="head" pos="{vec([c * MM for c in v["neck_joint_position_mm"]])}">\n'
         f'      <joint name="head_joint" type="hinge" axis="0 -1 0" range="{num(lo)} {num(hi)}" '
         f'armature="{num(arm)}"/>\n'
-        f'      <geom name="head_geom" type="box" size="{vec((bx, by, bz))}" '
+        f'      <geom name="head_geom" type="box"{box_pos} size="{vec((bx, by, bz))}" '
         f'mass="{num(v["head_mass_g"] * GRAM)}" rgba="0.25 0.25 0.3 1" group="{ROBOT_GEOM_GROUP}" '
         f'{_contact_attrs(v, v["chassis_friction"])}/>\n'
         f'      <camera name="head_cam" pos="{vec([c * MM for c in cam])}" xyaxes="0 -1 0 {camera_up}" '
@@ -238,7 +251,7 @@ def _cube_chip_xml(v: Dict[str, Any]) -> str:
 
 def _free_cube_xml(v: Dict[str, Any]) -> str:
     """SDK shell and rubber pads from the shelf-push fixture, centered 100 mm ahead of world zero."""
-    side = v["cube_size_mm"] * MM
+    side = v["cube_outer_mm"] * MM
     mass = v["cube_mass_g"] * GRAM
     assert side > 0 and mass > 0
     inertia = mass * side**2 / 6
@@ -260,7 +273,7 @@ def _carried_cube_xml(v: Dict[str, Any]) -> str:
     """A light cube held in the lift, as the engine places a carried cube (cube_carry_offset_mm from the
     wrist, on the level fork's axes), with a site at its accelerometer. The fork's body is the parent, so the
     two never collide with each other; the cube touches the world like the fork does."""
-    half = 0.5 * v["cube_size_mm"]
+    half = 0.5 * v["cube_outer_mm"]
     assert half > 0.0 and v["cube_mass_g"] > 0.0, "the cube must have size and mass"
     assert len(v["cube_carry_offset_mm"]) == 3, "the carry offset has three axes"
     return (
@@ -430,12 +443,14 @@ def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cub
     simulacrum.body_mesh.load> gives it the real outer shape from Anki's rig: convex collision
     pieces and visual meshes on the chassis, head, both pairs of lift links and the fork."""
     assert cube in CUBE_MOUNTS, "unknown cube placement"
-    d = derive(v)
     gravity = -v["gravity_mmps2"] * MM
     assert gravity < 0.0, "gravity must point down"
     assert v["sim_timestep_ms"] > 0.0, "timestep must be positive"
     if body is not None:
+        lower, upper = body["frames"]["lift_lower"]["origin_mm"], v["lift_base_position_mm"]
+        d = derive(v, (lower[0] - upper[0], lower[2] - upper[2]))
         return _build_mesh_body(v, d, obstacles, cube, body)
+    d = derive(v)
     return (
         '<mujoco model="vector_simulacrum">\n'
         '  <compiler angle="radian" autolimits="true"/>\n'

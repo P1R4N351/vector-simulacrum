@@ -66,6 +66,14 @@ class Geometry(unittest.TestCase):
         self.assertAlmostEqual(float(up[0, 2]), 5.0, places=9)  # positive angle lifts +x towards +z
         np.testing.assert_allclose(body_mesh.rot_y_up(up, math.radians(-30.0)), p, atol=1e-12)
 
+    def test_touchdown_has_the_known_answer(self) -> None:
+        # A point 20 mm behind an axle 10 mm up, on a 10 mm wheel, reaches the table when sin(pitch) = 0.5.
+        got = body_mesh.touchdown_deg(np.array([[-20.0, 0.0, 10.0]]), 0.0, 10.0, 10.0)
+        # The first search step at or past the true angle, so up to one step late.
+        self.assertGreaterEqual(got, 30.0 - 1e-9)
+        self.assertLessEqual(got, 30.0 + body_mesh.TOUCHDOWN_STEP_DEG + 1e-9)
+        self.assertEqual(body_mesh.touchdown_deg(np.array([[-5.0, 0.0, 8.0]]), 0.0, 10.0, 10.0), math.inf)
+
     def test_table_check_names_a_drifted_feature(self) -> None:
         v = params.values(params.load())
         neck, base = v["neck_joint_position_mm"], v["lift_base_position_mm"]
@@ -125,6 +133,21 @@ class Solids(unittest.TestCase):
         self.assertFalse(kept[2, 15, 15])
         self.assertTrue(kept[15, 15, 15])
         self.assertGreater(int(kept.sum()), int(0.95 * 25 ** 3))
+
+    def test_tread_hull_is_shrunk_inside_the_tip_supports(self) -> None:
+        a = np.linspace(0.0, 2.0 * math.pi, 64, endpoint=False)
+        ring = np.column_stack((14.5 * np.cos(a), np.zeros_like(a), 14.5 + 14.5 * np.sin(a)))
+        v, _ = body_mesh.clipped_hull(np.concatenate((ring, ring + [0.0, 10.0, 0.0])), 0.3, 0.5)
+        # 29 less the inset; a 64-sided ring's apex drops by inset / cos(2.8 deg) = 0.5006.
+        self.assertAlmostEqual(float(v[:, 2].max()), 29.0 - 0.5 / math.cos(math.pi / 64), places=6)
+        self.assertLess(float(np.hypot(v[:, 0], v[:, 2] - 14.5).max()), 14.5 - 0.3)  # inside a tip support
+
+    def test_clip_keeps_only_what_lies_inside(self) -> None:
+        v, _ = box_mesh((0, 0, 0), (20, 20, 20))
+        cut = body_mesh.clip_to(v, np.array([[0.0, 0.0, 1.0, -5.0]]))  # z <= 5
+        self.assertIsNotNone(cut)
+        self.assertAlmostEqual(body_mesh.mesh_volume(*cut), 20 * 20 * 5, places=6)
+        self.assertIsNone(body_mesh.clip_to(v, np.array([[0.0, 0.0, 1.0, 5.0]])))  # z <= -5: nothing left
 
     def test_clipped_hull_stands_on_its_floor(self) -> None:
         a = np.linspace(0.0, 2.0 * math.pi, 64, endpoint=False)
@@ -241,6 +264,20 @@ class MeshModeModel(unittest.TestCase):
         mesh = mujoco.MjModel.from_xml_string(self.xml)
         prim = mujoco.MjModel.from_xml_string(mjcf.build_mjcf(self.v))
         self.assertAlmostEqual(float(mesh.body_subtreemass[1]), float(prim.body_subtreemass[1]), places=12)
+
+    @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
+    def test_the_real_body_keeps_the_tables_centre_of_mass(self) -> None:
+        import mujoco
+
+        m = mujoco.MjModel.from_xml_string(self.xml)
+        d = mujoco.MjData(m)
+        low = mjcf.derive(self.v)["lift_angle_min"]
+        for name, angle in (("lift_joint", low), ("wrist_joint", -low), ("lift_lower_joint", low)):
+            d.joint(name).qpos[0] = angle
+        mujoco.mj_forward(m, d)
+        com = d.subtree_com[m.body("chassis").id] / mjcf.MM
+        self.assertAlmostEqual(float(com[0]), self.v["com_x_mm"], delta=0.05)
+        self.assertAlmostEqual(float(com[2]), self.v["com_z_mm"], delta=0.05)
 
     @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
     def test_lower_links_follow_the_lift(self) -> None:

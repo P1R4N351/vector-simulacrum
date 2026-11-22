@@ -103,14 +103,15 @@ class Geometry(unittest.TestCase):
     def test_the_tables_robot_balances_at_65_and_52_degrees(self) -> None:
         angles = wheelstand.expected_deg(V["com_x_mm"], V["com_z_mm"], G)
         self.assertAlmostEqual(angles["rear"], 64.885, delta=0.001)
-        self.assertAlmostEqual(angles["side"], 51.843, delta=0.001)
+        self.assertAlmostEqual(angles["side"], 53.471, delta=0.001)  # tread edge at 29.7 mm (tread_center_spacing_mm, tread_width_mm)
 
     def test_a_ruler_width_sets_the_side_edge_and_narrows_the_interval(self) -> None:
-        self.assertEqual(wheelstand.geometry(V, 56.0)["edge_y"], 28.0)
+        width = V["tread_center_spacing_mm"] + V["tread_width_mm"]  # a ruler reading the table's own width
+        self.assertAlmostEqual(wheelstand.geometry(V, width)["edge_y"], 0.5 * width, places=9)
         angles = wheelstand.expected_deg(-24.0, 22.0, G)
         table = wheelstand.solve_interval((angles["rear"], 0.5), (angles["side"], 0.5), V)
-        ruler = wheelstand.solve_interval((angles["rear"], 0.5), (angles["side"], 0.5), V, 56.0)
-        alone = wheelstand.solve_interval((angles["rear"], 0.5), (angles["side"], 0.5), V, 56.0, angles_only=True)
+        ruler = wheelstand.solve_interval((angles["rear"], 0.5), (angles["side"], 0.5), V, width)
+        alone = wheelstand.solve_interval((angles["rear"], 0.5), (angles["side"], 0.5), V, width, angles_only=True)
         width = lambda iv: iv["com_x_mm"][1] - iv["com_x_mm"][0]
         self.assertGreater(width(table), width(ruler))
         self.assertGreater(width(ruler), width(alone))

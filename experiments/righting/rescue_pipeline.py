@@ -7,6 +7,10 @@ Stage C drives continuously around the patient without state resets or applied
 cube forces to a belly/fork-side lever approach and executes the lift-assisted
 righting stroke, followed by withdrawal. `--no-cube` runs the matching control
 arm along the same continuous approach without a cube.
+
+`--body DIR` gives both robots the real outer shape (simulacrum/body_mesh.py build output); without it they
+are the parametric boxes. `--override name=value` (repeatable, JSON values) changes table entries for both
+robots, e.g. the geometry corrections in evidence/body-shape. Neither changes the default run.
 """
 from __future__ import annotations
 
@@ -30,11 +34,21 @@ from run import axis_rotation, patient_copy, pose
 FRAME_DT = 1.0 / 30.0
 
 
+def scene_values(overrides=None):
+    """The table values both robots use: the replay's nominal set on an open table, then the overrides."""
+    values = dict(replay.nominal_values(), **replay.OPEN_TABLE)
+    unknown = sorted(set(overrides or {}) - set(values))
+    assert not unknown, f"unknown parameters: {unknown}"
+    values.update(overrides or {})
+    return values
+
+
 def scene_xml(boxes, mass_g, friction, corner_friction,
-              exclude_robot_contacts, with_cube=True):
+              exclude_robot_contacts, with_cube=True, values=None, body=None):
     """Build two-robot MuJoCo XML with optional free cube and exclusion."""
+    values = scene_values() if values is None else values
     root = ET.fromstring(
-        mjcf.build_mjcf(dict(replay.nominal_values(), **replay.OPEN_TABLE))
+        mjcf.build_mjcf(values) if body is None else mjcf.build_mjcf(values, body=body)
     )
     world = root.find("worldbody")
     rescuer = world.find("body[@name='chassis']")
@@ -86,13 +100,14 @@ def make_geom_sets(model):
     """Precompute geom index sets for zero-allocation step contact probes."""
     names = [model.geom(i).name for i in range(model.ngeom)]
     cube_g = {i for i, n in enumerate(names) if n.startswith("cube_")}
+    # The fork's contact geoms: the parametric crossbar and side plates, or the real fork's pieces.
     pf_g = {
         i for i, n in enumerate(names)
-        if n.startswith(("patient_lift_fork_geom", "patient_fork_side_"))
+        if n.startswith(("patient_lift_fork_geom", "patient_fork_side_", "patient_fork_hull_"))
     }
     rf_g = {
         i for i, n in enumerate(names)
-        if n.startswith(("lift_fork_geom", "fork_side_"))
+        if n.startswith(("lift_fork_geom", "fork_side_", "fork_hull_"))
     }
     pat_g = {i for i, n in enumerate(names) if n.startswith("patient_")}
     env_g = {i for i, n in enumerate(names) if n in ("floor", "table")}
@@ -153,6 +168,8 @@ def init_state(model, data, side, args):
         lift_0 = (lo if args.no_cube else hi) if is_rescuer else lo
         data.joint(prefix + "lift_joint").qpos[0] = lift_0
         data.joint(prefix + "wrist_joint").qpos[0] = -lift_0
+        if mj.mj_name2id(model, mj.mjtObj.mjOBJ_JOINT, prefix + "lift_lower_joint") >= 0:
+            data.joint(prefix + "lift_lower_joint").qpos[0] = lift_0  # the real body's lower links
         data.actuator(prefix + "lift").ctrl[0] = lift_0
     mj.mj_forward(model, data)
     fork_center = data.geom("patient_lift_fork_geom").xpos.copy()
@@ -210,7 +227,7 @@ def record_stage_a_metrics(data, args, start_t, released_t, phase, log):
 def stage_a_place(model, data, args, gsets, frames, next_frame_t, log):
     """Carry cube to drop point, release weld, and reverse to standoff."""
     assert model is not None and data is not None, "valid MuJoCo model/data required"
-    values = replay.nominal_values()
+    values = args._values
     lo, hi = model.actuator("lift").ctrlrange
     weld_id = model.equality("carry_weld").id
     stop_x = args._cube_drop_target[0] - 0.048
@@ -461,7 +478,14 @@ def parse_args(argv=None):
     parser.add_argument("--engage-duration-s", type=float, default=1.5)
     parser.add_argument("--recovery-duration-s", type=float, default=3.8)
     parser.add_argument("--exclude-robot-contacts", action="store_true")
+    parser.add_argument("--body", type=Path, help="built body directory (simulacrum/body_mesh.py)")
+    parser.add_argument("--override", action="append", default=[], help="name=value, value as JSON")
     args = parser.parse_args(argv)
+    try:
+        args._overrides = {k: json.loads(x) for k, x in (o.split("=", 1) for o in args.override)}
+        args._values = scene_values(args._overrides)
+    except (ValueError, AssertionError) as error:
+        parser.error(f"--override: {error}")
     if not args.no_cube and args.cube_obj is None:
         parser.error("--cube-obj required unless --no-cube")
     if not (args.cube_mass_g > 0 and args.cube_friction > 0 and args.corner_friction > 0):
@@ -477,10 +501,19 @@ def main():
         print(json.dumps(result, indent=2))
         sys.exit(0 if result["ok"] else 2)
     args = parse_args()
+    overrides = args._overrides
+    body = None
+    if args.body is not None:
+        from simulacrum import body_mesh
+        body = body_mesh.load(args.body)
     boxes = None if args.no_cube else collision_boxes(args.cube_obj)
+    if boxes is not None:
+        # collision_boxes normalises the SDK shell to the engine's 44 mm; scale it to the cube as built.
+        scale = args._values["cube_outer_mm"] / 44.0
+        boxes = [([c * scale for c in pos], [h * scale for h in half]) for pos, half in boxes]
     xml = scene_xml(
         boxes, args.cube_mass_g, args.cube_friction, args.corner_friction,
-        args.exclude_robot_contacts, with_cube=not args.no_cube,
+        args.exclude_robot_contacts, with_cube=not args.no_cube, values=args._values, body=body,
     )
     model = mj.MjModel.from_xml_string(xml)
     args.output.mkdir(parents=True, exist_ok=False)
@@ -493,6 +526,8 @@ def main():
         no_cube=args.no_cube,
         cube_friction=args.cube_friction,
         fixed_grip=False,
+        body=None if body is None else str(args.body),
+        overrides=overrides,
         cube_boxes=boxes or [],
         banner=(
             "Continuous free-body righting chain (no-cube control)"

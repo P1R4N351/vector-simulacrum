@@ -60,7 +60,14 @@ FEATURE_TOLERANCE_MM = 1.0
 # Hull pieces that rest on the table plane are lifted to this height so the wheels keep
 # carrying the robot on a flat table, as mjcf._tip_supports_xml does for its cylinders.
 TREAD_HULL_CLEARANCE_MM = 0.3
-COACD_THRESHOLD = 0.02
+# Each tread hull is also shrunk this far inward on every face, below the tip supports' radius (the
+# wheel radius less tip_support_clearance_mm, 0.3 mm). A body-fixed hull reaching the tread's full radius
+# round the axles would carry the robot as soon as it pitches and brake it, which is what driven tip
+# supports (mjcf.py, tip_supports_driven) exist to prevent.
+TREAD_HULL_INSET_MM = 0.5
+# CoACD's concavity limit, relative to the part's size. The chassis gets a finer one: its rear decides
+# where the body meets the table when the robot rears up (validate.py, rear touchdown).
+COACD_THRESHOLD = {"chassis": 0.01, "head": 0.02, "lift_upper": 0.02, "lift_lower": 0.02, "fork": 0.02}
 COACD_SEED = 20261122
 PARTS = ("chassis", "head", "lift_upper", "lift_lower", "fork")
 EXIT_FAILED, EXIT_USAGE, EXIT_MISSING, EXIT_HASH, EXIT_DRIFT = 1, 2, 3, 4, 5
@@ -350,12 +357,16 @@ def mesh_volume(verts: np.ndarray, tris: np.ndarray) -> float:
     return float(np.einsum("ij,ij->i", a, np.cross(b, c)).sum() / 6.0)
 
 
-def clipped_hull(points: np.ndarray, floor_mm: float) -> Tuple[np.ndarray, np.ndarray]:
-    """Convex hull of points intersected with z >= floor_mm (exactly, by half-space intersection)."""
+def clipped_hull(points: np.ndarray, floor_mm: float, inset_mm: float = 0.0) -> Tuple[np.ndarray, np.ndarray]:
+    """Convex hull of points, every face moved inset_mm inward, intersected with z >= floor_mm (exactly,
+    by half-space intersection)."""
     from scipy.spatial import ConvexHull, HalfspaceIntersection
 
+    assert 0.0 <= inset_mm < 2.0, "inset is a small shrink"
     h = ConvexHull(points)
-    spaces = np.vstack((h.equations, [[0.0, 0.0, -1.0, floor_mm]]))
+    shrunk = h.equations.copy()
+    shrunk[:, 3] += inset_mm  # inside is n.x + d <= 0 with unit n: moves each plane inward
+    spaces = np.vstack((shrunk, [[0.0, 0.0, -1.0, floor_mm]]))
     inside = points.mean(0)
     inside[2] = max(inside[2], floor_mm + 1.0)
     assert np.all(spaces[:, :3] @ inside + spaces[:, 3] < 0.0), "interior point is not inside"
@@ -366,7 +377,7 @@ VOXEL_MM = 0.5
 CLOSE_MM = 1.5
 MAX_VOXELS = 8_000_000
 # Most convex pieces CoACD may return per part: enough for the shape, few enough for a fast step.
-PIECE_BUDGET = {"chassis": 24, "head": 10, "lift_upper": 8, "lift_lower": 12, "fork": 8}
+PIECE_BUDGET = {"chassis": 48, "head": 10, "lift_upper": 8, "lift_lower": 12, "fork": 8}
 
 
 def grid_for(entries: Sequence[Tuple[str, np.ndarray, np.ndarray]], margin_mm: float) -> Tuple[np.ndarray, Tuple[int, int, int]]:
@@ -454,12 +465,28 @@ def voxel_surface(solid: np.ndarray, origin: np.ndarray) -> Tuple[np.ndarray, np
     return origin + keys * VOXEL_MM, np.concatenate(tris)
 
 
-def coacd_pieces(verts: np.ndarray, tris: np.ndarray, budget: int) -> List[np.ndarray]:
+def clip_to(points: np.ndarray, extra: np.ndarray) -> Optional[Tuple[np.ndarray, np.ndarray]]:
+    """The convex hull of points intersected with half-spaces extra (rows n, d: inside where n.x + d <= 0),
+    exactly; None when less than a micrometre is left. The interior point is the Chebyshev centre."""
+    from scipy.optimize import linprog
+    from scipy.spatial import ConvexHull, HalfspaceIntersection
+
+    eq = np.vstack((ConvexHull(points).equations, extra))
+    a, b = eq[:, :3], -eq[:, 3]
+    norms = np.linalg.norm(a, axis=1)
+    lp = linprog(c=[0.0, 0.0, 0.0, -1.0], A_ub=np.column_stack((a, norms)), b_ub=b,
+                 bounds=[(None, None)] * 3 + [(0.0, None)], method="highs")
+    if not lp.success or lp.x[3] < 1e-3:
+        return None
+    return hull(HalfspaceIntersection(eq, lp.x[:3]).intersections)
+
+
+def coacd_pieces(verts: np.ndarray, tris: np.ndarray, budget: int, threshold: float) -> List[np.ndarray]:
     import coacd  # optional build-time dependency
 
     coacd.set_log_level("error")
     mesh = coacd.Mesh(verts.astype(np.float64), tris.astype(np.int64))
-    parts = coacd.run_coacd(mesh, threshold=COACD_THRESHOLD, max_convex_hull=budget, seed=COACD_SEED,
+    parts = coacd.run_coacd(mesh, threshold=threshold, max_convex_hull=budget, seed=COACD_SEED,
                             preprocess_mode="auto", preprocess_resolution=100)
     assert 0 < len(parts) <= budget, "CoACD returned no pieces or more than its budget"
     return [np.asarray(q[0], dtype=float) for q in parts]
@@ -503,7 +530,7 @@ def part_solid(name: str, part: Dict[str, Any]) -> Tuple[np.ndarray, np.ndarray]
 
 def collision_pieces(name: str, part: Dict[str, Any], method: str) -> List[Tuple[np.ndarray, np.ndarray, str]]:
     """(vertices, triangles, friction class) of every convex collision piece of one part."""
-    treads = [(*clipped_hull(np.concatenate(part["tread"][side]), TREAD_HULL_CLEARANCE_MM), "tread")
+    treads = [(*clipped_hull(np.concatenate(part["tread"][side]), TREAD_HULL_CLEARANCE_MM, TREAD_HULL_INSET_MM), "tread")
               for side in ("left", "right") if part["tread"][side]]
     if method == "groups":
         sources = [p for _, p, _ in part["collide"] if len(p) >= 4]
@@ -513,8 +540,52 @@ def collision_pieces(name: str, part: Dict[str, Any], method: str) -> List[Tuple
         # A shell that failed to fill leaves only its walls: a solid far below its hull's volume.
         print(f"{name}: solid {solid.sum() * VOXEL_MM ** 3 / 1000.0:.1f} cm3, convex hull "
               f"{mesh_volume(*hull_v) / 1000.0:.1f} cm3", file=sys.stderr)
-        sources = coacd_pieces(*voxel_surface(solid, origin), PIECE_BUDGET[name])
-    return [(*hull(p), "chassis") for p in sources] + treads
+        sources = coacd_pieces(*voxel_surface(solid, origin), PIECE_BUDGET[name], COACD_THRESHOLD[name])
+    # A rolling body first meets the table on its convex hull, so no piece may reach outside the hull of the
+    # part's own rig surface: clip each one to it. This removes the voxel fill's slack and any merge that
+    # bridged past the surface, and keeps every piece convex.
+    outer = np.concatenate([p for _, p, _ in part["collide"]])
+    from scipy.spatial import ConvexHull
+
+    bound = ConvexHull(outer).equations
+    clipped = [clip_to(p, bound) for p in sources]
+    return [(*c, "chassis") for c in clipped if c is not None] + treads
+
+# ---- where the body meets the table when the robot rears up ------------------------------------
+
+TOUCHDOWN_STEP_DEG = 0.05
+TOUCHDOWN_MAX_DEG = 90.0
+# Collision pieces may meet the table this much earlier than the rig's own surface, rolling back over
+# the rear wheel. Set before any build was scored. It matters because the held wheelstand pitch is that
+# touchdown: the rig gives 70.35 deg on the rear tread, and unit 3 held 70.14 and 70.15 deg.
+TOUCHDOWN_LIMIT_DEG = 2.0
+
+
+def touchdown_deg(points: np.ndarray, axle_x: float, axle_z: float, radius: float) -> float:
+    """Nose-up pitch (deg) at which the first of `points` (robot mm) reaches the table, the robot rolling
+    back on a wheel of `radius` about the axle at (axle_x, axle_z): a point at distance r > radius from
+    the axle touches when it sits `radius` below the axle. inf if none does by TOUCHDOWN_MAX_DEG."""
+    assert points.ndim == 2 and points.shape[1] == 3 and radius > 0.0, "points are (n, 3), radius positive"
+    dx, dz = points[:, 0] - axle_x, points[:, 2] - axle_z
+    r, phi = np.hypot(dx, dz), np.arctan2(dz, dx)
+    reach = r > radius
+    for step in range(int(round(TOUCHDOWN_MAX_DEG / TOUCHDOWN_STEP_DEG)) + 1):
+        theta = math.radians(step * TOUCHDOWN_STEP_DEG)
+        if np.any(reach & (r * np.sin(phi + theta) <= -radius)):
+            return step * TOUCHDOWN_STEP_DEG
+    return math.inf
+
+
+def rear_touchdown(v: Dict[str, Any], rig_body: np.ndarray, pieces: Sequence[Tuple[np.ndarray, np.ndarray, str]]) -> Dict[str, float]:
+    """Touchdown of the rig's body surface and of the chassis's body pieces (not the tread hulls), rolling
+    on the rear tread (radius wheel_rear_radius_mm about the rear axle)."""
+    axle_x, radius = -v["wheel_base_mm"], v["wheel_rear_radius_mm"]
+    body = [pv for pv, _, friction in pieces if friction == "chassis"]
+    assert body, "no body pieces to test"
+    return {"rig_deg": touchdown_deg(rig_body, axle_x, radius, radius),
+            "pieces_deg": touchdown_deg(np.concatenate(body), axle_x, radius, radius),
+            "treads_deg": touchdown_deg(np.concatenate([pv for pv, _, f in pieces if f == "tread"]), axle_x, radius,
+                                        radius - v["tip_support_clearance_mm"])}
 
 # ---- fidelity: how far the collision shape and the rig's surface stand apart ------------------
 
@@ -538,15 +609,12 @@ def surface_samples(verts: np.ndarray, tris: np.ndarray, spacing: float, rng: np
 
 
 def plane_sets(pieces: Sequence[Tuple[np.ndarray, np.ndarray, str]]) -> List[np.ndarray]:
-    """Outward half-space equations (n, d) of each convex piece, n unit, inside where n.x + d <= 0."""
-    out = []
-    for v, t, _ in pieces:
-        n = np.cross(v[t[:, 1]] - v[t[:, 0]], v[t[:, 2]] - v[t[:, 0]])
-        norm = np.linalg.norm(n, axis=1)
-        keep = norm > 1e-12
-        n = n[keep] / norm[keep, None]
-        out.append(np.column_stack((n, -(n * v[t[keep, 0]]).sum(1))))
-    return out
+    """Outward half-space equations (n, d) of each convex piece, n unit, inside where n.x + d <= 0. From
+    qhull's own facets: planes built from a piece's triangles can point the wrong way where a hull has
+    near-degenerate triangles (a shrunk tread hull has thousands), which reads the whole piece as empty."""
+    from scipy.spatial import ConvexHull
+
+    return [ConvexHull(v).equations for v, _, _ in pieces]
 
 
 def inside_any(points: np.ndarray, planes: Sequence[np.ndarray], skip: int = -1, chunk: int = 20000,
@@ -654,7 +722,8 @@ def robot_fidelity(refs: Dict[str, Tuple[np.ndarray, np.ndarray]],
     return out
 
 
-def score_build(out: Path, manifest: Dict[str, Any], v_mm: np.ndarray, groups: Sequence[Tuple[str, np.ndarray]]) -> None:
+def score_build(out: Path, manifest: Dict[str, Any], v_mm: np.ndarray, groups: Sequence[Tuple[str, np.ndarray]],
+                v: Dict[str, Any]) -> None:
     """Fill each part's fidelity in the manifest from the whole-robot score of its built pieces."""
     pieces: Dict[str, List[Tuple[np.ndarray, np.ndarray, str]]] = {}
     for name in PARTS:
@@ -666,6 +735,8 @@ def score_build(out: Path, manifest: Dict[str, Any], v_mm: np.ndarray, groups: S
     scores = robot_fidelity(reference_surfaces(v_mm, groups), pieces)
     for name in PARTS:
         manifest["parts"][name]["fidelity"] = scores[name]
+    rig_body = np.concatenate([v_mm[np.unique(t)] for n, t in groups if piece_of(n) == "body"])
+    manifest["rear_touchdown"] = rear_touchdown(v, rig_body, pieces["chassis"])
 
 # ---- writing and loading a built body ---------------------------------------------------------
 
@@ -694,20 +765,21 @@ def build(rig: Path, out: Path, v: Dict[str, Any], method: str) -> Dict[str, Any
     parts = split_parts(v_mm, groups, frames)
     out.mkdir(parents=True, exist_ok=True)
     manifest: Dict[str, Any] = {"rig": dict(RIG, url=RIG_URL), "registration": reg, "features": feats,
-                                "frames": frames, "method": method, "coacd_threshold": COACD_THRESHOLD,
+                                "frames": frames, "method": method, "coacd_threshold": COACD_THRESHOLD, "piece_budget": PIECE_BUDGET,
+                                "tread_hull_inset_mm": TREAD_HULL_INSET_MM,
                                 "tread_hull_clearance_mm": TREAD_HULL_CLEARANCE_MM, "parts": {}}
     for name in PARTS:
         manifest["parts"][name] = build_part(out, name, parts[name], method)
-    score_build(out, manifest, v_mm, groups)
+    score_build(out, manifest, v_mm, groups, v)
     (out / MANIFEST).write_text(json.dumps(manifest, indent=1) + "\n")
     return manifest
 
 
-def rescore(out: Path, rig: Path) -> Dict[str, Any]:
+def rescore(out: Path, rig: Path, v: Dict[str, Any]) -> Dict[str, Any]:
     """Recompute the fidelity of an existing build (same rig) without decomposing again."""
     manifest = load(out)
     verts_cm, groups = read_obj(rig)
-    score_build(out, manifest, to_robot(verts_cm, manifest["registration"]), groups)
+    score_build(out, manifest, to_robot(verts_cm, manifest["registration"]), groups, v)
     manifest.pop("dir")
     (out / MANIFEST).write_text(json.dumps(manifest, indent=1) + "\n")
     return manifest
@@ -760,7 +832,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"rig not found at {rig}; run fetch first", file=sys.stderr)
         return EXIT_MISSING
     if args.command == "rescore":
-        return report(rescore(args.out, rig))
+        from . import params
+        return report(rescore(args.out, rig, params.values(params.load())))
     from . import params
 
     method = args.method or ("coacd" if _has_coacd() else "groups")
@@ -797,6 +870,14 @@ def report(manifest: Dict[str, Any]) -> int:
               f"{f['protrusion_mm']['p99']:.2f}/{f['protrusion_mm']['max']:.2f}  excess p50/p95/max "
               f"{f['excess_mm']['p50']:.2f}/{f['excess_mm']['p95']:.2f}/{f['excess_mm']['max']:.2f}  "
               f"{'ok' if ok else 'OUTSIDE LIMITS'}")
+    td = manifest.get("rear_touchdown")
+    if td is None:
+        print("rear touchdown: not scored in this build")
+        return EXIT_FAILED
+    ok = td["pieces_deg"] >= td["rig_deg"] - TOUCHDOWN_LIMIT_DEG and td["treads_deg"] > td["pieces_deg"]
+    failed += 0 if ok else 1
+    print(f"rear touchdown: rig {td['rig_deg']:.2f} deg, body pieces {td['pieces_deg']:.2f} deg, tread hulls "
+          f"{td['treads_deg']:.2f} deg (rolling on the tip supports)  {'ok' if ok else 'OUTSIDE LIMITS'}")
     return EXIT_FAILED if failed else 0
 
 

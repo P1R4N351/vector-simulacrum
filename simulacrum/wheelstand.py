@@ -80,7 +80,7 @@ def geometry(v: Dict[str, Any], outer_width_mm: Optional[float] = None) -> Dict[
     outer_width_mm: the width across the outside of both treads, by ruler. Given, it sets the
     side edge directly; otherwise the edge comes from the table's tread spacing and width.
     """
-    edge = 0.5 * outer_width_mm if outer_width_mm is not None else 0.5 * (v["tread_spacing_mm"] + v["tread_width_mm"])
+    edge = 0.5 * outer_width_mm if outer_width_mm is not None else 0.5 * (v["tread_center_spacing_mm"] + v["tread_width_mm"])
     assert edge > 0.0 and v["wheel_base_mm"] > 0.0 and v["wheel_rear_radius_mm"] > 0.0, "bad geometry"
     return {"wheel_base": v["wheel_base_mm"], "rear_radius": v["wheel_rear_radius_mm"], "edge_y": edge}
 

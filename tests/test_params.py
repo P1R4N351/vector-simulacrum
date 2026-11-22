@@ -81,7 +81,7 @@ class TableIsSound(unittest.TestCase):
 
     def test_counts_add_up_and_measured_and_fitted_cite_the_recording(self) -> None:
         counts = params.summary(self.doc)
-        self.assertEqual((counts["measured"], counts["fitted"], counts["assumed"], counts["chosen"]), (10, 19, 39, 8))
+        self.assertEqual((counts["measured"], counts["fitted"], counts["assumed"], counts["chosen"]), (10, 19, 38, 8))
         self.assertEqual(sum(counts[name] for name in params.PROVENANCE), counts["total"])
         self.assertGreater(counts["missing"], 0)
         for name, entry in self.doc["parameters"].items():
