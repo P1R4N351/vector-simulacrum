@@ -19,3 +19,19 @@ We measured successive XYZ differences inside each radio packet in the encoder-d
 Overall mean absolute error improved from 0.94 mg using pre-stroke scatter alone to 0.78 mg. For raises, Z error fell from 2.46 to 1.06 mg, while Y error increased from 0.57 to 1.45 mg. For lowers, Z error fell from 0.97 to 0.43 mg and Y rose from 0.39 to 0.82 mg. The cube's quiet gravity vector lay within 2° of +Z in both sessions. Rotation about gravity, mechanical coupling to the shelf and the source of vibration remain unresolved. D1's measured gain on all three axes would overstate the reproducibility of lateral vibration at D2. This is an empirical candidate for shelf vibration during full strokes and has not been enabled in the simulator.
 
 [Per-stroke measurements and predictions](lift-packet-transfer.csv) · [Replay](lift_packet_transfer.py) · [Physical D1 control](../unit3-wheelstand/D1/) · [Physical D2 repeat](../unit3-wheelstand/D2/)
+
+## Does the robot's own accelerometer predict cube vibration?
+
+![Cube Z scatter with lift-direction and onboard-acceleration predictions on D1 and D2](onboard-vibration.png)
+
+We compared the variance of the robot head IMU's acceleration magnitude during each stroke with its pre-command variance. Magnitude avoids rotating the head axes into the shelf frame. We used the positive excess to predict the cube's within-packet Z variance with a single nonnegative gain trained on the 12 D1 strokes. Each D2 scoring window had only 9–10 robot samples, so this tests stroke-level amplitude at SDK cadence.
+
+| Mean absolute error in cube Z scatter | D1 fit | D2 transfer |
+|---|---:|---:|
+| Pre-stroke baseline | 2.35 mg | 1.61 mg |
+| Median by lift direction | 0.66 mg | 0.70 mg |
+| Onboard acceleration gain | 1.82 mg | 1.30 mg |
+| Direction means plus onboard gain | 0.37 mg | 1.78 mg |
+| Direction means alone | 0.80 mg | 0.75 mg |
+
+The combined model fit D1 more closely but transferred poorly when P2Y8 was off the dock. D1 used slow and fast strokes, while D2 used an intermediate commanded duration. These data leave dock coupling, location, speed and acceleration bandwidth confounded. The robot IMU at this cadence does not justify a shared gain for predicting vertical cube vibration in both settings. [Per-stroke inputs and errors](onboard-vibration.csv) · [Analysis](onboard_vibration.py)
