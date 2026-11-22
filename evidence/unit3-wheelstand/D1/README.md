@@ -8,4 +8,4 @@ The robot was verified charging at 4.07 V with quiet mode enabled, active and mu
 
 [Physical traces](physical-profiles.png) · [Both camera views](paired.mp4) · [Per-stroke measurements](moves.csv) · [Cube accelerometer](cube.csv.gz) · [Robot state](state.csv.gz) · [Command log](actions.csv) · [Cube sightings](sightings.csv) · [Analysis](analyze.py)
 
-[Full SDK state](sdk-state.jsonl.gz) also retains P2Y8's onboard accelerometer, gyro, proximity readings, pose, touch values and last image timestamp alongside the measured lift, head and wheel reports.
+[Full SDK state](sdk-state.jsonl.gz) also retains the robot's onboard accelerometer, gyro, proximity readings, pose, touch values and last image timestamp alongside the measured lift, head and wheel reports.
