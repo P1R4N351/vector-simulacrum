@@ -1,0 +1,52 @@
+{
+	"data" : 
+	{
+		"commInfo" : 
+		{
+			"connectedCube" : "(none)",
+			"connectionState" : "ScanningForCubes",
+			"cubeData" : 
+			[
+				{
+					"address" : "AA:BB:CC:DD:EE:01",
+					"lastRssi" : 0
+				}
+			],
+			"preferredCube" : "(none)"
+		}
+	},
+	"module" : "cubes"
+}
+{
+	"data" : 
+	{
+		"cccInfo" : 
+		{
+			"connectionState" : "Unconnected",
+			"stateCountdown" : [],
+			"subscriberData" : []
+		}
+	},
+	"module" : "cubes"
+}
+{
+	"data" : 
+	{
+		"citInfo" : 
+		{
+			"NoTarget" : true,
+			"heldProbability" : 0.0,
+			"movedFarRecently" : false,
+			"movedRecently" : false,
+			"timeSinceHeld" : 11.49714183807373,
+			"timeSinceMoved" : 11.49714183807373,
+			"timeSinceObserved" : 11.49714183807373,
+			"timeSinceTapped" : 11.49714183807373,
+			"trackingState" : "Idle",
+			"userHoldingCube" : false,
+			"visTrackingRate" : "Low",
+			"visibleRecently" : false
+		}
+	},
+	"module" : "cubes"
+}

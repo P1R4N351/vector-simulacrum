@@ -1,0 +1,6 @@
+I vic-engine @engine.state|Stopped|LoadingData|||||||18446744072277123967
+I vic-engine @engine.state|LoadingData|ConnectingToRobot|||||||18446744072277125059
+I vic-engine @engine.state|ConnectingToRobot|Running|||||||18446744072277131893
+I vic-engine @action.play_animation|anim_cubeconnection_getin_01|ag_cubeconnection_getin|ConnectToCubeGetIn|LowStim|-22||||18446744072277137291
+I vic-engine @cube_connection_coordinator.connection_requested|ConnectToCube||||||||18446744072277137293
+W vic-anim AnimProcessMessages.MonitorConnectionState.DisconnectedFromEngine: (tc0297) We have become disconnected from engine process. Displaying a fault code in 5.0 seconds.
