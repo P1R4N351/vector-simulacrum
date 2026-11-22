@@ -28,6 +28,12 @@ reverse_boxes='--reverse-box-order' in sys.argv[3:]
 if reverse_boxes and not face_test:
  raise ValueError('box order comparison requires --face-test')
 face_output='face-replay-reverse' if reverse_boxes else 'face-replay'
+solver_check='--solver-check' in sys.argv[3:]
+tight_solver='--tight-solver' in sys.argv[3:]
+if solver_check:
+ if not face_test:
+  raise ValueError('solver comparison requires --face-test')
+ face_output='solver-'+('tight' if tight_solver else 'default')+('-reverse' if reverse_boxes else '-original')
 current_surface=face_test or '--current-surface' in sys.argv[3:]
 ablation='--ablation' in sys.argv[3:]
 camera_path=ablation or face_test or '--camera-path' in sys.argv[3:]
@@ -73,6 +79,10 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
      body.remove(geom)
     body.extend(reversed(geoms))
     tree.write(updated)
+   if solver_check and tight_solver:
+    tree=ET.parse(updated)
+    tree.find('option').attrib.update(iterations='300', tolerance='1e-12', ls_iterations='100', ls_tolerance='1e-6')
+    tree.write(updated)
    fixture=str(updated)
   layouts=[('upright',R.identity())]
   if face_test:
@@ -80,13 +90,24 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
     for rank,row in enumerate(list(csv.DictReader(f))[:4],1):
      matrix=np.array([int(row[f'r{i}{j}']) for i in range(3) for j in range(3)]).reshape(3,3)
      layouts.append((str(rank),R.from_matrix(matrix)))
-  for dt,omitted,(layout,asset_rotation) in product((.00025,) if reverse_boxes else (.0005,.00025),conditions,layouts):
+  timesteps=(.00025,) if reverse_boxes else (.0005,.00025)
+  if solver_check:
+   timesteps=(.00025,.000125)
+   layouts=[item for item in layouts if item[0]=='4' or (reg['view']=='B' and item[0]=='1')]
+  if solver_check and tight_solver and reg['view']=='B':
+   timesteps=(*timesteps,.0000625)
+  for dt,omitted,(layout,asset_rotation) in product(timesteps,conditions,layouts):
+   if dt==.0000625 and layout!='4':
+    continue
    out=[]
    contact=[]
    initial_pair=[]
    first_patch=[]
+   iterations=[]
    def observe(m,data):
     b=data.body('cube')
+    if solver_check:
+     iterations.append(max(data.solver_niter))
     out.append([*b.xpos[:2],np.arctan2(b.xmat[3],b.xmat[0])])
     if face_test:
      relative=b.xmat.reshape(3,3)@initial.as_matrix().T
@@ -99,7 +120,7 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
         first_patch.extend([m.geom(int(c.geom[np.argmax(bodies==b.id)])).name,*point])
         break
     gaps=[c.dist for c in data.contact if b.id in m.geom_bodyid[c.geom] and 0 not in m.geom_bodyid[c.geom]]
-    if not contact and gaps:
+    if not initial_pair and gaps:
      deepest=min((c for c in data.contact if b.id in m.geom_bodyid[c.geom] and 0 not in m.geom_bodyid[c.geom]),key=lambda c:c.dist)
      initial_pair.append('/'.join(m.geom(int(k)).name for k in deepest.geom))
     contact.append(min(gaps,default=np.nan))
@@ -115,6 +136,8 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
                    t[ix[0]] if len(ix) else np.nan,contact[ix[0]]*1000 if len(ix) else np.nan,','.join(initial_pair)])
    if face_test:
     summary[-1].extend([layout,*(first_patch or ['',np.nan,np.nan,np.nan])])
+   if solver_check:
+    summary[-1].extend([max(iterations), np.mean(iterations)])
    if ablation:
     summary[-1].append('+'.join(omitted) or 'none')
    if dt==.00025:
@@ -122,7 +145,7 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
     ax[1].plot(t+start_offset,turn)
 with (folder/(face_output+'.csv' if face_test else 'current-surface.csv' if current_surface else 'contact-ablation.csv' if ablation else 'camera-path-replay.csv' if camera_path else 'dock-replay.csv' if start_offset==3.75 else 'dock-late-start.csv')).open('w') as f:
  w=csv.writer(f,lineterminator='\n')
- w.writerow('view dt_ms travel_mm ccw_deg peak_tilt_deg taps first_contact_from_init_s first_contact_gap_mm initial_pair'.split()+(['omitted'] if ablation else [])+(['layout','first_cube_patch','patch_x_mm','patch_y_mm','patch_z_mm'] if face_test else []))
+ w.writerow('view dt_ms travel_mm ccw_deg peak_tilt_deg taps first_contact_from_init_s first_contact_gap_mm initial_pair'.split()+(['omitted'] if ablation else [])+(['layout','first_cube_patch','patch_x_mm','patch_y_mm','patch_z_mm'] if face_test else [])+(['max_solver_iterations','mean_solver_iterations'] if solver_check else []))
  w.writerows(summary)
 for a,rng in zip(ax,[(39.8,42.9),(64.8,70.9)]):
  a.axhspan(*rng,alpha=.22,color='#48865c',label='Physical endpoint estimates')
@@ -133,5 +156,5 @@ ax[0].legend()
 if ablation:
  from ablation_plot import plot
  plot(folder)
-elif start_offset==3.75:
+elif start_offset==3.75 and not solver_check:
  fig.savefig(folder/(face_output+'.png' if face_test else 'current-surface.png' if current_surface else 'contact-ablation.png' if ablation else 'camera-path-replay.png' if camera_path else 'dock-replay.png'),dpi=150)

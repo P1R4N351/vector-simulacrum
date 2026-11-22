@@ -67,3 +67,17 @@ For a numerical control we reversed the XML declaration order of the same cube c
 [All 24 rigid orientations](rigid-faces.csv) · [Individual glyph correlations](face-match.csv) · [Both integration steps](face-replay.csv) · [Reversed collider order](face-replay-reverse.csv)
 
 To reproduce, generate the six corrected projections with the [optical mesh render](../../cube-optical-mesh/README.md). Run `face_match.py /path/to/projections` here, then `dock_replay.py /path/to/fork.xml 3.75 --face-test` with the R8 fixture. Repeat with `--reverse-box-order` appended, then run `face_endpoints.py`. The CSV records the first fork contact position in the simulated cube's local coordinates.
+
+### Does tightening the contact solver stabilize the impact?
+
+We selected the most order-sensitive case from the previous comparison (B, orientation 4). A with the same orientation tests transfer to the opposite camera registration; B with orientation 1 is the control that was previously nearly insensitive to box order. All three reuse the same physical docking impact.
+
+The four runs per integration step cross original/reversed box order with default/tighter MuJoCo Newton solver settings. The default solver uses 100 maximum iterations and tolerance 1e-8, with 50 line-search iterations and tolerance 0.01. The tighter settings use 300 and 1e-12, with 100 and 1e-6 for line search. We test 0.25 and 0.125 ms steps. Integration step changes also change how often the kinematically prescribed robot trajectory is applied. All runs retain the same printed fork, measured arm/chassis path, cube geometry, and material properties.
+
+![Free cube endpoints across integration steps and solver settings](solver-check.png)
+
+[Default, original order](solver-default-original.csv) · [Default, reversed order](solver-default-reverse.csv) · [Tight, original order](solver-tight-original.csv) · [Tight, reversed order](solver-tight-reverse.csv). Run the face replay described above with `--solver-check`, optionally adding `--tight-solver` and/or `--reverse-box-order`; run `solver_plot.py` after all four. Solver iteration statistics record the maximum across islands at each step, summarized over the replay.
+
+With tighter settings, the B4 order gap in final yaw was 0.8° at 0.25 ms, 17.3° at 0.125 ms, and **72.5° at 0.0625 ms**. At the finest step both first contacts fell on the same printed fork piece and the same cube shell patch at 0.4925 s. The two patch coordinates agreed to far below 0.001 mm. Both replays traveled about 61 mm and recorded seven simulated tap events, yet their peak tilts were 93.2° and 44.7°. Thus agreement on contact onset, displacement and taps can conceal a different tipping outcome. The physical estimate was 39.8–42.9 mm and 64.8–70.9° counterclockwise; both fine-step results turned clockwise. No solver run reached its iteration cap (at most nine iterations in all 26 replays).
+
+Across the two main steps and both solver settings/orders, A4 varied by under 1.5° and B1 by under 1°. The default 0.25 ms runs exactly reproduced the previously published endpoint, first patch and tap counts. Tightening the solver failed to establish convergence for B4. Production settings are unchanged.
