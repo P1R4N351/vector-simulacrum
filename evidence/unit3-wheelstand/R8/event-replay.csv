@@ -1,0 +1,8 @@
+series,count,seconds_after_roll
+Counter change,2,3.128174 3.921151
+Counter + prior delay,2,3.274080 4.067057
+SDK tap,2,3.285032 4.058938
+Replay moving,1,5.075597
+SDK moving,1,5.100274
+Replay up-axis change,0,
+SDK up-axis change,0,
