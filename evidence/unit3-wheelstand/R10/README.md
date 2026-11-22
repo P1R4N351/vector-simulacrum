@@ -27,3 +27,11 @@ At +4.25 s the two views independently locate the cube center 38.7 and 41.4 mm f
 We fitted camera pose using top and side 23 mm markings on a nominal upright 44 mm cube. The picks are from the stationary pre-contact image. In frame 75 the visible hub center rays were intersected at 14.5 mm (front) and 10.75 mm (rear) above the shelf. The visible hub plane was assumed 28 mm off center; true cap extension, tread compression and chassis attitude are sources of systematic error. As an independent scale check the recovered axle spans were 47.3 mm (A) and 45.3 mm (B), versus 48 mm nominal. The CSV includes perturbations of marker and axle picks and a 28–30 mm hub offset. This approximate starting pose is suitable for replay sensitivity tests.
 
 [Hub and glyph picks](hub-registration.png) · [Both camera estimates](hub-registration.csv) · [Reproduce](hub_registration.py)
+
+### Frozen contact replay
+
+We put each optical registration into the SDK frame at +4.25 s, then replayed the measured robot XY, yaw, pitch, lift and right wheel speed. We used the R8 printed fork, torque-limited arm, front-right tread proxy, chassis collision and shelf support. Starting at +4.25 s already penetrates the fork by 4.36 mm (A) or 0.76 mm (B). The primary replay starts at +3.75 s with the same stationary cube position. First contact now occurs at +4.22 or +4.24 s with less than 0.011 mm penetration.
+
+At a 0.25 ms timestep, net travel was 44.2 and 37.0 mm, bracketing the two physical estimates. Both predictions turn clockwise (60.4° and 61.7°), opposite the physical counterclockwise turn. They produce four and three tap increments versus five observed. At 0.50 ms, camera A changes to 71.4 mm travel and 168.9° clockwise, showing strong numerical sensitivity. This maneuver fails the signed-yaw comparison. The fixture represents only one tread and drives the chassis along SDK odometry. Which surface supplied the incorrect moment remains unresolved.
+
+[Replay curves and physical endpoint bands](dock-replay.png) · [Early-start results](dock-replay.csv) · [Late-start diagnostic](dock-late-start.csv) · [Replay script](dock_replay.py). Run with the R8 fork XML fixture; optional second argument 4.25 reproduces the late start.
