@@ -85,6 +85,7 @@ async function loadEverything() {
   ]);
   const model = JSON.parse(modelText);
   if (free && options.get("cubeSensor") === "unit3") Object.assign(model.values, shelfCube);
+  if (free && vector2 && options.get("cubeSensor") === "unit3") model.values.supervisor_loop_ms = 5.08;
   const doneCheck = bootLine("MODEL CHECKSUM");
   doneCheck(await checkModel(xml, free ? model.source[sceneName + "_sha256"] : (trial ? model.source.trial_xml_sha256 : model.source.xml_sha256)));
   const mujoco = await traced("WEBASSEMBLY", loadMujoco({ locateFile: (p) => (p.endsWith(".wasm") ? mujocoWasmUrl : p) }));

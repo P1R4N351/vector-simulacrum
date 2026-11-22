@@ -79,3 +79,11 @@ Stock CubeAccelComponent stamps face events with the last robot message timestam
 [Held-out timestamp intervals](sdk-axis-clock.png) · [Per-event intervals](sdk-axis-clock.csv) · [R10 active events](../unit3-wheelstand/R10/events.csv). Run sdk_axis_clock.py.
 
 The browser simulator now carries both packet time (time_s, seconds) and the last simulated supervisor state timestamp (timestamp, milliseconds) on its cube listener events. The firmware [supervisor](https://github.com/kercre123/victor/blob/snowboy/robot/supervisor/src/messages.cpp) selects [6 or 50 control loops](https://github.com/kercre123/victor/blob/snowboy/robot/include/anki/cozmo/shared/cozmoConfig.h) according to calm mode. Changing mode retains the elapsed loop count. The simulator defaults to awake and accepts calmMode explicitly. A 5 ms model tick gives 30 ms awake and 250 ms calm. Run S's measured 254 ms interval differs by 1.6% from the nominal calm interval. R10's 153 ms first tap interval is consistent with five awake periods to 3 ms, but cannot establish how many state messages were sent. The recording does not expose the supervisor counter. Mode selection in this test is an assumption. Radio latency and SDK transport delay remain separate.
+
+### Held-out active supervisor clock
+
+All 39 cube callbacks bracketed by SDK status samples less than 300 ms apart had the calm-mode bit (0x400) clear at both samples. We took consecutive distinct cube payload timestamps up to one second apart in each run. Fifteen intervals across seven active recordings qualified. Using run S alone gives a 5.08 ms supervisor loop (254 ms / 50) and thus 30.48 ms per six awake loops. The median absolute distance to a multiple of this prediction was 0.48 ms, maximum 1.20 ms. The nominal 30 ms period gave 6 and 12 ms respectively. This tests the spacing of the timestamp grid. Individual packet latency and the absolute grid phase were unmeasured.
+
+The browser uses this measured supervisor clock for the Vector 2.0 free-cube scene with cubeSensor=unit3. Physics and motor control still run at their original rates. The test checks the timestamp on a delivered event. Run S itself lacks status samples, so its calm-mode identification remains inferred.
+
+[Held-out residuals](sdk-clock-mode.png) · [Individual intervals](sdk-clock-mode.csv) · [Replay script](sdk_clock_mode.py).

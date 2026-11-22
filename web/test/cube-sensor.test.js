@@ -74,3 +74,19 @@ test("cube callbacks carry the last supervisor timestamp across calm and awake p
     sim.dispose();
   }
 });
+
+test("unit 3 awake clock advances independently of the physics control tick", async () => {
+  const sim = new VectorSim(await mujoco(), {
+    xml: readText("public/robot/vector-free.xml"), values: { ...quietChip, supervisor_loop_ms: 5.08 }, derived,
+  });
+  try {
+    sim.tick(60);
+    sim.cubeSensor.taps++;
+    sim.tick(6);
+    const event = sim.cubeSensor.packet.events.find(candidate => "tap_count" in candidate);
+    assert.equal(event.timestamp, 305);
+    assert.ok(Math.abs(event.time_s - .33) < 1e-8);
+  } finally {
+    sim.dispose();
+  }
+});
