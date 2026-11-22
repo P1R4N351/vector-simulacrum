@@ -15,6 +15,7 @@ from simulacrum import params
 if _common.HAVE_MUJOCO:
     import mujoco
     from simulacrum import spin_fit
+    from simulacrum.mujoco_pin import PINNED_VERSION
 HAVE_SCIPY = importlib.util.find_spec("scipy") is not None
 if HAVE_SCIPY:
     from simulacrum import camera_spins
@@ -40,10 +41,10 @@ class InsetFit(unittest.TestCase):
     def test_the_table_holds_the_fitted_inset_and_its_range_covers_each_spins_fit(self) -> None:
         fit = self.report["fit"]
         self.assertEqual(self.entry["provenance"], "fitted")
-        archive = spin_fit.ROOT / "evidence/imu-filter-20261120/fit_spins-output.json"
+        archive = spin_fit.ROOT / "evidence/body-shape/refit/fit_spins.json"  # the fit behind the table's value
         original = json.loads(archive.read_text())["fit"]["inset_mm"]
         self.assertAlmostEqual(self.entry["value"], original, delta=0.05)
-        if (platform.system(), platform.machine(), mujoco.__version__) == ("Linux", "x86_64", "3.11.0"):
+        if (platform.system(), platform.machine(), mujoco.__version__) == ("Linux", "x86_64", PINNED_VERSION):
             self.assertAlmostEqual(original, fit["inset_mm"], delta=0.05)
         self.assertTrue(self.entry["low"] <= fit["inset_mm"] <= self.entry["high"])
         self.assertEqual(len(fit["per_spin_inset_mm"]), 4)

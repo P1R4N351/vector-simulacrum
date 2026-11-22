@@ -86,11 +86,11 @@
  },
  "robot_model": "vector_2",
  "source": {
-  "table_sha256": "f09aa57ba6737dc85a7693b99bfc5cd820d84ee554fefbfd4dccfb48be71a4d1",
+  "table_sha256": "b215e5051b5e897f550bd6de54d265fdd3754a842e6d53584ee06bc87a44bf1e",
   "trial_xml_sha256": "0b0f9d0c08aa60e7b9821ad103b5b6d9105cb876319a1522056e5bc9d7e7cff3",
   "vector-contact42-free_sha256": "3479e4c5c7c202bf326f070a1879a7cf4580e24d4a66c23363cff2df00a22938",
-  "vector-free_sha256": "9e1b8a8a16c81adeff1b8bf9214d6f1a5985392ffddbead017144d32df589ed5",
-  "xml_sha256": "d87e58982929bdca9e2439700d2db7e880403894ef125ff8250dd96f1e321e44"
+  "vector-free_sha256": "00be00097855007f4d78295ea1eafd99961bb32ddf28d6e0fdc154aafb4129fc",
+  "xml_sha256": "923b943e62032e83d22bf842745a369f816d8f58786aec0c0ade49306aafdd1d"
  },
  "values": {
   "accel_bias_mg": [
@@ -340,7 +340,7 @@
   "tof_weak_distance_sd_mm": 22.2,
   "total_mass_g": 170.0,
   "tread_center_spacing_mm": 47.9,
-  "tread_contact_inset_mm": 3.17,
+  "tread_contact_inset_mm": 3.41,
   "tread_friction": 0.9,
   "tread_friction_power_fraction": 0.1573,
   "tread_heat_loss_rate_per_s": [

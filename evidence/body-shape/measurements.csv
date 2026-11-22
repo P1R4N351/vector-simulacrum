@@ -2,7 +2,7 @@ section,item,parametric_value,rig_value,reference_value,unit,notes
 envelope,length,86.1,100.5,99.8,mm,parametric = contact geoms of the current table; rig = collision pieces (visual meshes 100.6); reference = retail listing
 envelope,width,59.4,60.3,59.9,mm,visual meshes 60.3; primitive width was 56.0 before the tread corrections
 envelope,height,69.4,69.3,69.3,mm,visual meshes 69.3; primitive height was 66.0 before the head-box correction
-envelope,x_min,-58.5,-66.7,,mm,rear-most point at rest (parametric x -58.5..27.7; rig x -66.7..33.9)
+envelope,x_min,-58.4,-66.7,,mm,rear-most point at rest (parametric x -58.4..27.7; rig x -66.7..33.9)
 joint,front_axle_z,14.50,14.51,14.5,mm,firmware
 joint,rear_axle_x,-48.00,-47.99,-48.0,mm,firmware
 joint,rear_axle_z,10.75,10.77,10.75,mm,Webots model
