@@ -55,3 +55,11 @@ Twelve docked D1 strokes supplied the added horizontal variance separately for r
 A cube heading change can redistribute vibration across its axes but preserves this horizontal total. Even allowing a separate best-case horizontal rotation on each D2 stroke leaves a residual in the second-moment matrix (reported in mg²). Dock coupling, lift profile and cube location still differ between sessions. These recordings support keeping the D1 horizontal vibration gain out of the shared sensor model.
 
 [Overlay](horizontal-vibration.png) · [Per-stroke scores](horizontal-vibration.csv) · [Reproduce](horizontal_vibration.py)
+
+### Does matching encoder speed explain the difference?
+
+For each lift direction we interpolated added horizontal variance between the median slow and fast docked strokes, using median measured speed at each endpoint. Each off-dock speed fell between every slow and fast training speed. Training uses three docked repetitions per direction and speed. Off-dock variance comes from the original seven timing-valid strokes in a separate recording. We also interpolated each of the nine possible slow/fast endpoint pairs to check sensitivity to individual docked strokes.
+
+At 85–90 mm/s, the three off-dock raises produced 3.74–4.60 mg horizontal vibration, versus 6.12–6.32 mg predicted. Even the least energetic pair of docked endpoints overpredicted each raise. Lowering at 81–88 mm/s produced 3.00–3.75 mg versus 3.94–4.54 mg predicted. One lower came within 0.063 mg² of the least energetic pair; this small difference is unresolved. The nine-pair envelope describes observed endpoint sensitivity and carries no statistical confidence level.
+
+Mean absolute amplitude error was 2.04 mg on raises and 0.78 mg on lowers. Predicting the pre-stroke reading gave 1.26 and 0.38 mg respectively. Linear interpolation using mean stroke speed does not explain the discrepancy. A nonlinear response between the two docked speeds, stroke acceleration, and differences in mechanical coupling remain possible. [Speed comparison](horizontal-speed.png) · [Per-stroke values](horizontal-speed.csv) · [Reproduce](horizontal_speed.py)
