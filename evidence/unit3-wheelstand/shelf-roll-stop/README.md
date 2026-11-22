@@ -51,3 +51,11 @@ A gap beneath the lowest corner can generate the two very low samples. To test w
 R5 selects 8 mm: all 240 cases produce the pair and 24 also match the 4.02 g peak. At zero clearance neither run produces the pair. With 8 mm frozen on Sunday, all 240 cases again produce the pair but **none matches the 3.83 g peak**. Clearance and release velocity were not measured. The grid used zero initial velocity and discrete sampling phases. This result provides no basis for adding a fixed clearance to the simulator or inferring that either cube actually dropped 8 mm.
 
 ![Set-down clearance sweep and held-out landing](clearance.png)
+
+### Could pitch alone produce the first cliff flag?
+
+The SDK exposed the aggregate flag, without the four optical readings. Replaying each recorded chassis pitch over a continuous level table with zero roll, at the height where the lowest tread or axle support touches the surface, produced a cliff flag on 17 of the 19 flagged Sunday receipts and zero others in the 217-receipt roll window. At the first real flag the SDK reported 9.85° pitch. The model's front rays were then 16.54 mm, below their assumed 25 mm threshold. The model first flagged 123 ms later. The real guard cancelled the roll; subsequent native docking was a separate command.
+
+A 16.5 mm threshold, selected on Sunday by minimizing receipt disagreements (ties favor the existing threshold), matched all 217 Sunday receipts. With the threshold frozen, disagreements dropped from one to zero in each of two earlier wheelstands (W4: 98 receipts, W8: 94). This improves four aggregate observations across these three maneuvers. Unknown chassis height, roll, optical reflectivity and SDK receipt timing limit inference of an actual sensor distance. The test does not reconstruct the later shelf departure. Keep the production threshold pending an independent distance or drop-height measurement.
+
+![Pose-only replay of front and rear ranges with recorded and simulated cliff flags](cliff-pitch.png)
