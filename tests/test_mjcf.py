@@ -83,7 +83,7 @@ class GeneratedModel(unittest.TestCase):
             "tof_quality_floor", "tof_weak_distance_mm", "tof_weak_distance_sd_mm", "tof_lift_quality",
             # the carried cube's chip and app, run by simulacrum/cube.py
             "cube_accel_bandwidth_hz", "cube_accel_frame_period_ms", "cube_accel_filter_second_pole",
-            "cube_accel_noise_density_ug", "cube_accel_bias_mg", "cube_accel_scale"}
+            "cube_accel_noise_density_ug", "cube_accel_noise_axis_scale", "cube_accel_bias_mg", "cube_accel_scale"}
         unchanged = []
         for name, entry in self.doc["parameters"].items():
             if entry["kind"] != "robot" or "low" not in entry or name in layer_only:
