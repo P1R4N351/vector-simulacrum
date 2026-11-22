@@ -34,7 +34,7 @@ We compared the variance of the robot head IMU's acceleration magnitude during e
 | Direction means plus onboard gain | 0.37 mg | 1.78 mg |
 | Direction means alone | 0.80 mg | 0.75 mg |
 
-The combined model fit D1 more closely but transferred poorly when P2Y8 was off the dock. D1 used slow and fast strokes, while D2 used an intermediate commanded duration. These data leave dock coupling, location, speed and acceleration bandwidth confounded. The robot IMU at this cadence does not justify a shared gain for predicting vertical cube vibration in both settings. [Per-stroke inputs and errors](onboard-vibration.csv) · [Analysis](onboard_vibration.py)
+The combined model fit D1 more closely but transferred poorly when unit 3 was off the dock. D1 used slow and fast strokes, while D2 used an intermediate commanded duration. These data leave dock coupling, location, speed and acceleration bandwidth confounded. The robot IMU at this cadence does not justify a shared gain for predicting vertical cube vibration in both settings. [Per-stroke inputs and errors](onboard-vibration.csv) · [Analysis](onboard_vibration.py)
 
 ## Can lift speed or travel explain the partial raises?
 
