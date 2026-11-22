@@ -79,13 +79,15 @@ def lowering_goal(elapsed, start_angle):
     if elapsed<ramp+cruise:return start_angle-.5*vmax*ramp-vmax*(elapsed-ramp)
     return goal+100.*max(0.,end-elapsed)**2
 
-def run(start,limit,onset=None):
+def run(start,limit,onset=None,clear_cube=False):
     d=mj.MjData(m)
     m.actuator('lift').forcerange[:]=[-limit*.001,limit*.001]
     yaw=obs(start,'yaw')
     d.qpos[:2]=np.array([obs(start,'x_mm'),obs(start,'y_mm')])*.001
     d.qpos[3:7]=[np.cos(yaw/2),0,0,np.sin(yaw/2)]
     d.qpos[cube:cube+2]=np.array([target['x'],target['y']])*.001
+    if clear_cube:
+        d.qpos[cube:cube+2] += .30*np.array([-np.sin(yaw),np.cos(yaw)])
     d.qpos[cube+3:cube+7]=[np.cos(angle/2),0,0,np.sin(angle/2)]
     lift=mjcf.lift_angle_of_height(v,obs(start,'lift_mm'))
     for name,val in [('lift',lift),('wrist',-lift),('head',obs(start,'head'))]:
@@ -150,6 +152,31 @@ def run(start,limit,onset=None):
 
 initial_checks=[]
 firmware='--firmware' in sys.argv[2:]
+if '--clear-cube' in sys.argv:
+    fig,ax=plt.subplots(figsize=(8,4),layout='constrained')
+    with (here/'clear-cube.csv').open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['case','onset_s','elapsed_since_onset_70mm_s','elapsed_since_onset_55mm_s','peak_downward_fork_N'])
+        for onset in (early_onset,late_onset):
+            for clear in (False,True):
+                tr,_,_,load=run(3.5+shift,30,onset,clear_cube=clear)
+                if clear:assert load==0
+                label='Cube aside' if clear else 'Cube in place'
+                row=[label,onset]
+                for h in (70,55):
+                    hits=np.flatnonzero((tr[:-1,4]>h)&(tr[1:,4]<=h)&(tr[1:,0]>=onset))
+                    if len(hits):
+                        i=hits[0]
+                        frac=(tr[i,4]-h)/(tr[i,4]-tr[i+1,4])
+                        row.append(tr[i,0]+frac*(tr[i+1,0]-tr[i,0])-onset)
+                    else:row.append('')
+                writer.writerow(row+[load])
+                ax.plot(tr[:,0]-late_onset,tr[:,4],label=f'{label}, command {onset:.3f} s')
+    ax.plot(approach['s']-late_onset,approach['lift_mm'],'k.-',label='Physical wheelstand')
+    ax.set(xlim=(-.12,.70),xlabel='Seconds from last raised-lift sample',ylabel='Lift height (mm)')
+    ax.legend(fontsize=8)
+    fig.savefig(here/'clear-cube.png',dpi=155)
+    sys.exit(0)
 if '--lift-phase' in sys.argv:
     if not firmware:
         raise ValueError('Lift phase comparison requires firmware targets')
