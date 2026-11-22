@@ -1,0 +1,19 @@
+unit,source,trial,speed_cap_radps,40_to_80_ms,bracket_low_ms,bracket_high_ms
+1,"Empty docked, 10 rad/s",1,10,250.6,117.0,261.8
+1,"Empty docked, 10 rad/s",2,10,200.4,123.4,243.1
+1,"Empty docked, 10 rad/s",3,10,238.4,177.8,292.6
+1,"Empty replay, 10 rad/s",1,10,241.7,235.0,245.0
+1,"Empty docked, 1.5 rad/s",1,1.5,398.5,303.5,419.6
+1,"Empty docked, 1.5 rad/s",2,1.5,406.0,356.8,472.0
+1,"Empty docked, 1.5 rad/s",3,1.5,367.3,299.1,407.4
+1,"Empty replay, 1.5 rad/s",1,1.5,420.3,415.0,425.0
+3,"Empty docked, 10 rad/s",1,10,224.8,115.8,239.4
+3,"Empty docked, 10 rad/s",2,10,168.6,120.1,215.9
+3,"Empty docked, 10 rad/s",3,10,290.9,246.1,352.7
+3,"Empty replay, 10 rad/s",1,10,241.7,235.0,245.0
+3,"Empty docked, 1.5 rad/s",1,1.5,393.3,298.0,426.7
+3,"Empty docked, 1.5 rad/s",2,1.5,421.6,361.2,480.6
+3,"Empty docked, 1.5 rad/s",3,1.5,423.9,336.6,439.3
+3,"Empty replay, 1.5 rad/s",1,1.5,420.3,415.0,425.0
+3,Earlier pickup,1,1.5,389.0,293.0,429.7
+3,R5 pickup,1,1.5,429.5,332.0,495.3
