@@ -213,11 +213,13 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
         dockedX + (i + 0.5) * cell, sim.data.xpos[offset + 1] + (j + 0.5) * cell, 0.0004));
       observations.setColorAt(index, new THREE.Color(conflict ? 0xffb547 : kind === 7 ? 0xef5149 : 0x50cda2));
     });
+    hideFromRobot(observations);
     root.add(observations);
   }
   addLights(scene);
   const grid = new THREE.GridHelper(8, 32, 0x323a43, 0x242a31);
   grid.position.y = -v.table_height_mm * 0.001 + 0.0005;
+  hideFromRobot(grid);
   scene.add(grid);
 
   const meshes = [];
