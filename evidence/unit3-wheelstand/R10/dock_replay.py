@@ -22,6 +22,9 @@ fig,ax=plt.subplots(2,1,figsize=(8,6),sharex=True,layout='constrained')
 summary=[]
 early_path="--early-path" in sys.argv[3:]
 early_rows=[]
+impulse_test="--impact-impulse" in sys.argv[3:]
+if impulse_test and not early_path:
+ raise ValueError("impact impulse requires --face-test --early-path")
 
 angles=np.unwrap(R.from_quat(np.column_stack([poses[k] for k in ['qx','qy','qz','qw']])).as_euler('ZYX')[:,0])
 heading=np.interp(registration,poses['sec'],angles)
@@ -106,6 +109,11 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
   for dt,omitted,(layout,asset_rotation) in product(timesteps,conditions,layouts):
    if dt==.0000625 and layout!='4':
     continue
+   if impulse_test:
+    if layout!='2':
+     continue
+    from impact_wrench import ImpactWrench
+    wrench_recorder=ImpactWrench()
    tilt_trace='--tilt-trace' in sys.argv[3:]
    if tilt_trace and not (solver_check and tight_solver and reg['view']=='B' and layout=='4' and dt==.0000625):
     continue
@@ -115,6 +123,8 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    first_patch=[]
    iterations=[]
    def observe(m,data):
+    if impulse_test:
+     wrench_recorder.sample(m,data)
     b=data.body('cube')
     if solver_check:
      iterations.append(max(data.solver_niter))
@@ -138,6 +148,9 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    if layout!='upright':
     initial=initial*asset_rotation
    t,tilt,hit,speed,sensor=run(fixture,dt,True,d,initial,observer=observe,articulated=True,shelf_support=True,chassis_contact=True,omit_contacts=omitted)
+   if impulse_test:
+    wrench_recorder.save(reg['view'],start_offset,dt)
+    continue
    if tilt_trace or early_path:
     samples=np.asarray(out)
     offset_xy=(samples[:,:2]-samples[0,:2])*1000
@@ -174,6 +187,8 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    if dt==.00025:
     ax[0].plot(t+start_offset,travel,label=reg['view']+' · '+(layout if face_test else ','.join(omitted) or 'all contacts'))
     ax[1].plot(t+start_offset,turn)
+if impulse_test:
+ sys.exit(0)
 if early_path:
  with (folder/'impact-path-candidates.csv').open('w') as f:
   w=csv.writer(f,lineterminator='\n')
