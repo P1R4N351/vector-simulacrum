@@ -39,3 +39,30 @@ Moving the cube closer reduced the range error in trial 2 alone. On trials 4–5
 [Per-trial range statistics](initial-depth.csv) · [Mechanical comparison of both changes](../unit3-printed-fork-contact/depth-check.csv). Reproduce with `python initial_depth.py ../.. /tmp/unit3-fork.xml` using the registered fixture.
 
 On trials 4–5, extending the wrist gave pre-lift displacement errors of 1.32 and 0.10 mm. Moving the cube closer gave 1.32 and 0.07 mm. Push displacement alone barely distinguishes the hypotheses. The independent range check favors keeping the camera placement on those trials.
+
+## Vector 2 browser replay before cube contact
+
+![Recorded and browser range for each camera-registered approach](browser-range.png)
+
+The browser's Vector 2 free-cube scene starts each replay from the cube center
+estimated from the onboard glyph and its heading from the overhead camera. We
+move the cube relative to the level chassis according to recorded odometry,
+hold its orientation fixed in shelf coordinates, and supply the measured lift
+height. The browser casts its 19 rays and samples at its configured 60 ms
+state period. Each physical receipt is paired with the latest simulated
+report. Neither real range nor an offset fitted to range sets the starting
+position. These are registered poses with the stock simulated scene background.
+They omit any shelf motion between overhead frames, chassis pitch, and
+occluders unique to the recording.
+
+On trials 3–5, the mean absolute range error before driving was **3.22 mm**
+(45 readings). From 1 to 2.75 seconds into the approach it reached **9.00 mm**
+(51 readings); all 51 browser ranges were at or below the measured distance.
+Both sides reported a target throughout those windows. Only 3 of 51 moving
+readings were within 5% of measured range. Applying the 71 ms delay previously
+estimated on trials 1–2 reduced moving error to **7.88 mm**, with 7 of 51
+within 5%. This shift is a diagnostic on the reporting time axis. The remaining
+error and trial 2's opposite bias make a global range correction premature.
+
+[Paired readings](browser-range.csv). Run `python browser_range.py` with the
+web dependencies installed. No sensor or contact parameters are fitted.
