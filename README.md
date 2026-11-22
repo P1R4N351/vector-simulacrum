@@ -1237,6 +1237,14 @@ the firmware disagreements.
   (`simulacrum/cube.py`): the chip's filter, 12-bit frames every 2 ms, the
   FIFO, the last frame per 10 ms tick, and the tap counter as shipped. A
   cube on the floor, and the cube's lights and radio, are not modelled.
+- **A charger (dock)**, on request (`VectorSim(dock="scene" | "docked" | (x_mm, y_mm, yaw_deg))`).
+  Its 13 contact and guide boxes (`simulacrum/dock_surface.csv`) reproduce the
+  flared funnel, wheel rails, sloped ramp (`0.04 mm` tread-lane MAE against
+  `Vic_charger_hp_geo.obj`), rear cradle, tower, and brass charging pins with
+  exact bilateral symmetry and zero overlap across non-pin boxes.
+  `on_charger` and `on_charger_platform` track chassis and pin engagement in
+  `simulacrum/dock.py`, setting resting supply voltage to `4.20 V` while
+  parked on the pins. `build_mjcf.py --dock scene|docked` writes the scene.
 - **Scene.** A table slab with real edges and a floor below; sizes from the
   table (600 by 600 mm, 300 mm high by default). Optional boxes.
 - **Timing.** Physics at 1 ms, control at 5 ms (200 Hz), state messages
@@ -1282,7 +1290,8 @@ the firmware disagreements.
 - The firmware's pick-up detection from gyro and accelerometer motion. Here
   picked up means three or more cliff sensors see a drop for 40 ticks.
 - The battery's sag under load (modelled, but its size is assumed: the SDK's
-  reading does not move), charger, cubes, touch,
+  reading does not move), battery charging kinetics (dock pin contact sets the
+  4.20 V resting supply, not cell state-of-charge), cubes, touch,
   the stall protection, the lift's four-bar linkage.
 - Tread compliance. The wheels are rigid cylinders, so the robot stands on
   four contacts. That is the likely reason the turn rate depends so sharply

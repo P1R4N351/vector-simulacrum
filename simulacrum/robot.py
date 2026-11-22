@@ -34,6 +34,7 @@ import mujoco
 import numpy as np
 
 from . import cube as cube_model
+from . import dock as dock_model
 from . import imu_filter, mjcf, params
 from .drive import TreadController, TreadEncoder, whole_mmps
 from .hazards import Hazards
@@ -76,6 +77,8 @@ class RobotState:
     has_control: bool
     prox_signal_quality: float = 0.0
     prox_unobstructed: bool = True
+    on_charger: bool = False
+    on_charger_platform: bool = False
 
 
 @dataclass(frozen=True)
@@ -115,7 +118,7 @@ class VectorSim:
                  start_xy_mm: Tuple[float, float] = (0.0, 0.0), heading_deg: float = 0.0,
                  obstacles: Sequence[Sequence[float]] = (), head_deg: float = 0.0,
                  lift_mm: Optional[float] = None, noise_seed: int = 0, cube: Optional[str] = None,
-                 cube_app: str = "last") -> None:
+                 cube_app: str = "last", dock: Any = None) -> None:
         assert control_level in (CONTROL_DEFAULT, CONTROL_OVERRIDE), "unknown control level"
         assert isinstance(noise_seed, int), "noise seed must be an int"
         assert cube in mjcf.CUBE_MOUNTS, "unknown cube placement"
@@ -129,8 +132,13 @@ class VectorSim:
         self.d = mjcf.derive(self.v)
         self.control_level = control_level
         self.dt = self.v["control_period_ms"] * 0.001
-        # Existing replay builders accept the original two-argument scene interface.
-        xml = mjcf.build_mjcf(self.v, obstacles) if cube is None else mjcf.build_mjcf(self.v, obstacles, cube)
+        # Keep the 2-argument call unchanged when neither cube nor dock is used (contact_trial patches build_mjcf).
+        if cube is None and dock is None:
+            xml = mjcf.build_mjcf(self.v, obstacles)
+        elif dock is None:
+            xml = mjcf.build_mjcf(self.v, obstacles, cube)
+        else:
+            xml = mjcf.build_mjcf(self.v, obstacles, cube=cube, dock=dock)
         self.model = mujoco.MjModel.from_xml_string(xml)
         self.data = mujoco.MjData(self.model)
         self._index_model()
@@ -141,7 +149,11 @@ class VectorSim:
         assert (self.cube is None) == (self._cube_adr < 0), "cube sensor and model must agree"
         self.hazards = Hazards(self.v)
         self.states: collections.deque = collections.deque(maxlen=STATE_HISTORY)
-        self._place(start_xy_mm, heading_deg)
+        if dock == "docked" and start_xy_mm == (0.0, 0.0) and heading_deg == 0.0:
+            place_xy, place_hdg, place_z, place_pitch = dock_model.docked_robot_pose(dock)
+        else:
+            place_xy, place_hdg, place_z, place_pitch = start_xy_mm, heading_deg, 0.0, 0.0
+        self._place(place_xy, place_hdg, place_z, place_pitch)
         self._pose_servos(head_deg, lift_mm)
         self._settle()
 
@@ -166,6 +178,8 @@ class VectorSim:
         assert len(self._imu_adr) == imu_filter.CHANNELS, "the filter takes accelerometer then gyro"
         cube_sensor = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_SENSOR, "cube_accel")
         self._cube_adr = int(m.sensor_adr[cube_sensor]) if cube_sensor >= 0 else -1
+        self._chassis_body = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "chassis")
+        self._dock_body = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "dock")
         self._tof_site = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_SITE, "tof")
         assert self._tof_site >= 0, "time-of-flight site missing from the model"
         scene_only = [0] * 6
@@ -217,18 +231,25 @@ class VectorSim:
         self._react_from = (0.0, 0.0)
         self._state_ticks = int(round(v["state_period_ms"] / v["control_period_ms"]))
         assert self._state_ticks >= 1, "state period shorter than the control period"
+        self._on_charger = False
+        self._on_charger_platform = False
 
-    def _place(self, start_xy_mm: Tuple[float, float], heading_deg: float) -> None:
+    def _place(self, start_xy_mm: Tuple[float, float], heading_deg: float,
+               start_z_mm: float = 0.0, pitch_deg: float = 0.0) -> None:
         assert len(start_xy_mm) == 2 and math.isfinite(heading_deg), "bad start pose"
+        assert math.isfinite(start_z_mm) and math.isfinite(pitch_deg), "bad start height or pitch"
         yaw = math.radians(heading_deg)
+        half_p = 0.5 * math.radians(pitch_deg)
+        cy, sy, cp, sp = math.cos(0.5 * yaw), math.sin(0.5 * yaw), math.cos(half_p), math.sin(half_p)
         qpos = self.data.qpos
-        qpos[0], qpos[1], qpos[2] = start_xy_mm[0] * mjcf.MM, start_xy_mm[1] * mjcf.MM, 0.0
-        qpos[3], qpos[4], qpos[5], qpos[6] = math.cos(0.5 * yaw), 0.0, 0.0, math.sin(0.5 * yaw)
+        qpos[0], qpos[1], qpos[2] = start_xy_mm[0] * mjcf.MM, start_xy_mm[1] * mjcf.MM, 0.0 + start_z_mm * mjcf.MM
+        qpos[3], qpos[4], qpos[5], qpos[6] = cy * cp, -sy * sp, cy * sp, sy * cp
         qpos[self._q["lift"]] = self.d["lift_angle_min"]
         qpos[self._q["wrist"]] = -self.d["lift_angle_min"]
         self.data.ctrl[self._act["lift"]] = self.d["lift_angle_min"]
         mujoco.mj_forward(self.model, self.data)
         self._yaw_prev = self._yaw_total = self._yaw()
+        self._update_charger_state()
 
     def _pose_servos(self, head_deg: float, lift_mm: Optional[float]) -> None:
         """Start with the head and lift already at a given angle and height (clamped to the limits)."""
@@ -257,6 +278,9 @@ class VectorSim:
         if self.cube is not None:
             self.cube.reset(self._cube_force_g(), 0.0)
         self._yaw_prev = self._yaw_total = self._yaw()
+        self._update_charger_state()
+        if self._on_charger:
+            self.battery_volts = max(self.v["battery_rest_voltage_v"], dock_model.CHARGER_SUPPLY_VOLTS)
         for encoder, travel in zip(self._encoders, self._tread_travel_mm()):
             encoder.update(travel)
             encoder.counts, encoder.speed_mmps = 0, 0.0
@@ -402,6 +426,18 @@ class VectorSim:
         lift_angle = low + counts * lift_step
         return head, mjcf.lift_height_of_angle(v, lift_angle)
 
+    def _update_charger_state(self) -> None:
+        if self._dock_body < 0:
+            self._on_charger = False
+            self._on_charger_platform = False
+            return
+        state = dock_model.contact_state(
+            self.data.xpos[self._chassis_body], self.data.xmat[self._chassis_body],
+            self.data.xpos[self._dock_body], self.data.xmat[self._dock_body],
+        )
+        self._on_charger = state["on_charger"]
+        self._on_charger_platform = state["on_charger_platform"]
+
     def _publish_state(self) -> None:
         x, y, z = self.pose_mm()
         left, right = self._reported_wheel_speeds()
@@ -417,7 +453,7 @@ class VectorSim:
             prox_signal_quality=prox.signal_quality, prox_unobstructed=prox.unobstructed,
             accel_mmps2=accel, gyro_radps=gyro, cliff_detected=self.hazards.cliff_any,
             picked_up=self.hazards.picked_up, falling=self.hazards.falling, wheels_moving=moving,
-            has_control=self.has_control)
+            has_control=self.has_control, on_charger=self._on_charger, on_charger_platform=self._on_charger_platform)
         self.states.append(self.state)
 
     def sim_truth(self) -> Dict[str, Any]:
@@ -430,7 +466,8 @@ class VectorSim:
                 "cliff_flags": list(self.hazards.cliff), "wheel_speeds_mmps": self._wheel_speeds(),
                 "encoder_counts": (self._encoders[0].counts, self._encoders[1].counts),
                 "motor_power": (self._controllers[0].power, self._controllers[1].power),
-                "tof_hits_mm": list(self._tof_hits_mm)}
+                "tof_hits_mm": list(self._tof_hits_mm),
+                "on_charger": self._on_charger, "on_charger_platform": self._on_charger_platform}
 
     # ---- the control tick -----------------------------------------------
 
@@ -540,7 +577,10 @@ class VectorSim:
         v = self.v
         measured = self._reported_wheel_speeds()
         load = abs(self._controllers[0].power) + abs(self._controllers[1].power)
-        self.battery_volts = v["battery_rest_voltage_v"] - v["battery_sag_v_per_power"] * load
+        supply = (max(v["battery_rest_voltage_v"], dock_model.CHARGER_SUPPLY_VOLTS)
+                  if self._on_charger and left_mmps == 0.0 and right_mmps == 0.0
+                  else v["battery_rest_voltage_v"])
+        self.battery_volts = supply - v["battery_sag_v_per_power"] * load
         assert self.battery_volts > 0.0, "battery voltage sagged to nothing"
         scale = self.battery_volts / v["motor_reference_voltage_v"]
         ctrl = self.data.ctrl
@@ -565,6 +605,7 @@ class VectorSim:
         self._ramp_commands()
         self._write_controls()
         self._physics_step()
+        self._update_charger_state()
         self.tick += 1
         yaw = self._yaw()
         self._yaw_total += math.atan2(math.sin(yaw - self._yaw_prev), math.cos(yaw - self._yaw_prev))

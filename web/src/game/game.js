@@ -20,6 +20,7 @@ import { HIDDEN_FROM_ROBOT } from "./headcam.js";
 import { createInput } from "./input.js";
 import shelfCube from "../sim/shelf_cube.json";
 import { loadCubeLook } from "./cube.js";
+import { loadDockLook } from "./dock.js";
 import { buildVisuals } from "./scene.js";
 import { loadSdkModel } from "./sdkmodel.js";
 
@@ -73,25 +74,32 @@ async function checkModel(xml, expectedHash) {
 
 async function loadEverything() {
   const options = new URLSearchParams(location.search);
-  const trial = options.get("contact") === "42";
+  const dockParam = options.get("dock");
+  const hasDock = ["1", "on", "true", "scene", "docked"].includes(dockParam ?? "");
+  const dockedStart = dockParam === "docked";
+  const contactArg = options.get("contact");
+  const trial = contactArg === "42" || (hasDock && contactArg !== "stock");
   const free = options.get("cube") === "free";
   const directory = options.get("robot") === "2" ? "./robot/vector2" : "./robot";
-  const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "");
+  const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "") + (hasDock ? "-dock" : "");
+  const modelLabel = (trial ? "ROBOT MODEL · 42 MM CONTACT" : "ROBOT MODEL") + (hasDock ? " · DOCK" : "");
   const [{ default: loadMujoco }, xml, modelText] = await Promise.all([
     traced("PHYSICS RUNTIME", import("@mujoco/mujoco")),
-    traced(trial ? "ROBOT MODEL · 42 MM CONTACT" : "ROBOT MODEL",
-      fetchText(`${directory}/${sceneName}.xml`)),
+    traced(modelLabel, fetchText(`${directory}/${sceneName}.xml`)),
     traced("PARAMETER TABLE", fetchText(`${directory}/model.json`)),
   ]);
   const model = JSON.parse(modelText);
   if (free && options.get("cubeSensor") === "unit3") Object.assign(model.values, shelfCube);
   const doneCheck = bootLine("MODEL CHECKSUM");
-  doneCheck(await checkModel(xml, free ? model.source[sceneName + "_sha256"] : (trial ? model.source.trial_xml_sha256 : model.source.xml_sha256)));
+  const expectedHash = model.source[`${sceneName}_sha256`]
+    ?? (trial ? model.source.trial_xml_sha256 : model.source.xml_sha256);
+  doneCheck(await checkModel(xml, expectedHash));
   const mujoco = await traced("WEBASSEMBLY", loadMujoco({ locateFile: (p) => (p.endsWith(".wasm") ? mujocoWasmUrl : p) }));
   const doneCompile = bootLine("COMPILE AND SETTLE");
-  const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1 });
+  const startOpts = dockedStart ? { noiseSeed: 1, docked: true } : { noiseSeed: 1 };
+  const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, ...startOpts });
   doneCompile("OK");
-  return { mujoco, model, sim, free };
+  return { mujoco, model, sim, free, hasDock, startOpts };
 }
 
 function makeRenderer(canvas) {
@@ -178,6 +186,7 @@ function telemetryOf(sim, extra) {
     prox_lift: s.prox_is_lift_in_fov, cliff: t.cliff_flags, cliff_detected: s.cliff_detected, picked_up: s.picked_up,
     falling: s.falling, has_control: sim.hasControl, reacting: t.reacting, reactions: sim.reactions,
     fallen: t.fallen, edge_margin_mm: t.edge_margin_mm, action_running: sim.actionRunning,
+    on_charger: t.on_charger, on_charger_platform: t.on_charger_platform,
   };
 }
 
@@ -194,7 +203,7 @@ function installApi(ctx) {
   const press = {
     stop: () => sim.stopAllMotors(),
     reset: () => {
-      sim.reset({ noiseSeed: 1 });
+      sim.reset(ctx.startOpts);
       driver.reset();
       visuals.clearTrail();
       useGame.setState({ lastAction: null });
@@ -320,6 +329,24 @@ async function loadRobotLook(model) {
   }
 }
 
+async function loadDockVisual() {
+  const done = bootLine("DOCK MODEL");
+  const options = new URLSearchParams(window.location.search);
+  if (options.get("look") === "shapes") {
+    done("SKIPPED: ?look=shapes");
+    return null;
+  }
+  try {
+    const dock = await loadDockLook("./robot/sdk/");
+    done(dock === null ? "NOT FETCHED: DRAWING SHAPES" : "OK");
+    return dock;
+  } catch (err) {
+    console.error("[dock model]", err);
+    done("UNUSABLE: DRAWING SHAPES");
+    return null;
+  }
+}
+
 // The core owns a WebGL context and a WebAssembly heap and cannot be swapped in place:
 // during development an edit to it, or to anything it imports, reloads the page.
 if (import.meta.hot) import.meta.hot.accept(() => window.location.reload());
@@ -331,12 +358,13 @@ export async function bootGame(canvas) {
   booted = true;
   try {
     const view = makeRenderer(canvas);
-    const { mujoco, model, sim, free } = await loadEverything();
+    const { mujoco, model, sim, free, hasDock, startOpts } = await loadEverything();
     const sdk = await loadRobotLook(model);
+    const dock = hasDock ? await loadDockVisual() : null;
     const doneScene = bootLine("SCENE");
     const cube = free && sdk ? await loadCubeLook(model.values.cube_size_mm) : null;
-    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube);
-    const ctx = { ...view, sim, visuals, driver: makeDriver(sim), input: null, raf: 0 };
+    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube, dock);
+    const ctx = { ...view, sim, visuals, driver: makeDriver(sim), input: null, raf: 0, startOpts };
     const press = installApi(ctx);
     ctx.input = createInput((name) => press[name]?.());
     doneScene("OK");

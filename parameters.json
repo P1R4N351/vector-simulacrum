@@ -201,6 +201,21 @@
       "url": "https://raw.githubusercontent.com/kercre123/victor/snowboy/engine/robot.cpp",
       "sha256": "5ba1fbfd03831b7f3e2d8b76140eb768bb73956b1c0495b26e07f4bb65754d1e",
       "sha256_fullRobotPose": "2c7df61741fd0751d0cc835c7558edec24c26974ccdcdfcdfbcfb7aa04d9ac3d"
+    },
+    "CHARGERH": {
+      "what": "engine/charger.h, the engine's charger dimensions and docked robot distance",
+      "url": "https://raw.githubusercontent.com/kercre123/victor/snowboy/engine/charger.h",
+      "sha256": "ab130641e80a6ea6f807a5b5a9398d0148bdb6ead8c3f4233c47e30ac24fbe89"
+    },
+    "CHARGERCPP": {
+      "what": "engine/charger.cpp, the charger Home marker pose and pre-dock pose offsets",
+      "url": "https://raw.githubusercontent.com/kercre123/victor/snowboy/engine/charger.cpp",
+      "sha256": "94459ff575a70544d673f0efdcbb03bf6d29d5c0d8c15448da10e9531cc94a0a"
+    },
+    "CHARGERACT": {
+      "what": "engine/actions/chargerActions.cpp, backingUpLiftHeight_mm during charger mount",
+      "url": "https://raw.githubusercontent.com/kercre123/victor/snowboy/engine/actions/chargerActions.cpp",
+      "sha256": "8e7b87fea02b17fd5c0b224118db02e5659333b8c022ffed71e0f9b5e5e74d5c"
     }
   },
   "parameters": {
@@ -396,7 +411,16 @@
     "table_width_mm": {"value": 600.0, "unit": "mm", "provenance": "chosen", "source": "Scenario setting.", "low": 300.0, "high": 1500.0, "kind": "scene"},
     "table_height_mm": {"value": 300.0, "unit": "mm", "provenance": "chosen", "source": "Scenario setting.", "low": 50.0, "high": 800.0, "kind": "scene"},
     "table_thickness_mm": {"value": 20.0, "unit": "mm", "provenance": "chosen", "source": "Scenario setting.", "low": 10.0, "high": 40.0, "kind": "scene"},
-    "sim_timestep_ms": {"value": 1.0, "unit": "ms", "provenance": "chosen", "source": "Solver setting. A convergence check: rank_assumed.py reports what halving it does.", "low": 0.5, "high": 1.0, "kind": "numeric", "note": "Must divide control_period_ms."}
+    "sim_timestep_ms": {"value": 1.0, "unit": "ms", "provenance": "chosen", "source": "Solver setting. A convergence check: rank_assumed.py reports what halving it does.", "low": 0.5, "high": 1.0, "kind": "numeric", "note": "Must divide control_period_ms."},
+
+    "charger_slope_length_mm": {"value": 94.0, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "CHARGERH:114 kSlopeLength = 94.f (front lip to marker tower face: 93.205 mm in the production CAD OBJ; overall length with tower back is 113.007 mm).", "kind": "reference"},
+    "charger_platform_width_mm": {"value": 64.0, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "CHARGERH:111 kPlatformWidth = 64.f (inner cheek rails in the CAD OBJ taper to 62.8 mm).", "kind": "reference"},
+    "charger_width_mm": {"value": 88.0, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "CHARGERH:112 kWidth = 2*kWallWidth + kPlatformWidth = 88 mm (CHARGERH:110-112; the CAD OBJ outer width is 87.462 mm).", "kind": "reference"},
+    "charger_height_mm": {"value": 80.0, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "CHARGERH:113 kHeight = 80.f (the CAD OBJ tower top sits at 77.590 mm above the bottom pad).", "kind": "reference"},
+    "charger_marker_size_mm": {"value": 46.0, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "CHARGERH:117-118 kMarkerWidth = kMarkerHeight = 46.f; CHARGERCPP:75 AddMarker(MARKER_CHARGER_HOME).", "kind": "reference"},
+    "charger_marker_z_mm": {"value": 48.5, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "CHARGERH:119 kMarkerZPosition = 48.5f above ground; CHARGERCPP:73 places the marker centre on the tower front face.", "kind": "reference"},
+    "charger_docked_distance_mm": {"value": 30.0, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "CHARGERH:121 kRobotToChargerDistWhenDocked = 30.f (robot front axle ahead of charger front lip when docked); CHARGERCPP:124 GetRobotDockedPose.", "kind": "reference"},
+    "charger_mount_lift_height_mm": {"value": 45.0, "unit": "mm", "provenance": "sdk", "source_kind": "vendor_firmware", "source": "CHARGERACT:146 backingUpLiftHeight_mm = 45.f (MountChargerAction raises the lift before backing onto the charger so the fork clears the ramp).", "kind": "reference"}
   },
   "missing": [
     {"name": "overall_envelope_mm", "what": "Length, width and height of the whole robot, lift down and head level.", "measure": "Ruler or calipers on the robot standing on a flat surface.", "needs": "ruler"},

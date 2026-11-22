@@ -1,0 +1,5 @@
+panel,robot_look,on_charger,on_charger_platform,battery_v,x_mm,y_mm,z_mm,heading_deg,prox_found,prox_mm
+scene_v1,sdk,false,false,4.03,0,0,-0.01,0,false,119
+docked_v2_free,sdk,true,true,4.2,-149.43,0,6.56,0,false,140
+headcam_facing_dock,sdk,false,false,4.03,-25,0,-0.01,180,true,154
+docked_shapes_overlay,sdk,true,true,4.2,-149.41,0,6.55,0,false,128

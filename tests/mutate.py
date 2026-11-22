@@ -622,6 +622,9 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
      (TSVC + "test_it_refuses_an_output_folder_that_already_holds_anything",), False),
     ("saver accepts a repeated image id", SVC, ' or row.get("id") in ids:', ":",
      (TSVC + "test_frames_before_begin_or_a_repeated_image_id_stop_the_save",), False),
+    ("dock pin contact ignores lateral alignment", "simulacrum/dock.py",
+     "abs(float(delta_mm[1])) <= PIN_TOL_Y_MM", "True",
+     ("test_dock.DockContactGeometry.test_nominal_offset_and_inverted_bounds",), False),
 )
 NEUTRAL = ("docstring reworded", R, '"""A simulated Vector on a table. One instance is one robot and one scene."""',
            '"""A simulated Vector on a table: one instance is one robot and one scene."""')

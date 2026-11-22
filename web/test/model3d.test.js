@@ -5,6 +5,7 @@ import { test } from "node:test";
 import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { CUBE_FACE_ATLAS, repairCubeUVs, repairMeshNormals } from "../src/game/cube.js";
+import { assembleDockObj } from "../src/game/dock.js";
 import { printFork } from "../src/game/printparts.js";
 import { assemble } from "../src/game/sdkmodel.js";
 import { addShellTrim } from "../src/game/shell.js";
@@ -309,4 +310,55 @@ test("optional SDK vector.obj and cube.obj pass 3D geometry and normal checks", 
       verifyCubeMarkerLayout(node.geometry, "sdk-cube");
     }
   });
+});
+
+test("assembleDockObj strips slivers, repairs inverted normals, and maps left pin to y < 0", () => {
+  const mayaObj = [
+    "g pin_l_geo",
+    "v -10.85 11.0 -23.0",
+    "v -8.85 11.0 -23.0",
+    "v -8.85 15.0 -23.0",
+    "v -10.85 15.0 -23.0",
+    "v -9.85 13.0 -20.0",
+    "vn 0 0 -1",
+    "vn 0 -1 0",
+    "f 1//1 2//1 3//1",
+    "f 1//2 3//2 4//2",
+    "f 1//1 2//1 5//1",
+    "f 1//1 1//1 2//1",
+  ].join("\n");
+  const raw = new OBJLoader().parse(mayaObj);
+  let rawInverted = 0;
+  raw.traverse((node) => { if (node.isMesh) rawInverted += inspectMesh(node).inverted; });
+  assert.ok(rawInverted > 0, "expected inverted vertex normals in synthetic Maya OBJ");
+
+  const assembled = withMockDocument(() => assembleDockObj(new OBJLoader().parse(mayaObj)));
+  assertCleanTree(assembled, "synthetic-dock");
+  const pin = assembled.getObjectByName("pin_l_geo");
+  assert.ok(pin, "missing pin_l_geo in assembled dock");
+  const center = new THREE.Box3().setFromObject(pin).getCenter(new THREE.Vector3());
+  assert.ok(center.y < -0.005, `expected left pin at y < -0.005 m, got ${center.y}`);
+});
+
+const HAVE_DOCK_SDK = existsSync(join(ROOT, "public/robot/sdk/Vic_charger_hp_geo.obj"))
+  && existsSync(join(ROOT, "public/robot/sdk/vic_charger_midPoly.obj"));
+
+test("optional SDK dock OBJs require repair raw and pass 3D geometry checks assembled", { skip: !HAVE_DOCK_SDK }, () => {
+  const rawHp = new OBJLoader().parse(readText("public/robot/sdk/Vic_charger_hp_geo.obj"));
+  let rawInverted = 0;
+  rawHp.traverse((node) => { if (node.isMesh) rawInverted += inspectMesh(node).inverted; });
+  assert.ok(rawInverted > 0, "expected raw Vic_charger_hp_geo.obj to contain inverted normals");
+
+  for (const filename of ["Vic_charger_hp_geo.obj", "vic_charger_midPoly.obj"]) {
+    const parsed = new OBJLoader().parse(readText(`public/robot/sdk/${filename}`));
+    const assembled = withMockDocument(() => assembleDockObj(parsed));
+    assertCleanTree(assembled, filename);
+    const meshes = [];
+    assembled.traverse((node) => {
+      if (node.isMesh && /pin|pplane/i.test(node.name)) meshes.push(node);
+    });
+    const ys = meshes.map((m) => new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3()).y);
+    assert.ok(ys.some((y) => y < -0.005), `${filename} missing left pin at y < 0`);
+    assert.ok(ys.some((y) => y > 0.005), `${filename} missing right pin at y > 0`);
+  }
 });

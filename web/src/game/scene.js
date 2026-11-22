@@ -13,6 +13,7 @@
 
 import * as THREE from "three";
 import { makeCubeMarks } from "./cube.js";
+import { makeDockDecals } from "./dock.js";
 import { HIDDEN_FROM_ROBOT, makeHeadCamera } from "./headcam.js";
 import { makeBeltPath, makeCleats, makeSpokes } from "./tracks.js";
 
@@ -25,6 +26,8 @@ const PALETTE = {
   lift_arm_geom: { color: 0x8b929d, roughness: 0.4, metalness: 0.2 },
   lift_fork_geom: { color: 0xa9905a, roughness: 0.4, metalness: 0.35 },
   wheel: { color: 0x24272b, roughness: 0.85 },
+  dock: { color: 0x26282c, roughness: 0.55, metalness: 0.06 },
+  dock_pin: { color: 0xc7a054, roughness: 0.31, metalness: 0.68 },
 };
 const EYE = "#3df58c";
 const RAY_OK = new THREE.Color(0x3df58c);
@@ -40,6 +43,8 @@ const CLIFF_RAY_MAX_M = 0.06; // drawn length of a cliff beam that sees nothing
 function styleFor(name) {
   if (name.startsWith("wheel_")) return PALETTE.wheel;
   if (name.startsWith("obstacle_")) return PALETTE.obstacle;
+  if (name.startsWith("dock_pin_")) return PALETTE.dock_pin;
+  if (name.startsWith("dock_")) return PALETTE.dock;
   return PALETTE[name] ?? null;
 }
 
@@ -62,7 +67,7 @@ function geomMesh(mujoco, model, index, name) {
   mesh.matrixAutoUpdate = false;
   const scenery = model.geom_bodyid[index] === 0;
   mesh.castShadow = !scenery || name.startsWith("obstacle_");
-  mesh.receiveShadow = scenery;
+  mesh.receiveShadow = scenery || name.startsWith("dock_");
   return mesh;
 }
 
@@ -178,7 +183,7 @@ function hideFromRobot(object) {
 
 // sdk: the loaded SDK robot model, or null to draw the robot as its physics shapes.
 // cameraSpec: the camera block of model.json.
-export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
+export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, dock = null) {
   const { model } = sim;
   const v = sim.v;
   const nameOf = (kind, index) => mujoco.mj_id2name(model, mujoco.mjtObj[kind].value, index);
@@ -195,10 +200,18 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
   const meshes = [];
   const robotMeshes = [];
   const cubeId = idOf("mjOBJ_BODY", "cube");
+  const dockId = idOf("mjOBJ_BODY", "dock");
   for (let i = 0; i < model.ngeom; i++) {
     const mesh = geomMesh(mujoco, model, i, nameOf("mjOBJ_GEOM", i));
     if (model.geom_bodyid[i] === cubeId) {
       mesh.visible = cube === null;
+    } else if (model.geom_bodyid[i] === dockId) {
+      if (dock !== null) {
+        mesh.material = SHAPE_OVERLAY;
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
+        robotMeshes.push(mesh);
+      }
     } else if (sdk !== null && model.geom_bodyid[i] !== 0) {
       mesh.material = SHAPE_OVERLAY;
       mesh.castShadow = false;
@@ -207,7 +220,9 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
     meshes.push(mesh);
     root.add(mesh);
   }
-  const bodies = cubeId >= 0 ? [["cube", cube ?? makeCubeMarks(v.cube_size_mm)]] : [];
+  const bodies = [];
+  if (cubeId >= 0) bodies.push(["cube", cube ?? makeCubeMarks(v.cube_size_mm)]);
+  if (dockId >= 0) bodies.push(["dock", dock ?? makeDockDecals({ includePins: false })]);
   let face = null;
   let shapeCleats = null;
   if (sdk !== null) bodies.push(["chassis", sdk.root]); // the model's frame is the robot's: origin under the front axle
@@ -329,9 +344,9 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
       if (showRays) syncRays(data, truth);
       const q = data.qpos;
       syncTrail(q[0], q[1], q[2]);
+      for (const mesh of robotMeshes) mesh.visible = showShapes;
       if (sdk !== null) {
         sdk.setPose(sim.headAngleRad(), sim.liftAngleRad(), mood, truth.wheel_angles_rad, open);
-        for (const mesh of robotMeshes) mesh.visible = showShapes;
       } else {
         face.draw(mood, open);
         const frontR = 0.001 * v.wheel_front_radius_mm;

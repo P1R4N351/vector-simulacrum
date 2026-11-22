@@ -17,10 +17,11 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const COPIED = ["src/sim", "src/game", "test", "public/robot/vector.xml", "public/robot/vector-contact42.xml",
-  "public/robot/vector-free.xml", "public/robot/vector-contact42-free.xml", "public/robot/model.json",
-  "camera_calibration.json", "package.json"];
+  "public/robot/vector-free.xml", "public/robot/vector-contact42-free.xml", "public/robot/vector-contact42-dock.xml",
+  "public/robot/model.json", "camera_calibration.json", "package.json"];
 const SUITE = ["test/drive.test.js", "test/hazards.test.js", "test/robot.test.js", "test/tracks.test.js", "test/optics.test.js",
-  "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js"];
+  "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js",
+  "test/dock.test.js"];
 const ARMS = [
   { name: "control: untouched copy", file: null, mustFail: false },
   { name: "neutral: a comment added", file: "src/sim/drive.js", old: "export class TreadEncoder {", new: "// neutral change\nexport class TreadEncoder {", mustFail: false },
@@ -77,6 +78,9 @@ const ARMS = [
   { name: "3D rig: stock fork pivoted on wrist instead of fork_pivot", file: "src/game/sdkmodel.js", old: "s.position.set(-pose.fork_pivot[0], 0, -pose.fork_pivot[1]);", new: "s.position.set(0, 0, 0);", mustFail: true },
   { name: "3D topology: cover sliver normals left unaligned", file: "src/game/topology.js", old: "    alignGeometryNormals(geo);\n", new: "", mustFail: true },
   { name: "3D cube: marker UVs mirrored horizontally", file: "src/game/cube.js", old: "uv.setXY(k, face.cx + (rMm / 11.5) * face.h, face.cy - (uMm / 11.5) * face.h);", new: "uv.setXY(k, face.cx - (rMm / 11.5) * face.h, face.cy - (uMm / 11.5) * face.h);", mustFail: true },
+  { name: "dock: pin contact ignores lateral alignment", file: "src/sim/dock.js", old: "const okY = Math.abs(delta[1]) <= PIN_TOL_Y_MM;", new: "const okY = true;", mustFail: true },
+  { name: "3D dock: inverted OBJ normals left unrepaired", file: "src/game/dock.js", old: "node.geometry = repairDockNormals(node.geometry);", new: "node.geometry.computeVertexNormals();", mustFail: true },
+  { name: "3D dock: Maya-to-charger transform mirrors left and right pins", file: "src/game/dock.js", old: "  0.001, 0, 0, 0,", new: "  -0.001, 0, 0, 0,", mustFail: true },
 ];
 
 function makeCopy() {

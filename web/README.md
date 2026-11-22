@@ -77,6 +77,12 @@ with a full SDK asset folder installs the textured cube locally. The fallback
 shows the shell and rubber contact boxes. Add `&contact=42` for the experimental
 42 mm contact span.
 
+Open `?dock=scene` to mount the charger on the table (`-120, 0 mm`, facing
+`+X`), or `?dock=docked` to start settled on the charging pins (`ON CHARGER`
+chip, `4.20 V` resting supply; drive forward or press Backspace to
+undock/reset). Both dock modes default to the `42 mm` contact span unless
+`?contact=stock` is given, and compose with `?robot=2` and `?cube=free`.
+
 In the free-cube scene, the cube acceleration readout shows the magnitude of
 each of the three ordered slots in the latest simulated stock Bluetooth packet.
 The chip filters specific force before sampling. The app keeps the last chip
@@ -258,6 +264,15 @@ Docker build add both `--build-arg WITH_SDK_MODEL=1` and `--build-arg WITH_PRINT
 A built bundle (`dist/`) or a container image that includes the model carries
 that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 
+For `?dock=scene` and `?dock=docked`, `tools/fetch_dock_model.py` downloads and
+SHA-256-verifies `Vic_charger_hp_geo.obj` and `vic_charger_midPoly.obj` from
+`kercre123/vector-animations-raw` into git-ignored `public/robot/sdk/`
+(`dock_manifest.json`). **Those dock meshes are under the Digital Dream Labs
+Software Asset License v1.0** (`public/robot/sdk/DDL-ASSET-LICENSE.txt`, not an
+open-source licence). Without them, the viewer draws the 13 physics boxes plus
+procedural Home Marker, ramp stripe decals, and brass pins. Pass `--build-arg
+WITH_DOCK_MODEL=1` to include them in a Docker build.
+
 ## Not done
 
 - No trained policy runs in the page yet. The simulacrum exports policies as
@@ -277,13 +292,14 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 
 | | |
 |---|---|
-| `src/sim/` | The port: `drive.js`, `hazards.js`, `prox.js`, `robot.js`, `util.js`; and `optics.js` (camera geometry). No browser APIs; runs under node |
-| `src/game/` | `game.js` (boot, control loop, views), `scene.js` (drawing), `sdkmodel.js` (the SDK model), `headcam.js` (the robot's camera), `tracks.js` (track path, cleats, spokes), `input.js` |
+| `src/sim/` | The port: `drive.js`, `dock.js`, `hazards.js`, `prox.js`, `robot.js`, `util.js`; and `optics.js` (camera geometry). No browser APIs; runs under node |
+| `src/game/` | `game.js` (boot, control loop, views), `scene.js` (drawing), `dock.js` (charger mesh & decals), `sdkmodel.js` (the SDK model), `headcam.js` (the robot's camera), `tracks.js` (track path, cleats, spokes), `input.js` |
 | `camera_calibration.json` | One real robot's camera calibration |
 | `src/ui/`, `src/store.js` | The panels and the store between them and the core |
 | `tools/export_model.py` | Model, parameter values and fixtures from the Python; `--check` for drift |
 | `tools/fetch_sdk_model.py` | The SDK's robot model, into `public/robot/sdk/` |
-| `test/` | Ten test files (53 tests), `mutate.mjs`, the fixtures |
+| `tools/fetch_dock_model.py` | The dock OBJ/MTL assets, into `public/robot/sdk/` |
+| `test/` | Eleven test files (70 tests), `mutate.mjs`, the fixtures |
 | `demo.sh`, `Dockerfile` | One command to a running page; a static container on port 8080 |
 
 To use the measured shelf cube with the free scene, open

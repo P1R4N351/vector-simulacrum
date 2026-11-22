@@ -36,6 +36,8 @@ function StatusChips({ t, level }) {
       {t.picked_up ? <Chip tone="warn">PICKED UP</Chip> : null}
       {t.falling ? <Chip tone="bad">FALLING</Chip> : null}
       {t.action_running ? <Chip tone="info">ACTION RUNNING</Chip> : null}
+      {t.on_charger ? <Chip tone="ok">ON CHARGER</Chip>
+        : t.on_charger_platform ? <Chip tone="info">CHARGER RAMP</Chip> : null}
     </div>
   );
 }

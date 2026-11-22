@@ -16,6 +16,8 @@ import math
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
 
+from . import dock as dock_model
+
 MM = 0.001
 GRAM = 0.001
 MAX_OBSTACLES = 16
@@ -25,6 +27,7 @@ CLIFF_NAMES = ("front_left", "front_right", "back_left", "back_right")
 ROBOT_GEOM_GROUP = 1
 # Where the model may carry a light cube: nowhere (the default) or in the lift.
 CUBE_MOUNTS = (None, "lift", "free")
+DOCK_MOUNTS = dock_model.DOCK_MOUNTS
 
 
 def num(value: float) -> str:
@@ -422,13 +425,53 @@ def _scene_xml(v: Dict[str, Any], obstacles: Sequence[Sequence[float]]) -> str:
     return out
 
 
-def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cube: Any = None) -> str:
+def _dock_geom_attrs(role: str) -> str:
+    """Contact and visual attributes for one role in dock_surface.csv."""
+    assert role in ("ramp", "guide", "shell", "pin"), f"unknown dock role {role!r}"
+    if role == "pin":
+        return 'contype="0" conaffinity="0" rgba="0.78 0.63 0.33 1"'
+    if role == "guide":
+        return 'contype="0" conaffinity="1" priority="2" condim="3" friction="0.05 0.005 0.0001" rgba="0.18 0.19 0.21 1"'
+    return 'contype="0" conaffinity="1" rgba="0.18 0.19 0.21 1"'
+
+
+def _dock_xml(dock: Any) -> str:
+    """Return `<body name="dock">...</body>` when requested, else empty string."""
+    pose = dock_model.resolve_dock_pose(dock)
+    if pose is None:
+        return ""
+    x_mm, y_mm, yaw_deg = pose
+    yaw = math.radians(yaw_deg)
+    quat = vec((math.cos(0.5 * yaw), 0.0, 0.0, math.sin(0.5 * yaw)))
+    geoms = []
+    for box in dock_model.load_surface_boxes():
+        pos = vec([c * MM for c in box.center_mm])
+        half = vec([c * MM for c in box.half_mm])
+        bquat = vec(box.quat)
+        geoms.append(f'      <geom name="dock_{box.part}" type="box" pos="{pos}" quat="{bquat}" '
+                     f'size="{half}" {_dock_geom_attrs(box.role)}/>\n')
+    pin_l = vec([c * MM for c in dock_model.PIN_LEFT_MM])
+    pin_r = vec([c * MM for c in dock_model.PIN_RIGHT_MM])
+    marker = vec([c * MM for c in dock_model.MARKER_POS_MM])
+    return (
+        f'    <body name="dock" pos="{vec((x_mm * MM, y_mm * MM, 0.0))}" quat="{quat}">\n'
+        + "".join(geoms)
+        + f'      <site name="dock_pin_l" pos="{pin_l}" size="0.001"/>\n'
+        + f'      <site name="dock_pin_r" pos="{pin_r}" size="0.001"/>\n'
+        + f'      <site name="dock_marker" pos="{marker}" zaxis="-1 0 0" size="0.002"/>\n'
+        + '    </body>\n'
+    )
+
+
+def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cube: Any = None,
+               dock: Any = None) -> str:
     """Return the whole model, robot and scene, as one MJCF string; cube="lift" adds a carried cube."""
     assert cube in CUBE_MOUNTS, "unknown cube placement"
     d = derive(v)
     gravity = -v["gravity_mmps2"] * MM
     assert gravity < 0.0, "gravity must point down"
     assert v["sim_timestep_ms"] > 0.0, "timestep must be positive"
+    dock_body = _dock_xml(dock)
     return (
         '<mujoco model="vector_simulacrum">\n'
         '  <compiler angle="radian" autolimits="true"/>\n'
@@ -436,6 +479,7 @@ def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cub
         'integrator="implicitfast" cone="elliptic">\n    <flag multiccd="enable"/>\n  </option>\n'
         '  <worldbody>\n'
         + _scene_xml(v, obstacles)
+        + dock_body
         + '    <body name="chassis" pos="0 0 0">\n'
         + _chassis_xml(v, d) + _sites_xml(v)
         + _wheels_xml(v).replace("    <", "      <").replace("    </", "      </")

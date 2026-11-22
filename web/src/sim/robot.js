@@ -11,6 +11,7 @@
 // block until done. Here an action is started and then advanced one control
 // tick per tick() call, so a frame loop can run it. The tick order is the same.
 
+import { CHARGER_SUPPLY_VOLTS, contactState, dockedRobotPose } from "./dock.js";
 import { TreadController, TreadEncoder, wholeMmps } from "./drive.js";
 import { CubeSensor } from "./cube_sensor.js";
 import { Hazards } from "./hazards.js";
@@ -69,7 +70,15 @@ export class VectorSim {
     this.mujoco.mj_resetData(this.model, this.data);
     this._initCommands();
     this.hazards = new Hazards(this.v);
-    this._place(opts.startXyMm ?? [0, 0], opts.headingDeg ?? 0);
+    const dockedPose = opts.docked && opts.startXyMm === undefined && opts.headingDeg === undefined
+      ? dockedRobotPose()
+      : null;
+    this._place(
+      dockedPose ? dockedPose.startXyMm : (opts.startXyMm ?? [0, 0]),
+      dockedPose ? dockedPose.headingDeg : (opts.headingDeg ?? 0),
+      dockedPose ? dockedPose.startZMm : (opts.startZMm ?? 0),
+      dockedPose ? dockedPose.pitchDeg : (opts.pitchDeg ?? 0),
+    );
     this._poseServos(opts.headDeg ?? 0, opts.liftMm ?? null);
     this._settle();
     this.cubeSensor = this._cubeAdr < 0 ? null : new CubeSensor(
@@ -95,6 +104,8 @@ export class VectorSim {
     const qadr = (name) => model.jnt_qposadr[id("mjOBJ_JOINT", `${name}_joint`)];
     const dof = (name) => model.jnt_dofadr[id("mjOBJ_JOINT", `${name}_joint`)];
     this._cliffAdr = CLIFF_NAMES.map((name) => sensor(`cliff_${name}`));
+    this._chassisBody = id("mjOBJ_BODY", "chassis");
+    this._dockBody = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY.value, "dock");
     this._tofSite = id("mjOBJ_SITE", "tof");
     this._sceneOnly = [1, 0, 0, 0, 0, 0]; // geom group 0 is the scene; the robot's own geoms are in group 1
     const cubeId = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR.value, "cube_accel");
@@ -160,24 +171,31 @@ export class VectorSim {
     this._reactFrom = [0, 0];
     this._stateTicks = pyRound(v.state_period_ms / v.control_period_ms);
     assert(this._stateTicks >= 1, "state period shorter than the control period");
+    this.onCharger = false;
+    this.onChargerPlatform = false;
   }
 
-  _place(startXyMm, headingDeg) {
+  _place(startXyMm, headingDeg, startZMm = 0, pitchDeg = 0) {
     assert(startXyMm.length === 2 && Number.isFinite(headingDeg), "bad start pose");
+    assert(Number.isFinite(startZMm) && Number.isFinite(pitchDeg), "bad start height or pitch");
     const yaw = headingDeg * DEG;
+    const halfP = 0.5 * pitchDeg * DEG;
+    const cy = Math.cos(0.5 * yaw), sy = Math.sin(0.5 * yaw);
+    const cp = Math.cos(halfP), sp = Math.sin(halfP);
     const qpos = this.data.qpos;
     qpos[0] = startXyMm[0] * MM;
     qpos[1] = startXyMm[1] * MM;
-    qpos[2] = 0;
-    qpos[3] = Math.cos(0.5 * yaw);
-    qpos[4] = 0;
-    qpos[5] = 0;
-    qpos[6] = Math.sin(0.5 * yaw);
+    qpos[2] = startZMm * MM;
+    qpos[3] = cy * cp;
+    qpos[4] = -sy * sp;
+    qpos[5] = cy * sp;
+    qpos[6] = sy * cp;
     qpos[this._q.lift] = this.d.lift_angle_min;
     qpos[this._q.wrist] = -this.d.lift_angle_min;
     this.data.ctrl[this._act.lift] = this.d.lift_angle_min;
     this.mujoco.mj_forward(this.model, this.data);
     this._yawPrev = this._yawTotal = this._yaw();
+    this._updateChargerState();
   }
 
   // Start with the head and lift already at a given angle and height (clamped to the limits).
@@ -212,6 +230,8 @@ export class VectorSim {
     this.data.time = 0;
     this._resetImuFilter();
     this._yawPrev = this._yawTotal = this._yaw();
+    this._updateChargerState();
+    if (this.onCharger) this.batteryVolts = Math.max(this.v.battery_rest_voltage_v, CHARGER_SUPPLY_VOLTS);
     const travel = this._treadTravelMm();
     for (let i = 0; i < 2; i++) {
       this._encoders[i].update(travel[i]);
@@ -237,8 +257,8 @@ export class VectorSim {
       this.mujoco.mj_step(this.model, this.data);
       const sd = this.data.sensordata;
       for (let ch = 0; ch < CHANNELS; ch++) raw[ch] = sd[this._imuAdr[ch]];
-      this._imuFilter.update(raw);
       if (this.cubeSensor) this.cubeSensor.step(this.data.time, this._cubeForce());
+      this._imuFilter.update(raw);
     }
   }
 
@@ -419,6 +439,22 @@ export class VectorSim {
     return { wl: left, wr: right, gyro_z_dps: gyro[2] / DEG, head_deg: head / DEG, lift_mm: lift };
   }
 
+  _updateChargerState() {
+    if (this._dockBody < 0) {
+      this.onCharger = false;
+      this.onChargerPlatform = false;
+      return;
+    }
+    const { xpos, xmat } = this.data;
+    const cb = this._chassisBody, db = this._dockBody;
+    const res = contactState(
+      xpos.subarray(3 * cb, 3 * cb + 3), xmat.subarray(9 * cb, 9 * cb + 9),
+      xpos.subarray(3 * db, 3 * db + 3), xmat.subarray(9 * db, 9 * db + 9),
+    );
+    this.onCharger = res.on_charger;
+    this.onChargerPlatform = res.on_charger_platform;
+  }
+
   _publishState() {
     const [x, y, z] = this.poseMm();
     const [left, right] = this._reportedWheelSpeeds();
@@ -435,6 +471,8 @@ export class VectorSim {
       picked_up: this.hazards.pickedUp, falling: this.hazards.falling,
       wheels_moving: Math.abs(left) + Math.abs(right) > this.v.wheel_stopped_threshold_mmps,
       has_control: this.hasControl,
+      on_charger: this.onCharger,
+      on_charger_platform: this.onChargerPlatform,
     };
   }
 
@@ -452,6 +490,7 @@ export class VectorSim {
       cliff_ranges_mm: this.cliffRangesMm(), tof_hits_mm: this._tofHitsMm.slice(),
       wheel_angles_rad: this.wheelAnglesRad(), wheel_spin_radps: this.wheelSpinRadps(),
       battery_volts: this.batteryVolts, tread_heat: this.treadHeat.slice(),
+      on_charger: this.onCharger, on_charger_platform: this.onChargerPlatform,
     };
   }
 
@@ -571,6 +610,9 @@ export class VectorSim {
     const measured = this._reportedWheelSpeeds();
     const load = Math.abs(this._controllers[0].power) + Math.abs(this._controllers[1].power);
     this.batteryVolts = v.battery_rest_voltage_v - v.battery_sag_v_per_power * load;
+    if (this.onCharger && left === 0 && right === 0) {
+      this.batteryVolts = Math.max(this.batteryVolts, CHARGER_SUPPLY_VOLTS);
+    }
     assert(this.batteryVolts > 0, "battery voltage sagged to nothing");
     const scale = this.batteryVolts / v.motor_reference_voltage_v;
     const duties = [this._controllers[0].update(left, measured[0]), this._controllers[1].update(right, measured[1])];
@@ -597,6 +639,7 @@ export class VectorSim {
     this._rampCommands();
     this._writeControls();
     this._physicsStep();
+    this._updateChargerState();
     this.tick_ += 1;
     const yaw = this._yaw();
     this._yawTotal += Math.atan2(Math.sin(yaw - this._yawPrev), Math.cos(yaw - this._yawPrev));

@@ -82,13 +82,17 @@
   "fitted": 19,
   "manual": 17,
   "measured": 10,
-  "sdk": 92
+  "sdk": 100
  },
  "robot_model": "vector_1",
  "source": {
-  "table_sha256": "d580c6f9965b7c0e5dbb8e383e67d87b6c08f59a6827e2a0b968b2a047ac8c6b",
+  "table_sha256": "c3437854dae1a527f9b08a69bc967f4f5f6cd373d3d8c283149d1cf4b8ed1052",
   "trial_xml_sha256": "708ad7cb5d309155ee310d875bcc74fcde3c1462c69fb063f2db473b78bd4126",
+  "vector-contact42-dock_sha256": "20cda78a704e9c83bdb2f04844ecb1977e9c2d525aa79586559da4143ff3c415",
+  "vector-contact42-free-dock_sha256": "a32901c37815d2ad5a79287781a3dc25e32cca15dd16a413bd8360b6d5a1013a",
   "vector-contact42-free_sha256": "84068fa93406a571a0d187ef82f0b6182b208aebbde524f35c844f5e67b6d8e2",
+  "vector-dock_sha256": "58847f520e042da0289e0d1b6c1402c3818afd2f0667446956bb0c1729875dbe",
+  "vector-free-dock_sha256": "7ba68d7698741aea75f0eede1576441d0766cff9ae0dbb82f093e88a9b66cf06",
   "vector-free_sha256": "217f7e213aad3b85aef6158aeab07dc4e4ceaca990594b698a6a5b3f298980c9",
   "xml_sha256": "c669b1fa42246771fec70bf2654a019626300dccbc8567754719a6776c314cd0"
  },
@@ -118,6 +122,14 @@
    640,
    360
   ],
+  "charger_docked_distance_mm": 30.0,
+  "charger_height_mm": 80.0,
+  "charger_marker_size_mm": 46.0,
+  "charger_marker_z_mm": 48.5,
+  "charger_mount_lift_height_mm": 45.0,
+  "charger_platform_width_mm": 64.0,
+  "charger_slope_length_mm": 94.0,
+  "charger_width_mm": 88.0,
   "chassis_center_x_mm": -15.0,
   "chassis_friction": 0.3,
   "chassis_ground_clearance_mm": 3.0,

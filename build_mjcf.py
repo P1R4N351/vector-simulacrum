@@ -38,6 +38,7 @@ def main(argv: List[str]) -> int:
     parser.add_argument("--out", help="file to write; stdout when omitted")
     parser.add_argument("--seed", type=int, help="draw ranged robot parameters from this seed")
     parser.add_argument("--set", action="append", default=[], metavar="NAME=NUMBER", help="override one parameter")
+    parser.add_argument("--dock", choices=("scene", "docked"), default=None, help="include the dock body on the table")
     args = parser.parse_args(argv)
     doc = params.load()
     values = params.sample(doc, args.seed) if args.seed is not None else params.values(doc)
@@ -46,7 +47,7 @@ def main(argv: List[str]) -> int:
             if name not in values:
                 raise KeyError(f"unknown parameter {name!r}")
             values[name] = number
-        text = mjcf.build_mjcf(values)
+        text = mjcf.build_mjcf(values, dock=args.dock) if args.dock is not None else mjcf.build_mjcf(values)
     except (ValueError, KeyError, AssertionError) as err:
         print(f"error: {err}", file=sys.stderr)
         return EXIT_USAGE
