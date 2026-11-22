@@ -137,3 +137,15 @@ The 5 ms body tick used above was rounded. The public syscon uses a 48 MHz clock
 In each of G, J, K, L, M, O and Q, the first two observed range/quality changes 0.8–1.2 s apart during continuous dock contact with zero wheel speeds established the slow regime and its phase. Each subsequent 3.25 s window contained three pair changes. We predicted all 21 times from the second anchor without further synchronization or fitting. Mean absolute arrival error was **48.8 ms at 1.000 s** and **19.6 ms at 1.024 s**. Each pair change occurred sometime between the preceding SDK row and the first changed row, subject to transport latency. Allowing that interval at both anchor and forecast placed **20/21** changes within the audio-derived clock bounds versus **13/21** at the nominal period. The largest residual at 1.024 s was 78.7 ms. Selection conditions on an already-observed slow interval; entry into that mode, distance accuracy and the two faster periods remain untested by this forecast.
 
 [Per-update timing and bounds](dock-clock.csv). Reproduce with `python dock_clock.py`.
+
+### Can the existing off-dock recordings distinguish 30.72 from 61.44 ms?
+
+![Observed range changes and candidate timing bounds](fast-clock.png)
+
+The native braking CSV preserves the body frame counter but omits the proximity acquisition counter. The firmware increments the latter on a rising ready-status bit and transmits it separately. The archived pickup SDK events expose range and quality. They omit that counter too. [Firmware fields](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/syscon/src/opto.cpp#L102-L118)
+
+We split seven recordings into disjoint windows of 17 consecutive off-dock SDK reports with both measured wheels stopped or at least one wheel at 30 mm/s or faster. Windows exclude receipt gaps above 200 ms and changes of speed class. For each candidate period we maximized the number of observable changes over all acquisition phases at the host receipt times. An unchanged pair can span multiple acquisitions. Wheel speed is an imperfect proxy for drive power.
+
+During motion, 35/87 windows exceeded the 61.44 ms ceiling; **13/87 also exceeded the 30.72 ms ceiling**. At rest the counts were 52/206 and 20/206. Packet batching is visible on an independent robot clock. In one stationary run G window, 14 range/quality changes arrived in 236 ms while the latest camera frame timestamp advanced 957 ms. In a moving G window, all 16 pairs changed in 634 ms of host time while the camera timestamp also advanced 957 ms. Camera timestamps constrain transport behavior but their ages relative to range acquisitions are unknown. The SDK receipt stream cannot independently establish the fast acquisition period. A discriminating measurement would log the body frame index, proximity sampleCount and tread drive power on the same clock.
+
+[Window-level counts and both clocks](fast-clock.csv). Reproduce with `python fast_clock.py`.
