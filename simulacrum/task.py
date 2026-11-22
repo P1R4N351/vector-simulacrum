@@ -59,6 +59,7 @@ class TaskConfig:
     weight_action_rate: float = 0.05
     fall_penalty: float = 20.0
     randomise: bool = True
+    body_range_clock: bool = False
 
 
 @dataclass(frozen=True)
@@ -172,7 +173,8 @@ class VectorTask:
         head = self.rng.uniform(v["head_angle_min_deg"], v["head_angle_max_deg"])
         lift = self.rng.uniform(v["lift_height_min_mm"], v["lift_height_max_mm"])
         self.sim = VectorSim(values=v, control_level=level, start_xy_mm=start, heading_deg=heading,
-                             head_deg=head, lift_mm=lift, noise_seed=self.rng.randrange(2 ** 31))
+                             head_deg=head, lift_mm=lift, noise_seed=self.rng.randrange(2 ** 31),
+                             body_range_clock=self.config.body_range_clock)
         self.values = v
         self.command = self._draw_command()
         self.last_action = (0.0, 0.0)

@@ -98,9 +98,12 @@ class ProxSensor:
 
     def read(self, hits: Sequence[float], lift_height_mm: float, pitch_rad: float) -> ProxReading:
         """One reading. hits: per ray, the distance in mm to what it hit, or -1 for nothing."""
+        return self.report(self.acquire(hits, lift_height_mm), lift_height_mm, pitch_rad)
+
+    def acquire(self, hits: Sequence[float], lift_height_mm: float) -> Tuple[float, float]:
+        """Sample signal quality and raw range on the body clock."""
         v = self.v
-        assert math.isfinite(lift_height_mm) and math.isfinite(pitch_rad), "lift height and pitch must be finite"
-        lift_in_view = self._lift_in_view(lift_height_mm)
+        assert math.isfinite(lift_height_mm), "lift height must be finite"
         in_beam = v["tof_lift_occluding_min_mm"] <= lift_height_mm <= v["tof_lift_occluding_max_mm"]
         if in_beam:
             quality, raw = v["tof_lift_quality"], v["tof_lift_distance_mm"]
@@ -111,6 +114,14 @@ class ProxSensor:
             raw = self._noise.gauss(v["tof_weak_distance_mm"], v["tof_weak_distance_sd_mm"])
         else:
             raw *= 1.0 + self._noise.gauss(0.0, v["tof_range_std_fraction"])
+        return quality, raw
+
+    def report(self, sample: Tuple[float, float], lift_height_mm: float, pitch_rad: float) -> ProxReading:
+        """Publish the latest acquisition with the current lift and pitch flags."""
+        assert math.isfinite(lift_height_mm) and math.isfinite(pitch_rad), "lift height and pitch must be finite"
+        v = self.v
+        quality, raw = sample
+        lift_in_view = self._lift_in_view(lift_height_mm)
         limit = math.radians(v["tof_found_pitch_limit_deg"])
         unobstructed = quality <= v["tof_quality_min"] or raw >= v["tof_report_max_mm"]
         found = (not lift_in_view and quality > v["tof_quality_min"] and raw < v["tof_report_max_mm"]
