@@ -414,8 +414,11 @@ export class VectorSim {
         + this._gauss(0, mg * v.accel_noise_rms_mg), -aMax, aMax);
     }
     for (let i = 0; i < 3; i++) {
-      gyro[i] = clamp(out[3 + i] + v.gyro_bias_dps[i] * DEG
-        + this._gauss(0, v.gyro_noise_rms_dps * DEG), -gMax, gMax);
+      // True rates are already corrected. The stock 0.989 Z correction scales each count.
+      const step = gMax * (i === 2 ? 0.989 : 1) / 32768;
+      const rate = out[3 + i] + this._gauss(0, v.gyro_noise_rms_dps * DEG);
+      const count = clamp(Math.round(rate / step), -32768, 32767);
+      gyro[i] = clamp(count * step + v.gyro_bias_dps[i] * DEG, -gMax, gMax);
     }
     this._imuSample = [accel, gyro];
   }

@@ -393,8 +393,15 @@ class VectorSim:
         g_max = math.radians(v["gyro_range_dps"])
         accel = tuple(_clamp(float(out[i]) / mjcf.MM * v["accel_scale"][i] + mg * v["accel_bias_mg"][i]
                              + gauss(0.0, mg * v["accel_noise_rms_mg"]), -a_max, a_max) for i in range(3))
-        gyro = tuple(_clamp(float(out[3 + i]) + math.radians(v["gyro_bias_dps"][i])
-                            + gauss(0.0, math.radians(v["gyro_noise_rms_dps"])), -g_max, g_max) for i in range(3))
+        # Stock corrects the Z chip sensitivity by 0.989; true simulated rates
+        # are already in corrected units. Only the reported count spacing changes.
+        gyro_axes = []
+        for i, sensitivity in enumerate((1.0, 1.0, 0.989)):
+            step = g_max * sensitivity / 32768
+            rate = float(out[3 + i]) + gauss(0.0, math.radians(v["gyro_noise_rms_dps"]))
+            count = _clamp(math.floor(rate / step + 0.5), -32768, 32767)
+            gyro_axes.append(_clamp(count * step + math.radians(v["gyro_bias_dps"][i]), -g_max, g_max))
+        gyro = tuple(gyro_axes)
         assert len(accel) == 3 and len(gyro) == 3, "IMU vectors have three axes"
         self._imu_sample = (accel, gyro)
 
