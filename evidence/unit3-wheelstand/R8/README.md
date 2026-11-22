@@ -79,3 +79,15 @@ The control uses the simulator's hinged 66 mm lift, level-wrist constraint, prin
 The servo misses the recorded roll height by as much as 17.47 mm relative to its joint-limited target. At 0.5 ms it likewise misses the roll, with two tap changes and 1.80 g peak. Improving acceleration while losing the measured maneuver is insufficient to select this replay. This points to a joint check of fork registration, chassis motion and loaded lift tracking before fitting contact softness.
 
 [Contact partners and packets](impact-loads.png) · [Force samples](impact-loads.csv.gz) · [Window peaks](impact-windows.csv) · [Servo comparison](servo-load.png) · [Both timesteps and held-out approach](servo-load.csv)
+
+### Can an upright cube sliding across the shelf explain the late accelerometer signal?
+
+Three overhead frames spaced 0.25 s apart show the same far rubber corner. Under a fixed upright attitude, that point stays at a constant height. Its shelf-plane trajectory then has the same curvature as the chip's. We compare the middle position with the average of the two endpoints. This cancels unknown initial position and constant sliding velocity. We use the existing top glyph as a local 23 mm planar reference.
+
+The visible corner deviates **1.9 mm** from the endpoint average. Perturbing each corner pick by up to 2 px per coordinate and the glyph picks by up to 1 px gives a 5th–95th percentile range of **0.9–8.2 mm**. This is a sensitivity check. Camera distortion, point height and registration contribute additional systematic uncertainty.
+
+If the cube had kept its starting attitude, its changing Y specific force would have to be linear acceleration along that fixed axis. Double integration of the packet means, after subtracting the pre-command resting baseline and applying the existing gain, requires **110–127 mm** of midpoint deviation along that axis alone across the two clock alignment limits and intermediate offsets. That is several cube widths and inconsistent with the frames. The equivalent baseline-subtracted signal in the held-out stationary approach gives less than 0.13 mm. The latter is a sensor control on a different starting face.
+
+The result rules against sliding with constant attitude as the sole explanation. It does not identify the tip axis, instantaneous angle, angular acceleration or fork contact point. A rotating cube can also slide. Sensor timestamps are receiver times, with linear interpolation between packet means.
+
+[Marked video frames](slide-check.png) · [Midpoint deviations](slide-check.csv) · [Reproduce](slide_check.py)
