@@ -99,6 +99,9 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
   for dt,omitted,(layout,asset_rotation) in product(timesteps,conditions,layouts):
    if dt==.0000625 and layout!='4':
     continue
+   tilt_trace='--tilt-trace' in sys.argv[3:]
+   if tilt_trace and not (solver_check and tight_solver and reg['view']=='B' and layout=='4' and dt==.0000625):
+    continue
    out=[]
    contact=[]
    initial_pair=[]
@@ -128,6 +131,13 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    if layout!='upright':
     initial=initial*asset_rotation
    t,tilt,hit,speed,sensor=run(fixture,dt,True,d,initial,observer=observe,articulated=True,shelf_support=True,chassis_contact=True,omit_contacts=omitted)
+   if tilt_trace:
+    # Save the control-tick trace at 1 ms for plotting against video at 12 fps.
+    stride=round(.001/dt)
+    name='tilt-reverse.csv' if reverse_boxes else 'tilt-original.csv'
+    np.savetxt(folder/name,np.column_stack([t+start_offset,tilt])[::stride],
+               delimiter=',',header='dock_s,tilt_deg',comments='',fmt='%.6f')
+    continue
    out=np.array(out)
    travel=np.linalg.norm(out[:,:2]-pos/1000,axis=1)*1000
    turn=np.degrees(np.unwrap(out[:,-1])-out[0,-1])
@@ -143,6 +153,10 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    if dt==.00025:
     ax[0].plot(t+start_offset,travel,label=reg['view']+' · '+(layout if face_test else ','.join(omitted) or 'all contacts'))
     ax[1].plot(t+start_offset,turn)
+if '--tilt-trace' in sys.argv[3:]:
+ if not (solver_check and tight_solver):
+  raise ValueError('tilt trace needs --face-test --solver-check --tight-solver')
+ sys.exit(0)
 with (folder/(face_output+'.csv' if face_test else 'current-surface.csv' if current_surface else 'contact-ablation.csv' if ablation else 'camera-path-replay.csv' if camera_path else 'dock-replay.csv' if start_offset==3.75 else 'dock-late-start.csv')).open('w') as f:
  w=csv.writer(f,lineterminator='\n')
  w.writerow('view dt_ms travel_mm ccw_deg peak_tilt_deg taps first_contact_from_init_s first_contact_gap_mm initial_pair'.split()+(['omitted'] if ablation else [])+(['layout','first_cube_patch','patch_x_mm','patch_y_mm','patch_z_mm'] if face_test else [])+(['max_solver_iterations','mean_solver_iterations'] if solver_check else []))
