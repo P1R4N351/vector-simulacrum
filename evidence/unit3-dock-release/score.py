@@ -21,7 +21,10 @@ for name in TRIALS:
     with gzip.open(RUNS / name / "state.csv.gz", "rt") as f:
         rows = [x for x in csv.DictReader(f) if begin <= float(x["sec"]) <= end]
     a = np.array([[float(x["sec"])-begin, float(x["left"]), float(x["right"]), bool(int(x["status"]) & 0x1000), float(x["head"]), float(x["lift"]), float(x["pitch"])] for x in rows])
-    i = np.flatnonzero(np.diff(a[:, 3]) == -1)[0] + 1
+    losses = np.flatnonzero(np.diff(a[:, 3]) == -1) + 1
+    # R11 makes intermittent contact while stationary; score the last release
+    # of the departure. Its earlier transitions are reported in r11_contact.py.
+    i = losses[-1]
     a = a[a[:, 0] <= a[i, 0] + 1.5]
     mean_speed = np.mean(a[:, 1:3], axis=1)
     travel = np.r_[0, np.cumsum(np.diff(a[:, 0]) * (mean_speed[:-1] + mean_speed[1:]) / 2)]
