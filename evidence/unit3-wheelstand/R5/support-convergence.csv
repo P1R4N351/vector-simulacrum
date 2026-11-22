@@ -1,0 +1,4 @@
+step_ms,peak_overlap_mm,raise_shelf_weight,raise_lift_weight,normal_impulse_raise_Ns,peak_cube_tilt_deg,held_cube_height_mm
+1.0,2.978601,0.7947,0.2045,36.4771,4.97717,22.1468
+0.5,2.577661,0.8653,0.1296,0.22354,9.68503,22.1468
+0.25,2.59345,0.9293,0.0652,0.23893,9.70425,22.1468

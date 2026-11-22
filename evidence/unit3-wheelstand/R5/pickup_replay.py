@@ -1,4 +1,5 @@
 """Replay the physical R5 approach starting with the cube on the shelf."""
+import argparse
 import csv
 import sys
 from pathlib import Path
@@ -14,14 +15,22 @@ repo = here.parents[2]
 sys.path[:0] = [str(repo), str(repo/"evidence/unit3-printed-fork-contact")]
 from replay_links import add_links, rail_paths, require_printed_fork
 from simulacrum import params
+sys.path.insert(0, str(repo/"evidence/unit3-cube-accelerometer"))
+from pickup_support import contact_load
+from pickup_patch import collect
 
 def read(name):
     return np.genfromtxt(here/name, delimiter=",", names=True)
 
-tree = ET.parse(sys.argv[1])
+parser = argparse.ArgumentParser()
+parser.add_argument("fixture")
+parser.add_argument("--substeps", type=int, default=1, choices=(1,2,4))
+args = parser.parse_args()
+tree = ET.parse(args.fixture)
 require_printed_fork(tree)
 add_links(tree, repo)
 m = mj.MjModel.from_xml_string(ET.tostring(tree.getroot(), encoding="unicode"))
+m.opt.timestep /= args.substeps
 v = params.values(params.load(model="vector_2"))
 p = read("approach.csv")
 s = read("sightings.csv")
@@ -48,6 +57,10 @@ fork = m.body("fork").mocapid[0]
 links = [m.body(f"rail{i}").mocapid[0] for i in range(2)]
 floor = m.geom("table").id
 traces = []
+loads = []
+patch = []
+cube_id, fork_id = m.body("cube").id, m.body("fork").id
+weight = m.body_mass[cube_id] * np.linalg.norm(m.opt.gravity)
 for i, tick in enumerate(t):
     d.mocap_pos[fork], d.mocap_quat[fork] = wrist[i], fork_q[i]
     d.mocap_pos[links], d.mocap_quat[links] = rails[i], link_q[i]
@@ -55,13 +68,21 @@ for i, tick in enumerate(t):
         mj.mj_forward(m,d)
         assert all(c.dist >= 0 for c in d.contact)
     mj.mj_step(m,d)
-    if i%10 == 0:
+    if 1.5 <= tick < 3.8:
+        overlap_mm = max((max(0., -1000*c.dist) for c in d.contact
+                          if fork_id in m.geom_bodyid[c.geom] and cube_id in m.geom_bodyid[c.geom]), default=0.)
+        loads.append([tick, height[i], *contact_load(m,d,cube_id,floor,fork_id)/weight, overlap_mm])
+        collect(m,d,cube_id,fork_id,tick,m.opt.timestep,patch)
+    if i % (10*args.substeps) == 0:
         lean = np.degrees(np.arccos(np.clip(1-2*np.sum(cube[4:6]**2),-1,1)))
         traces.append([tick,cube[2]*1000,lean,any(floor in c.geom for c in d.contact),
                        any(floor not in c.geom for c in d.contact),
                        cube[0]*1000-s["x"], cube[1]*1000-s["y"]])
+# Finer solver steps are a sensitivity check on the same measured pose trajectory.
 a = np.array(traces)
-np.savetxt(here/"pickup-replay.csv",a,fmt="%.5f",delimiter=",",comments="",
+output = here if args.substeps == 1 else here/f"substeps-{args.substeps}"
+output.mkdir(exist_ok=True)
+np.savetxt(output/"pickup-replay.csv",a,fmt="%.5f",delimiter=",",comments="",
            header="sec,center_height_mm,tilt_deg,floor_contact,robot_contact,dx_mm,dy_mm")
 c = read("cube.csv.gz")
 with (here/"actions.csv").open() as f:
@@ -83,4 +104,39 @@ for panel in ax:
 ax[0].set_ylabel("Degrees")
 ax[1].set_ylabel("Height (mm)")
 ax[2].set(xlabel="Seconds from pickup command",ylabel="Planar displacement (mm)")
-fig.savefig(here/"pickup-replay.png",dpi=150)
+fig.savefig(output/"pickup-replay.png",dpi=150)
+
+loads = np.array(loads)
+np.savetxt(output/"contact-load.csv",loads,delimiter=",",fmt="%.6f",comments="",
+           header="sec,wrist_mm,shelf_z_weight,fork_shell_z_weight,fork_rubber_z_weight,link_z_weight,lift_horizontal_weight,fork_overlap_mm")
+# Integrate signed impulses by wrist-motion phase; contact normals point into the cube.
+moving = np.flatnonzero(height > height[0]+1)[0]
+raised = np.flatnonzero(height > height.max()-1)[0]
+fig, axes = plt.subplots(2,1,sharex=True,figsize=(8,5.5),layout="constrained")
+window = 10*args.substeps
+averaged = loads[:len(loads)//window*window].reshape(-1,window,loads.shape[1]).mean(axis=1)
+axes[0].plot(averaged[:,0],averaged[:,2],label="Shelf")
+axes[0].plot(averaged[:,0],averaged[:,3:6].sum(axis=1),label="Fork and links")
+axes[0].axhline(1,color=".5",ls=":")
+axes[0].set_ylabel("Vertical force / cube weight")
+axes[0].legend()
+points = np.array([r[2:] for r in patch])
+ticks = np.array([r[0] for r in patch])
+dots = axes[1].scatter(ticks,points[:,2],s=np.clip(points[:,4]*4e4,1,80),
+                       c=points[:,3],cmap="coolwarm",vmin=-1,vmax=1)
+fig.colorbar(dots,ax=axes[1],label="Upward normal component")
+axes[1].set(ylabel="Height on cube (mm from center)",xlabel="Seconds from pickup command")
+for panel in axes:
+    panel.axvspan(t[moving],t[raised],color=".6",alpha=.15)
+fig.savefig(output/"contact-load.png",dpi=150)
+with (output/"contact-impulse.csv").open("w") as stream:
+    writer = csv.writer(stream,lineterminator="\n")
+    writer.writerow(["phase","start_s","end_s","normal_Ns","normal_up_Ns","friction_up_Ns",
+                     "normal_fraction_on_rubber","normal_fraction_upward_over_half","normal_fraction_below_center"])
+    for name, lo, hi in [("approach",1.5,t[moving]),("raise",t[moving],t[raised]),("raised",t[raised],3.8)]:
+        selected = [r for r in patch if lo <= r[0] < hi]
+        total = sum(r[6] for r in selected)
+        fractions = [sum(r[6] for r in selected if predicate(r))/total if total else ""
+                     for predicate in (lambda r: "rubber" in r[1],lambda r: r[5]>.5,lambda r: r[4]<0)]
+        writer.writerow([name,round(lo,4),round(hi,4),total,sum(r[7] for r in selected),
+                         sum(r[8] for r in selected),*fractions])
