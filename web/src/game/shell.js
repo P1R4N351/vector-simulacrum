@@ -57,6 +57,7 @@ function cheek(side) {
 function decal(shell, position, rotation, size, material) {
   const geometry = new DecalGeometry(shell, new THREE.Vector3(...position),
     new THREE.Euler(...rotation), new THREE.Vector3(...size));
+  geometry.normalizeNormals();
   shell.add(new THREE.Mesh(geometry, material));
 }
 
@@ -160,7 +161,7 @@ export function addShellTrim(meshes, values, frontAxleX, shellVersion) {
     const center = eye.geometry.boundingBox.getCenter(new THREE.Vector3());
     eye.geometry = new THREE.PlaneGeometry(1.02, 1.07);
     eye.geometry.rotateY(Math.PI / 2);
-    eye.geometry.translate(0.397, center.y * 1.15, center.z);
+    eye.position.set(0.397, center.y * 1.15, center.z);
     eye.material.map = eyeMap;
     eye.material.transparent = false;
     eye.material.depthWrite = true;

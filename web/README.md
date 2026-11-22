@@ -213,13 +213,13 @@ model is shifted to put its front axle on the robot's origin. With that shift
 the file's lift pivot lands 0.8 mm from the robot's lift shoulder and its head
 pivot 1.8 mm from the robot's neck joint; before it they were 3.7 and 2.5 mm
 away. The head then turns about the robot's neck joint, the arm about the
-robot's lift shoulder by the physics joint's angle, the fork rides on the
-wrist at the end of the robot's arm length, each wheel turns about the robot's
-axle for it, and the cleats run round the robot's track path. Two things
-still come from the SDK viewer because the robot's numbers do not cover them:
-the angle the arm is drawn at in the file, and where the lower arm of the
-linkage pivots. Parts of the model can therefore sit a millimetre or so off
-each other; that is the model not matching the robot, shown and not hidden.
+robot's lift shoulder by the physics joint's angle, the fork pivots on the
+wrist at the end of the robot's arm length (around `fork_pivot` for the stock
+fork), the lower linkage tracks the SDK shoulder-to-lower-pivot offset, each
+wheel turns about the robot's axle for it, and the 42 cleats run round each
+track carrier's belt path. Three viewer-pose measurements still come from the
+SDK viewer because the robot's table does not publish them: the default drawn
+arm angle, the lower-arm offset from the upper pivot, and the stock fork pivot.
 The local demo loads Dauler’s stock-pattern outer wheels and replacement lift
 fork from the original Thingiverse archives. Each STL retains its millimetre
 scale. The front wheels measure 26.0 mm across and the rear wheels 18.5 mm.
@@ -266,5 +266,5 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 | `src/ui/`, `src/store.js` | The panels and the store between them and the core |
 | `tools/export_model.py` | Model, parameter values and fixtures from the Python; `--check` for drift |
 | `tools/fetch_sdk_model.py` | The SDK's robot model, into `public/robot/sdk/` |
-| `test/` | Seven test files (33 tests), `mutate.mjs`, the fixtures |
+| `test/` | Ten test files (53 tests), `mutate.mjs`, the fixtures |
 | `demo.sh`, `Dockerfile` | One command to a running page; a static container on port 8080 |

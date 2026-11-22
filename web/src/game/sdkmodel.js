@@ -33,7 +33,7 @@ import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { liftLink } from "./liftlinks.js";
 import { addShellTrim } from "./shell.js";
 import { loadPrintParts, outerWheel, printFork } from "./printparts.js";
-import { beltGeometry, makeCleats, makeSpokes } from "./tracks.js";
+import { beltGeometry, makeBeltPath, makeCleats, makeSpokes } from "./tracks.js";
 
 const DIR = "./robot/sdk";
 const CM = 0.1; // model units (cm) per mm
@@ -93,7 +93,8 @@ function pivotGroup(pivot, meshes) {
   const group = new THREE.Group();
   group.position.set(pivot[0], 0, pivot[1]);
   for (const mesh of meshes) {
-    mesh.position.set(-pivot[0], 0, -pivot[1]);
+    mesh.position.x -= pivot[0];
+    mesh.position.z -= pivot[1];
     group.add(mesh);
   }
   return group;
@@ -131,18 +132,23 @@ function mountWheels(holder, wheelMeshes, v, toFile, parts) {
 }
 
 // Cleats round the robot's track: its wheel radii at its axles.
-function mountCleats(holder, v, toFile) {
+function mountCleats(holder, v, toFile, frontBox = null) {
   const front = toFile([0, v.wheel_front_radius_mm]);
   const rear = toFile([-v.wheel_base_mm, v.wheel_rear_radius_mm]);
-  const halfSpacing = v.tread_spacing_mm * CM / 2;
+  const boxWidth = frontBox ? Math.abs(frontBox.max.y - frontBox.min.y) : 0;
+  const boxHalfY = frontBox ? Math.abs(0.5 * (frontBox.min.y + frontBox.max.y)) : 0;
+  const halfSpacing = boxWidth > 0.5 && boxHalfY > 0.5 ? boxHalfY : v.tread_spacing_mm * CM / 2;
+  const beltWidth = boxWidth > 0.5 ? boxWidth : v.tread_width_mm * CM;
   const sideY = [halfSpacing, -halfSpacing];
   const proud = 0.055;
+  const frontSpec = { x: front[0], z: front[1], r: v.wheel_front_radius_mm * CM - proud };
+  const rearSpec = { x: rear[0], z: rear[1], r: v.wheel_rear_radius_mm * CM - proud };
+  const beltLen = makeBeltPath(frontSpec, rearSpec).length;
   const cleats = makeCleats({
-    front: { x: front[0], z: front[1], r: v.wheel_front_radius_mm * CM - proud },
-    rear: { x: rear[0], z: rear[1], r: v.wheel_rear_radius_mm * CM - proud },
-    sideY, width: v.tread_width_mm * CM, pitch: 0.35, along: 0.19, proud,
+    front: frontSpec, rear: rearSpec, sideY, width: beltWidth,
+    pitch: beltLen / 42, along: 0.19, proud,
   });
-  const band = beltGeometry(cleats.path, v.tread_width_mm * CM, 0.105);
+  const band = beltGeometry(cleats.path, beltWidth, 0.105);
   const rubber = new THREE.MeshStandardMaterial({ color: 0x222224, roughness: 0.86 });
   for (const y of sideY) {
     const belt = new THREE.Mesh(band, rubber);
@@ -154,7 +160,7 @@ function mountCleats(holder, v, toFile) {
   return cleats;
 }
 
-function assemble(meshes, pose, v, parts, shellVersion) {
+export function assemble(meshes, pose, v, parts = [null, null, null], shellVersion = 1) {
   const take = (names) => names.map((name) => {
     const mesh = meshes.get(name);
     if (!mesh) throw new Error(`the SDK model has no part named ${name}`);
@@ -179,7 +185,11 @@ function assemble(meshes, pose, v, parts, shellVersion) {
   const arm = v.lift_arm_length_mm * CM;
   const wrist = [shoulder[0] + arm * Math.cos(drawnAngle), shoulder[1] + arm * Math.sin(drawnAngle)];
   const head = pivotGroup(neck, take(PARTS.head));
-  const lowerPivot = pose.lower_arm_pivot;
+  const eyes = take(["eye_L_geo", "eye_R_geo"]);
+  const lowerPivot = [
+    shoulder[0] + pose.lower_arm_pivot[0] - pose.upper_arm_pivot[0],
+    shoulder[1] + pose.lower_arm_pivot[1] - pose.upper_arm_pivot[1],
+  ];
   // The parallelogram keeps both front pins at the spacing of the rear pins.
   const lowerWrist = wrist.map((n, i) => n + lowerPivot[i] - shoulder[i]);
   const links = (pivot, end, lower) => [-1, 1].map(side => liftLink(side, pivot, end, lower));
@@ -188,18 +198,38 @@ function assemble(meshes, pose, v, parts, shellVersion) {
   // The fork swings with the arm about the shoulder, then turns back about the wrist so it stays level.
   const forkSwing = new THREE.Group();
   forkSwing.position.set(shoulder[0], 0, shoulder[1]);
-  const forkLevel = pivotGroup(wrist, take(PARTS.fork));
+  const forkLevel = new THREE.Group();
   forkLevel.position.set(wrist[0] - shoulder[0], 0, wrist[1] - shoulder[1]);
   if (parts[2]) {
-    const stock = forkLevel.children[0];
-    forkLevel.remove(stock);
+    for (const s of take(PARTS.fork)) s.visible = false;
     forkLevel.add(printFork(parts[2], v, new THREE.MeshStandardMaterial({ color: 0x242426, roughness: 0.52 })));
+  } else {
+    for (const s of take(PARTS.fork)) {
+      s.position.set(-pose.fork_pivot[0], 0, -pose.fork_pivot[1]);
+      forkLevel.add(s);
+    }
   }
   forkSwing.add(forkLevel);
   holder.add(head, upper, lower, forkSwing);
   const wheels = mountWheels(holder, take(WHEELS), v, toFile, parts);
-  const cleats = mountCleats(holder, v, toFile);
-  return { root, head, upper, lower, forkSwing, forkLevel, wheels, cleats, drawnAngle, frontAxleShiftMm: frontAxleX / CM };
+  const cleats = mountCleats(holder, v, toFile, frontBox);
+  const frontR = v.wheel_front_radius_mm * CM;
+  return {
+    root, head, upper, lower, forkSwing, forkLevel, wheels, cleats, eyes,
+    drawnAngle, frontAxleShiftMm: frontAxleX / CM,
+    setPose(headRad, liftRad, mood, wheelAngles, open = 1) {
+      head.rotation.y = -headRad;
+      const lift = -(liftRad - drawnAngle);
+      upper.rotation.y = lift;
+      lower.rotation.y = lift;
+      forkSwing.rotation.y = lift;
+      forkLevel.rotation.y = -lift;
+      for (let i = 0; i < 4; i++) wheels[i].rotation.y = wheelAngles[i];
+      cleats.update(wheelAngles[0] * frontR, wheelAngles[1] * frontR);
+      const scaleZ = Math.max(0.12, (mood === "squint" ? 0.42 : 1) * open);
+      for (const eye of eyes) eye.scale.z = scaleZ;
+    },
+  };
 }
 
 // values: the parameter table's values (model.json). Returns null when the model
@@ -226,7 +256,6 @@ export async function loadSdkModel(values, { faceplate = true, shellVersion = 1 
   meshes.get("front_Screen_geo").visible = faceplate;
   const eye = materials.get(EYE_MATERIAL);
   const eyeBase = 0x40fc65; // stock Vector green
-  const frontR = values.wheel_front_radius_mm * CM;
   return {
     root: rig.root,
     head: rig.head,
@@ -234,15 +263,8 @@ export async function loadSdkModel(values, { faceplate = true, shellVersion = 1 
     frontAxleShiftMm: rig.frontAxleShiftMm,
     // headRad: head angle, up positive. liftRad: the lift's shoulder angle, up positive.
     // wheelAngles: the four wheel joint angles, front left, front right, rear left, rear right.
-    setPose(headRad, liftRad, mood, wheelAngles) {
-      rig.head.rotation.y = -headRad;
-      const lift = -(liftRad - rig.drawnAngle); // the file draws the arm at drawnAngle
-      rig.upper.rotation.y = lift;
-      rig.lower.rotation.y = lift;
-      rig.forkSwing.rotation.y = lift;
-      rig.forkLevel.rotation.y = -lift;
-      for (let i = 0; i < 4; i++) rig.wheels[i].rotation.y = wheelAngles[i];
-      rig.cleats.update(wheelAngles[0] * frontR, wheelAngles[1] * frontR);
+    setPose(headRad, liftRad, mood, wheelAngles, open = 1) {
+      rig.setPose(headRad, liftRad, mood, wheelAngles, open);
       eye.color.setHex(EYE_TINT[mood] ?? eyeBase);
     },
   };

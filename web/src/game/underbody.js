@@ -1,10 +1,54 @@
 // Chassis details in the SDK centimetre frame. Sensor centres come from
 // firmware. The external photos in Anki's FCC exhibit 4074220 supply the profiles.
 import * as THREE from "three";
-import { TessellateModifier } from "three/addons/modifiers/TessellateModifier.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 
-import { capsule } from "./topology.js";
+import { alignGeometryNormals, capsule, closedEllipse } from "./topology.js";
+
+function subdivideRearZone(geometry, xLimit = -4.95, maxEdge = 0.07, passes = 4) {
+  let cur = geometry.index ? geometry.toNonIndexed() : geometry;
+  const maxEdgeSq = maxEdge * maxEdge;
+  const edgeSq = (arr, i, j) => (arr[i] - arr[j]) ** 2 + (arr[i + 1] - arr[j + 1]) ** 2 + (arr[i + 2] - arr[j + 2]) ** 2;
+  const pushV = (outP, outN, p, n, idx) => {
+    outP.push(p[idx], p[idx + 1], p[idx + 2]);
+    outN.push(n[idx], n[idx + 1], n[idx + 2]);
+  };
+  const pushMid = (outP, outN, p, n, i, j) => {
+    outP.push(0.5 * (p[i] + p[j]), 0.5 * (p[i + 1] + p[j + 1]), 0.5 * (p[i + 2] + p[j + 2]));
+    const nx = n[i] + n[j], ny = n[i + 1] + n[j + 1], nz = n[i + 2] + n[j + 2];
+    const len = Math.hypot(nx, ny, nz) || 1;
+    outN.push(nx / len, ny / len, nz / len);
+  };
+  for (let pass = 0; pass < passes; pass++) {
+    const p = cur.attributes.position.array;
+    const n = cur.attributes.normal.array;
+    const outP = [], outN = [];
+    let split = false;
+    for (let k = 0; k < p.length; k += 9) {
+      const i0 = k, i1 = k + 3, i2 = k + 6;
+      const inZone = Math.min(p[i0], p[i1], p[i2]) < xLimit;
+      const d01 = inZone ? edgeSq(p, i0, i1) : 0;
+      const d12 = inZone ? edgeSq(p, i1, i2) : 0;
+      const d20 = inZone ? edgeSq(p, i2, i0) : 0;
+      const longest = Math.max(d01, d12, d20);
+      if (longest <= maxEdgeSq) {
+        for (const vi of [i0, i1, i2]) pushV(outP, outN, p, n, vi);
+        continue;
+      }
+      split = true;
+      const [a, b, c] = d01 === longest ? [i0, i1, i2] : d12 === longest ? [i1, i2, i0] : [i2, i0, i1];
+      pushV(outP, outN, p, n, a); pushMid(outP, outN, p, n, a, b); pushV(outP, outN, p, n, c);
+      pushMid(outP, outN, p, n, a, b); pushV(outP, outN, p, n, b); pushV(outP, outN, p, n, c);
+    }
+    if (!split) break;
+    const next = new THREE.BufferGeometry();
+    next.setAttribute("position", new THREE.Float32BufferAttribute(outP, 3));
+    next.setAttribute("normal", new THREE.Float32BufferAttribute(outN, 3));
+    if (cur !== geometry) cur.dispose();
+    cur = next;
+  }
+  return cur;
+}
 
 export function addUnderbody(body, v, frontAxleX, shellVersion = 1) {
   const plastic = new THREE.MeshStandardMaterial({ color: 0x242529, roughness: 0.35 });
@@ -30,23 +74,25 @@ export function addUnderbody(body, v, frontAxleX, shellVersion = 1) {
     // The forward edge of the grey return rises at its ends. Bring the
     // black pan up to the same seam, starting behind the rear windows.
     const flat = tray.geometry;
-    tray.geometry = new TessellateModifier(0.07, 10).modify(flat);
+    tray.geometry = subdivideRearZone(flat, -4.95, 0.07, 4);
     flat.dispose();
     const { position, normal } = tray.geometry.attributes;
     for (let i = 0; i < position.count; i++) {
       const x = position.getX(i), y = position.getY(i);
-      const d = Math.max(0, (-4.99 - x) / 0.25);
+      const xClamped = Math.max(-5.24, x);
+      const d = Math.max(0, (-4.99 - xClamped) / 0.25);
       if (!d) continue;
       const u = THREE.MathUtils.clamp((Math.abs(y) - 0.68) / 0.73, 0, 1);
       const rise = 0.035 + 0.84 * u * u * (3 - 2 * u);
       const slopeY = 0.84 * 6 * u * (1 - u) * Math.sign(y) / 0.73;
       position.setZ(i, position.getZ(i) + rise * d ** 2);
       const nz = normal.getZ(i);
-      const nx = normal.getX(i) + 8 * rise * d * nz;
+      const nx = normal.getX(i) + (x < -5.24 ? 0 : 8 * rise * d * nz);
       const ny = normal.getY(i) - slopeY * d ** 2 * nz;
       const n = Math.hypot(nx, ny, nz);
       normal.setXYZ(i, nx / n, ny / n, nz / n);
     }
+    alignGeometryNormals(tray.geometry);
   }
   tray.position.z = 0.151;
   tray.name = "Underside pan";
@@ -90,9 +136,7 @@ function addServiceCover(body, axle, slab) {
     [0.52,0.94], [-0.25,0.94], [-0.25,1.52], [-4.28,1.52]]) outline.lineTo(x, y);
   outline.quadraticCurveTo(-4.35, 1.52, -4.35, 1.45);
   outline.closePath();
-  const recess = new THREE.Path();
-  recess.absarc(0.39, 0, 0.102, 0, 2 * Math.PI, true);
-  outline.holes.push(recess);
+  outline.holes.push(closedEllipse(0.39, 0, 0.102, 0.102, true, 24));
   const cover = new THREE.Mesh(new THREE.ExtrudeGeometry(outline, {
     depth: 0.035, bevelThickness: 0.009, bevelSize: 0.013, bevelSegments: 2,
   }), new THREE.MeshStandardMaterial({color: 0x272729, roughness: 0.49}));

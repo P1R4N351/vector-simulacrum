@@ -13,7 +13,7 @@
 
 import * as THREE from "three";
 import { HIDDEN_FROM_ROBOT, makeHeadCamera } from "./headcam.js";
-import { makeCleats, makeSpokes } from "./tracks.js";
+import { makeBeltPath, makeCleats, makeSpokes } from "./tracks.js";
 
 const PALETTE = {
   floor: { color: 0x1a1d21, roughness: 0.95 },
@@ -106,11 +106,13 @@ function makeFace(headHalf) {
 function makeShapeCleats(v) {
   const mm = 0.001;
   const sink = 0.0003; // half of each cleat sits inside the wheel's surface
+  const front = { x: 0, z: v.wheel_front_radius_mm * mm, r: v.wheel_front_radius_mm * mm - sink };
+  const rear = { x: -v.wheel_base_mm * mm, z: v.wheel_rear_radius_mm * mm, r: v.wheel_rear_radius_mm * mm - sink };
+  const beltLen = makeBeltPath(front, rear).length;
   return makeCleats({
-    front: { x: 0, z: v.wheel_front_radius_mm * mm, r: v.wheel_front_radius_mm * mm - sink },
-    rear: { x: -v.wheel_base_mm * mm, z: v.wheel_rear_radius_mm * mm, r: v.wheel_rear_radius_mm * mm - sink },
+    front, rear,
     sideY: [0.5 * v.tread_spacing_mm * mm, -0.5 * v.tread_spacing_mm * mm],
-    width: 0.98 * v.tread_width_mm * mm, pitch: 0.0045, along: 0.0014, proud: 2 * sink,
+    width: 0.98 * v.tread_width_mm * mm, pitch: beltLen / 42, along: 0.0014, proud: 2 * sink,
   });
 }
 
@@ -327,7 +329,7 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
       const q = data.qpos;
       syncTrail(q[0], q[1], q[2]);
       if (sdk !== null) {
-        sdk.setPose(sim.headAngleRad(), sim.liftAngleRad(), mood, truth.wheel_angles_rad);
+        sdk.setPose(sim.headAngleRad(), sim.liftAngleRad(), mood, truth.wheel_angles_rad, open);
         for (const mesh of robotMeshes) mesh.visible = showShapes;
       } else {
         face.draw(mood, open);
