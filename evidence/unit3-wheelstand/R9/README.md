@@ -115,3 +115,19 @@ The schedule predicted the count of subsequent returns in every session (179 ove
 The simulation emits one packet every 30 ms at its firmware interface. This result describes downstream availability to the recorder, and does not establish whether frames were lost, deferred or never generated. Keep raw simulation and actual observations on separate clocks; use measured arrival times where available. The interval predictor is useful for sensitivity checks where only an initial observed phase is available.
 
 [Held-out timing overlays](receipt-gaps.png) · [Interval scores](receipt-gaps.csv) · [Reproduce](receipt_gaps.py)
+
+### Transfer of the revised cube collision boxes
+
+We swapped only the free cube's box positions and sizes from the revised SDK surface into the printed-fork replay. Both variants use the same recorded chassis motion, articulated lift, rolling tread, shelf support, material settings and 0.25 ms step. The chassis box is disabled. Scores use the paired replay from the same checkout. The sensor peak window starts at +2.5 s and ends at the last chassis sample.
+
+| Recording | Quantity | Physical | Original boxes | Revised boxes |
+|---|---|---:|---:|---:|
+| R8 roll | Peak acceleration (g) | 1.433 | 1.706 | 1.570 |
+| R8 roll | Tap changes | 2 | 2 | 3 |
+| R8 roll | Change of face | Yes, adjacent face in later rest capture | No | No |
+| R9 missed approach | Peak acceleration (g) | 0.982 | 0.978 | 0.978 |
+| R9 missed approach | Tap changes | 0 | 0 | 0 |
+
+The revision roughly halves the R8 peak error. It also adds a spurious tap and the cube tilts only 0.25° during the replay. The missed-approach result transfers. This experiment leaves the cause of the missing roll open.
+
+[Acceleration and tilt overlays](surface-transfer.png) · [Replay metrics](surface-transfer.csv) · [Reproduction script](surface_transfer.py). Pass the printed-fork fixture XML (SHA-256 `79641b7fe78c9ef47293f069002474be7d1e004d16f4acf6300fa90b14b321d9`).
