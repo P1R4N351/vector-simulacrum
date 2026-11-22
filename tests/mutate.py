@@ -419,7 +419,7 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
      (TCC + "test_a_version_mismatch_uploads_the_app_from_byte_16_with_response_then_collects",), False),
     ("cube collector connects with no power named", CA, 'POWER in ("supply", "rechargeable")',
      'POWER in ("supply", "rechargeable", "")',
-     (TCC + "test_collect_is_refused_without_a_supply_or_rechargeable_before_any_radio_use",), False),
+     (TCC + "test_collect_requires_an_explicit_power_source_before_radio_use",), False),
     ("cube collector uploads over a matching app", CA, "    if version == expected:\n        return True\n",
      "    if False:\n        return True\n", (TCC + "test_a_matching_version_collects_messages_and_writes_nothing",), False),
     ("cube collector trusts any app file", CA, "if digest != DFU_SHA256:", "if False:",
