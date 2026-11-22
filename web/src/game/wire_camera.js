@@ -1,13 +1,17 @@
 import * as THREE from "three";
 
 // WebGL pixels start at the bottom left. The WireOS camera expects top-down NV12.
-export function cameraPacket(ctx, sequence, target, pixels) {
+export function cameraPacket(ctx, sequence, target, pixels, camera) {
   const { renderer, scene, visuals } = ctx;
   const { width, height } = target;
   const previous = renderer.getRenderTarget();
   try {
     renderer.setRenderTarget(target);
-    renderer.render(scene, visuals.headCamera.camera);
+    const mounted = visuals.headCamera.camera;
+    mounted.updateWorldMatrix(true,false);
+    camera.matrix.copy(mounted.matrixWorld);
+    camera.matrixWorldNeedsUpdate = true;
+    renderer.render(scene, camera);
     renderer.readRenderTargetPixels(target, 0, 0, width, height, pixels);
   } finally {
     renderer.setRenderTarget(previous);
@@ -36,13 +40,19 @@ export function cameraPacket(ctx, sequence, target, pixels) {
 
 export function attachWireCamera(hot, ctx) {
   let sequence=0, target=null, pixels=null;
+  // CozmoBot2 HeadCamera uses 1.5708 rad horizontal at 1280x720.
+  const aspect = 1280/720;
+  const vfov = THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(1.5708/2)/aspect));
+  const camera = new THREE.PerspectiveCamera(vfov,aspect,.005,10);
+  camera.matrixAutoUpdate = false;
+  camera.layers.mask = ctx.visuals.headCamera.camera.layers.mask;
   hot.on("wire:camera", async ({ path }) => {
     if (!target) {
       target = new THREE.WebGLRenderTarget(1280,720);
       target.texture.colorSpace = THREE.SRGBColorSpace;
       pixels = new Uint8Array(1280*720*4);
     }
-    const body = cameraPacket(ctx,sequence++,target,pixels);
+    const body = cameraPacket(ctx,sequence++,target,pixels,camera);
     await fetch(path,{method:"POST",body});
   });
   hot.dispose(() => target?.dispose());

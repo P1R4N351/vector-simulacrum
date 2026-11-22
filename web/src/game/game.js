@@ -281,6 +281,8 @@ function startLoop(ctx) {
     const hot = import.meta.hot;
     let power = [0,0,0,0], receivedAt = -Infinity, timer;
     attachWireCamera(hot, ctx);
+    hot.on("wire:cube-lights", colors => visuals.updateCubeLights(colors));
+    hot.on("wire:face", frame => visuals.updateFirmwareFace(frame));
     let lastTap = 0;
     hot.on("wire:power", values => { power = values; receivedAt = performance.now(); });
     hot.on("wire:error", bootHalt);

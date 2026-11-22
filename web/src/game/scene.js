@@ -12,6 +12,7 @@
 // group that turns z-up into three.js y-up, so poses are copied unconverted.
 
 import * as THREE from "three";
+import { faceTexture } from "./wire_face.js";
 import { makeCubeMarks } from "./cube.js";
 import { HIDDEN_FROM_ROBOT, makeHeadCamera } from "./headcam.js";
 import { makeBeltPath, makeCleats, makeSpokes } from "./tracks.js";
@@ -347,7 +348,44 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
     trail.geometry.setDrawRange(0, trailState.count);
   }
 
+  let firmwareFace = null;
+  let cubeLeds;
+  const cubeBody = bodyGroups.find(body => body.id===cubeId);
   return {
+    updateCubeLights(colors) {
+      if (!cubeBody) return;
+      if (!cubeLeds) {
+        const edge = v.cube_size_mm*.0005-.0035+.0002;
+        // Attach to the physics body; the optional SDK mesh can have its own scale.
+        const holder = new THREE.Group();
+        bodyGroups.push({id:cubeId,group:holder});
+        root.add(holder);
+        cubeLeds = [[1,0],[0,1],[-1,0],[0,-1]].map(([x,y]) => {
+          const led = new THREE.Mesh(new THREE.BoxGeometry(x ? .007 : .019, y ? .007 : .019,.007),
+            new THREE.MeshBasicMaterial({toneMapped:false}));
+          led.position.set(x*edge,y*edge,edge);
+          holder.add(led);
+          return led;
+        });
+      }
+      cubeLeds.forEach((led,i) => {
+        const [r,g,b] = colors.slice(i*3,i*3+3);
+        led.visible = r+g+b>0;
+        led.material.color.setHex((r<<16)|(g<<8)|b);
+      });
+    },
+    updateFirmwareFace(frame) {
+      const screen = sdk ? sdk.head.getObjectByName("wireos_lcd") : face.mesh;
+      if (!screen) return;
+      if (!firmwareFace) {
+        firmwareFace = faceTexture();
+        screen.material.map = firmwareFace.texture;
+        screen.material.needsUpdate = true;
+        screen.visible = true;
+        if (sdk) for (const name of ["eye_L_geo","eye_R_geo"]) sdk.head.getObjectByName(name).visible = false;
+      }
+      firmwareFace.update(frame);
+    },
     // truth: sim.simTruth(); mood: "calm" | "squint" | "alarm" | "dim"; open: eyelid 0..1
     headCamera,
     sync(truth, mood, open, showRays, showShapes, showCamera) {
