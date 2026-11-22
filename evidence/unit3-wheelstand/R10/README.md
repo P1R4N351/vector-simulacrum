@@ -107,3 +107,15 @@ At +6.42 s the A template gives 42.3 mm net displacement and 66° CCW, near the 
 [Camera trajectories and template correlations](impact-path-camera.csv) · [Original solver order](impact-path-original.csv) · [Reversed solver order](impact-path-reverse.csv) · [Shortlisted orientations and upright controls](impact-path-candidates.csv). The existing tight solver `--tilt-trace` commands now also export XY and yaw. Run the face replay with `--face-test --early-path` for the 0.25 ms candidate comparison, then run `impact_path.py`.
 
 Across ten 0.25 ms replays (two registrations, four shortlisted orientations plus the upright control), A orientation 2 comes close to the translation at +4.58 s: 1.1 mm backward and 26.8 mm right, versus 0.8 mm backward and 25.3 mm right in camera A. Yet it predicts 5.1° clockwise against the observed 40° counterclockwise. The other nine yaw predictions at that frame also fall outside the physical turn (all ten range from 9.1° clockwise to 5.4° CCW). This isolates a case with comparable translation but a substantially different turn and makes the line of action of the contact force a testable candidate. The trajectory alone does not identify a unique force or contact point.
+
+### Which contact turns the cube?
+
+For orientation 2 we integrated every solver contact wrench on the cube about its center of mass, including the contact couple, at 0.25 ms. The signed sum matches simulated world-Z angular momentum on both registrations (maximum residual below 2e-17 N m s). The fixture has isotropic inertia and starts at rest. The CSV also records linear impulse in world coordinates. Forces are model outputs; the cameras supply position and interval yaw rate.
+
+* In A, the pose that matched displacement at +4.58 s, the fork had delivered **+2.877 mN m s** of counterclockwise angular impulse by then. The shelf delivered **−2.877 mN m s**. Between +4.25 and +4.42 s the fork pressed down with 0.47 N mean force, comparable to the 50 g cube's 0.49 N weight. The mean upward shelf reaction was 0.95 N.
+* Between +4.50 and +4.58 s, A's mean horizontal fork force was only 0.003 N. The camera-tracked cube continued from 21° to 40° CCW during that interval. The simulation had already lost almost all fork loading. The camera alone cannot determine whether the real cube was still driven or coasting.
+* In B the fork impulse instead totaled −0.227 mN m s and the shelf +0.192 mN m s at +4.58 s. The same physical footage underlies both registrations. Neither tread nor chassis delivered measurable yaw impulse in these replays. Thus reducing shelf friction based solely on cancellation in A would leave the fork's opposite torque in B unexplained.
+
+![Angular impulse by contact, vertical loading, and physical versus simulated yaw rate](impact-impulse.png)
+
+[View A wrenches integrated through time](impact-impulse-A.csv.gz) · [View B](impact-impulse-B.csv.gz). Add `--impact-impulse` to the `--face-test --early-path` replay and run `impulse_plot.py`.
