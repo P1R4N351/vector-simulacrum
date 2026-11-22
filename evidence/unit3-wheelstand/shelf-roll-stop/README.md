@@ -11,3 +11,11 @@ In B the first SDK cliff flag arrived 4.30 s after the roll command. The action 
 Keep this shelf routine retired. A cliff event during manipulation must inhibit automatic recovery travel, even after the bit clears. Dock acquisition also needs independent clearance supervision. A bounded distance from the robot's starting position did not ensure containment on this shelf.
 
 CSV times are host receipts in seconds from the start of native undocking. State pitch and head angle are radians, lift is millimetres, and wheel speeds are mm/s. Cube samples retain the three ordered slots per packet at their common receipt timestamp, with 8192 counts/g. A disconnected the cube before docking. B retained cube telemetry through docking. Camera times use V4L2 timestamps and the recorder's monotonic-to-wall-clock samples. Both machines reported network time synchronization. The displayed frames are subsampled, and cross-host latency was not measured in this session.
+
+### Cube rocking before the docking incident
+
+![Accelerometer direction and projected glyph rotation during the roll](roll-face-angle.png)
+
+Between 4.40 and 5.05 s after roll initiation, the median change in the cube's accelerometer direction was 15.76° relative to the preceding second at rest. The median packet-averaged magnitude was 0.976 g (0.971 g before contact). The visible front glyph rotated clockwise by a median 11.56° in the corrected opposite-camera image over the same window. The estimate fits the central portion of the upper glyph border across multiple luminance thresholds. It yielded 78 of 81 usable frames. A short impact can rotate the acceleration vector independently of gravity, so use the sustained interval for a simulator comparison.
+
+From 6 to 10 s the accelerometer returned to within 0.28° of its initial direction (median), while the projected edge sat 3.68° counterclockwise from its starting orientation. This residual is consistent with a changed viewing geometry. A single projected angle cannot isolate yaw, translation and tilt. Use the gravity-vector and camera observations separately when validating the cube model. Neither measurement by itself identifies corner friction.
