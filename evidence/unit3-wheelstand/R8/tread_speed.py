@@ -15,8 +15,8 @@ from simulacrum import mjcf, params
 from simulacrum.cube import CubeAccelerometer
 
 
-def load_rows(filename):
-    with (here/filename).open() as f:
+def load_rows(filename, directory=here):
+    with (directory/filename).open() as f:
         return list(csv.DictReader(f))
 
 
@@ -42,15 +42,18 @@ def compose_fixture(path):
     return root,center,radius
 
 
-def run(path, dt, rolling):
+def run(path, dt, rolling, directory=here, initial_rotation=None):
     root,center,radius = compose_fixture(path)
     root.find('option').set('timestep',str(dt))
     m = mj.MjModel.from_xml_string(ET.tostring(root,encoding='unicode'))
     d = mj.MjData(m)
-    rows = load_rows('roll-poses.csv')
+    rows = load_rows('roll-poses.csv',directory)
     cube = next(r for r in rows if r['source']=='robot_observed_object' and float(r['sec'])<0)
+    if initial_rotation is None:
+        initial_rotation = Rotation.from_euler('z',float(cube['yaw_rad']))
+    up = initial_rotation.inv().apply([0,0,1])
     d.joint('cube_root').qpos[:] = [float(cube['x_mm'])/1000,float(cube['y_mm'])/1000,.022,
-                                    *Rotation.from_euler('z',float(cube['yaw_rad'])).as_quat(scalar_first=True)]
+                                    *initial_rotation.as_quat(scalar_first=True)]
     states = sorted((r for r in rows if r['source']=='robot_state'),key=lambda r:float(r['sec']))
     samples = np.array([[float(r[k]) for k in ('sec','x_mm','y_mm','yaw_rad','pitch_rad','lift_mm')] for r in states])
     samples[:,3] = np.unwrap(samples[:,3])
@@ -62,8 +65,8 @@ def run(path, dt, rolling):
     wrist = -41+np.sqrt(66**2-(lift-45)**2)
     forkpos = origin + rot.apply(np.column_stack((wrist,np.zeros_like(x),lift))/1000)
     treadpos = origin + rot.apply(center)
-    zero = next(float(r['sec']) for r in load_rows('actions.csv') if r['action']=='roll cube')
-    hardware = np.genfromtxt(here/'state.csv.gz',names=True,delimiter=',')
+    zero = next(float(r['sec']) for r in load_rows('actions.csv',directory) if r['action']=='roll cube')
+    hardware = np.genfromtxt(directory/'state.csv.gz',names=True,delimiter=',')
     speed = np.interp(t,hardware['sec']-zero,hardware['right'])/1000
     spin = np.zeros_like(t)
     if rolling:
@@ -89,7 +92,7 @@ def run(path, dt, rolling):
         mj.mj_step(m,d)
         sensor.step(d.time,d.sensor('chip').data/9.81)
         hit.append(any({ids[c.geom1],ids[c.geom2]}=={cube_id,tread_id} for c in d.contact))
-        tilt.append(np.degrees(np.arccos(np.clip(d.body('cube').xmat[-1],-1,1))))
+        tilt.append(np.degrees(np.arccos(np.clip(d.body('cube').xmat.reshape(3,3)[2]@up,-1,1))))
     return t[:-1],np.array(tilt),np.array(hit),speed[:-1]*1000,sensor
 
 
