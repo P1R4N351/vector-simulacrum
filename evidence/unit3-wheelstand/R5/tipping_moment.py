@@ -3,7 +3,7 @@ import mujoco as mj
 import numpy as np
 
 
-def moments(model, data, cube, floor, fork):
+def moments(model, data, cube, floor, fork, fork_yaw=None):
     rotation = data.xmat[cube].reshape(3,3)
     axis = np.cross([0.,0.,1.],rotation[:,2])
     axis_length = np.linalg.norm(axis)
@@ -19,7 +19,15 @@ def moments(model, data, cube, floor, fork):
         mj.mj_contactForce(model,data,j,wrench)
         basis = c.frame.reshape(3,3)
         force, couple = (wrench.reshape(2,3) @ basis) * (1 if side else -1)
-        torque[group] += np.cross(c.pos-data.xipos[cube],force)+couple
+        lever = c.pos - data.xipos[cube]
+        total = np.cross(lever, force) + couple
+        torque[group] += total
+        if fork_yaw is not None and group == 1 and wrench[0] > 0:
+            normal = basis[0] * wrench[0] * (1 if side else -1)
+            normal_yaw = np.cross(lever, normal)[2]
+            local = (c.pos - data.xpos[fork]) @ data.xmat[fork].reshape(3,3)
+            fork_yaw.append((model.geom(c.geom[side]).name, *local, wrench[0],
+                             normal_yaw, total[2] - normal_yaw))
     # The fixture's isotropic free cube has its body origin at its COM.
     joint = model.body_jntadr[cube]
     adr = model.jnt_dofadr[joint]+3

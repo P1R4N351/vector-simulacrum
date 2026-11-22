@@ -151,6 +151,7 @@ loads = []
 patch = []
 torque = []
 world_torque = []
+approach_yaw = []
 cube_id, fork_id = m.body("cube").id, m.body("fork").id
 weight = m.body_mass[cube_id] * np.linalg.norm(m.opt.gravity)
 link_bodies = [m.body(f"rail{j}").id for j in range(2)]
@@ -204,7 +205,10 @@ for i, tick in enumerate(t):
             if m.geom_bodyid[a] == fork_id and m.geom_bodyid[b] == cube_id:
                 material = "rubber" if "rubber" in m.geom(b).name else "shell"
                 contact_materials.add((material, *contact.friction[:2]))
-        projected, world, lean_axis = moments(m,d,cube_id,floor,fork_id)
+        samples = [] if tick < 2.335 else None
+        projected, world, lean_axis = moments(m,d,cube_id,floor,fork_id,samples)
+        if samples is not None:
+            approach_yaw.extend((tick, *sample) for sample in samples)
         # cvel is the pre-integration world velocity used by this step.
         world_torque.append([tick,height[i],*lean_axis,*d.cvel[cube_id,:3],*world.ravel()])
         if tick >= 2.55:
@@ -231,6 +235,10 @@ for i, tick in enumerate(t):
 a = np.array(traces)
 output = args.output or (here if args.substeps == 1 else here/f"substeps-{args.substeps}")
 output.mkdir(exist_ok=True)
+with (output/"approach-yaw-contacts.csv").open("w") as stream:
+    writer = csv.writer(stream, lineterminator="\n")
+    writer.writerow("sec cube_geom fork_x_m fork_y_m fork_z_m normal_N normal_yaw_Nm other_yaw_Nm".split())
+    writer.writerows(approach_yaw)
 with (output/"fork-materials.csv").open("w") as stream:
     writer = csv.writer(stream, lineterminator="\n")
     writer.writerow(("material", "mu_tangent1", "mu_tangent2"))
