@@ -17,7 +17,7 @@ x, y, z = triangles.transpose(2, 0, 1)
 mesh = np.stack((-z - 22.52, -x - 48.01, y + 8.29), axis=-1)
 
 
-def silhouette(height, head, pitch_delta=0, center_z_delta=0, extra_reach_mm=0, wrist_pitch_deg=0, wrist_roll_deg=0):
+def silhouette(height, head, pitch_delta=0, center_z_delta=0, extra_reach_mm=0, wrist_pitch_deg=0, wrist_roll_deg=0, *, fork_mesh=mesh):
     pitch = head - np.deg2rad(4) + pitch_delta
     c, s = np.cos(head), np.sin(head)
     camera_center = [-13 + 18.84*c + 7.96*s, 0, 49 + 18.84*s - 7.96*c + center_z_delta]
@@ -26,7 +26,7 @@ def silhouette(height, head, pitch_delta=0, center_z_delta=0, extra_reach_mm=0, 
     ca, sa = np.cos(angle), np.sin(angle)
     roll = np.deg2rad(wrist_roll_deg)
     cr, sr = np.cos(roll), np.sin(roll)
-    rolled = mesh @ np.array([[1, 0, 0], [0, cr, sr], [0, -sr, cr]])
+    rolled = fork_mesh @ np.array([[1, 0, 0], [0, cr, sr], [0, -sr, cr]])
     rel = rolled @ np.array([[ca, 0, -sa], [0, 1, 0], [sa, 0, ca]]) + wrist - camera_center
     depth = rel @ [np.cos(pitch), 0, np.sin(pitch)]
     assert depth.min() > 0

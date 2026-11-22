@@ -54,3 +54,11 @@ At fixed +2 mm reach, rotating the STL about the wrist pin can reproduce the *sl
 This rotation puts the edge in the wrong place. Mean absolute horizontal error on trials 4 and 5 increased from 12.25 and 7.50 px to 24.75 and 22.00 px. Applying the same rotation throughout the measured lift trajectory increased their settled displacement errors from 1.11 and 0.95 mm to 1.79 and 1.66 mm. Trial 1 still missed the sideways sweep by 26.19 mm. The frozen camera pose, cube registration, wrist pin, friction and odometry were identical between treatments. These results argue against applying a constant pitch correction to the whole fork. The right edge alone cannot distinguish taper in the printed part from a change in wrist pose.
 
 Run `python wrist_pitch.py ../.. /tmp/unit3-fork.xml` to reproduce the [measurements](wrist-pitch.csv) and plot.
+
+## Does the raised edge discrepancy require changing lift travel?
+
+We projected the SDK viewer's fork_geo mesh using its own fork_pivot registration, then compared it with forks7.stl on exactly the same nominal wrist path. Both used the recorded lift and head posture, the frozen shelf camera correction and zero extra reach. No parameters were fitted. In the raised trial 4 view the lower edge appeared at row 259. The print model predicted 165 and the SDK mesh predicted 237. In trial 5 the observed row was 272 and the predictions were 196 and 283. Thus mesh shape and the wrist-to-mesh registration together account for much of the apparent lift-height error. This test cannot separate those two causes.
+
+Across the four lowered edge samples per trial, mean absolute errors for the print model were 27.0, 30.0, 32.0, 29.5 and 24.75 px. The SDK control gave 25.25, 41.75, 43.75, 27.75 and 10.0 px. Its projected outline changes abruptly near the upper sampled rows in several views. Neither mesh describes the whole observed fork. Unit 3 had a printed fork. The stock mesh comparison supplies no basis for replacing its collision geometry or shortening its encoder-derived lift travel.
+
+[Side-by-side lowered outlines](low/stock-control.png) · [Native edge columns](low/stock-control.csv) · [Raised crossbar rows](low/stock-control-raised.csv). With the SDK assets installed, run stock_fork_control.py ../../web/public/robot/sdk/vector.obj.
