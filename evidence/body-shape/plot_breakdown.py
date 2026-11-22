@@ -40,6 +40,13 @@ def load_rows(path: Path) -> Dict[Tuple[str, str], Dict[str, str]]:
     return out
 
 
+def num(rows: Dict[Tuple[str, str], Dict[str, str]], section: str, item: str, column: str) -> float:
+    """One number from the table; a missing row or an empty cell is an error, not a zero."""
+    row = rows.get((section, item))
+    assert row is not None and row[column] != "", f"measurements.csv has no {column} for {section}/{item}"
+    return float(row[column])
+
+
 def draw_side_panel(ax: plt.Axes, v: Dict, rows: Dict[Tuple[str, str], Dict[str, str]]) -> None:
     """Plot side profile (x-z): parametric primitives vs retail/rig outer bounds and joint pivots."""
     c_len = float(v["chassis_length_mm"])
@@ -49,20 +56,23 @@ def draw_side_panel(ax: plt.Axes, v: Dict, rows: Dict[Tuple[str, str], Dict[str,
     ax.add_patch(patches.Rectangle((c_cx - 0.5 * c_len, c_z0), c_len, c_z1 - c_z0,
                                    fc="#b0c4de", alpha=0.45, ec="#2b5b84", lw=1.5, label="Parametric boxes/wheels"))
     nx, _, nz = [float(x) for x in v["neck_joint_position_mm"]]
+    hx, _, hz = [float(x) for x in v.get("head_box_center_wrt_neck_mm", (0.0, 0.0, 0.0))]
+    nx, nz = nx + hx, nz + hz
     hl, _, hh = [float(x) for x in v["head_box_mm"]]
     ax.add_patch(patches.Rectangle((nx - 0.5 * hl, nz - 0.5 * hh), hl, hh, fc="#b0c4de", alpha=0.45, ec="#2b5b84", lw=1.5))
     ax.add_patch(patches.Circle((0.0, float(v["wheel_front_radius_mm"])), float(v["wheel_front_radius_mm"]),
                                 fc="none", ec="#2b5b84", ls="--", lw=1.4))
     ax.add_patch(patches.Circle((-float(v["wheel_base_mm"]), float(v["wheel_rear_radius_mm"])),
                                 float(v["wheel_rear_radius_mm"]), fc="none", ec="#2b5b84", ls="--", lw=1.4))
-    rig_h = float(rows[("envelope", "height")]["rig_value"])
-    rig_l = float(rows[("envelope", "length")]["rig_value"])
-    ret_l = float(rows[("envelope", "length")]["reference_value"])
-    ret_h = float(rows[("envelope", "height")]["reference_value"])
-    ax.add_patch(patches.Rectangle((-66.7, 0.0), rig_l, rig_h, fc="none", ec="#d95f02", lw=2.0,
-                                   label="Rig collision box (100.9 x 69.7 mm)"))
-    ax.add_patch(patches.Rectangle((-66.7, 0.0), ret_l, ret_h, fc="none", ec="#1b9e77", ls=":", lw=1.8,
-                                   label="Retail envelope (99.8 x 69.3 mm)"))
+    rig_h = num(rows, "envelope", "height", "rig_value")
+    rig_l = num(rows, "envelope", "length", "rig_value")
+    rig_x0 = num(rows, "envelope", "x_min", "rig_value")
+    ret_l = num(rows, "envelope", "length", "reference_value")
+    ret_h = num(rows, "envelope", "height", "reference_value")
+    ax.add_patch(patches.Rectangle((rig_x0, 0.0), rig_l, rig_h, fc="none", ec="#d95f02", lw=2.0,
+                                   label=f"Rig collision pieces ({rig_l:.1f} x {rig_h:.1f} mm)"))
+    ax.add_patch(patches.Rectangle((rig_x0, 0.0), ret_l, ret_h, fc="none", ec="#1b9e77", ls=":", lw=1.8,
+                                   label=f"Retail envelope ({ret_l:.1f} x {ret_h:.1f} mm)"))
     pivots = [("front_axle", 0.0, float(rows[("joint", "front_axle_z")]["rig_value"])),
               ("rear_axle", float(rows[("joint", "rear_axle_x")]["rig_value"]), float(rows[("joint", "rear_axle_z")]["rig_value"])),
               ("neck", float(rows[("joint", "neck_x")]["rig_value"]), float(rows[("joint", "neck_z")]["rig_value"])),
@@ -72,8 +82,10 @@ def draw_side_panel(ax: plt.Axes, v: Dict, rows: Dict[Tuple[str, str], Dict[str,
         ax.plot(px, pz, "ro", ms=5)
         ax.annotate(name, (px, pz), xytext=(3, 3), textcoords="offset points", fontsize=8, color="#8b0000")
     ax.axhline(0.0, color="#333333", lw=1.0)
+    par_l = num(rows, "envelope", "length", "parametric_value")
+    par_h = num(rows, "envelope", "height", "parametric_value")
     ax.set(xlim=(-74, 46), ylim=(-4, 88), aspect="equal", xlabel="Robot X (mm)", ylabel="Z (mm)",
-           title="Side profile: parametric (86.1x66.0) vs rig (100.9x69.7) & pivots")
+           title=f"Side profile: parametric ({par_l:.1f} x {par_h:.1f}) vs rig ({rig_l:.1f} x {rig_h:.1f}) & pivots")
     ax.legend(loc="upper left", fontsize=7.5)
     ax.grid(alpha=0.25)
 
@@ -85,22 +97,27 @@ def draw_top_panel(ax: plt.Axes, v: Dict, rows: Dict[Tuple[str, str], Dict[str, 
     c_cx = float(v["chassis_center_x_mm"])
     ax.add_patch(patches.Rectangle((c_cx - 0.5 * c_len, -0.5 * c_wid), c_len, c_wid,
                                    fc="#b0c4de", alpha=0.45, ec="#2b5b84", lw=1.5, label="Parametric chassis/treads"))
-    ts_p = float(v["tread_spacing_mm"])
+    ts_p = float(v.get("tread_center_spacing_mm", v["tread_spacing_mm"]))  # where the treads are drawn and collide
     tw_p = float(v["tread_width_mm"])
+    ts_r = num(rows, "dimension", "tread_spacing_as_built", "rig_value")
+    tw_r = num(rows, "printed", "tread_width", "rig_value")
     fx_front, fx_rear = mjcf.wheel_x_mm(v)
     tl_x0 = fx_rear - float(v["wheel_rear_radius_mm"])
     tl_len = (fx_front + float(v["wheel_front_radius_mm"])) - tl_x0
     for sgn in (-1.0, 1.0):
         ax.add_patch(patches.Rectangle((tl_x0, sgn * 0.5 * ts_p - 0.5 * tw_p), tl_len, tw_p,
                                        fc="#b0c4de", alpha=0.5, ec="#2b5b84", lw=1.2))
-        ax.add_patch(patches.Rectangle((-62.5, sgn * 23.94 - 5.75), 77.0, 11.5,
-                                       fc="none", ec="#d95f02", lw=1.8, label="Rig treads (47.9 sep, 11.5 wide)" if sgn > 0 else None))
-    rig_w = float(rows[("envelope", "width")]["rig_value"])
-    rig_l = float(rows[("envelope", "length")]["rig_value"])
-    ax.add_patch(patches.Rectangle((-66.7, -0.5 * rig_w), rig_l, rig_w,
-                                   fc="none", ec="#1b9e77", ls="--", lw=1.8, label="Rig envelope (100.9 x 60.9 mm)"))
+        ax.add_patch(patches.Rectangle((tl_x0, sgn * 0.5 * ts_r - 0.5 * tw_r), tl_len, tw_r,
+                                       fc="none", ec="#d95f02", lw=1.8,
+                                       label=f"Rig tread centres and width ({ts_r:.1f} apart, {tw_r:.1f} wide)" if sgn > 0 else None))
+    rig_w = num(rows, "envelope", "width", "rig_value")
+    rig_l = num(rows, "envelope", "length", "rig_value")
+    rig_x0 = num(rows, "envelope", "x_min", "rig_value")
+    par_w = num(rows, "envelope", "width", "parametric_value")
+    ax.add_patch(patches.Rectangle((rig_x0, -0.5 * rig_w), rig_l, rig_w,
+                                   fc="none", ec="#1b9e77", ls="--", lw=1.8, label=f"Rig envelope ({rig_l:.1f} x {rig_w:.1f} mm)"))
     ax.set(xlim=(-74, 46), ylim=(-42, 46), aspect="equal", xlabel="Robot X (mm)", ylabel="Y left (mm)",
-           title="Top footprint: treads (46 vs 47.9) & width (56.0 vs 60.9 mm)")
+           title=f"Top footprint: treads ({ts_p:.1f} vs {ts_r:.1f} apart) & width ({par_w:.1f} vs {rig_w:.1f} mm)")
     ax.legend(loc="upper left", fontsize=7.5)
     ax.grid(alpha=0.25)
 
@@ -114,9 +131,9 @@ def draw_dimensions_panel(ax: plt.Axes, rows: Dict[Tuple[str, str], Dict[str, st
     for item, sec, lbl in specs:
         row = rows[(sec, item)]
         labels.append(lbl)
-        param_v.append(float(row["parametric_value"]))
-        rig_v.append(float(row["rig_value"]))
-        ref_v.append(float(row["reference_value"]))
+        param_v.append(num(rows, sec, item, "parametric_value"))
+        rig_v.append(num(rows, sec, item, "rig_value"))
+        ref_v.append(num(rows, sec, item, "reference_value"))
     idx = list(range(len(specs)))
     w = 0.26
     ax.bar([i - w for i in idx], param_v, width=w, color="#6baed6", label="Parametric")
@@ -144,9 +161,11 @@ def draw_fidelity_panel(ax: plt.Axes, rows: Dict[Tuple[str, str], Dict[str, str]
     ax.axhline(2.0, color="#e6550d", ls="--", lw=1.2)
     ax.set_xticks(idx)
     ax.set_xticklabels([f"{p}\n({c} pcs)" for p, c in zip(parts, pieces)], fontsize=8)
-    ax.set_ylim(0, 2.35)
+    ax.set_ylim(0, 1.2 * max(2.0, max(protr + excess)))
     ax.set_ylabel("Distance error (mm)")
-    ax.set_title("CoACD 64-piece whole-robot surface fidelity (all <= limits)")
+    within = all(p <= 1.0 for p in protr) and all(e <= 2.0 for e in excess)
+    ax.set_title(f"Collision pieces ({sum(pieces)}): whole-robot surface fidelity "
+                 f"({'all within' if within else 'OUTSIDE'} limits)")
     ax.legend(loc="upper left", fontsize=7.5)
     ax.grid(axis="y", alpha=0.25)
 

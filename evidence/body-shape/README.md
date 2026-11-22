@@ -1,10 +1,13 @@
 # The robot's real outer shape
 
-The parametric model draws Vector as boxes and cylinders sized from Anki's Webots model. At rest it measures 86.1 × 56.0 × 66.0 mm. Retail listings give the robot as 9.98 × 5.99 × 6.93 cm. `simulacrum/body_mesh.py` builds the real outer shape instead, from the rig Anki's animators used. `mjcf.build_mjcf(v, body=...)` and `VectorSim(body=...)` use it when asked. With no body the generated model is byte for byte what it was.
+Before this change the parametric model drew Vector as boxes and cylinders measuring 86.1 × 56.0 × 66.0 mm at rest. Retail listings give the robot as 9.98 × 5.99 × 6.93 cm. This change does two things:
 
-![Parametric vs rig body envelope, joint pivots, printed references, and CoACD surface fidelity](envelope_and_joints.png)
+- `simulacrum/body_mesh.py` builds the real outer shape from the rig Anki's animators used. `mjcf.build_mjcf(v, body=...)` and `VectorSim(body=...)` use it when asked.
+- The parameter table takes the rig's dimensions where the boxes had them wrong: tread width and spacing, head box, chassis box, ground clearance and the cube's outer size. The parametric model now measures 86.1 × 59.4 × 69.4 mm. The tread contact inset is refitted for the new geometry.
 
-Breakdown table and reproduction: [`measurements.csv`](measurements.csv) · [`plot_breakdown.py`](plot_breakdown.py)
+![Parametric vs rig body envelope, joint pivots, printed references, and surface fidelity](envelope_and_joints.png)
+
+Breakdown table and plot: [`measurements.csv`](measurements.csv) · [`plot_breakdown.py`](plot_breakdown.py)
 
 ## Where the shape comes from
 
@@ -40,20 +43,23 @@ These checks do not come from Anki's CAD.
 | Model | Length × width × height (mm) | Against retail |
 |---|---|---|
 | Rig shape, visual meshes | 100.6 × 60.3 × 69.3 | +0.8, +0.4, +0.0 |
-| Rig shape, collision pieces | 100.9 × 60.9 × 69.7 | +1.1, +1.0, +0.4 |
-| Parametric model, contact geoms | 86.1 × 56.0 × 66.0 | −13.7, −3.9, −3.3 |
+| Rig shape, collision pieces | 100.5 × 60.3 × 69.3 | +0.7, +0.4, +0.0 |
+| Parametric model, corrected table | 86.1 × 59.4 × 69.4 | −13.7, −0.5, +0.1 |
+| Parametric model, table before this change | 86.1 × 56.0 × 66.0 | −13.7, −3.9, −3.3 |
+
+The parametric model is still short at both ends: by 8.2 mm at the back (x −58.5 against −66.7), where only the rig has the body behind the rear axle, and by 6.2 mm at the fork (27.7 against 33.9).
 
 **Parts printed to fit a real Vector.** Each was designed by a hobbyist against a physical robot, and none was taken from the rig. Files are read from the Internet Archive mirrors of their Thingiverse pages, measured, and not kept: most are CC BY-NC.
 
-| Part (designer, Thingiverse id) | Theirs | Rig | Parametric model |
+| Part (designer, Thingiverse id) | Theirs | Rig | Table now (before) |
 |---|---:|---:|---:|
 | Front wheel rim diameter (Dauler 3764077 "stock", 3298622) | 26.0 | 26.0 | (29.0 cylinder incl. tread) |
 | Rear wheel rim diameter (Dauler 3764077, 3298622; FabioDB 4444528) | 18.5; 18.59 | 18.5 | (21.5 cylinder incl. tread) |
-| Tread width (Dauler 3241305, 3464746; madizmo 4287628) | 11.6 | 11.5 | **10.0** |
+| Tread width (Dauler 3241305, 3464746; madizmo 4287628) | 11.6 | 11.5 | 11.5 (10.0) |
 | Tread loop outer perimeter (printed as a ring 56.0 mm across) | 175.9 | 175.7 | — |
 | Fork width (Dauler 3731746, forks7) | 48.0 | 48.2 | 47.0 over the side plates |
 | Lower rear panel width (Steve/M 3964462, butt plate) | 32.4 | 32.9 | 32.2 (chassis box) |
-| Light cube outer (Dauler 3239449 cap, 3405048 box) | 45.0 | 42.2 (cube rig) | **44** |
+| Light cube outer (Dauler 3239449 cap, 3405048 box) | 45.0 | 42.2 (cube rig) | 45.0 (44) |
 
 **Unit 3's iPhone LiDAR scans** ([iphone-lidar-orbits](../iphone-lidar-orbits/README.md)) **do not resolve the shape at the millimetre.** Distance from scan points to each surface, for the body and head inside the treads and behind the fork, as registered (median / p90 mm):
 
@@ -65,24 +71,50 @@ These checks do not come from Anki's CAD.
 | rig moved 5 mm back | 3.4 / 9.5 | 3.9 / 10.9 | 3.5 / 9.5 |
 | parametric boxes | 4.8 / 12.8 | 5.2 / 15.0 | 4.9 / 14.3 |
 
-The scans rank the rig ahead of the boxes, but they cannot tell it from the rig shrunk 10 % or moved 5 mm. This null result stands: the scans' 3 mm voxels and 2 to 9 mm pose error are coarser than the question. `lidar_vs_rig.py` reproduces the table.
+The scans rank the rig ahead of the boxes, but they cannot tell it from the rig shrunk 10 % or moved 5 mm. This null result stands: the scans' 3 mm voxels and 2 to 9 mm pose error are coarser than the question. `lidar_vs_rig.py` reproduces the table. The parametric row is the table before this change.
 
 ## What the cube rig gets wrong
 
-The animation cube is 42.2 mm. Two parts printed to fit the real cube are 45.0 mm, which matches the Webots `Block1x1` value. The engine's 44 mm (BLOCKDEF:6) is the size it gives the marker-bearing faces. The rig is trusted for the robot, where the checks above agree, and not for the cube.
+The animation cube is 42.2 mm. Two parts printed to fit the real cube are 45.0 mm, which matches the Webots `Block1x1` value. The engine's 44 mm (BLOCKDEF:6) is the size it gives the marker-bearing faces. The rig is trusted for the robot, where the checks above agree, and not for the cube. The table keeps `cube_size_mm` 44 for the markers and adds `cube_outer_mm` 45.0 for contact; the free and carried cube boxes use it.
 
-## Dimensions the parametric model has wrong
+## Dimensions corrected in the table
 
-| Parameter | Table | Real | Evidence | Effect if changed |
-|---|---:|---:|---|---|
-| `tread_width_mm` | 10.0 | 11.5–11.6 | rig, three printed treads | contact patch of the wheel cylinders, so spin friction; refit `tread_contact_inset_mm` and the drive fit |
-| `tread_spacing_mm` (as built) | 46.0 | 47.9 centre to centre | rig chains at y −23.98 and +23.90 | turning; FW:26 uses 46 in the robot's own odometry, which must stay |
-| `head_box_mm` | 34 × 40 × 34 | 39.7 × 46.4 × 38.8, centred 1.5 mm ahead of and 1.0 mm above the neck | rig head | head inertia; contact only in the parametric model |
-| chassis box | 56 × 32.2 × 24.2, x −43 … 13 | body x −66.7 … 14.2, up to 67.9 mm high at the back | rig body | contact when tipped; the box ends 5 mm ahead of the rear axle |
-| `chassis_ground_clearance_mm` | 3.0 (assumed) | 1.2 | rig body's lowest point; WEBOTS:97,185 gave 1.2 | none on a flat table |
-| `cube_size_mm` (as a physical size) | 44 | 45.0 | two printed cube parts | carried and free cube contact |
+| Parameter | Before | Now | Evidence |
+|---|---:|---:|---|
+| `tread_width_mm` | 10.0 | 11.5 | rig; three printed treads give 11.6 |
+| `tread_center_spacing_mm` (new) | — | 47.9 | rig tread chains at y −23.98 and +23.90. The wheels, tip supports and treads are placed here. `tread_spacing_mm` stays 46: FW:26 uses it in the robot's own odometry. |
+| `head_box_mm` | 34 × 40 × 34 | 39.7 × 46.4 × 38.8 | rig head |
+| `head_box_center_wrt_neck_mm` (new) | — | 1.5, 0, 1.0 | rig head; the head's mass sits there too |
+| `chassis_length_mm`, `chassis_center_x_mm` | 56, −15 | 61, −17.5 | the box now reaches the rear axle (x −48 … 13); the rig body runs to x −66.7, up to 67.9 mm high at the back |
+| `chassis_ground_clearance_mm` | 3.0 (assumed) | 1.2 | rig body's lowest point; WEBOTS:97,185 gave 1.2 |
+| `cube_outer_mm` (new) | — | 45.0 | two printed cube parts |
+| `tread_contact_inset_mm` | 3.1 | 3.17 | refitted, below |
 
-None of these is changed here. The drive, spin and inset fits were made with the current values, so changing them without refitting would move every replay. With `body=...`, contact everywhere except the wheels comes from the rig. The wheel cylinders keep the fitted contact model.
+The masses are unchanged. With the head box moved, `mjcf.derive` places the head's mass at the box's centre, so the robot keeps the table's centre of mass.
+
+### Refits
+
+Every fit was run before and after on MuJoCo 3.11.0, Linux x86_64, where the stored inset of the base commit reproduces (3.105 mm). "Before" is a pristine `git archive` of the base commit. The outputs are in [`refit/`](refit): `fit_spins.json`, `fit_drive.txt` and `fit_servos.txt`, each with its `-before` twin.
+
+**Tread contact inset** (`fit_spins.py`: fitted on unit 1's four spins, held out on unit 3's four camera spins; RMS of each spin's turn-rate ratio from 1):
+
+| | Table before | Corrected table |
+|---|---:|---:|
+| Fitted inset | 3.105 mm (stored 3.1) | 3.168 mm (stored 3.17), per spin 2.62 to 3.40 |
+| Unit 1, the fitted spins | 1.95 % | 0.88 % |
+| Unit 3, held out | 3.61 % | 2.12 % |
+| Unit 3 with no inset | 16.03 % | 16.28 % |
+
+The corrected geometry fits both robots' spins better. On MuJoCo 4.0.1 the same fit gives 3.415 mm; the stored value is the 3.11.0 one.
+
+**Drive and servos** (`fit_recording.py --wheels-held-noload` and `--servos`). Each segment's error is a fraction of its own scale, averaged: wheel speed error over the commanded speed, plus gyro error over the nominal turn rate in spins; head and lift error over the joint's range.
+
+| | Table before | Corrected table |
+|---|---:|---:|
+| Wheel segments fitted / held out | 0.129 / 0.128 | 0.125 / 0.130 |
+| Head and lift segments fitted / held out | 0.033 / 0.035 | 0.032 / 0.035 |
+
+On the corrected table neither fit moves any value, so the drive and servo values stay as they were. (On the table before, the drive fit would have lowered the fitted segments to 0.120 and raised the held-out ones to 0.132.)
 
 ## How the collision shape is built
 
@@ -102,9 +134,10 @@ Each part is then made solid:
 2. Gaps up to 3 mm are closed and enclosed cavities filled.
 3. The chassis is filled with the head and treads closing its open front and sides. Then the head (one voxel wider) and both whole tread hulls (one voxel wider) are carved back out.
 4. Slivers one voxel thin and components under 2 % of the largest are dropped.
-5. CoACD (concavity 0.02, seed 20261122) splits the solid into convex pieces within a budget per part: chassis 24, head 10, upper links 8, lower links 12, fork 8.
+5. CoACD (concavity 0.01 for the chassis and 0.02 for the rest, seed 20261122) splits the solid into convex pieces within a budget per part: chassis 48, head 10, upper links 8, lower links 12, fork 8.
+6. Every piece is clipped to the convex hull of its own part's rig surface, so no piece reaches past the part.
 
-Each side's treads and wheels become one convex hull, cut 0.3 mm above the table as `mjcf._tip_supports_xml` does, so the wheels alone carry the robot on a flat table. The built body has 64 collision pieces.
+Each side's treads and wheels become one convex hull, cut 0.3 mm above the table as `mjcf._tip_supports_xml` does and shrunk 0.5 mm inward, so the wheels and tip supports alone carry the robot. The built body has 88 collision pieces: 50 on the chassis (48 and the two tread hulls), 10, 8, 12 and 8 on the others.
 
 In the model the pieces carry contact, with the table's friction (tread hulls `tread_friction`, the rest `chassis_friction`) and no mass. The primitive geoms keep their names and masses but lose contact and drawing, so total mass and every part's mass are unchanged. The upper and lower links share the arm mass equally. The lower links turn on their own hinge, held to the lift's angle by an equality. Visual meshes are the rig's own triangles in geom group 2.
 
@@ -119,30 +152,50 @@ Samples are 0.35 mm apart. Piece surface within 1.5 mm of another piece counts a
 
 | Part | Pieces | Protrusion p99 / max | Excess p50 / p95 / max |
 |---|---:|---|---|
-| Chassis | 26 | 0.20 / 0.60 | 0.63 / 1.40 / 4.71 |
-| Head | 10 | 0.00 / 0.16 | 0.72 / 1.00 / 1.91 |
-| Upper links | 8 | 0.00 / 0.00 | 0.69 / 1.93 / 2.47 |
-| Lower links | 12 | 0.00 / 0.07 | 0.77 / 1.82 / 2.48 |
-| Fork | 8 | 0.09 / 0.59 | 0.52 / 1.59 / 2.88 |
+| Chassis | 50 | 0.55 / 0.78 | 0.29 / 0.93 / 3.27 |
+| Head | 10 | 0.22 / 0.50 | 0.20 / 0.60 / 1.60 |
+| Upper links | 8 | 0.00 / 0.42 | 0.60 / 1.85 / 2.31 |
+| Lower links | 12 | 0.00 / 0.55 | 0.66 / 1.69 / 2.32 |
+| Fork | 8 | 0.14 / 0.75 | 0.42 / 1.59 / 2.81 |
 
-`python3 -m simulacrum.body_mesh check` prints this from a build. A body that misses a limit exits 1. Build time on an 8-core x86_64 Linux host: 19 min.
+**Rear touchdown.** Rolled back about the rear axle, the rig's surface first meets the table at 70.35°, and so do the body pieces. The tread hulls never do: the tip supports carry the robot there. Unit 3 held its wheelstands at 70.14° (W4) and 70.15° (W8). The build fails a body whose pieces touch down more than 2° before the rig.
+
+`python3 -m simulacrum.body_mesh check` prints both from a build. A body that misses a limit exits 1. Build time on an 8-core Linux container: 39 min.
 
 ## Checks of the model
 
-`validate.py BODY_DIR` checks four things:
+`validate.py BODY_DIR` checks five things (MuJoCo 3.11.0):
 
-- **Envelope.** It produced the envelope table above.
+- **Envelope.** The table above. The primitive model runs from x −58.5 to 27.7, the rig shape from −66.7 to 33.9.
 - **Drag.** Over 900 control ticks of driving straight, spinning, stopping and reversing on the table, no piece other than the wheels touched it.
-- **Faults.** The fidelity measure on the fork, with its largest piece:
-  - moved 2 mm: protrusion p99 1.49, excess p95 2.50, fails;
-  - removed: protrusion p99 7.73, fails;
-  - grown 20 %: excess p95 2.54, fails;
-  - unbroken: passes. 4 of 4 as expected.
-- **Cost.** Driving at 150 mm/s on an idle 8-core x86_64 Linux host took 246.3 ms per simulated second with the rig shape and 206.9 with the primitives, 19 % more.
+- **Faults.** The fidelity measure on the fork, with its largest piece (20.2 mm across):
+  - moved 2 mm: protrusion p99 1.50, fails;
+  - removed: protrusion p99 4.81, fails;
+  - grown 30 % about its centroid: excess p95 2.19, fails;
+  - unbroken: protrusion p99 0.15, excess p95 1.42, passes. 4 of 4 as expected.
+- **Rear touchdown.** The section above.
+- **Cost.** Driving straight at 150 mm/s, the median of five 5 s runs was 243.8 ms per simulated second with the rig shape and 195.5 ms with the primitives, 25 % more. The 8-core container was carrying other work, at a load average of about 4.
+
+## Wheelstands and the rescue
+
+**Wheelstands.** Replayed with `evidence/unit3-wheelstand/reproduction/replay.py` from the wheelstand pull request, given a `--body` option that is not part of this change: driven tip supports, a 60 mN m lift stall, the corrected table, MuJoCo 3.11.0. Medians over its four cases (two release times, two onset times):
+
+| | Peak | Time to peak | Hold | Pitch RMSE | Cube travel |
+|---|---:|---:|---:|---:|---:|
+| Unit 3, W4 | 72.25° | 0.284 s | 70.14° | — | 9.5–10.1 mm |
+| Real body, W4 | 69.5° | 0.447 s | 69.4° | 9.8° | 10.2 mm |
+| Primitive model, W4 | 56.5° | 0.670 s | 55.0° | 21.0° | 25.0 mm |
+| Unit 3, W8 | 72.50° | 0.275 s | 70.15° | — | — |
+| Real body, W8 | 69.6° | 0.488 s | 69.1° | 8.9° | 8.7 mm |
+| Primitive model, W8 | 33.7° | 0.577 s | 33.6° | 41.7° | 14.4 mm |
+
+With the real shape the robot stops where the rig's rear body meets the table. In every case it holds 69.10 to 69.40°, within 1.05° of unit 3. The peak is 2.7 to 2.9° low, and it comes 0.16 to 0.21 s late. The lift is the likely cause, not tested here: the reproduction's 60 mN m stall cap is a choice, since no recording identifies the lift's torque (its Finding 2), and under load unit 3's lift kept to its profile. The primitive model has no body behind the rear axle to stop it; one of its four W4 cases rolls over onto its back (peak 121.5°).
+
+**Rescue.** `experiments/righting/rescue_pipeline.py --no-cube`, corrected table, MuJoCo 3.11.0. With the real body (`--body`) both patients, one on each side, are upright (under 10° of tilt) at 10.83 s and 10.87 s and end at 0.0°. With the primitive model they are upright at 10.90 s and 10.87 s. `render_mj.py` films a run with MuJoCo's renderer.
 
 ## Tests
 
-`tests/test_body_mesh.py` has 20 cases. None needs the rig: every shape is made up in the test. They cover:
+`tests/test_body_mesh.py` has 24 cases. None needs the rig: every shape is made up in the test. They cover:
 
 - circle and end-cap fits;
 - the hinge sign;
@@ -150,19 +203,27 @@ Samples are 0.35 mm apart. Piece surface within 1.5 mm of another piece counts a
 - voxel surfaces closed and exact;
 - a shell with an 8-voxel hole filled, and a pocket open on two sides left empty;
 - scrap removal;
-- the clipped tread hull;
+- the clipped tread hull and its inward shrink, and the clip of a piece to a hull;
+- the rear touchdown angle of a known shape;
 - the fidelity measure on known shapes;
-- the mesh-mode MJCF from a body of boxes. It has the lower-link equality, carrier geoms without contact, the arm mass split, and the table friction on pieces; it compiles to the primitive model's mass, and the lower links follow the lift in `VectorSim`.
+- the mesh-mode MJCF from a body of boxes. It has the lower-link equality, carrier geoms without contact, the arm mass split, and the table friction on pieces; it compiles to the primitive model's mass and the table's centre of mass, and the lower links follow the lift in `VectorSim`.
 
-`tests/mutate.py` gains 9 arms, one per property. Each was run through the harness's own control and arm logic (MuJoCo 3.11.0): 9 of 9 caught, 0 survived.
+`tests/test_mjcf.py` checks the treads at the built spacing, the head box offset and the cube's outer size.
 
-Full suite on that 8-core Linux host (MuJoCo 3.11.0): 390 declared, 390 ran, 381 passed, 8 skipped for optional inputs. One failed: `test_replay.Replay.test_contact_trial_medium_ccw_trace_and_fast_turn_rates`, segment `spin_cw_220`, ratio error 0.0356 against 0.02. It fails with the identical value (0.03564888850321879) on a pristine `git archive` of HEAD `d1e2ee6`, so it predates this change. The default MJCF is unchanged byte for byte (`MeshModeModel.test_default_model_is_unchanged`).
+`tests/mutate.py` has 16 body-shape arms, one per property. Run through the harness's own control, swap and verdict logic on a clean archive of this change: 16 of 16 caught, 0 survived, 0 set-up errors.
+
+Full suite on that container (MuJoCo 3.11.0), on the same archive: 403 declared, 403 ran, 396 passed, 0 failed, 7 skipped for optional inputs. `web/tools/export_model.py --check`: 14 files up to date; `robot.json` was made on MuJoCo 4.0.1, which `web/test/robot.test.js` requires. The browser tests themselves (`npm test`) were not run.
 
 ## What the checks caught while this was built
 
 1. **The fidelity measure caught a real decomposition defect.** The first chassis fill leaked through the gap between body and treads: 16 cm³ of solid inside a 169 cm³ hull. With six-direction voting it reached 130 cm³, but the scraps left at the tread edges used up CoACD's budget. The result was one hull of 224 cm³ over the whole robot and 23 slivers. The build reported it as excess p95 3.85 mm, outside the limit; cleaning the solid brought it to 1.40.
 2. **An instrument fault, reported as such.** The first envelope check gave the rig shape 95.3 mm of height. MuJoCo re-centres a mesh on its principal axes, and that bounding box, turned back to the world, overstates the extent. The check now uses the mesh's vertices.
 3. **Excess measured per part alone flagged hidden faces.** These were the head's underside and the recess it sits in, which the rig has no surface for. On the same build, scoring the whole robot with a 1.5 mm interface band took the head's excess p95 from 9.05 to 1.02 mm. The lower links then still missed (2.38 mm with 8 pieces) and were given 12 (1.82 mm). The limit was not moved.
+4. **The tread hulls braked the wheelstand.** Cut at the tip supports' height but not shrunk, they touched the table as the robot tipped back, and the stand stopped near 36°. Shrinking them 0.5 mm inside the tip supports let it reach the rig's angle.
+5. **A second instrument fault.** One build scored protrusion p99 5.32 mm on the chassis. The planes of each piece had been taken from its triangles, and some normals pointed inward. Rescored with the planes from qhull, the same pieces score 0.55.
+6. **The rear touchdown caught pieces reaching past the body.** A build within both fidelity limits touched down at 66.25°, 4° before the rig: some pieces reached beyond their part's own convex hull. Clipping every piece to that hull brought it to 70.35°.
+7. **A refit claim that was wrong.** After the head box moved, a spin fit on MuJoCo 4.0.1 first put unit 3's held-out spins within 0.44 % RMS. The head's mass had stayed at the neck in `derive` while its box moved, which shifted the centre of mass by 0.26 mm and the fitted inset by 0.27 mm. With the mass at the box the same fit gave 1.61 %, and the first figure was withdrawn.
+8. **The fault check's resolution.** The fault check first grew the fork's largest piece by 20 %, and on the final build that passed: excess p95 1.78 against the 2 mm limit. Growing a 20 mm piece by 20 % moves its far ends out 2 mm, about what the limit allows over a whole part. `validate.py` now prints the score for growths of 10 to 50 % and the smallest it catches, 30 % (+3 mm, excess p95 2.19), and its fault arm grows the piece by 30 %. A per-piece p95 does not do better: the worst unbroken fork piece scores 2.01 mm and the grown one 2.03.
 
 ## Using it
 
@@ -180,12 +241,11 @@ from simulacrum.robot import VectorSim
 sim = VectorSim(body=body_mesh.load(body_mesh.DEFAULT_OUT))
 ```
 
-The build needs numpy, scipy and CoACD (`pip install coacd`). Without CoACD it falls back to one hull per rig group, which fills the links' and fork's concavities: excess p95 9 to 13 mm in the first build, scored per part.
+The build needs numpy, scipy and CoACD (`pip install coacd`; built with 1.0.14). Without CoACD it falls back to one hull per rig group, which fills the links' and fork's concavities: excess p95 9 to 13 mm in the first build, scored per part.
 
 ## Not done
 
-- The dimension corrections in the table above. Each needs a refit, since the drive and spin fits were made with the current values.
 - Mass and inertia still come from the parameter table and the primitive boxes, not from the shape.
-- The cube keeps the SDK shell scaled to 44 mm.
-- This build applies on top of `d1e2ee6` and `main`; combined integration with `dock` or other scene modes remains a separate step.
+- `com_x_mm` is assumed, and the inset fit trades against it.
 - The lift-link length (65.05 to 65.39 mm in the rig, 66 in firmware) is the one rig dimension a printed part could still settle. TheDimensionalForge's replacement upper arms are on Cults3D only, behind a Cloudflare check, and were not read.
+- The cube's outer size rests on two printed parts; no caliper reading of a real cube was taken.
