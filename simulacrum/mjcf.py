@@ -204,6 +204,21 @@ def _wheels_xml(v: Dict[str, Any]) -> str:
             + _wheel_xml(v, "wheel_rl", rear, half, rr, False) + _wheel_xml(v, "wheel_rr", rear, -half, rr, False))
 
 
+def _camera_optics(v: Dict[str, Any]) -> str:
+    width, height = v["camera_resolution_px"]
+    # Keep explicitly changed FOVs and other stream modes on their specified projection.
+    if (width, height) == (800, 600):
+        path = Path(__file__).resolve().parent.parent / "web" / "camera_calibration_vector2.json"
+        cal = json.loads(path.read_text())
+        if (v["camera_fov_vertical_deg"] == cal["reported_fov_y_deg"] and
+                v["camera_fov_horizontal_deg"] == cal["reported_fov_x_deg"]):
+            # MuJoCo's principalpixel is the displacement of the image centre from the optical axis.
+            # Only the sensor aspect ratio matters when focal and principal offsets are in pixels.
+            return (f'sensorsize="{num(width / height)} 1" focalpixel="{cal["fx_px"]} {cal["fy_px"]}" '
+                    f'principalpixel="{num(width / 2 - cal["cx_px"])} {num(height / 2 - cal["cy_px"])}"')
+    return f'fovy="{num(v["camera_fov_vertical_deg"])}"'
+
+
 def _head_xml(v: Dict[str, Any]) -> str:
     lo, hi = math.radians(v["head_angle_min_deg"]), math.radians(v["head_angle_max_deg"])
     assert lo < 0.0 < hi, "head range must straddle level"
@@ -226,7 +241,7 @@ def _head_xml(v: Dict[str, Any]) -> str:
         f'mass="{num(v["head_mass_g"] * GRAM)}" rgba="0.25 0.25 0.3 1" group="{ROBOT_GEOM_GROUP}" '
         f'{_contact_attrs(v, v["chassis_friction"])}/>\n'
         f'      <camera name="head_cam" pos="{vec([c * MM for c in cam])}" xyaxes="0 -1 0 {camera_up}" '
-        f'fovy="{num(v["camera_fov_vertical_deg"])}" resolution="{int(res[0])} {int(res[1])}"/>\n'
+        f'{_camera_optics(v)} resolution="{int(res[0])} {int(res[1])}"/>\n'
         f'      <site name="imu" pos="{vec([c * MM for c in imu])}" quat="{vec(imu_quat)}" size="0.001"/>\n'
         f'    </body>\n'
     )
@@ -505,6 +520,9 @@ def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cub
         '  <compiler angle="radian" autolimits="true"/>\n'
         f'  <option timestep="{num(v["sim_timestep_ms"] * 0.001)}" gravity="0 0 {num(gravity)}" '
         'integrator="implicitfast" cone="elliptic">\n    <flag multiccd="enable"/>\n  </option>\n'
+        + (f'  <visual><global offwidth="{int(v["camera_resolution_px"][0])}" '
+           f'offheight="{int(v["camera_resolution_px"][1])}"/></visual>\n'
+           if tuple(v["camera_resolution_px"]) == (800, 600) else '')
         + shelf_assets + '  <worldbody>\n'
         + _scene_xml(v, obstacles, shelf_geoms)
         + dock_body
