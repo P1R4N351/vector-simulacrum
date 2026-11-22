@@ -35,16 +35,34 @@ parser.add_argument("--mute-links-at-raise", action="store_true",
                     help="Diagnostic only: disable both link contacts once the wrist rises 1 mm")
 parser.add_argument("--mute-links-before-raise", action="store_true",
                     help="Diagnostic only: disable link contacts during the approach")
+parser.add_argument("--fork-rubber-scale", type=float, choices=(0.5, 1., 2.),
+                    help="Scale sliding friction only between printed fork and rubber pads")
 motion = parser.add_mutually_exclusive_group()
 motion.add_argument("--wheel-translation", action="store_true", help="Integrate reported wheel speeds after lift onset")
 motion.add_argument("--freeze-at-raise", choices=("planar", "pitch", "both"),
                     help="Hold selected chassis motion at its value when the wrist first rises 1 mm")
 args = parser.parse_args()
-if (args.mute_links_before_raise or args.mute_links_at_raise or args.freeze_at_raise or args.wheel_translation or args.sighting is not None or args.shelf_friction_scale is not None) and not args.output:
+if (args.fork_rubber_scale is not None or args.mute_links_before_raise or args.mute_links_at_raise or args.freeze_at_raise or args.wheel_translation or args.sighting is not None or args.shelf_friction_scale is not None) and not args.output:
     parser.error("Use --output for counterfactual runs to preserve the recorded baseline")
 tree = ET.parse(args.fixture)
 require_printed_fork(tree)
 add_links(tree, repo)
+if args.fork_rubber_scale is not None:
+    if args.shelf_friction_scale is not None:
+        parser.error("These isolated material tests use different collision masks")
+    for geom in tree.findall(".//body[@name='fork']/geom"):
+        if geom.get("type") == "mesh" and int(geom.get("contype", "1")):
+            geom.attrib.update(contype="16", conaffinity="0")
+    body = tree.find(".//body[@name='cube']")
+    for geom in body.findall("geom"):
+        if "rubber" in geom.get("name"):
+            pad = deepcopy(geom)
+            pad.attrib.update(name=geom.get("name") + "_fork", contype="0", conaffinity="16", mass="0")
+            mu, torsion, rolling = geom.get("friction").split()
+            pad.set("friction", f"{float(mu)*args.fork_rubber_scale} {torsion} {rolling}")
+            body.append(pad)
+        else:
+            geom.set("conaffinity", str(16 | int(geom.get("conaffinity"))))
 if args.shelf_friction_scale is not None:
     world = tree.find("worldbody")
     world.find("geom[@name='table']").set("conaffinity", "11")
@@ -115,6 +133,7 @@ link_bodies = [m.body(f"rail{j}").id for j in range(2)]
 link_geoms = np.isin(m.geom_bodyid, link_bodies)
 link_patch = []
 normals = []
+contact_materials = set()
 geom_affinity = m.geom_conaffinity[link_geoms].copy()
 body_affinity = m.body_conaffinity[link_bodies].copy()
 if args.mute_links_before_raise:
@@ -147,6 +166,13 @@ for i, tick in enumerate(t):
                 link_patch.append((tick, m.geom(a).name, m.geom(b).name,
                                    * (1000 * point), wrench[0] * m.opt.timestep))
     if 1.98 <= tick < 2.91:
+        for contact in d.contact:
+            a, b = contact.geom
+            if m.geom_bodyid[b] == fork_id:
+                a, b = b, a
+            if m.geom_bodyid[a] == fork_id and m.geom_bodyid[b] == cube_id:
+                material = "rubber" if "rubber" in m.geom(b).name else "shell"
+                contact_materials.add((material, *contact.friction[:2]))
         projected, world, lean_axis = moments(m,d,cube_id,floor,fork_id)
         # cvel is the pre-integration world velocity used by this step.
         world_torque.append([tick,height[i],*lean_axis,*d.cvel[cube_id,:3],*world.ravel()])
@@ -167,6 +193,10 @@ for i, tick in enumerate(t):
 a = np.array(traces)
 output = args.output or (here if args.substeps == 1 else here/f"substeps-{args.substeps}")
 output.mkdir(exist_ok=True)
+with (output/"fork-materials.csv").open("w") as stream:
+    writer = csv.writer(stream, lineterminator="\n")
+    writer.writerow(("material", "mu_tangent1", "mu_tangent2"))
+    writer.writerows(sorted(contact_materials))
 np.savetxt(output/"top-normal.csv", normals, delimiter=",", comments="", header="sec,nx,ny,nz")
 with (output/"link-patch.csv").open("w") as stream:
     writer = csv.writer(stream, lineterminator="\n")
