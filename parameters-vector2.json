@@ -49,6 +49,7 @@
       "kind": "robot",
       "note": "Shelf cube only. The shared Y/Z gain describes the two observed positive-gravity faces. X retains nominal gain. Opposite faces are needed to separate bias from gain. Bounds retain the original sensitivity range."
     },
+    "cube_accel_noise_axis_scale": {"value": [0.8467741935483871, 0.9919354838709677, 1.1370967741935485], "unit": "ratio", "provenance": "fitted", "source": "REC: evidence/unit3-cube-accelerometer/axis-noise.csv. Per-axis packet scatter on 643 rest packets. Tested independently in D1/D2.", "low": [0.7, 0.7, 0.7], "high": [1.3, 1.3, 1.3], "kind": "robot", "note": "Effective noise multiplier before filtering. Bounds are sensitivity limits."},
     "cube_accel_noise_density_ug": {
       "value": 124.0,
       "unit": "ug/sqrt(Hz)",

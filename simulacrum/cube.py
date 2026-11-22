@@ -245,6 +245,9 @@ class CubeAccelerometer:
         self.bias_g = np.array(v["cube_accel_bias_mg"], dtype=float) * 0.001
         self.noise_g = v["cube_accel_noise_density_ug"] * 1e-6 * math.sqrt(0.5 / step_s)
         assert self.scale.shape == (AXES,) and self.bias_g.shape == (AXES,), "scale and bias have three axes"
+        self.noise_axis_scale = np.asarray(v.get("cube_accel_noise_axis_scale", [1., 1., 1.]))
+        assert self.noise_axis_scale.shape == (AXES,) and np.all(np.isfinite(self.noise_axis_scale))
+        assert np.all(self.noise_axis_scale >= 0.)
         self._rng = random.Random(seed)
         self._phases = (frame_phase_s, tick_phase_s)
         self.reset(np.array([0.0, 0.0, 1.0]), 0.0)
@@ -273,7 +276,7 @@ class CubeAccelerometer:
         assert force_g.shape == (AXES,) and np.all(np.isfinite(force_g)), "specific force has three finite axes"
         out = force_g * self.scale + self.bias_g
         if noise and self.noise_g > 0.0:
-            out = out + np.array([self._rng.gauss(0.0, self.noise_g) for _ in range(AXES)])
+            out = out + self.noise_axis_scale * [self._rng.gauss(0.0, self.noise_g) for _ in range(AXES)]
         return out
 
     def step(self, t_s: float, force_g: np.ndarray) -> None:
