@@ -26,12 +26,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument("fixture")
 parser.add_argument("--output", type=Path, help="Directory for this replay’s generated evidence")
 parser.add_argument("--substeps", type=int, default=1, choices=(1,2,4))
+parser.add_argument("--sighting", type=int, help="Camera sighting row (zero-based) for a fresh stationary cube start")
 motion = parser.add_mutually_exclusive_group()
 motion.add_argument("--wheel-translation", action="store_true", help="Integrate reported wheel speeds after lift onset")
 motion.add_argument("--freeze-at-raise", choices=("planar", "pitch", "both"),
                     help="Hold selected chassis motion at its value when the wrist first rises 1 mm")
 args = parser.parse_args()
-if (args.freeze_at_raise or args.wheel_translation) and not args.output:
+if (args.freeze_at_raise or args.wheel_translation or args.sighting is not None) and not args.output:
     parser.error("Use --output for counterfactual runs to preserve the recorded baseline")
 tree = ET.parse(args.fixture)
 require_printed_fork(tree)
@@ -41,9 +42,17 @@ m.opt.timestep /= args.substeps
 v = params.values(params.load(model="vector_2"))
 p = read("approach.csv")
 s = read("sightings.csv")
-s = s[s["sec"] < 0][-1]
+if args.sighting is None:
+    s = s[s["sec"] < 0][-1]
+elif 0 <= args.sighting < len(s):
+    s = s[args.sighting]
+else:
+    parser.error("Sighting row outside the recording")
 assert np.all(p["origin"] == s["origin"])
+# Keep the baseline time grid even when restarting from a later sighting.
 t = np.arange(-.5, 8.3, m.opt.timestep)
+if args.sighting is not None and s["sec"] > 0:
+    t = t[t >= s["sec"]]
 x, y, pitch, height = [np.interp(t, p["sec"], p[k]) for k in ("x","y","pitch","lift")]
 yaw = np.interp(t, p["sec"], np.unwrap(p["yaw"]))
 if args.freeze_at_raise or args.wheel_translation:
