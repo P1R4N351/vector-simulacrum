@@ -12,6 +12,7 @@
 // group that turns z-up into three.js y-up, so poses are copied unconverted.
 
 import * as THREE from "three";
+import { makeCubeMarks } from "./cube.js";
 import { HIDDEN_FROM_ROBOT, makeHeadCamera } from "./headcam.js";
 import { makeBeltPath, makeCleats, makeSpokes } from "./tracks.js";
 
@@ -206,7 +207,7 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
     meshes.push(mesh);
     root.add(mesh);
   }
-  const bodies = cube ? [["cube", cube]] : [];
+  const bodies = cubeId >= 0 ? [["cube", cube ?? makeCubeMarks(v.cube_size_mm)]] : [];
   let face = null;
   let shapeCleats = null;
   if (sdk !== null) bodies.push(["chassis", sdk.root]); // the model's frame is the robot's: origin under the front axle
