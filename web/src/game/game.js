@@ -169,6 +169,7 @@ function telemetryOf(sim, extra) {
     wheel_meas: [s.left_wheel_speed_mmps, s.right_wheel_speed_mmps], motor_power: t.motor_power,
     front_rpm: [t.wheel_spin_radps[0] * RPM, t.wheel_spin_radps[1] * RPM],
     rear_rpm: [t.wheel_spin_radps[2] * RPM, t.wheel_spin_radps[3] * RPM],
+    cube_axis: sim.cubeSensor?.listeners.axis, cube_moving: sim.cubeSensor?.listeners.moving,
     cube_slot_g: sim.cubeSensor?.packet?.slots.map(slot =>
       Math.hypot(...slot) / sim.v.cube_accel_counts_per_g),
     battery_v: t.battery_volts, tread_heat: t.tread_heat,

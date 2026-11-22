@@ -1,4 +1,5 @@
 // Stock last-frame cube app, following simulacrum/cube.py. Packet slots are in chip-axis counts.
+import { CubeListeners } from "./cube_listeners.js";
 import { ImuFilter } from "./imu_filter.js";
 import { assert, clamp, makeGauss, pyRound } from "./util.js";
 
@@ -18,6 +19,7 @@ export class CubeSensor {
     this.positiveFirst = false;
     this.slots = Array.from({ length: 3 }, () => [0, 0, 0]);
     this.packet = null;
+    this.listeners = new CubeListeners();
   }
 
   sense(force, sigma) {
@@ -67,6 +69,7 @@ export class CubeSensor {
         this.ticks++;
         if (this.ticks % 3 === 0) {
           this.packet = { time_s: nextTick, taps: this.taps, slots: this.slots.slice() };
+          this.packet.events = this.listeners.receive(this.packet);
         }
       }
     }
