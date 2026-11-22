@@ -42,7 +42,7 @@ def compose_fixture(path, values):
     return root,center,radius
 
 
-def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False):
+def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrides=None, observer=None, articulated=False, initial_xy_mm=None):
     values = params.values(params.load(model="vector_2"))
     values.update(sensor_overrides or {})
     root,center,radius = compose_fixture(path,values)
@@ -72,7 +72,8 @@ def run(path, dt, rolling, directory=here, initial_rotation=None, sensor_overrid
     if initial_rotation is None:
         initial_rotation = Rotation.from_euler('z',float(cube['yaw_rad']))
     up = initial_rotation.inv().apply([0,0,1])
-    d.joint('cube_root').qpos[:] = [float(cube['x_mm'])/1000,float(cube['y_mm'])/1000,.022,
+    xy = np.array([float(cube['x_mm']),float(cube['y_mm'])] if initial_xy_mm is None else initial_xy_mm)
+    d.joint('cube_root').qpos[:] = [*(xy/1000),.022,
                                     *initial_rotation.as_quat(scalar_first=True)]
     states = sorted((r for r in rows if r['source']=='robot_state'),key=lambda r:float(r['sec']))
     samples = np.array([[float(r[k]) for k in ('sec','x_mm','y_mm','yaw_rad','pitch_rad','lift_mm')] for r in states])
