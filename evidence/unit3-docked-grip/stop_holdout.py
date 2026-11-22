@@ -1,4 +1,5 @@
-"""Evaluate the four previously published pulse predictions on the second session."""
+"""Score previously published stop pulses on the second or prospective third recording."""
+import argparse
 import csv
 import gzip
 import json
@@ -8,7 +9,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 root = Path(__file__).resolve().parent
-with gzip.open(root / 'stop-holdout.jsonl.gz', 'rt') as stream:
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--prospective', action='store_true', help='use the third recording and preregistered predictions')
+prospective = parser.parse_args().prospective
+stem = 'stop-prospective' if prospective else 'stop-holdout'
+with gzip.open(root / f'{stem}.jsonl.gz', 'rt') as stream:
     records = [json.loads(line) for line in stream]
 states = [r for r in records if r['kind'] == 'state']
 events = [r for r in records if r['kind'] == 'command']
@@ -31,6 +36,10 @@ for r in train:
     onsets.append((float(r['last_clear_s']) + float(r['first_set_s'])) / 2 - duration)
 phase = np.median(onsets)
 frozen['direct hold + first-session phase'] = phase, phase+duration
+if prospective:
+    assert np.isclose(phase, .146857574, atol=1e-9)
+    assert np.isclose(duration, .110)
+    frozen = {k: frozen[k] for k in ('dispatch', 'direct hold + first-session phase')}
 print('first-session phase',phase)
 fig, axes = plt.subplots(4, 3, figsize=(12, 9), layout='constrained', sharex=True, sharey=True)
 panels = iter(axes.flat)
@@ -54,8 +63,8 @@ for e in events:
     ax.set(title=f"Event {e['n']+1}",yticks=[0,1],yticklabels=['Clear','Set'])
 fig.legend(*axes.flat[0].get_legend_handles_labels(), loc='outside upper center',ncol=3)
 fig.supxlabel('Milliseconds from stop call (pod monotonic clock)')
-fig.savefig(root/'stop-holdout.png',dpi=150)
-with (root/'stop-holdout.csv').open('w') as stream:
+fig.savefig(root/f'{stem}.png',dpi=150)
+with (root/f'{stem}.csv').open('w') as stream:
     w=csv.writer(stream)
     w.writerow('event_zero_based action clock samples measured_clear clear_hits false_clear missed_clear lift_span_mm'.split())
     w.writerows(rows)

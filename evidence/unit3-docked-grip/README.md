@@ -86,3 +86,16 @@ P2Y8 received twelve stop-only calls interleaved with six sham events under one 
 | Direct 110 ms hold, first-session phase | 22 | 1 | 1 | 107/109 |
 
 The last row is exploratory. After reviewing the second-session errors, we tested a stop-specific observation phase. Its numeric value (146.86 ms from dispatch) comes exclusively from the first session, using the median of its interval-midpoint onset estimates and its return-edge midpoint estimates minus 110 ms. Selection of this variant occurred after inspecting the second session. A prospective third session should test it as frozen. It predicts the received SDK flag on a docked P2Y8. The SDK descriptor carries an image timestamp but no lift-controller timestamp, so the relative contributions of command, controller and observation delay remain unresolved. No runtime parameters changed.
+
+### Prospective validation of the stationary pulse
+
+Before the third physical run, the vector-navigation room recorded the exact prediction and scoring window. We reversed the event order from session two and varied the inter-event spacing. Neither clock nor pulse duration was adjusted. Black dots in the [overlays](stop-prospective.png) are SDK receipts on the pod's monotonic clock. All twelve stops cleared the bit with constant lift height. All 54 samples in the six sham windows stayed set.
+
+| Prediction | Correct samples | Clear precision | Clear recall | Stops with any correctly predicted clear |
+|---|---:|---:|---:|---:|
+| 215 ms pulse starting at +115.53 ms | 91/109 (83.5%) | 24/42 (57.1%) | 24/24 (100%) | 12/12 |
+| 110 ms pulse starting at +146.86 ms | 105/109 (96.3%) | 22/24 (91.7%) | 22/24 (91.7%) | 12/12 |
+
+This supports the shorter pulse for predicting pod receipts during a stationary docked stop on this unit. It also gives a concrete limit on transferring the rule to a loaded fork. In the earlier [failed-grip data](dock-status.csv), the post-stop clear samples extend from 1.675 to 1.985 s, spanning at least 310 ms on the receipt clock. The encoder rose from 30.31 to 31.32 mm during that interval. A single 110 ms pulse cannot cover those observations at any offset. We retain the stationary rule in the replay and the settling criterion for moving or loaded stops.
+
+P2Y8 finished docked, battery level 3, charging false, with quiet mode on. [Raw capture](stop-prospective.jsonl.gz) · [Per-event scores](stop-prospective.csv). Reproduce with `python evidence/unit3-docked-grip/stop_holdout.py --prospective`.
