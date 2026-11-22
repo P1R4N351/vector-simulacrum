@@ -51,3 +51,19 @@ With the optical chassis path and original cube fixture, removing either tread o
 The legacy replay XML has 62 cube colliders. Replacing these with the current 74-box SDK-derived cube surface while retaining the same robot contacts, drive path and material settings produced different outcomes. At 0.25 ms camera A still gave 63.5° clockwise and 48.0 mm. Camera B now gave 28.2° **counterclockwise** and 10.0 mm. Its result at 0.50 ms was 28.6° counterclockwise and 10.0 mm. The physical band is 64.8–70.9° counterclockwise with 39.8–42.9 mm of displacement. The B sign is repeatable across timesteps, but the cube travels only about one quarter of the observed distance. This comparison makes the fork–cube contact location a higher priority than adjusting uniform friction.
 
 [Contact ablations](contact-ablation.png) · [All 20 comparisons](contact-ablation.csv) · [Current cube surface replay](current-surface.png) · [Current surface results](current-surface.csv). Use dock_replay.py with the fork XML and 3.75 --ablation or 3.75 --camera-path --current-surface.
+
+### Does identifying the upward face resolve the docking impact?
+
+The two side glyphs and camera A's top glyph were scored against the six rendered SDK faces at four quarter turns. Only the 24 right-handed rigid orientations were considered. The four highest joint scores all put the SDK mesh's −Z face upwards. Their mean fit correlations were 0.636, 0.608, 0.595 and 0.581. Camera B's withheld pre-impact top crop preferred +X at 0.465, narrowly above −Y at 0.463. Both post-impact crops favored −Z after rectification, but preferred different quarter turns. The mesh axis is distinct from the accelerometer's axis convention. The observations leave the initial quarter turn unresolved.
+
+![Measured side glyphs and three best individual template matches](face-match.png)
+
+We replayed all four shortlisted orientations plus the previous upright control, under each camera registration, with the measured chassis path, 74 cube boxes, printed fork, and unchanged material parameters. No physical endpoint entered the optical ranking. At a 0.25 ms step, the best jointly scored orientation gave 26.8 mm and 12.4° clockwise from A, versus 31.3 mm and 32.5° counterclockwise from B. Physically the cube traveled 39.8–42.9 mm and rotated 64.8–70.9° counterclockwise. None of the shortlisted orientations met both endpoint bands at either step size. In all four, the first simulated fork contact hit a rubber corner from A and a shell box from B. That distinction is a simulation prediction; the footage does not resolve the contact material.
+
+For a numerical control we reversed the XML declaration order of the same cube colliders. Dimensions, world pose, inertia, trajectory, and friction stayed fixed. The B rank-four prediction shifted from 75.4 to 62.8 mm and from 128.6° to 96.7° clockwise. The B rank-one result shifted by under 0.2 mm and 0.2°. The size of this sensitivity depends on the contact. These data do not support choosing a cube friction coefficient from this impact.
+
+![Endpoint comparison across physical motion, camera registration, initial orientation and collider order](face-endpoints.png)
+
+[All 24 rigid orientations](rigid-faces.csv) · [Individual glyph correlations](face-match.csv) · [Both integration steps](face-replay.csv) · [Reversed collider order](face-replay-reverse.csv)
+
+To reproduce, generate the six corrected projections with the [optical mesh render](../../cube-optical-mesh/README.md). Run `face_match.py /path/to/projections` here, then `dock_replay.py /path/to/fork.xml 3.75 --face-test` with the R8 fixture. Repeat with `--reverse-box-order` appended, then run `face_endpoints.py`. The CSV records the first fork contact position in the simulated cube's local coordinates.
