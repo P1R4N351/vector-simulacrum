@@ -256,3 +256,11 @@ The open-cube photo and the exploded drawing show the cylindrical cell entering 
 We used the [Energizer E90 reference](https://energizer.com/wp-content/uploads/2025/02/e90.pdf) for a 9 g cylinder 12 mm across and 30.2 mm long. These are surrogate properties for the pictured Kendal cell. The other 41 g are centered with uniform 44 mm cube inertia. With the cell centered laterally, we tested seated midpoint offsets of −6, 0 and +6 mm along each possible replay axis, a 1.08 mm maximum shift of the overall center. All 45 five-trial cases retain the original fork, cube collision surfaces and motion. Trial 1 reaches 2.16–2.35° and moves at most 0.43 mm right. This photo-informed battery model does not recover the physical lift.
 
 [Rectified bore outlines](battery-well.png) · [Reference measurements](battery-well.csv) · [Paired replays](battery-axis-replay.csv). Run battery_well.py with the same arguments as evaluate.py.
+
+### Did one bottom corner stay planted during the raise?
+
+Across the two exposures at 4.985 and 5.498 s, even the least-moving point in the reconstructed 44.3 mm bottom square moved 16.1–29.9 mm. The maximum corresponding apparent movement between pre-drive exposures was 1.8–3.1 mm across the same four reconstructions. The least-moving point anywhere in the bounding cube was on the upper face in all four fits, with displacement 1.46–4.21 mm. For this interval the bottom swept farther than the center in every fit. A single stationary bottom corner throughout the raise is inconsistent with these poses.
+
+We minimize the Euclidean endpoint displacement of the same material point over each face, allowing even the empty space between rubber pads. The bounds come from the two lens models with free or shelf-constrained height. Stationary-frame repeatability excludes systematic pose error during tilt. The half-second exposure gap permits a sequence of contacts or a changing pivot. These measurements do not locate first fork contact or prove the upper face was held.
+
+[Frame-pair overlay](bottom-pivot.png) · [All displacement bounds](bottom-pivot.csv). Run bottom_pivot.py ../.. using the optical reconstruction dependencies.
