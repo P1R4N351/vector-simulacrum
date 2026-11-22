@@ -671,6 +671,8 @@ export class VectorSim {
     this._wheelAccel = [0, 0];
     this._headTarget = this._headCmd = this.headAngleRad();
     this._liftTarget = this._liftCmd = this.data.qpos[this._q.lift];
+    this._liftInPos = false;
+    this._liftInToleranceSince = null;
     this._servoRate = [0, 0];
     return true;
   }

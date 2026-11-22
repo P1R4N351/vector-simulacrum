@@ -630,6 +630,8 @@ class VectorSim:
         self._wheel_target, self._wheel_accel = [0.0, 0.0], [0.0, 0.0]
         self._head_target = self._head_cmd = self.head_angle_rad()
         self._lift_target = self._lift_cmd = float(self.data.qpos[self._q["lift"]])
+        self._lift_in_pos = False
+        self._lift_in_tolerance_since = None
         self._servo_rate = [0.0, 0.0]
         return True
 

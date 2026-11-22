@@ -302,6 +302,9 @@ class Servos(unittest.TestCase):
         self.assertTrue(sim.step(round(1.5 / sim.dt)).lift_in_pos)
         sim.command_lift_height(62)
         self.assertTrue(sim.step(sim._state_ticks).lift_in_pos)
+        sim.stop_all_motors()
+        self.assertFalse(sim.step(sim._state_ticks).lift_in_pos)
+        self.assertTrue(sim.step(round(0.5 / sim.dt)).lift_in_pos)
         sim.command_lift_height(32)
         self.assertFalse(sim.step(sim._state_ticks).lift_in_pos)
 
