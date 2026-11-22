@@ -77,7 +77,7 @@
   ]
  ],
  "provenance_counts": {
-  "assumed": 38,
+  "assumed": 39,
   "chosen": 8,
   "fitted": 19,
   "manual": 17,
@@ -86,7 +86,7 @@
  },
  "robot_model": "vector_1",
  "source": {
-  "table_sha256": "a0c927df1ec263e19460c8607cd3ed659d549531fb6defc4bbeb6a72a1d7914c",
+  "table_sha256": "d580c6f9965b7c0e5dbb8e383e67d87b6c08f59a6827e2a0b968b2a047ac8c6b",
   "trial_xml_sha256": "708ad7cb5d309155ee310d875bcc74fcde3c1462c69fb063f2db473b78bd4126",
   "vector-contact42-free_sha256": "84068fa93406a571a0d187ef82f0b6182b208aebbde524f35c844f5e67b6d8e2",
   "vector-free_sha256": "217f7e213aad3b85aef6158aeab07dc4e4ceaca990594b698a6a5b3f298980c9",
@@ -154,6 +154,11 @@
   "cube_accel_counts_per_g": 8192.0,
   "cube_accel_filter_second_pole": 1.0,
   "cube_accel_frame_period_ms": 2.0,
+  "cube_accel_noise_axis_scale": [
+   1,
+   1,
+   1
+  ],
   "cube_accel_noise_density_ug": 220.0,
   "cube_accel_range_g": 4.0,
   "cube_accel_scale": [
