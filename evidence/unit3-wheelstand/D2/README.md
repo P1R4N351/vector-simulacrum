@@ -1,0 +1,17 @@
+# Four free-standing lift cycles beside the cube
+
+P2Y8 left the dock using the native undock under continuous override, moving about 118 mm. The robot connected the cube. Both corrected cameras confirmed that he had stopped alongside it before the lift sequence began. He executed four full raises and four full lowers with a requested duration of 0.8 s per stroke. No wheel motion was commanded during the strokes. Both encoders reported zero wheel speed throughout the scored 10–90% stroke intervals. The cameras resolve the cube and fork, although their silhouettes overlap in one view. Exact minimum clearance on the shelf was unmeasured. The [docked trial](../D1/) supplies a separate control with a wide visible gap.
+
+Across the three timing-valid raises, the central 80% of the stroke ran at 84.9–90.4 mm/s. Cube acceleration magnitude SD was 5.39–6.69 mg versus 2.53–2.90 mg in the corresponding pre-command windows. The four lowers ran at 81.3–88.1 mm/s and produced 3.50–4.66 mg. The tap count was constant within all scored intervals. The earlier R11 missed-roll raise ran at 92.1 mm/s and produced 8.35 mg. This physical comparison shows the extra signal during R11 was small relative to ordinary lift operation on this shelf. Its cause remains unresolved.
+
+Raise two completed physically. A 4.98 s hole in SDK state receipt straddles the 90% crossing and a 4.92 s gap also occurs in cube packet receipt. Its timing and vibration score are excluded. The action log retains the SDK response, and the videos and full telemetry retain this trial. Other moves were scored only when the longest encoder gap crossing the 10–90% window was at most 0.25 s. That threshold is an analysis choice. BLE slots use packet receipt timestamps.
+
+There are 2,757 robot states and 6,429 cube acceleration slots, including the native undock and return to dock. Charging at 3.96 V and quiet mode enabled, active and muted were independently verified after the run. The corrected twin-camera preview covers the lift sequence; camera and sensor times use host clocks and have no trial-specific latency correction.
+
+[Physical profiles](physical-profiles.png) · [Twin-camera recording](paired.mp4) · [Per-stroke metrics](moves.csv) · [Cube packets](cube.csv.gz) · [Full SDK state including onboard accelerometer and proximity](sdk-state.jsonl.gz) · [Command log](actions.csv) · [Analysis script](../D1/analyze.py)
+
+### Restored cameras after the trial
+
+A separate stationary capture after redocking verified four overlapping streams. Both See3CAMs and the Arducam each decoded 100/100 frames. The C270 decoded 30/30 at 640×480 YUYV, requested 5 fps. An earlier four-camera test using MJPEG on the C270 decoded only 32 of its 45 packets. Common packet-timestamp coverage in the successful test was 3.79 seconds. The Arducam gives a clear upright cube view after 180° rotation. The C270 currently clips the cube at the right edge. Only the twins are lens-rectified; the other two preview panels have color and luminance filtering. Their extrinsics and distortion still require calibration before metric tracking. These two cameras were restored after the lift recordings and capture the final setup only.
+
+[Four-camera preview](four-views.jpg) · [Observed camera cadence](four-streams.csv)

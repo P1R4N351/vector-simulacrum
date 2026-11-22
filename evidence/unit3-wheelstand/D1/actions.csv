@@ -1,0 +1,89 @@
+sec,kind,action,response
+0.0,begin,connect on dock,
+16.513259,end,connect on dock,"status {
+  code: RESPONSE_RECEIVED
+}
+success: true
+object_id: 1"
+17.514532,begin,prepare,
+17.701483,end,prepare,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+19.702682,begin,slow raise 1,
+21.485077,end,slow raise 1,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+23.485648,begin,slow lower 1,
+25.21794,end,slow lower 1,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+27.218508,begin,fast raise 1,
+28.152746,end,fast raise 1,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+30.153513,begin,fast lower 1,
+31.094869,end,fast lower 1,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+33.097112,begin,fast raise 2,
+34.02107,end,fast raise 2,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+36.021354,begin,fast lower 2,
+37.018146,end,fast lower 2,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+39.020423,begin,slow raise 2,
+40.756193,end,slow raise 2,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+42.756782,begin,slow lower 2,
+44.513286,end,slow lower 2,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+46.513756,begin,fast raise 3,
+47.523399,end,fast raise 3,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+49.524315,begin,fast lower 3,
+50.547314,end,fast lower 3,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+52.547751,begin,slow raise 3,
+54.372208,end,slow raise 3,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+56.372568,begin,slow lower 3,
+58.143523,end,slow lower 3,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+59.220519,begin,disconnect,
+59.291386,end,disconnect,"status {
+  code: REQUEST_PROCESSING
+}"

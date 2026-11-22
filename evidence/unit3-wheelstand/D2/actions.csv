@@ -1,0 +1,72 @@
+sec,kind,action,response
+0.0,begin,undock,
+15.637847,end,undock,"{'ok': True, 'stopped_reason': 'goal', 'prox_mm': 62.0, 'actual_delta': {'x': -0.1177, 'y': -0.007, 'theta': -0.04941}, 'clamped': False, 'chunks_executed': 1, 'motion_result': {'ok': True, 'reason': 'completed', 'moved_mm': 0.0, 'turned_rad': 0.0, 'detail': 'goal', 'chunks': 1, 'clamped': False, 'prox_mm': 142.0}}"
+15.638007,begin,connect on shelf,
+33.732474,end,connect on shelf,"status {
+  code: RESPONSE_RECEIVED
+}
+success: true
+object_id: 1"
+52.969384,begin,prepare,
+53.158962,end,prepare,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+55.16029,begin,matched raise 1,
+56.325202,end,matched raise 1,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+58.325573,begin,matched lower 1,
+59.444806,end,matched lower 1,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+61.445583,begin,matched raise 2,
+69.078642,end,matched raise 2,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+71.081348,begin,matched lower 2,
+72.230911,end,matched lower 2,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+74.232508,begin,matched raise 3,
+75.474924,end,matched raise 3,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+77.475844,begin,matched lower 3,
+78.654058,end,matched lower 3,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+80.655565,begin,matched raise 4,
+81.82433,end,matched raise 4,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+83.825625,begin,matched lower 4,
+85.002681,end,matched lower 4,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+86.080861,begin,disconnect,
+86.150185,end,disconnect,"status {
+  code: REQUEST_PROCESSING
+}"
+86.151244,begin,dock,
+164.875409,end,dock,"status {
+  code: RESPONSE_RECEIVED
+}
+result: BEHAVIOR_COMPLETE_STATE"
