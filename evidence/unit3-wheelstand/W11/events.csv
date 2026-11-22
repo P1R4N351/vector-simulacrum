@@ -1,0 +1,7 @@
+sec,event,object_id,timestamp
+-0.02235,robot_observed_object,1,297919
+13.594555,object_tapped,1,311796
+13.781514,object_moved,1,312101
+13.783199,object_tapped,1,311948
+14.931181,object_stopped_moving,1,313199
+42.941677,robot_observed_object,1,340809

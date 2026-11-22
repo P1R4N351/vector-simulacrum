@@ -1,0 +1,41 @@
+sec,kind,action,response
+-23.908987,begin,connect cube,
+-4.036256,end,connect cube,"status {
+  code: RESPONSE_RECEIVED
+}
+success: true
+object_id: 1"
+-4.035841,begin,look,
+-3.192751,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-2.642425,begin,look,
+-1.934987,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+-1.384742,begin,look,
+-0.550761,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+0.0,begin,pop_a_wheelie,
+3.850953,end,pop_a_wheelie,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+  code: VISUAL_OBSERVATION_FAILED
+}"
+6.902039,begin,disconnect,
+6.976458,end,disconnect,"status {
+  code: REQUEST_PROCESSING
+}"
+6.976626,begin,dock,
+42.752154,end,dock,"status {
+  code: RESPONSE_RECEIVED
+}
+result: BEHAVIOR_COMPLETE_STATE"
