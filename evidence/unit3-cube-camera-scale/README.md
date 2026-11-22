@@ -39,3 +39,15 @@ The initial onboard outline gives a six-degree-of-freedom pose for a 23 mm squar
 Errors are RMS Euclidean distances between corresponding image corners. During retreat the factory camera predicts every x coordinate to within 0.43 px, while every y coordinate lands 5.27–6.47 px high. The overhead camera measured 0.06 mm of horizontal cube travel during that retreat. The head encoder reported the same angle at both endpoints. Chassis pitch was absent from this recording. The residual could reflect body attitude, camera geometry or marker pose estimation. These two moving pairs come from a single robot and recording. No parameter was fitted to their final views.
 
 Run `python reprojection.py` here to regenerate the overlay and per-corner CSV.
+
+### Did the camera pitch during the retreat?
+
+![Retreat background tracks tested against added camera pitch](retreat-background.png)
+
+A camera pitch change rotates the entire scene. We tested that prediction on three pairs of settled JPEGs bracketing the same retreat. We tracked texture outside the cube on both sides, discarding tracks with a forward–backward discrepancy above 0.5 px. The metric is distance from the observed endpoint to the epipolar line predicted by calibrated camera motion. This allows each feature to have its own unknown depth. It measures one component of image error and differs from the four-corner RMS above.
+
+Fitting pitch to the cube corners gives −0.74° of additional camera-coordinate x rotation. Applying that to the held-out left background increases median error from 0.33–0.38 px to 5.73–5.77 px across the three pairs (132–137 tracks each). On the right it increases from 1.15–1.61 px to 4.06–4.84 px (19–24 tracks each). A single extra pitch rotation large enough to explain the cube is inconsistent with both regions under the recorded odometry.
+
+A camera-height change also affects projected corners, with a larger effect on nearby objects. The cube alone favors a 1.21 mm rise. Separate background fits give −3.71 mm on the left and +0.76 mm on the right. These disagree, so this retreat supplies no reliable height correction. A change in translation direction remains confounded with camera mount angle and odometry. We kept the physical parameters frozen. The three pairs check feature tracking repeatability within one maneuver.
+
+Run `python retreat_attitude.py` to reproduce the plot and fits from the published image coordinates. The optional `--extract` argument accepts the original onboard JPEG directory.
