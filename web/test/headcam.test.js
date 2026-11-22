@@ -71,3 +71,15 @@ test("older level-camera models receive exactly one mount tilt", async () => {
   assert.ok(Math.abs(pitch - (sim.headAngleRad() / DEG - model.camera.pitch_down_deg)) < 0.1);
   sim.dispose();
 });
+
+test("Unit 3 RGB view applies its measured pitch relative to the native camera", async () => {
+  const spec = readJson("public/robot/vector2/model.json").camera;
+  const { sim, camera } = await rig(-12, readText("public/robot/vector2/vector.xml"), spec);
+  try {
+    const pitch = Math.asin(-camera.matrixWorld.elements[10]) / DEG;
+    const correction = readJson("camera_calibration_vector2.json").rgb_pitch_up_deg;
+    assert.ok(Math.abs(pitch - (sim.headAngleRad() / DEG - spec.pitch_down_deg + correction)) < 0.1);
+  } finally {
+    sim.dispose();
+  }
+});

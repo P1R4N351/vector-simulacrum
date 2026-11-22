@@ -51,3 +51,21 @@ Fitting pitch to the cube corners gives −0.74° of additional camera-coordinat
 A camera-height change also affects projected corners, with a larger effect on nearby objects. The cube alone favors a 1.21 mm rise. Separate background fits give −3.71 mm on the left and +0.76 mm on the right. These disagree, so this retreat supplies no reliable height correction. A change in translation direction remains confounded with camera mount angle and odometry. We kept the physical parameters frozen. The three pairs check feature tracking repeatability within one maneuver.
 
 Run `python retreat_attitude.py` to reproduce the plot and fits from the published image coordinates. The optional `--extract` argument accepts the original onboard JPEG directory.
+
+### Does a fixed camera angle transfer to forward motion?
+
+![Top marker edge residuals on five forward approaches](mount-transfer.png)
+
+A constant upward offset of 4.15° relative to the simulated SDK camera, applied at both endpoints, reduced the retreat four-corner RMS from 5.90 to 0.70 pixels. It also reduced the independently scored reorientation RMS from 3.29 to 1.56 pixels. Unlike a change of pitch *during* the maneuver, this adjusts the direction of translation in camera coordinates.
+
+With that angle frozen, the two upper marker corners were projected through each approach and compared with their tracked image coordinates before contact. The overhead cube displacement was under 1 mm in this window. The timing offset was inherited from the earlier width comparison on approaches 1–2. Approaches 3–5 were held out from both the angle and timing fits.
+
+| Approach | Vertical RMS before → after (px) | 2D RMS before → after (px) |
+|---|---:|---:|
+| 1 | 12.59 → 1.42 | 13.11 → 4.41 |
+| 2 | 13.04 → 1.44 | 14.07 → 5.83 |
+| 3 | 11.36 → 1.91 | 11.90 → 4.41 |
+| 4 | 12.66 → 3.27 | 14.81 → 9.03 |
+| 5 | 15.18 → 4.14 | 15.70 → 6.41 |
+
+The Vector 2 web RGB view now uses the correction. Native SDK pose projections retain the firmware geometry. All five moves used one unit 3 head setting near −12.2° on one shelf. This is an effective viewing angle: an encoder zero error, a mounting offset, and chassis attitude can contribute. Its transfer to other head settings and units is unmeasured. Run `python mount_transfer.py` to reproduce.

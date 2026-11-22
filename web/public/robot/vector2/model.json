@@ -34,6 +34,8 @@
    0.0,
    -7.96
   ],
+  "rgb_pitch_source": "Effective RGB pitch relative to the SDK camera. Fitted on the unit 3 shelf retreat and checked on five approaches at the same head setting. See evidence/unit3-cube-camera-scale/mount_transfer.py.",
+  "rgb_pitch_up_deg": 4.15,
   "width_px": 800
  },
  "cliff_names": [

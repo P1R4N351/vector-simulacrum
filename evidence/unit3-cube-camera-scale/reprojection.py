@@ -28,7 +28,7 @@ def camera_pose(sample):
     return cam.xpos.copy(), cam.xmat.reshape(3,3) @ cv_axes
 
 
-def predict(first, last, K):
+def predict(first, last, K, mount=None):
     assert first["state"]["origin"] == last["state"]["origin"]
     xy = np.asarray(first["quad"])
     ok, r, t = cv2.solvePnP(square, xy, K, None, flags=cv2.SOLVEPNP_ITERATIVE)
@@ -36,6 +36,8 @@ def predict(first, last, K):
     points = square @ cv2.Rodrigues(r)[0].T + t.ravel()
     p, R = camera_pose(first)
     q, S = camera_pose(last)
+    if mount is not None:
+        R, S = R @ mount, S @ mount
     end = (points @ R.T + p - q) @ S
     assert np.all(end[:,2] > 0)
     projected = end @ K.T

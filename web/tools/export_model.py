@@ -120,6 +120,7 @@ def camera_block(v: Dict[str, Any]) -> Dict[str, Any]:
         "edge_angles_deg": {k: math.degrees(a) for k, a in edges.items()},
         "optics_source": cal["what"] + ". " + cal["read"], "optics_limits": cal["limits"],
         "near_mm": CAMERA_NEAR_MM, "position_from_neck_mm": _jsonable(v["head_camera_position_mm"]),
+        **{k: cal[k] for k in ("rgb_pitch_up_deg", "rgb_pitch_source") if k in cal},
         "pitch_down_deg": pitch,
         # False: the MJCF's camera looks straight ahead and the page adds the tilt itself.
         "pitch_down_in_model": in_table,

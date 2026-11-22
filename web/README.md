@@ -173,7 +173,7 @@ making the picture look tidy.
 | Optics | fx 361.16, fy 356.24 px; optical centre 310.66, 183.83 px; 640 x 360 | One real Vector's factory calibration, as the robot reports it through the SDK (`camera_calibration.json`) | |
 | Field of view | 83.1° x 53.6° | Follows from that calibration | Manual: 90° x 50°. Anki's simulator: 94° wide. The simulacrum's MJCF: 50° tall, which makes 79.3° wide |
 | Position | 18.84 mm ahead of and 7.96 mm below the neck joint | The firmware header (`head_camera_position_mm` in the table); read each frame from the physics model's camera, so it moves with the head | Same in Anki's simulator |
-| Tilt | 4° below the head's forward axis | The engine the robot runs (`engine/fullRobotPose.cpp`, `kDefaultHeadCamRotation`; works out to 4.002°) | Same in Anki's simulator. The MJCF and browser both use the engine mounting angle |
+| Tilt | 4° below the head's forward axis | The engine the robot runs (`engine/fullRobotPose.cpp`, `kDefaultHeadCamRotation`; works out to 4.002°) | Same in Anki's simulator. The MJCF uses the engine mounting angle. The unit 3 RGB view adds the [shelf camera correction](../evidence/unit3-cube-camera-scale/README.md#does-a-fixed-camera-angle-transfer-to-forward-motion) |
 
 The optical centre is not the middle of the image, so the view reaches 40.7°
 left and 42.4° right, 27.3° up and 26.3° down. `npm test` checks the position
