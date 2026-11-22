@@ -1,5 +1,6 @@
 """Replay the docking impact from the two independent hub registrations."""
 import sys,tempfile,csv
+import xml.etree.ElementTree as ET
 from itertools import product
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -22,9 +23,14 @@ summary=[]
 angles=np.unwrap(R.from_quat(np.column_stack([poses[k] for k in ['qx','qy','qz','qw']])).as_euler('ZYX')[:,0])
 heading=np.interp(registration,poses['sec'],angles)
 xy=np.array([np.interp(registration,poses['sec'],poses[k]) for k in ['x_mm','y_mm']])
-current_surface='--current-surface' in sys.argv[3:]
+face_test='--face-test' in sys.argv[3:]
+reverse_boxes='--reverse-box-order' in sys.argv[3:]
+if reverse_boxes and not face_test:
+ raise ValueError('box order comparison requires --face-test')
+face_output='face-replay-reverse' if reverse_boxes else 'face-replay'
+current_surface=face_test or '--current-surface' in sys.argv[3:]
 ablation='--ablation' in sys.argv[3:]
-camera_path=ablation or '--camera-path' in sys.argv[3:]
+camera_path=ablation or face_test or '--camera-path' in sys.argv[3:]
 if camera_path:
  trace=np.genfromtxt(folder/'chassis-path.csv',names=True,delimiter=',')
  knots=dock+trace['dock_s']
@@ -59,34 +65,64 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    from surface_transfer import replace_boxes
    updated=d/'current-cube.xml'
    replace_boxes(fixture,updated)
+   if reverse_boxes:
+    tree=ET.parse(updated)
+    body=tree.find(".//body[@name='cube']")
+    geoms=body.findall('geom')
+    for geom in geoms:
+     body.remove(geom)
+    body.extend(reversed(geoms))
+    tree.write(updated)
    fixture=str(updated)
-  for dt,omitted in product((.0005,.00025),conditions):
+  layouts=[('upright',R.identity())]
+  if face_test:
+   with (folder/'rigid-faces.csv').open() as f:
+    for rank,row in enumerate(list(csv.DictReader(f))[:4],1):
+     matrix=np.array([int(row[f'r{i}{j}']) for i in range(3) for j in range(3)]).reshape(3,3)
+     layouts.append((str(rank),R.from_matrix(matrix)))
+  for dt,omitted,(layout,asset_rotation) in product((.00025,) if reverse_boxes else (.0005,.00025),conditions,layouts):
    out=[]
    contact=[]
    initial_pair=[]
+   first_patch=[]
    def observe(m,data):
     b=data.body('cube')
     out.append([*b.xpos[:2],np.arctan2(b.xmat[3],b.xmat[0])])
+    if face_test:
+     relative=b.xmat.reshape(3,3)@initial.as_matrix().T
+     out[-1][-1]=np.arctan2(relative[1,0]-relative[0,1],relative[0,0]+relative[1,1])
+     if not first_patch:
+      for c in data.contact:
+       bodies=m.geom_bodyid[c.geom]
+       if b.id in bodies and m.body('fork').id in bodies:
+        point=(c.pos-b.xpos)@b.xmat.reshape(3,3)*1000
+        first_patch.extend([m.geom(int(c.geom[np.argmax(bodies==b.id)])).name,*point])
+        break
     gaps=[c.dist for c in data.contact if b.id in m.geom_bodyid[c.geom] and 0 not in m.geom_bodyid[c.geom]]
     if not contact and gaps:
      deepest=min((c for c in data.contact if b.id in m.geom_bodyid[c.geom] and 0 not in m.geom_bodyid[c.geom]),key=lambda c:c.dist)
      initial_pair.append('/'.join(m.geom(int(k)).name for k in deepest.geom))
     contact.append(min(gaps,default=np.nan))
-   t,tilt,hit,speed,sensor=run(fixture,dt,True,d,R.from_euler('z',yaw),observer=observe,articulated=True,shelf_support=True,chassis_contact=True,omit_contacts=omitted)
+   initial=R.from_euler('z',yaw)
+   if layout!='upright':
+    initial=initial*asset_rotation
+   t,tilt,hit,speed,sensor=run(fixture,dt,True,d,initial,observer=observe,articulated=True,shelf_support=True,chassis_contact=True,omit_contacts=omitted)
    out=np.array(out)
    travel=np.linalg.norm(out[:,:2]-pos/1000,axis=1)*1000
    turn=np.degrees(np.unwrap(out[:,-1])-out[0,-1])
    ix=np.flatnonzero(np.isfinite(contact))
    summary.append([reg['view'],dt*1000,travel[-1],turn[-1],tilt.max(),len(sensor.taps.events),
                    t[ix[0]] if len(ix) else np.nan,contact[ix[0]]*1000 if len(ix) else np.nan,','.join(initial_pair)])
+   if face_test:
+    summary[-1].extend([layout,*(first_patch or ['',np.nan,np.nan,np.nan])])
    if ablation:
     summary[-1].append('+'.join(omitted) or 'none')
    if dt==.00025:
-    ax[0].plot(t+start_offset,travel,label=reg['view']+' · '+(','.join(omitted) or 'all contacts'))
+    ax[0].plot(t+start_offset,travel,label=reg['view']+' · '+(layout if face_test else ','.join(omitted) or 'all contacts'))
     ax[1].plot(t+start_offset,turn)
-with (folder/('current-surface.csv' if current_surface else 'contact-ablation.csv' if ablation else 'camera-path-replay.csv' if camera_path else 'dock-replay.csv' if start_offset==3.75 else 'dock-late-start.csv')).open('w') as f:
+with (folder/(face_output+'.csv' if face_test else 'current-surface.csv' if current_surface else 'contact-ablation.csv' if ablation else 'camera-path-replay.csv' if camera_path else 'dock-replay.csv' if start_offset==3.75 else 'dock-late-start.csv')).open('w') as f:
  w=csv.writer(f,lineterminator='\n')
- w.writerow('view dt_ms travel_mm ccw_deg peak_tilt_deg taps first_contact_from_init_s first_contact_gap_mm initial_pair'.split()+(['omitted'] if ablation else []))
+ w.writerow('view dt_ms travel_mm ccw_deg peak_tilt_deg taps first_contact_from_init_s first_contact_gap_mm initial_pair'.split()+(['omitted'] if ablation else [])+(['layout','first_cube_patch','patch_x_mm','patch_y_mm','patch_z_mm'] if face_test else []))
  w.writerows(summary)
 for a,rng in zip(ax,[(39.8,42.9),(64.8,70.9)]):
  a.axhspan(*rng,alpha=.22,color='#48865c',label='Physical endpoint estimates')
@@ -98,4 +134,4 @@ if ablation:
  from ablation_plot import plot
  plot(folder)
 elif start_offset==3.75:
- fig.savefig(folder/('current-surface.png' if current_surface else 'contact-ablation.png' if ablation else 'camera-path-replay.png' if camera_path else 'dock-replay.png'),dpi=150)
+ fig.savefig(folder/(face_output+'.png' if face_test else 'current-surface.png' if current_surface else 'contact-ablation.png' if ablation else 'camera-path-replay.png' if camera_path else 'dock-replay.png'),dpi=150)
