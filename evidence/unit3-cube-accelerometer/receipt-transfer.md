@@ -61,3 +61,11 @@ We recovered 1,494 original SDK robot states and matched every timestamp and car
 Suppressing while carrying, or while the picking flag is set during a pickup of the monitored cube, selects the one SDK callback out of four transitions here. Applying that same rule to the earlier eleven candidates retains all seven captured SDK callbacks and suppresses the four R5 candidates. These are retrospective comparisons. Several positive transitions occurred during a charger-dock command, which illustrates why docking must be specific to the target cube. The telemetry does not identify the engine's internal docking target or distinguish this proxy from another rule that yields the same outcomes.
 
 [State intervals and event times](pickup-status.png) · [Status edges](pickup-status-edges.csv) · [Pickup transitions](pickup-status-events.csv) · [Other captures](targeted-pick-transfer.csv). Run pickup_status.py with the original cube-second-local.jsonl archive.
+
+### Cube face changes during physical roll and handling attempts
+
+Replaying 22,802 recorded packets across 16 captures yielded zero up-axis transitions, matching the number logged by the SDK. The filtered acceleration direction came closest to a boundary in R5 (12.75° away), followed by R8 (19.89°). R9 began and ended on +Y, while the other captures began and ended on +Z. Each capture initializes its own listener. The boundary distance is the least rotation of the filtered vector needed for another signed component to become dominant. It measures detector margin, not the cube's true geometric tilt under acceleration.
+
+These recordings test false alarms during partial tilts and impacts. Run S contains 22 actual face-change callbacks but lacks the corresponding acceleration packets. Positive transition timing still needs a paired recording of a completed quarter-turn.
+
+[Per-run margins and R5 trace](sdk-axis-transfer.png) · [Counts and angular margins](sdk-axis-transfer.csv). Reproduce with sdk_axis_transfer.py.
