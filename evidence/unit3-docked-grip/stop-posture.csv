@@ -1,0 +1,33 @@
+recording,event,pre_100ms_span_mm,pre_150ms_span_mm,pre_200ms_span_mm
+stop-control,1,0.0,0.0,0.0
+stop-control,2,0.0,0.0,0.0
+stop-control,4,0.0,0.0,0.0
+stop-control,7,0.0,0.0,0.0
+stop-holdout,0,0.0,0.0,0.0
+stop-holdout,2,0.0,0.0,0.0
+stop-holdout,3,0.0,0.0,0.0
+stop-holdout,4,0.0,0.0,0.0
+stop-holdout,7,0.0,0.0,0.0
+stop-holdout,8,nan,nan,nan
+stop-holdout,10,0.0,0.0,0.0
+stop-holdout,11,0.0,0.0,0.0
+stop-holdout,12,nan,nan,nan
+stop-holdout,14,nan,nan,nan
+stop-holdout,16,0.0,0.0,0.0
+stop-holdout,17,0.0,0.0,0.0
+stop-prospective,0,0.0,0.0,0.0
+stop-prospective,1,0.0,0.0,0.0
+stop-prospective,3,0.0,0.0,0.0
+stop-prospective,5,0.0,0.0,0.0
+stop-prospective,6,0.0,0.0,0.0
+stop-prospective,7,0.0,0.0,0.0
+stop-prospective,9,0.0,0.0,0.0
+stop-prospective,10,0.0,0.0,0.0
+stop-prospective,13,0.0,0.0,0.0
+stop-prospective,14,0.0,0.0,0.0
+stop-prospective,15,0.0,0.0,0.0
+stop-prospective,17,0.0,0.0,0.0
+failed grip physical,cleanup,14.435676,14.435676,14.435676
+failed grip simulated,cleanup,0.0,0.0,0.0
+Early torque cutoff,cleanup,16.824714760188066,16.824714760188066,16.824714760188066
+Late torque cutoff,cleanup,16.824714760188066,16.824714760188066,16.824714760188066
