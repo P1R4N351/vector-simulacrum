@@ -28,8 +28,8 @@ MODULES = ("test_params", "test_mjcf", "test_drive", "test_recording", "test_imu
            "test_replay", "test_task", "test_training", "test_rank", "test_mcp",
            "test_wheelstand", "test_motor_heat", "test_prox", "test_spin_fit", "test_camera_spins",
            "test_imu_filter", "test_record_listen",
-           "test_hold_cube", "test_cube_accel", "test_cube_model", "test_cube_firmware", "test_capture_peers",
-           "test_run_all")
+           "test_hold_cube", "test_cube_accel", "test_cube_model", "test_cube_firmware", "test_cube_surface",
+           "test_capture_peers", "test_run_all")
 EXIT_OK, EXIT_USAGE, EXIT_ENV, EXIT_RED = 0, 2, 3, 7
 
 

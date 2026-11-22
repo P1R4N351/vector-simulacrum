@@ -16,10 +16,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const COPIED = ["src/sim", "src/game/tracks.js", "src/game/headcam.js", "test", "public/robot/vector.xml", "public/robot/model.json",
+const COPIED = ["src/sim", "src/game", "test", "public/robot/vector.xml", "public/robot/vector-contact42.xml",
+  "public/robot/vector-free.xml", "public/robot/vector-contact42-free.xml", "public/robot/model.json",
   "camera_calibration.json", "package.json"];
 const SUITE = ["test/drive.test.js", "test/hazards.test.js", "test/robot.test.js", "test/tracks.test.js", "test/optics.test.js",
-  "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js"];
+  "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js"];
 const ARMS = [
   { name: "control: untouched copy", file: null, mustFail: false },
   { name: "neutral: a comment added", file: "src/sim/drive.js", old: "export class TreadEncoder {", new: "// neutral change\nexport class TreadEncoder {", mustFail: false },
@@ -71,6 +72,10 @@ const ARMS = [
   { name: "IMU filter stepped once per tick", file: "src/sim/robot.js", old: "this._imuFilter.update(raw);\n    }\n  }", new: "}\n    this._imuFilter.update(raw);\n  }", mustFail: true },
   { name: "IMU filter not reset after settling", file: "src/sim/robot.js", old: "this.data.time = 0;\n    this._resetImuFilter();", new: "this.data.time = 0;", mustFail: true },
   { name: "accel_scale dropped in _sampleImu", file: "src/sim/robot.js", old: "accel[i] = clamp((out[i] / MM) * v.accel_scale[i] + mg * v.accel_bias_mg[i]", new: "accel[i] = clamp(out[i] / MM + mg * v.accel_bias_mg[i]", mustFail: true },
+  { name: "3D belt: outer face given sidewall normal", file: "src/game/tracks.js", old: "[p.nx, 0, p.nz]", new: "[0, 1, 0]", mustFail: true },
+  { name: "3D shell: decal normals left unnormalized", file: "src/game/shell.js", old: "  geometry.normalizeNormals();\n", new: "", mustFail: true },
+  { name: "3D rig: stock fork pivoted on wrist instead of fork_pivot", file: "src/game/sdkmodel.js", old: "s.position.set(-pose.fork_pivot[0], 0, -pose.fork_pivot[1]);", new: "s.position.set(0, 0, 0);", mustFail: true },
+  { name: "3D topology: cover sliver normals left unaligned", file: "src/game/topology.js", old: "    alignGeometryNormals(geo);\n", new: "", mustFail: true },
 ];
 
 function makeCopy() {

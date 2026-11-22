@@ -3,19 +3,68 @@
 import * as THREE from "three";
 import { headRoof } from "./face.js";
 import { TessellateModifier } from "three/addons/modifiers/TessellateModifier.js";
+import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
+
+export function closedEllipse(x, y, rx, ry, clockwise = false, segments = 24) {
+  const p = new THREE.Shape();
+  for (let i = 0; i < segments; i++) {
+    const a = (clockwise ? -1 : 1) * (2 * Math.PI * i) / segments;
+    const px = x + rx * Math.cos(a), py = y + ry * Math.sin(a);
+    if (i === 0) p.moveTo(px, py);
+    else p.lineTo(px, py);
+  }
+  p.closePath();
+  return p;
+}
 
 export function capsule(x, y, w, h, r) {
+  const rad = Math.min(r, w / 2, h / 2);
+  if (w - 2 * rad <= 1e-6 && h - 2 * rad <= 1e-6) {
+    return closedEllipse(x + w / 2, y + h / 2, w / 2, h / 2, false, 28);
+  }
   const p = new THREE.Shape();
-  p.moveTo(x + r, y);
-  p.lineTo(x + w - r, y);
-  p.quadraticCurveTo(x + w, y, x + w, y + r);
-  p.lineTo(x + w, y + h - r);
-  p.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  p.lineTo(x + r, y + h);
-  p.quadraticCurveTo(x, y + h, x, y + h - r);
-  p.lineTo(x, y + r);
-  p.quadraticCurveTo(x, y, x + r, y);
+  p.moveTo(x + rad, y);
+  if (w - 2 * rad > 1e-6) p.lineTo(x + w - rad, y);
+  p.quadraticCurveTo(x + w, y, x + w, y + rad);
+  if (h - 2 * rad > 1e-6) p.lineTo(x + w, y + h - rad);
+  p.quadraticCurveTo(x + w, y + h, x + w - rad, y + h);
+  if (w - 2 * rad > 1e-6) p.lineTo(x + rad, y + h);
+  p.quadraticCurveTo(x, y + h, x, y + h - rad);
+  if (h - 2 * rad > 1e-6) p.lineTo(x, y + rad);
+  p.quadraticCurveTo(x, y, x + rad, y);
   return p;
+}
+
+// Keep vertex normals in the outward half-space of each non-degenerate triangle.
+export function alignGeometryNormals(geo, minDot = 0.05) {
+  if (geo.index !== null) throw new Error("alignGeometryNormals requires non-indexed geometry");
+  const pos = geo.attributes.position;
+  const nor = geo.attributes.normal;
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  const e1 = new THREE.Vector3(), e2 = new THREE.Vector3(), fn = new THREE.Vector3(), vn = new THREE.Vector3();
+  for (let t = 0; t < pos.count / 3; t++) {
+    const base = t * 3;
+    a.fromBufferAttribute(pos, base);
+    b.fromBufferAttribute(pos, base + 1);
+    c.fromBufferAttribute(pos, base + 2);
+    fn.crossVectors(e1.subVectors(b, a), e2.subVectors(c, a));
+    const len = fn.length();
+    if (len <= 1e-10) continue;
+    fn.divideScalar(len);
+    for (let k = 0; k < 3; k++) {
+      vn.fromBufferAttribute(nor, base + k);
+      if (vn.lengthSq() < 1e-8) {
+        vn.copy(fn);
+      } else if (vn.dot(fn) < minDot) {
+        vn.addScaledVector(fn, minDot - vn.dot(fn)).normalize();
+      } else {
+        continue;
+      }
+      nor.setXYZ(base + k, vn.x, vn.y, vn.z);
+    }
+  }
+  nor.needsUpdate = true;
+  return geo;
 }
 
 // Warp both faces of the extrusion onto the same roof. Preserve the top
@@ -38,6 +87,7 @@ function cover(shell, roof) {
       normal.normalize();
       normals.setXYZ(i, normal.x, normal.y, normal.z);
     }
+    alignGeometryNormals(geo);
     const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness }));
     mesh.name = name;
     shell.add(mesh);
@@ -105,7 +155,7 @@ function addRearShell(body, roof, shellVersion) {
         ? Math.abs(across) * boundary / 0.85
         : boundary + (Math.abs(across) - 0.85) * (1 - boundary) / 0.15);
       const edge = Math.max(0, -col, col - cols);
-      const y = u * (width + (edge === 1 ? 0.028 : edge === 2 ? 0.012 : 0));
+      const y = u * (width + (edge === 1 ? 0.020 : edge === 2 ? 0.028 : 0));
       const side = Math.abs(u);
       // Across the sticker the generators are parallel. Begin the
       // transverse radius only on the approach to either tread.
@@ -141,8 +191,14 @@ function addRearShell(body, roof, shellVersion) {
   geo.setIndex(grey.concat(black));
   geo.addGroup(0, grey.length, 0);
   geo.addGroup(grey.length, black.length, 1);
-  geo.computeVertexNormals();
-  const shell = new THREE.Mesh(geo, [
+  const creased = toCreasedNormals(geo, Math.PI / 3);
+  if (creased.groups.length === 0) {
+    creased.addGroup(0, grey.length, 0);
+    creased.addGroup(grey.length, black.length, 1);
+  }
+  alignGeometryNormals(creased);
+  geo.dispose();
+  const shell = new THREE.Mesh(creased, [
     new THREE.MeshStandardMaterial({color: 0x56575b, roughness: 0.45, side: THREE.DoubleSide}),
     new THREE.MeshStandardMaterial({color: 0x202124, roughness: 0.26, side: THREE.DoubleSide}),
   ]);
@@ -157,9 +213,7 @@ function addRearShell(body, roof, shellVersion) {
   badge.quadraticCurveTo(0.36, -0.23, 0.04, -0.19);
   badge.quadraticCurveTo(-0.11, -0.23, -0.29, -0.17);
   badge.closePath();
-  const cutout = new THREE.Path();
-  cutout.absellipse(-0.05, 0, 0.16, 0.12, 0, 2 * Math.PI, true);
-  badge.holes.push(cutout);
+  badge.holes.push(closedEllipse(-0.05, 0, 0.16, 0.12, true, 24));
   const mark = new THREE.Mesh(new THREE.ExtrudeGeometry(badge, {depth: 0.009, bevelEnabled: false}),
     new THREE.MeshStandardMaterial({color: 0xb6b5b1, metalness: 0.7, roughness: 0.32}));
   const station = 0.68, centre = profile.getPoint(station), tangent = profile.getTangent(station);
@@ -282,8 +336,7 @@ export function addCrownAndBackpack(head, body, shellVersion) {
   pack("Gold touch plate", gold, 0.112, 0.073, 0xc6ac6b, 0.32);
   for (const x of [-5.20, -3.70]) {
     for (const side of [1, -1]) {
-      const port = new THREE.Shape();
-      port.absarc(x, side * 1.163, 0.034, 0, 2 * Math.PI);
+      const port = closedEllipse(x, side * 1.163, 0.034, 0.034, false, 18);
       pack("Microphone port", port, 0.109, 0.002, 0x16171a, 0.86);
     }
   }

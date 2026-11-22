@@ -59,21 +59,34 @@ export function makeBeltPath(front, rear) {
 // Sweep a closed rubber belt around the exact tangent path used by the ribs.
 // Four corners at each station give the outside, inside and both sidewalls.
 export function beltGeometry(path, width, thickness) {
-  const positions = [], indices = [];
+  const positions = [], normals = [], indices = [];
   const stations = 160;
+  const hw = width / 2;
+  const faces = [
+    [-1, 0, 1, 0, (p) => [p.nx, 0, p.nz]],
+    [1, 0, 1, thickness, () => [0, 1, 0]],
+    [1, thickness, -1, thickness, (p) => [-p.nx, 0, -p.nz]],
+    [-1, thickness, -1, 0, () => [0, -1, 0]],
+  ];
   for (let i = 0; i < stations; i++) {
     const p = path.pointAt(i * path.length / stations);
-    const ring = i * 4, next = ((i + 1) % stations) * 4;
-    for (const [j, [y, depth]] of [[-1, 0], [1, 0], [1, thickness], [-1, thickness]].entries()) {
-      positions.push(p.x - depth * p.nx, y * width / 2, p.z - depth * p.nz);
-      const k = (j + 1) % 4;
-      indices.push(ring + j, next + j, ring + k, next + j, next + k, ring + k);
+    const ring = i * 8, next = ((i + 1) % stations) * 8;
+    for (let f = 0; f < 4; f++) {
+      const [y0, d0, y1, d1, normalFn] = faces[f];
+      const [nx, ny, nz] = normalFn(p);
+      positions.push(
+        p.x - d0 * p.nx, y0 * hw, p.z - d0 * p.nz,
+        p.x - d1 * p.nx, y1 * hw, p.z - d1 * p.nz,
+      );
+      normals.push(nx, ny, nz, nx, ny, nz);
+      const b = f * 2;
+      indices.push(ring + b, next + b, ring + b + 1, next + b, next + b + 1, ring + b + 1);
     }
   }
   const geom = new THREE.BufferGeometry();
   geom.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geom.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
   geom.setIndex(indices);
-  geom.computeVertexNormals();
   return geom;
 }
 

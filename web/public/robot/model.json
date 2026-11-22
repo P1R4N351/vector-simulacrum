@@ -82,14 +82,14 @@
   "fitted": 19,
   "manual": 17,
   "measured": 10,
-  "sdk": 91
+  "sdk": 92
  },
  "robot_model": "vector_1",
  "source": {
-  "table_sha256": "75bf7fa8847ddb8c26eaefb895ff6613148aa7cbc876160c91d47a0dab1712ab",
+  "table_sha256": "a0c927df1ec263e19460c8607cd3ed659d549531fb6defc4bbeb6a72a1d7914c",
   "trial_xml_sha256": "708ad7cb5d309155ee310d875bcc74fcde3c1462c69fb063f2db473b78bd4126",
-  "vector-contact42-free_sha256": "5df168f10f3d1822ea3f82cb9d46cb49a5167da6763eb4b934b9d275c5cad0b7",
-  "vector-free_sha256": "ab6c98fb418bd5cfb91fc543d1997215c00331ed2bc139b754e13c6599b50a75",
+  "vector-contact42-free_sha256": "84068fa93406a571a0d187ef82f0b6182b208aebbde524f35c844f5e67b6d8e2",
+  "vector-free_sha256": "217f7e213aad3b85aef6158aeab07dc4e4ceaca990594b698a6a5b3f298980c9",
   "xml_sha256": "c669b1fa42246771fec70bf2654a019626300dccbc8567754719a6776c314cd0"
  },
  "values": {
@@ -160,6 +160,10 @@
    1.0,
    1.0,
    1.0
+  ],
+  "cube_accel_word_format": [
+   4,
+   0
   ],
   "cube_carry_offset_mm": [
    26.0,

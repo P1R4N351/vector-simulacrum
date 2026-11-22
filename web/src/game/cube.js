@@ -27,6 +27,11 @@ function stockCubeTexture(image) {
   return texture;
 }
 
+export function repairMeshNormals(geometry) {
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 export async function loadCubeLook(sizeMm) {
   const base = "./robot/sdk/";
   try {
@@ -39,6 +44,7 @@ export async function loadCubeLook(sizeMm) {
     const material = new THREE.MeshStandardMaterial({ map: stockCubeTexture(image), roughness: 0.62 });
     shape.traverse((node) => {
       if (node.isMesh) {
+        repairMeshNormals(node.geometry);
         node.material = material;
         node.castShadow = true;
         node.receiveShadow = true;

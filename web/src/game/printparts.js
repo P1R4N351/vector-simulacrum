@@ -41,8 +41,8 @@ export function printFork(geometry, values, material) {
   // negative print Z points forward. Register the crossbar to its wrist.
   const transform = new THREE.Matrix4().set(
     0, 0, -1, 0.1 * (values.lift_front_wrt_wrist_mm - 26.52),
-    -1, 0, 0, -4.801,
-    0, 1, 0, 0.1 * (values.lift_xbar_top_wrt_wrist_mm - values.lift_xbar_height_mm + 36.79),
+    -1, 0, 0, -4.8005,
+    0, 1, 0, 0.1 * (values.lift_xbar_top_wrt_wrist_mm - values.lift_xbar_height_mm + 36.792),
     0, 0, 0, 1,
   );
   const fork = new THREE.Mesh(geometry, material);
