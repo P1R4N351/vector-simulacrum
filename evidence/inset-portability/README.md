@@ -50,3 +50,13 @@ We recovered the six See3CAM landmark triples used for the crown survey. Five B 
 A separate triangulation at A used three points picked in the full-resolution Flip ultrawide photo and their See3CAM counterparts. The tip measured **43.42 mm behind the front axle** and **66.12 mm high**. Free horizontal axle spacing measured 50.16 mm against the released 48 mm. The difference between B and A exceeds the 2 mm pivot crossover. The A measurement depends on locating nearly edge-on printed rims in the phone view and on camera calibration at the robot. Both checks use the same See3CAM at A. The physical landmark registration remains unresolved. Keep the pivot comparison conditional on its assumed landmark position.
 
 [Original calibration and held-out fit](landmark-registration.csv) · [Held-out stereo check across three rig calibrations](landmark-stereo.csv) · [Image coordinates and reproduction script](landmark_registration.py)
+
+### Independent three-camera repeat at A
+
+![Tip picks in the main and ultrawide Flip photos and rectified See3CAM frame](repeat-landmark.jpg)
+
+The side-on cap-scale orbit sees the gold backpack surface nearly edge-on, obscuring the indicator tip in the clearest opposing rim views. A separate stationary A repeat (S-Am-15) shows the black tip from both phone lenses and the See3CAM. Using the archived rim-center observations and the frozen B rig, all three cameras placed the tip **38.95 mm behind the front axle** at **66.55 mm height**. Free axle spacing was **48.93 mm**. The two combinations of one phone lens with the See3CAM gave 38.85 and 39.15 mm. Using the two phone lenses alone gave an implausible 83.63 mm axle spacing. The three-lens estimate shares calibration errors across cameras, and the phone shutters were sequential.
+
+Using each survey's measured longitudinal coordinate and height together, the held-out spin pair favors the 1 mm forward contact shift in all three reconstructions. Pivot RMS for centered versus shifted contacts was **3.02 versus 1.39 mm** using B, **11.02 versus 7.74 mm** using the first A capture, and **6.65 versus 3.47 mm** using the independent A repeat. Variation between captures exceeds the residual in the nominal fit. The shifted model's absolute pivot accuracy therefore depends on the landmark survey, while the yaw tradeoff persists.
+
+[Camera subsets and wheelbase checks](repeat-landmark.csv) · [Held-out pivot scores](landmark-pivot-scores.csv) · [Reproduce](repeat_landmark.py)
