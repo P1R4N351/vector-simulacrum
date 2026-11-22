@@ -41,3 +41,11 @@ The solver matters: at 6 mN·m, the default MuJoCo friction constraint let the e
 [Two-sweep overlay and residuals](powered-transfer.png) · [All 16 moves](powered-transfer.csv) · [Reproduce](powered_transfer.py)
 
 We froze the previous bench candidate at 6 mN·m with the same stiff friction constraint and ran the original two unloaded staircase schedules through the powered actuator. Everything else, including the original 0.7 s command duration, stayed fixed. On sweep one, mean per-move RMS error rose from 1.31 to 1.41 mm and mean absolute settled error rose from 1.10 to 1.23 mm. On sweep two these rose from 1.30 to 1.44 mm and 0.90 to 1.16 mm respectively. Full raise improved on the second sweep, but the intermediate holds generally worsened. The two recorded sweeps are repeats from one session. The passive load experiment and this transfer test answer different questions: an effective passive hold can account for load-dependent collapse, while applying that friction throughout commanded movement worsens the existing calibrated servo response. This experiment does not establish an appropriate motor compensation law.
+
+### SDK lift-in-position state
+
+[Status against both physical sweeps](status-transfer.png) · [Per-sweep agreement and recall](status-transfer.csv)
+
+The Python and browser simulators now expose lift_in_pos in the robot state. A fresh target clears it. Once the commanded profile ends and measured joint angle stays within the configured firmware tolerance for more than 100 ms, the bit latches. Repeating an already reached target preserves it. This adds a sensor-state output and does not change actuation.
+
+On 266 and 269 SDK receipts from the two unloaded P2Y8 staircases, agreement was 80.5% and 87.7%; a constant set bit scored 48.9% and 56.1%. In the independent failed-grip recording, first clear and set were observed at +0.185 and +1.431 s versus +0.133 and +1.211 s predicted when sampled at those same receipts. The physical bit then cleared and set again after the failed action and stop command. The nominal one-command replay produces only the first pair. Receipt latency, action handling and contact physics still limit agreement. Run status_transfer.py from the repository environment to reproduce.
