@@ -147,12 +147,46 @@ def run(start,limit,onset=None,clear_cube=False):
         pitch=np.rad2deg(np.arcsin(np.clip(d.xmat[m.jnt_bodyid[m.joint('root').id]].reshape(3,3)[2,0],-1,1)))
         trace.append([t,pitch,np.linalg.norm(top-center)*1000,np.rad2deg(np.arctan2(rot[1,0],rot[0,0])-angle),
                       mjcf.lift_height_of_angle(v,float(d.joint("lift_joint").qpos[0])),
-                      1000*d.actuator("lift").force[0],downward])
+                      1000*d.actuator("lift").force[0],downward,float(d.sensor("gyro").data[1])])
     packets=np.array([[start+t,np.linalg.norm(a)/8192] for t,p in sensor.messages for a in np.frombuffer(p[2:],'<i2').reshape(3,3)])
     return np.array(trace),packets,len(sensor.taps.events),peak_load
 
 initial_checks=[]
 firmware='--firmware' in sys.argv[2:]
+if '--tip-rate' in sys.argv:
+    fig,axes=plt.subplots(2,1,sharex=True,figsize=(8,5),layout='constrained')
+    def compare_rate(label,t,height,pitch,rate):
+        hits=np.flatnonzero((height[:-1]>35)&(height[1:]<=35))
+        if not len(hits):
+            writer.writerow([label,'','','','',''])
+            return
+        i=hits[0]
+        alpha=(height[i]-35)/(height[i]-height[i+1])
+        crossing=t[i]+alpha*(t[i+1]-t[i])
+        angle_at_crossing=pitch[i]+alpha*(pitch[i+1]-pitch[i])
+        following=pitch[(t>=crossing)&(t<=crossing+.30)]
+        writer.writerow([label,t[i+1]-t[i],rate[i],rate[i+1],angle_at_crossing,
+                         max(following)-angle_at_crossing])
+        style='.-' if label=='P2Y8' else '-'
+        axes[0].plot(t-crossing,rate,style,label=label)
+        axes[1].plot(t-crossing,pitch,style)
+    with (here/'tip-rate.csv').open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['case','crossing_bracket_s','gyro_before_deg_s','gyro_after_deg_s',
+                         'pitch_at_35mm_deg','additional_peak_pitch_in_300ms_deg'])
+        take=(state['sec']-zero>=late_onset-.1)
+        compare_rate('P2Y8',state['sec'][take]-zero,state['lift'][take],
+                     np.degrees(state['pitch'][take]),-np.degrees(state['gy'][take]))
+        for cap in (30,80):
+            tr,*_=run(3.5+shift,cap,late_onset)
+            compare_rate(f'{cap} mN m',tr[:,0],tr[:,4],tr[:,1],-np.degrees(tr[:,7]))
+    axes[0].set(ylabel='Head gyro, nose-up (°/s)')
+    axes[1].set(ylabel='Chassis pitch (°)',xlabel='Seconds from descending through 35 mm',
+                xlim=(-.15,.30))
+    for ax in axes:ax.axvline(0,color='0.6',lw=.8)
+    axes[0].legend()
+    fig.savefig(here/'tip-rate.png',dpi=155)
+    sys.exit(0)
 if '--effort' in sys.argv:
     fig,axes=plt.subplots(2,1,figsize=(8,5),sharex=True,layout='constrained')
     with (here/'lift-effort.csv').open('w') as f:
