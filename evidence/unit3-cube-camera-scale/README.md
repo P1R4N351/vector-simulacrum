@@ -69,3 +69,15 @@ With that angle frozen, the two upper marker corners were projected through each
 | 5 | 15.18 → 4.14 | 15.70 → 6.41 |
 
 The Vector 2 web RGB view now uses the correction. Native SDK pose projections retain the firmware geometry. All five moves used one unit 3 head setting near −12.2° on one shelf. This is an effective viewing angle: an encoder zero error, a mounting offset, and chassis attitude can contribute. Its transfer to other head settings and units is unmeasured. Run `python mount_transfer.py` to reproduce.
+
+### Dock glyph check at two additional head angles
+
+![Pitch inferred from the upright dock marker and the two simulator predictions](dock-pitch.png)
+
+A read-only observer collected 108 onboard JPEGs during another lane's W17 trial. Each JPEG was joined to a robot state by image timestamp. The published data contain the timestamps, encoder readings, body pitch, and the measured dock-marker corners. Six sharp images showed the upright charger marker near the image center. We fitted the four straight sides of its outer border at several brightness thresholds and solved the perspective pose of the firmware's 46 mm square. Its downward axis gives camera pitch under the assumption that the marker tower is vertical. The black range shows threshold sensitivity only.
+
+Only frames 78 and 99 had less than 0.25° head-encoder range across the current and two preceding sampled states. At a +4.42° head angle, the marker gave +7.29° optical pitch (threshold range +6.83° to +8.50°). The corrected RGB view predicts +6.08°, and the firmware geometry predicts +1.93°, including the reported +1.51° body pitch. At a −0.50° head angle the marker gave +2.20° (+1.99° to +2.44°), compared with +0.54° corrected and −3.61° firmware. The retreat correction improved both independent comparisons without refitting. Body pitch and marker orientation also contribute uncertainty. The two views come from one dock and one sequence.
+
+The rejected moving states illustrate a timing hazard. From frame 78 to 79 the matched encoder changes 17.70°, while the physical marker pitch changes about 0.33°. Frames 99 and 100 show a similar discrepancy. An SDK state carrying the latest image timestamp can describe head motion after exposure. This observer kept the last state seen for each stamp. The mismatch cannot assign a latency to the sensor or encoder individually.
+
+Run `python dock_angle.py` for the six-frame measurements and the two settled predictions. The archived coordinate data suffice to regenerate the figure.
