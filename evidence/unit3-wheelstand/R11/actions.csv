@@ -1,0 +1,69 @@
+sec,kind,action,response
+0.0,begin,undock,
+15.635229,end,undock,"{'ok': True, 'stopped_reason': 'goal', 'prox_mm': 60.0, 'actual_delta': {'x': -0.1197, 'y': -0.0054, 'theta': -0.08567}, 'clamped': False, 'chunks_executed': 1, 'motion_result': {'ok': True, 'reason': 'completed', 'moved_mm': 0.0, 'turned_rad': 0.0, 'detail': 'goal', 'chunks': 1, 'clamped': False, 'prox_mm': 135.0}}"
+15.635475,begin,connect after undock,
+43.75332,end,connect after undock,"status {
+  code: RESPONSE_RECEIVED
+}
+success: true
+object_id: 1"
+43.753971,begin,aim,
+45.00484,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+45.005556,begin,look,
+45.862423,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+46.412685,begin,look,
+47.117699,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+47.668512,begin,look,
+48.501822,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+49.052107,begin,aim,
+49.798916,end,aim,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+49.799276,begin,look,
+50.537892,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+51.089017,begin,look,
+51.852065,end,look,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+}"
+52.403762,begin,roll cube,
+56.319981,end,roll cube,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+  code: LAST_PICK_AND_PLACE_FAILED
+}"
+58.875288,begin,passive post-stop capture,
+66.87643,end,passive post-stop capture,
+66.876584,begin,disconnect,
+66.947053,end,disconnect,"status {
+  code: REQUEST_PROCESSING
+}"
+66.947262,begin,dock,
+117.820072,end,dock,"status {
+  code: RESPONSE_RECEIVED
+}
+result: BEHAVIOR_COMPLETE_STATE"

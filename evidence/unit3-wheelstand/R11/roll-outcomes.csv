@@ -1,0 +1,7 @@
+trial,command_sec,end_sec,pre_samples,post_samples,pre_scatter_g,post_scatter_g,gravity_change_deg,peak_g,tap_delta,action_result
+1,52.403762,56.319981,69,141,0.004252876817709696,0.003974975788384971,0.005475768706787236,0.9916164151383553,0,"status {
+  code: RESPONSE_RECEIVED
+}
+result {
+  code: LAST_PICK_AND_PLACE_FAILED
+}"
