@@ -22,6 +22,9 @@ fig,ax=plt.subplots(2,1,figsize=(8,6),sharex=True,layout='constrained')
 summary=[]
 early_path="--early-path" in sys.argv[3:]
 early_rows=[]
+fixed_check="--fixed-shoulder" in sys.argv[3:]
+if fixed_check and not (early_path and "--face-test" in sys.argv[3:]):
+ raise ValueError("fixed shoulder requires --face-test --early-path")
 lift_check="--lift-check" in sys.argv[3:]
 if lift_check:
  from lift_check import LiftCheck
@@ -126,14 +129,15 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
   offsets=list(product((-2,0,2),(-3,0,3))) if pose_grid else [(0,0)]
   if pose_grid:
    layouts=[item for item in layouts if item[0]=='2']
-  if mass_test or lift_check:
+  if mass_test or lift_check or fixed_check:
    layouts=[item for item in layouts if item[0]=='2']
   multipliers=(.5,1.,5/3) if inertia_test else (1.,)
   centers=[(0,0,0)]
   if com_test:
    centers.extend(tuple(sign*3 if i==axis else 0 for i in range(3)) for axis in range(3) for sign in (-1,1))
   gains=(1,4,16) if lift_check else (1,)
-  for dt,omitted,(layout,asset_rotation),(df,dl),multiplier,center,gain in product(timesteps,conditions,layouts,offsets,multipliers,centers,gains):
+  shoulders=(None,float(np.interp(registration,s["sec"],s["lift"]))) if fixed_check else (None,)
+  for dt,omitted,(layout,asset_rotation),(df,dl),multiplier,center,gain,shoulder in product(timesteps,conditions,layouts,offsets,multipliers,centers,gains,shoulders):
    replay_fixture=fixture
    if multiplier!=1. or any(center):
     tree=ET.parse(fixture)
@@ -187,7 +191,7 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
    initial=R.from_euler('z',yaw)
    if layout!='upright':
     initial=initial*asset_rotation
-   t,tilt,hit,speed,sensor=run(replay_fixture,dt,True,d,initial,sensor_overrides=lift.override(gain) if lift_check else None,observer=observe,articulated=True,shelf_support=True,chassis_contact=True,omit_contacts=omitted,
+   t,tilt,hit,speed,sensor=run(replay_fixture,dt,True,d,initial,fixed_shoulder_mm=shoulder,sensor_overrides=lift.override(gain) if lift_check else None,observer=observe,articulated=True,shelf_support=True,chassis_contact=True,omit_contacts=omitted,
        initial_xy_mm=pos+R.from_euler("z",heading).apply([df,dl,0])[:2] if pose_grid else None)
    if lift_check:
     lift.finish(reg["view"],gain,start_offset,dt,np.array(out),s,dock)
@@ -211,10 +215,10 @@ for reg in csv.DictReader((folder/'hub-registration.csv').open()):
     trajectory='impact-path-'+('reverse' if reverse_boxes else 'original')+'.csv'
     xy_body=R.from_euler('z',-heading).apply(np.column_stack([offset_xy,np.zeros(len(t))]))[:,:2]
     if early_path:
-     for frame in range(74,102 if pose_grid or mass_test else 81):
+     for frame in range(74,102 if pose_grid or mass_test else 83 if fixed_check else 81):
       clock=frame/12-2
       vals=[np.interp(clock,t+start_offset,v) for v in (*xy_body.T,yaw_trace)]
-      early_rows.append([reg['view'],layout,frame,clock,*vals]+([df,dl] if pose_grid else [])+([multiplier] if inertia_test else list(center) if com_test else []))
+      early_rows.append([reg['view'],layout,frame,clock,*vals]+([df,dl] if pose_grid else [])+([multiplier] if inertia_test else list(center) if com_test else [int(shoulder is not None)] if fixed_check else []))
      continue
     np.savetxt(folder/trajectory,np.column_stack([t+start_offset,xy_body,yaw_trace])[::stride],
                delimiter=',',header='dock_s,forward_mm,left_mm,ccw_deg',comments='',fmt='%.6f')
@@ -249,9 +253,9 @@ if impulse_test:
   w.writerows(onset_rows)
  sys.exit(0)
 if early_path:
- with (folder/('com-path.csv' if com_test else 'inertia-path.csv' if inertia_test else 'pose-grid.csv' if pose_grid else 'impact-path-candidates.csv')).open('w') as f:
+ with (folder/('fixed-path.csv' if fixed_check else 'com-path.csv' if com_test else 'inertia-path.csv' if inertia_test else 'pose-grid.csv' if pose_grid else 'impact-path-candidates.csv')).open('w') as f:
   w=csv.writer(f,lineterminator='\n')
-  w.writerow('view layout frame dock_s forward_mm left_mm ccw_deg'.split()+(['offset_forward_mm','offset_left_mm'] if pose_grid else [])+(['inertia_multiplier'] if inertia_test else 'com_x_mm com_y_mm com_z_mm'.split() if com_test else []))
+  w.writerow('view layout frame dock_s forward_mm left_mm ccw_deg'.split()+(['offset_forward_mm','offset_left_mm'] if pose_grid else [])+(['inertia_multiplier'] if inertia_test else 'com_x_mm com_y_mm com_z_mm'.split() if com_test else ['fixed_shoulder'] if fixed_check else []))
   w.writerows(early_rows)
  sys.exit(0)
 if '--tilt-trace' in sys.argv[3:]:
