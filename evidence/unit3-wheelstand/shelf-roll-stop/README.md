@@ -71,3 +71,26 @@ Freezing the Sunday candidate at 16.5 mm and excluding both previously examined 
 The two shipped free-cube scenes take 41.73 ms to settle from 90% to 10% tilt from a 15.76° release on each of four edges. The S22B camera estimate is 54.3 ms with frame brackets of 27.6–84.0 ms. The simulated release begins at rest with a 1 nm numerical clearance. At exactly zero clearance the two runtimes can disagree about whether the first contact exists. The browser regression checks every physics step against native MuJoCo for 150 ms, including all three raw accelerometer channels (0.01 m/s² tolerance). Physical Bluetooth packets additionally depend on chip sampling and app timing.
 
 ![Camera and browser-verified free-cube releases](browser-landing.png)
+
+### Browser movement notifications
+
+The browser runs the engine's cube movement and up-axis filters on each of the
+three ordered accelerometer slots. Reset clears both listeners. The free-cube
+readout shows the inferred upward axis and whether the movement listener is
+active. The latest decoded packet carries any transitions from its slots.
+
+Replaying 16 nonempty physical packet streams produced identical transition
+types and packet times in the browser and Python. In S22B the SDK delivered the
+two starts and two stops 22.2, 19.3, 38.1 and 1.4 ms after the respective
+logged packet receipts. Those differences include collection and transport.
+Movement event counts agreed with the SDK in 15 of 16 recording windows. R5
+produced two candidate starts and two stops during the carry experiment and
+zero corresponding SDK receipts. The model exposes the listener before the
+engine's carrying/docking broadcast checks. These streams contain no listener
+up-axis transitions; the orientation transition timing check uses a synthetic
+quarter turn. Replaying physical packets tests their interpretation separately
+from predicting forces at the cube.
+
+![SDK receipts relative to the triggering cube packets](browser-events.png)
+
+[Per-run counts](browser-events.csv). Reproduce with `python browser_events.py`.

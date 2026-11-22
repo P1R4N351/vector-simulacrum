@@ -294,3 +294,8 @@ the generic chip. Two physical recordings gave 0.97034 and 0.97038 g.
 The timestamps exposed by the simulator are cube send times. The hardware
 recordings include Bluetooth delivery and collector timing.
 [Stationary distributions](../evidence/unit3-wheelstand/shelf-roll-stop/browser-rest-unit3.png)
+
+The free-cube HUD also shows the upward axis inferred from acceleration and
+the movement listener state. The latest packet's `events` lists transitions
+in slot order with the packet send time. These are engine listener candidates
+before SDK broadcast suppression during carrying or docking.
