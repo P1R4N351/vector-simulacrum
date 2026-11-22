@@ -6,6 +6,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from pickup_onset import read
+from triangle_clearance import outer_face
 
 here = Path(__file__).resolve().parent
 sys.path.insert(0,str(here.parents[2]/"experiments/righting"))
@@ -14,20 +15,6 @@ from light_cube import sdk_surface
 obj = Path(sys.argv[1])
 _,tri = sdk_surface(obj)
 tri *= 1000
-def outer_face(points,axis):
-    """Outermost triangle intersection on the lateral axis at each contact."""
-    uv=[i for i in range(3) if i!=axis]
-    extent=np.full(len(points),-np.inf)
-    for a,b,c in tri:
-        matrix=np.column_stack(((b-a)[uv],(c-a)[uv]))
-        if abs(np.linalg.det(matrix)) < 1e-10:
-            continue
-        weights=(points[:,uv]-a[uv])@np.linalg.inv(matrix).T
-        mask=(weights.min(axis=1)>=-1e-9)&(weights.sum(axis=1)<=1+1e-9)
-        coord=a[axis]+weights[mask]@np.array([b[axis]-a[axis],c[axis]-a[axis]])
-        extent[mask]=np.maximum(extent[mask],coord*(1 if axis else -1))
-    return extent
-
 fig,axes=plt.subplots(2,1,sharex=True,figsize=(8,6),layout="constrained")
 g=read(here/"approach-glyph-axes.csv")
 g=g[(g["width_mm"]==23)&(g["sec"]>1.95)]
@@ -51,7 +38,7 @@ for j,path in enumerate(map(Path,sys.argv[2:])):
         axis=np.argmax(abs(xyz[:,:2]),axis=1)
         for k in (0,1):
             selected=axis==k
-            exterior=outer_face(xyz[selected],k)
+            exterior=outer_face(xyz[selected],k,tri)
             weights=f["normal_N"][selected]
             valid=np.isfinite(exterior)
             clearance=22-exterior[valid]
