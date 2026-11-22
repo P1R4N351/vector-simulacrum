@@ -62,6 +62,12 @@ export class VectorSim {
     const level = opts.controlLevel ?? this.controlLevel ?? CONTROL_DEFAULT;
     assert(level === CONTROL_DEFAULT || level === CONTROL_OVERRIDE, "unknown control level");
     this.controlLevel = level;
+    this.calmMode = opts.calmMode ?? this.calmMode ?? false;
+    this._bodyLoopUs = Math.round(1000 * (this.v.supervisor_loop_ms ?? this.v.control_period_ms));
+    assert(this._bodyLoopUs > 0, "supervisor loop must advance");
+    this._nextBodyLoopUs = this._bodyLoopUs;
+    this._bodyStateTicks = 0;
+    this._bodyStateStampMs = 0;
     this._gauss = makeGauss(opts.noiseSeed ?? 0);
     // The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
     this._proxSensor = new ProxSensor(this.v, (opts.noiseSeed ?? 0) + 1);
@@ -231,6 +237,16 @@ export class VectorSim {
     this._imuFilter.reset(this._imuAdr.map((adr) => sd[adr]));
   }
 
+  _advanceBodyClock(endUs) {
+    while (this._nextBodyLoopUs <= endUs) {
+      if (++this._bodyStateTicks >= (this.calmMode ? 50 : 6)) {
+        this._bodyStateStampMs = Math.round(this._nextBodyLoopUs / 1000);
+        this._bodyStateTicks = 0;
+      }
+      this._nextBodyLoopUs += this._bodyLoopUs;
+    }
+  }
+
   _cubeForce() {
     const gravity = this.v.gravity_mmps2 * MM;
     return [0, 1, 2].map(axis => this.data.sensordata[this._cubeAdr + axis] / gravity);
@@ -243,7 +259,13 @@ export class VectorSim {
       const sd = this.data.sensordata;
       for (let ch = 0; ch < CHANNELS; ch++) raw[ch] = sd[this._imuAdr[ch]];
       this._imuFilter.update(raw);
-      if (this.cubeSensor) this.cubeSensor.step(this.data.time, this._cubeForce());
+      if (this.cubeSensor) {
+        const endUs = Math.round(this.data.time * 1e6);
+        // Packets at this step boundary precede a simultaneous body publication.
+        this._advanceBodyClock(endUs - 1);
+        this.cubeSensor.step(this.data.time, this._cubeForce(), this._bodyStateStampMs);
+        this._advanceBodyClock(endUs);
+      }
     }
   }
 

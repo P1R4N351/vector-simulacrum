@@ -50,6 +50,49 @@ test("the browser free cube publishes three stationary samples and reset clears 
   }
 });
 
+test("cube callbacks carry the last supervisor timestamp across calm and awake periods", async () => {
+  const sim = new VectorSim(await mujoco(), {
+    xml: readText("public/robot/vector-free.xml"), values: quietChip, derived, calmMode: true,
+  });
+  function nextCandidate() {
+    // Force a counter change without introducing a motion-dependent timing assumption.
+    sim.cubeSensor.taps++;
+    sim.tick(6);
+    return sim.cubeSensor.packet.events.find(event => "tap_count" in event);
+  }
+  try {
+    sim.tick(6);
+    assert.equal(nextCandidate().timestamp, 0);
+    sim.tick(36);
+    const calm = nextCandidate();
+    assert.equal(calm.timestamp, 250);
+    assert.ok(Math.abs(calm.time_s - .27) < 1e-8);
+    sim.calmMode = false;
+    assert.equal(nextCandidate().timestamp, 280);
+    sim.reset();
+    sim.tick(6);
+    assert.equal(nextCandidate().timestamp, 30);
+  } finally {
+    sim.dispose();
+  }
+});
+
+test("unit 3 awake clock advances independently of the physics control tick", async () => {
+  const sim = new VectorSim(await mujoco(), {
+    xml: readText("public/robot/vector-free.xml"), values: { ...quietChip, supervisor_loop_ms: 5.08 }, derived,
+  });
+  try {
+    sim.tick(60);
+    sim.cubeSensor.taps++;
+    sim.tick(6);
+    const event = sim.cubeSensor.packet.events.find(candidate => "tap_count" in candidate);
+    assert.equal(event.timestamp, 305);
+    assert.ok(Math.abs(event.time_s - .33) < 1e-8);
+  } finally {
+    sim.dispose();
+  }
+});
+
 test("browser movement broadcasts follow the physical carry-state recordings", () => {
   for (const [run, expectedRaw] of [["R5",4], ["R8",1], ["R10",2], ["R11",2]]) {
     const sensor = new CubeSensor(quietChip, .001, 0, [0,0,1]);
