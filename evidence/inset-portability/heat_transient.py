@@ -32,10 +32,10 @@ for ((seg, start, times, values), obs), axes in zip(zip(runs[-2:], measured[-2:]
         speed = np.array([(abs(r['wl'])+abs(r['wr']))/2 for r in trace])
         i = np.flatnonzero((t[1:]>=stop)&(speed[:-1]>=threshold)&(speed[1:]<threshold))[0]
         return t[i]+(t[i+1]-t[i])*(threshold-speed[i])/(speed[i+1]-speed[i])
-    axes[0].plot([r['t_s']-stop for r in hardware],[r['yaw'] for r in hardware], 'k.-',label='P2Y8')
+    axes[0].plot([r['t_s']-stop for r in hardware],[r['yaw'] for r in hardware], 'k.-',label='Unit 3')
     def aligned_plot(trace, label, style):
         axes[2].plot([r['t_s']-wheel_crossing(trace) for r in trace],[r['yaw'] for r in trace],style,label=label)
-    aligned_plot(hardware,'P2Y8','k.-')
+    aligned_plot(hardware,'Unit 3','k.-')
     rates = np.array(values['tread_heat_loss_rate_per_s'])
     for fraction in (0, .0001, .001, .01, .1, .5, 1):
         rates_used = rates + fraction*(rates.mean()-rates)

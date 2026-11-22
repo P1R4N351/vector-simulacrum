@@ -18,7 +18,7 @@ for filename in ('arm64-current-3.11.csv', 'x86_64-3.11.csv', 'arm64.csv'):
         ax.plot(x, y, 'o', label=rows[0]['platform']+' · '+rows[0]['mujoco'])
         ax.set(xlabel='Inset per end (mm)', xticks=x, xticklabels=['3.10','3.242','3.75'])
     print(rows[0]['mujoco'], rms, pivot)
-axes[0].set_ylabel('P2Y8 steady yaw RMS relative error (%)')
+axes[0].set_ylabel('Unit 3 steady yaw RMS relative error (%)')
 axes[1].set_ylabel('Mean pivot x from front axle (mm)')
 axes[1].axhline(-27.30, ls='--', color='gray', label='Camera mean')
 axes[0].legend()

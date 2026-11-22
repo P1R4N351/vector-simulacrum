@@ -1,4 +1,4 @@
-"""Audit front and rear normal load at the recorded P2Y8 starting posture."""
+"""Audit front and rear normal load at the recorded unit 3 starting posture."""
 from pathlib import Path
 from unittest.mock import patch
 import sys
