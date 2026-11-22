@@ -27,3 +27,11 @@ Using only R10, we fixed the resting mean and variance from passive windows, the
 On the five eligible R11 search-turn windows, RMS prediction error fell from 2.20 to 0.62 mg. Across 14 windows of the R11 missed roll it fell from 2.68 to 2.16 mg. Two lift-motion windows with zero reported wheel speed still measured 9.00 and 7.32 mg against 2.72 mg predicted. The two moving-wheel windows measured 5.29 and 8.36 mg against 6.77 and 7.28 mg predicted. Windows within a maneuver share a robot and shelf and do not constitute independent trials. The simulator's defaults remain frozen pending repeat trials and a second surface.
 
 [Wheel speed and cube acceleration](wheel-vibration.png) · [Per-window measurements and predictions](wheel-vibration.csv) · [Reproduce](wheel_vibration.py)
+
+### Lift vibration across seven physical raises
+
+Six earlier native undocks had cube telemetry during the initial lift raise. We aligned its first upward excursion at 10% of travel, and measured the standard deviation of acceleration magnitude through 90%. In each run both wheel encoders read zero throughout this interval and the cube tap counter was constant. Each undock raise showed greater variation than its own 650 ms pre-rise reference: 3.09–3.90 mg during motion versus 2.30–3.13 mg before. The pre-rise references include any background robot activity.
+
+R11 showed 8.35 mg across 27 slots during its rise versus 3.00 mg beforehand. Its mean lift speed was 92 mm/s, outside the undock range of 30–52 mm/s; the full excursion was also about twice as large. These runs establish repeatability of a small signal during ordinary undocking. Cube distance, fork clearance, and vibration through the dock were not independently measured for each raise. A speed-matched free-standing lift, with the gap visible, is still required to isolate contact during R11.
+
+[Aligned lift and cube traces](lift-vibration.png) · [Per-run measurements](lift-vibration.csv) · [Reproduce](lift_vibration.py)
