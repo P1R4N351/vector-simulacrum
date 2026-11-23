@@ -302,3 +302,15 @@ We reused the two physical cube wheelstands, the 58-piece printed-fork fixture w
 The W8 cube peak is within 0.08 g with the driven rear supports even though chassis peak pitch is short by 36°. Neither driven candidate transfers consistently across both wheelstands and the dock. We retain these as experimental configurations. Wheelstand numbers here use the model and MuJoCo version of this comparison; earlier ablations in the wheelstand archive used their contemporary model.
 
 Run `support_transfer.py`, `support_sensitivity.py`, and `support_dock.py` with Python, MuJoCo 4.0.1, NumPy, OpenCV, Matplotlib, Node and installed canonical web dependencies. Run `support_wheelstand.py /path/to/fixture.xml` for the two dynamic wheelstands ([fixture reproduction](../unit3-wheelstand/reproduction/README.md)).
+
+### Does matching the loaded lift stroke recover the wheelstand?
+
+[Lift, pitch and cube accelerometer overlays](loaded-stroke.png) · [Sixteen replay scores](loaded-stroke.csv) · [Reproducer](loaded_stroke.py)
+
+We aligned W4 and W8 at the last raised-lift SDK sample and replayed each from the two archived starting times, keeping the same fork fixture, tread controller and cube pose. The physical lift descended through 40 mm at an estimated 124 ms (W4) and 129 ms (W8), using linear interpolation between SDK reports. At those crossings the reported chassis pitch was about 15° and 24°. The canonical position profile with the 60 mN·m lift limit reached 40 mm at 359–392 ms and 522–541 ms respectively. Both simulated robots had already pitched about 28° at that lift height. Timing uncertainty between samples limits the precision of the physical crossings.
+
+Sending the interpolated measured height as a target every 5 ms still left 10–28 mm of lift RMS error over the first 250 ms, depending on the starting condition. To isolate the effect of following the stroke we then increased position gain to 12 N·m/rad, damping to 0.035 N·m·s/rad and the torque ceiling to 0.5 N·m at onset. These diagnostic settings were identical in both recordings. They reduced early lift RMS error to 2.0–2.3 mm and put the 40 mm crossing within 6 ms of the nominal physical crossing. The replay obeys the model's lift limits; some recorded heights extend past those limits. The instantaneous torque from the assisted drive is a simulated quantity.
+
+With this same assisted stroke the fixed-support bodies peaked at 34.5–36.9°, while four driven supports tipped them onto their backs at 121.2–121.4°. The recorded peaks were 72.25° and 72.50°, followed by a sustained pitch near 70°. The similar lift trajectories and divergent body trajectories isolate a large contact-dependent residual. Which physical contacts arrest the body at 70° remains open. Matching the recorded stroke alone does not identify the real lift motor torque.
+
+Reproduce with `python loaded_stroke.py /path/to/fixture.xml` using MuJoCo 4.0.1 and the [published fork fixture recipe](../unit3-wheelstand/reproduction/README.md).
