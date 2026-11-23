@@ -1,0 +1,8 @@
+trial,mode,packet_s,slot
+W33,hold,-0.169597,0
+W34,hold,-0.262451,2
+W34,hold,0.940426,1
+W35,hold,-0.216074,1
+W35,hold,29.05055,2
+W33,linear,-0.203502,2
+W35,linear,-0.216074,0
