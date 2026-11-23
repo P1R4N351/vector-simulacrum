@@ -63,6 +63,8 @@ TIF, TRK = "test_imu_fit.AccelerometerFit.", "test_rank."
 TD, TRC, TRP = "test_drive.", "test_recording.RecordingFiles.", "test_replay.Replay."
 TP, TM, TS, TT, TG = "test_params.", "test_mjcf.GeneratedModel.", "test_sim.", "test_task.", "test_training."
 BM, TBM = "simulacrum/body_mesh.py", "test_body_mesh."
+HT, TCU = "evidence/cube-pickup/holding_torque.py", "test_cube_pickup."
+PICKUP_TEST = TCU + "Pickup.test_the_robot_picks_up_and_carries_a_cube_it_docks_with"
 FALL_TEST = TT + "Episode.test_a_fall_ends_the_episode_as_a_failure_with_a_penalty"
 VARIED_TEST = TT + "Randomisation.test_every_assumed_parameter_but_the_timestep_is_varied"
 NO_TORCH_TEST = TG + "Pipeline.test_onnx_runs_without_torch_and_reproduces_the_recorded_closed_loop"
@@ -298,8 +300,8 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
      "self.ticks = 1", (TT + "Action.test_policy_step_is_one_state_period",), True),
     ("domain randomisation switched off", T, "if not self.config.randomise:\n            return dict(self.nominal)",
      "if True:\n            return dict(self.nominal)", (VARIED_TEST,), True),
-    ("one assumed parameter left out of the randomisation", T, 'NOT_RANDOMISED = ("sim_timestep_ms",)',
-     'NOT_RANDOMISED = ("sim_timestep_ms", "tread_friction")', (VARIED_TEST,), True),
+    ("one assumed parameter left out of the randomisation", T, 'NOT_RANDOMISED = ("sim_timestep_ms", "tip_supports_driven")',
+     'NOT_RANDOMISED = ("sim_timestep_ms", "tip_supports_driven", "tread_friction")', (VARIED_TEST,), True),
     ("a fall is treated as a time-out", T, "return True, False, END_FALL", "return False, True, END_FALL",
      (FALL_TEST,), True),
     ("no penalty for falling", T, "reward -= self.config.fall_penalty", "reward -= 0.0", (FALL_TEST,), True),
@@ -739,8 +741,29 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
      '_inertial(body, fork["replaces_mass_g"], fork["com_mm"], fork["inertia_gmm2"])',
      (TPP + "SyntheticPartsInMuJoCo.test_the_compiled_mass_is_the_stock_less_its_treads_plus_the_printed_ones",
       TPP + "SyntheticPartsInMuJoCo.test_the_lift_sags_more_under_a_heavier_fork_and_less_under_a_lighter_one"), True),
+    ("fork hooks left out", M, "    ) + _fork_hooks_xml(v)\n", "    )\n",
+     (TCU + "HookGeometry.test_each_upright_carries_the_tables_hook_and_upright", PICKUP_TEST), True),
+    ("hook valley filled to the tip", M,
+     '    boxes = [v["lift_fork_hook_upright_mm"], *v["lift_fork_hook_slices_mm"]]\n',
+     '    boxes = [v["lift_fork_hook_upright_mm"], *[[a, b, c, v["lift_fork_hook_slices_mm"][-1][3]] '
+     'for a, b, c, _ in v["lift_fork_hook_slices_mm"]]]\n', (PICKUP_TEST,), True),
+    ("cube pockets not carved", M,
+     "            rows = [(m, c, h) for m, centre, half in rows for c, h in _box_minus(centre, half, lo, hi)]\n",
+     "            rows = list(rows)\n", (TCU + "CubePockets.test_the_pocket_is_hollow_and_the_lips_stay",), False),
+    ("cube pockets not carved, pickup", M,
+     "            rows = [(m, c, h) for m, centre, half in rows for c, h in _box_minus(centre, half, lo, hi)]\n",
+     "            rows = list(rows)\n", (PICKUP_TEST,), True),
+    ("box carving keeps the carved part", M, "    if any(b_hi[a] <= lo[a] or b_lo[a] >= hi[a] for a in range(3)):\n",
+     "    if True:\n", (TCU + "CubePockets.test_carving_removes_only_the_pockets",), False),
+    ("lift held to the head's torque limit", M, "            f'forcerange=\"{num(-l_tq)} {num(l_tq)}\"/>\\n')\n",
+     "            f'forcerange=\"{num(-s_tq)} {num(s_tq)}\"/>\\n')\n",
+     (TCU + "LiftTorque.test_the_lift_and_head_take_their_own_limits", PICKUP_TEST), True),
+    ("holding torque counts the wrist twice", HT,
+     "torque = float(data.qfrc_bias[lift_dof] - data.qfrc_bias[wrist_dof])",
+     "torque = float(data.qfrc_bias[lift_dof] + data.qfrc_bias[wrist_dof])",
+     (TCU + "LiftTorque.test_the_lift_can_hold_the_heaviest_cube_the_table_allows",), True),
 )
-NEUTRAL = ("docstring reworded", R, '"""A simulated Vector on a table. One instance is one robot and one scene."""',
+NEUTRAL =("docstring reworded", R, '"""A simulated Vector on a table. One instance is one robot and one scene."""',
            '"""A simulated Vector on a table: one instance is one robot and one scene."""')
 
 
@@ -831,7 +854,9 @@ def _run_arms(work: Path, arms: List[Tuple[Any, ...]]) -> Dict[str, int]:
         problem = _swap(tree, rel, old, new)
         verdict = "SETUP-ERROR: " + problem if problem else _verdict(_run(tree, tests), tests)
         counts[verdict.split(":")[0]] += 1
-        print(f"arm {index + 1:2d} {name}: {verdict}")
+        print(f"arm {index + 1:2d} {name}: {verdict}", flush=True)
+        # Each copy carries the whole tree; kept to the end, ninety of them outgrow a container's disk.
+        shutil.rmtree(tree, ignore_errors=True)
     assert sum(counts.values()) == len(arms), "an arm was not counted"
     return counts
 

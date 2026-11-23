@@ -79,12 +79,12 @@
   ]
  ],
  "provenance_counts": {
-  "assumed": 35,
+  "assumed": 36,
   "chosen": 9,
   "fitted": 23,
   "manual": 14,
   "measured": 11,
-  "sdk": 97
+  "sdk": 102
  },
  "robot_model": "vector_2",
  "shelf_outline_mm": [
@@ -122,17 +122,17 @@
   ]
  ],
  "source": {
-  "table_sha256": "7ce6fcba6f02e20fe0eb9d1e7f73755b3f1caee4d6fa0caf284b7e8e8790d1b9",
-  "trial_xml_sha256": "af2cf527ab8d08307841565760d6e02b96077a5e3c3fb66a45e4e36529330366",
-  "vector-contact42-dock_sha256": "62bcb26bc3e7f1b0f5d1bbbdde34b982774b0d904af59051dfdd7ad6eb7c3e5e",
-  "vector-contact42-free-dock_sha256": "31ffb43ba075e84b6aeee852d8e72df1d7f0aba973f25b3a897f975b288e7b19",
-  "vector-contact42-free-shelf_sha256": "8c979cd19606e6438b11de5e3d2115681988ba2f99c5e246f6fd4a43b8a68b48",
-  "vector-contact42-free_sha256": "524b6f69e8843da636ff1d8282c53cd15c3b227d5e2ef5ef83c4897cefc8bee8",
-  "vector-dock_sha256": "d82b1df38693949231fc84833bde79ae5e1a4583e207b49acf7c5a9b37bacd8a",
-  "vector-free-dock_sha256": "2ee6b1cba7525bdea0919b8e1c7e098c88b03b083ae82bd1a109974a3c80db3e",
-  "vector-free-shelf_sha256": "ad2d415aa53188b3538b1859548960ef42034e05226692c0fb6687d9409dc2f6",
-  "vector-free_sha256": "fda91d03f49422c7ca9353177a4088439d2ed507ecf1102c91d535a6c3e621b7",
-  "xml_sha256": "1ac0c8401bccfd7b51110e855701c868bb526f1b0a1886e3669aaddc51963d4e"
+  "table_sha256": "09c2c00f4bbd5374b30215c5cc370aa502820c03b4c92b6a7b4909778806c801",
+  "trial_xml_sha256": "c0d95a96c03a3cd04cb1d1aa32af47167d2f2b04ae25adc16e971606fdd7fd1b",
+  "vector-contact42-dock_sha256": "e185ee5428eeb620223ecc3ac68a833ac755b3b77b61d0353ca6a1c96c8b0722",
+  "vector-contact42-free-dock_sha256": "898fa8ca85d92621d5eefc843806fd9f9d95bf0a26eeee14659b7f890da33aae",
+  "vector-contact42-free-shelf_sha256": "10598ce537ead025dcadbe412dc3b776877119ed695d720a8b2507a07e241a07",
+  "vector-contact42-free_sha256": "1da9850532e72b54d764dc4da007246d5e41f4828e52e25e5b5bc0ff4c5cbc7a",
+  "vector-dock_sha256": "e0f206c9e8d16fdd86aeb3af9be36f02be9096b2a188aaad62e0b2ac0c170ef7",
+  "vector-free-dock_sha256": "c1fff13e5e9ad7401d42374d126d5f28c7ce26773d3bd350855f606bb8bf36bb",
+  "vector-free-shelf_sha256": "d53086886ee0fffdcf0e3483c0171f769d55b128d54a9422736927c853c56307",
+  "vector-free_sha256": "f54d03738652363ce4d1ec164e5fa7a177d99637a62d4f70576c27dcbd435f23",
+  "xml_sha256": "55683108ef3d0ae483c520642ef80e766d1f706bf271f6bbafd68d9806d07188"
  },
  "values": {
   "accel_bias_mg": [
@@ -224,6 +224,11 @@
   ],
   "cube_chip_yaw_deg": 0.0,
   "cube_mass_g": 50.0,
+  "cube_notch_pocket_half_z_mm": 13.7,
+  "cube_notch_pocket_xy_mm": [
+   14.0,
+   20.5
+  ],
   "cube_outer_mm": 45.0,
   "cube_size_mm": 44.0,
   "cube_tick_ms": 10.0,
@@ -301,6 +306,84 @@
    0.0,
    45.0
   ],
+  "lift_fork_hook_slices_mm": [
+   [
+    4.5,
+    5.0,
+    -16.3,
+    -6.2
+   ],
+   [
+    5.0,
+    5.5,
+    -14.9,
+    -6.2
+   ],
+   [
+    5.5,
+    6.0,
+    -13.5,
+    -6.2
+   ],
+   [
+    6.0,
+    6.5,
+    -12.3,
+    -6.2
+   ],
+   [
+    6.5,
+    7.0,
+    -11.0,
+    -5.6
+   ],
+   [
+    7.0,
+    7.5,
+    -9.7,
+    -4.9
+   ],
+   [
+    7.5,
+    8.0,
+    -8.4,
+    -4.3
+   ],
+   [
+    8.0,
+    8.5,
+    -7.2,
+    -3.7
+   ],
+   [
+    8.5,
+    9.0,
+    -5.9,
+    -3.1
+   ],
+   [
+    9.0,
+    9.5,
+    -4.7,
+    -2.7
+   ],
+   [
+    9.5,
+    10.0,
+    -3.4,
+    -2.6
+   ]
+  ],
+  "lift_fork_hook_upright_mm": [
+   1.0,
+   4.5,
+   -20.0,
+   -2.0
+  ],
+  "lift_fork_hook_y_mm": [
+   15.6,
+   19.2
+  ],
   "lift_fork_side_center_mm": [
    2,
    22,
@@ -324,6 +407,7 @@
   "lift_rad_per_encoder_count": 0.0052465,
   "lift_servo_kp_mNm_per_rad": 600.0,
   "lift_servo_kv_mNms_per_rad": 12.0,
+  "lift_servo_torque_max_mNm": 60.0,
   "lift_speed_default_radps": 10.0,
   "lift_speed_max_radps": 10.0,
   "lift_xbar_height_mm": 8.5,

@@ -303,23 +303,74 @@ def _cube_chip_xml(v: Dict[str, Any]) -> str:
             f'quat="{vec((math.cos(0.5 * yaw), 0, 0, math.sin(0.5 * yaw)))}" size="0.001"/>')
 
 
+CubeBox = Tuple[str, Tuple[float, float, float], Tuple[float, float, float]]
+MAX_CUBE_BOXES = 400
+
+
+def _box_minus(centre: Sequence[float], half: Sequence[float], lo: Sequence[float],
+               hi: Sequence[float]) -> List[Tuple[Tuple[float, ...], Tuple[float, ...]]]:
+    """The parts of one box outside the region [lo, hi], as at most six disjoint boxes (centre, half)."""
+    b_lo = [c - h for c, h in zip(centre, half)]
+    b_hi = [c + h for c, h in zip(centre, half)]
+    if any(b_hi[a] <= lo[a] or b_lo[a] >= hi[a] for a in range(3)):
+        return [(tuple(centre), tuple(half))]
+    out = []
+    cur_lo, cur_hi = list(b_lo), list(b_hi)
+    for a in range(3):
+        if cur_lo[a] < lo[a]:
+            piece_hi = list(cur_hi)
+            piece_hi[a] = lo[a]
+            out.append((list(cur_lo), piece_hi))
+            cur_lo[a] = lo[a]
+        if cur_hi[a] > hi[a]:
+            piece_lo = list(cur_lo)
+            piece_lo[a] = hi[a]
+            out.append((piece_lo, list(cur_hi)))
+            cur_hi[a] = hi[a]
+    return [(tuple(0.5 * (p + q) for p, q in zip(pl, ph)), tuple(0.5 * (q - p) for p, q in zip(pl, ph)))
+            for pl, ph in out if all(q - p > 1e-6 for p, q in zip(pl, ph))]
+
+
+def cube_boxes(v: Dict[str, Any]) -> List[CubeBox]:
+    """The free cube's contact boxes in mm on the 44 mm frame of cube_surface.csv (the SDK shell and
+    rubber pads), with the lift pocket behind each vertical edge's notch carved out: |x| and |y| inside
+    cube_notch_pocket_xy_mm, |z| up to cube_notch_pocket_half_z_mm. What remains over each notch is the
+    two thin lips the fork's hooks catch (measured by evidence/cube-pickup/measure_notch.py)."""
+    back, lip = v["cube_notch_pocket_xy_mm"]
+    top = v["cube_notch_pocket_half_z_mm"]
+    assert 0.0 < back < lip < 22.0 and 0.0 < top < 22.0, "the notch pocket must sit inside the cube"
+    rows: List[CubeBox] = []
+    with Path(__file__).with_name("cube_surface.csv").open() as source:
+        reader = csv.reader(source)
+        next(reader)
+        for material, *dimensions in reader:
+            n = [float(x) for x in dimensions]
+            rows.append((material, (n[0], n[1], n[2]), (n[3], n[4], n[5])))
+    assert rows, "cube_surface.csv has no boxes"
+    for sx in (1.0, -1.0):
+        for sy in (1.0, -1.0):
+            lo = (min(sx * back, sx * lip), min(sy * back, sy * lip), -top)
+            hi = (max(sx * back, sx * lip), max(sy * back, sy * lip), top)
+            rows = [(m, c, h) for m, centre, half in rows for c, h in _box_minus(centre, half, lo, hi)]
+            assert len(rows) <= MAX_CUBE_BOXES, "carving the pockets split the cube into too many boxes"
+    return rows
+
+
 def _free_cube_xml(v: Dict[str, Any]) -> str:
-    """SDK shell and rubber pads from the shelf-push fixture, centered 100 mm ahead of world zero."""
+    """SDK shell and rubber pads from the shelf-push fixture, with the lift pockets of the animators' cube
+    (cube_boxes), centered 100 mm ahead of world zero."""
     side = v["cube_outer_mm"] * MM
     mass = v["cube_mass_g"] * GRAM
     assert side > 0 and mass > 0
     inertia = mass * side**2 / 6
     parts = [f'<body name="cube" pos="0.1 0 {num(side/2)}"><freejoint name="cube_root"/>',
              f'<inertial pos="0 0 0" mass="{num(mass)}" diaginertia="{vec((inertia,)*3)}"/>']
-    with Path(__file__).with_name("cube_surface.csv").open() as source:
-        rows = csv.reader(source)
-        next(rows)
-        for i, (material, *dimensions) in enumerate(rows):
-            scaled = [float(n) * side / 44 for n in dimensions]
-            attrs = ('priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1"'
-                     if material == "rubber" else 'priority="1" friction=".5 .005 .0001" rgba=".2 .2 .2 1"')
-            parts.append(f'<geom name="cube_{material}_{i}" type="box" pos="{vec(scaled[:3])}" '
-                         f'size="{vec(scaled[3:])}" contype="1" conaffinity="1" {attrs}/>')
+    for i, (material, centre, half) in enumerate(cube_boxes(v)):
+        scaled = [float(n) * side / 44 for n in (*centre, *half)]
+        attrs = ('priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1"'
+                 if material == "rubber" else 'priority="1" friction=".5 .005 .0001" rgba=".2 .2 .2 1"')
+        parts.append(f'<geom name="cube_{material}_{i}" type="box" pos="{vec(scaled[:3])}" '
+                     f'size="{vec(scaled[3:])}" contype="1" conaffinity="1" {attrs}/>')
     return "\n".join([*parts, _cube_chip_xml(v), "</body>"])
 
 
@@ -340,6 +391,29 @@ def _carried_cube_xml(v: Dict[str, Any]) -> str:
     )
 
 
+def _fork_hooks_xml(v: Dict[str, Any]) -> str:
+    """The barbed hook on each fork upright: the upright behind it (lift_fork_hook_upright_mm) and the
+    hook in slices along x (lift_fork_hook_slices_mm), each [x0, x1, z bottom, z top] in the fork's frame.
+    The slices' tops dip into a valley ahead of the upright and rise to the tip. Docking slides the hooks
+    into the notches in the cube's front vertical edges; as the lift rises, the cube's lip over each notch
+    drops into the valley and the tip rises into the pocket behind it, so the cube cannot slide forward off."""
+    y_in, y_out = v["lift_fork_hook_y_mm"]
+    boxes = [v["lift_fork_hook_upright_mm"], *v["lift_fork_hook_slices_mm"]]
+    assert 0.0 < y_in < y_out, "the hook needs an inner and an outer side"
+    assert 1 < len(boxes) <= 33, "the hook needs one to thirty-two slices"
+    out = ""
+    for k, (x0, x1, z_lo, z_hi) in enumerate(boxes):
+        assert x0 < x1 and z_lo < z_hi, "a hook box needs length and height"
+        assert k == 0 or x0 >= boxes[k - 1][1] - 1e-9, "hook slices must run forward without overlapping"
+        half = vec((0.5 * (x1 - x0) * MM, 0.5 * (y_out - y_in) * MM, 0.5 * (z_hi - z_lo) * MM))
+        part = "upright" if k == 0 else f"hook_{k - 1}"
+        for name, sign in (("left", 1), ("right", -1)):
+            centre = (0.5 * (x0 + x1) * MM, sign * 0.5 * (y_in + y_out) * MM, 0.5 * (z_lo + z_hi) * MM)
+            out += (f'        <geom name="fork_{part}_{name}" type="box" pos="{vec(centre)}" size="{half}" '
+                    f'mass="0" {_contact_attrs(v, v["chassis_friction"])}/>\n')
+    return out
+
+
 def _lift_xml(v: Dict[str, Any], d: Dict[str, Any], cube: Any = None) -> str:
     assert cube in CUBE_MOUNTS, "unknown cube placement"
     arm_len = v["lift_arm_length_mm"] * MM
@@ -358,7 +432,7 @@ def _lift_xml(v: Dict[str, Any], d: Dict[str, Any], cube: Any = None) -> str:
         f'        <geom name="fork_side_{name}" type="box" pos="{vec((x * MM, sign * y * MM, z * MM))}" '
         f'size="{size}" mass="0" {_contact_attrs(v, v["chassis_friction"])}/>\n'
         for name, sign in (("left", 1), ("right", -1))
-    )
+    ) + _fork_hooks_xml(v)
     return (
         f'    <body name="lift_arm" pos="{vec([c * MM for c in v["lift_base_position_mm"]])}">\n'
         f'      <joint name="lift_joint" type="hinge" axis="0 -1 0" '
@@ -422,7 +496,8 @@ def _actuators_xml(v: Dict[str, Any], d: Dict[str, Any]) -> str:
     # The range only has to admit that; it must not do the scaling itself, so below the reference it stays 1.
     p_max = v["motor_power_max"] * max(1.0, v["battery_rest_voltage_v"] / v["motor_reference_voltage_v"])
     s_tq = v["servo_torque_max_mNm"] * 0.001
-    assert p_max > 0.0 and s_tq > 0.0, "actuator limits must be positive"
+    l_tq = v["lift_servo_torque_max_mNm"] * 0.001
+    assert p_max > 0.0 and s_tq > 0.0 and l_tq > 0.0, "actuator limits must be positive"
     out = ""
     for side in ("left", "right"):
         joint = "wheel_fl_joint" if side == "left" else "wheel_fr_joint"
@@ -436,7 +511,7 @@ def _actuators_xml(v: Dict[str, Any], d: Dict[str, Any]) -> str:
     out += (f'    <position name="lift" joint="lift_joint" kp="{num(v["lift_servo_kp_mNm_per_rad"] * 0.001)}" '
             f'kv="{num(v["lift_servo_kv_mNms_per_rad"] * 0.001)}" '
             f'ctrlrange="{num(d["lift_angle_min"])} {num(d["lift_angle_max"])}" '
-            f'forcerange="{num(-s_tq)} {num(s_tq)}"/>\n')
+            f'forcerange="{num(-l_tq)} {num(l_tq)}"/>\n')
     return out
 
 

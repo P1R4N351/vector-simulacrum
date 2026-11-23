@@ -1,0 +1,119 @@
+{
+ "source": {
+  "url": "https://raw.githubusercontent.com/kercre123/vector-animations-raw/59b198d4e6fb7394ae4c3d832dea2c4d28866ab0/assets/models/Vector/obj/Victor_cube_rig.obj",
+  "sha256": "32a28d933e089661f34fadf63d3cc3df33b4c99a6e6b9c1b1394c2e24bad72df"
+ },
+ "frame": "fetch_cube_model.py canonical: z up, centred, 44 mm on each axis; mm",
+ "samples": 1771248,
+ "spacing_mm": 0.1,
+ "cases": {
+  "x+1 y+1 z+1, lip on x face": {
+   "lip_bottom_mm": 9.034,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  },
+  "x+1 y+1 z+1, lip on y face": {
+   "lip_bottom_mm": 9.04,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  },
+  "x+1 y+1 z-1, lip on x face": {
+   "lip_bottom_mm": 9.04,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  },
+  "x+1 y+1 z-1, lip on y face": {
+   "lip_bottom_mm": 9.043,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  },
+  "x+1 y-1 z+1, lip on x face": {
+   "lip_bottom_mm": 9.038,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  },
+  "x+1 y-1 z+1, lip on y face": {
+   "lip_bottom_mm": 9.038,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  },
+  "x+1 y-1 z-1, lip on x face": {
+   "lip_bottom_mm": 9.036,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  },
+  "x+1 y-1 z-1, lip on y face": {
+   "lip_bottom_mm": 9.038,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  },
+  "x-1 y+1 z+1, lip on x face": {
+   "lip_bottom_mm": 9.037,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.009
+  },
+  "x-1 y+1 z+1, lip on y face": {
+   "lip_bottom_mm": 9.041,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  },
+  "x-1 y+1 z-1, lip on x face": {
+   "lip_bottom_mm": 9.038,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.009
+  },
+  "x-1 y+1 z-1, lip on y face": {
+   "lip_bottom_mm": 9.041,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  },
+  "x-1 y-1 z+1, lip on x face": {
+   "lip_bottom_mm": 9.037,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.009
+  },
+  "x-1 y-1 z+1, lip on y face": {
+   "lip_bottom_mm": 9.038,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  },
+  "x-1 y-1 z-1, lip on x face": {
+   "lip_bottom_mm": 9.036,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.009
+  },
+  "x-1 y-1 z-1, lip on y face": {
+   "lip_bottom_mm": 9.044,
+   "lip_inner_mm": 20.5,
+   "ceiling_mm": 13.689,
+   "back_mm": 14.01
+  }
+ },
+ "spread_mm": {
+  "lip_bottom_mm": 0.01,
+  "lip_inner_mm": 0.0,
+  "ceiling_mm": 0.0,
+  "back_mm": 0.001
+ },
+ "pocket_xy_mm": [
+  14.0,
+  20.5
+ ],
+ "pocket_half_z_mm": 13.7,
+ "lip_bottom_mm": 9.04
+}
