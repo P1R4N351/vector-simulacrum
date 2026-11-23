@@ -30,3 +30,10 @@ The optional WireOS body/camera/cube adapter interoperates with the
 wire-os-victor simulator protocols at commit 3cec4844d24c4719b5b3892e4979494bcd260424
 (https://github.com/os-vector/wire-os-victor). Upstream firmware and headers
 are obtained separately; the C++ interoperability test includes those headers.
+Its cube mark PNGs under src/game/cube-marks/wireos/ carry the GNU GPL v3.0
+notice in src/game/cube-marks/wireos/LICENSE.
+
+The optional detailed animation rig (`tools/fetch_rig_model.py`, slicing
+`Victor_rig_01.obj`) and charger dock meshes (`tools/fetch_dock_model.py`,
+fetching `Vic_charger_hp_geo.obj`) come from kercre123/vector-animations-raw and
+follow the Digital Dream Labs Software Asset License v1.0 (`DDL-ASSET-LICENSE.txt`).

@@ -33,6 +33,7 @@ import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { liftLink, lowerLinkPivot } from "./liftlinks.js";
 import { addShellTrim } from "./shell.js";
 import { loadPrintParts, outerWheel, printFork } from "./printparts.js";
+import { loadRigBlend } from "./rigmodel.js";
 import { beltGeometry, makeBeltPath, makeCleats, makeSpokes } from "./tracks.js";
 
 const DIR = "./robot/sdk";
@@ -231,7 +232,14 @@ export function assemble(meshes, pose, v, parts = [null, null, null], shellVersi
 
 // values: the parameter table's values (model.json). Returns null when the model
 // has not been fetched; throws when it is present but unusable.
-export async function loadSdkModel(values, { faceplate = true, shellVersion = 1 } = {}) {
+export async function loadSdkModel(
+  values,
+  { faceplate = true, shellVersion = 1, rig = true, printedFork = false, printedWheels = false } = {},
+) {
+  if (rig !== false) {
+    const blended = await loadRigBlend(values, { faceplate, shellVersion, printedFork, printedWheels });
+    if (blended !== null) return blended;
+  }
   const manifest = await fetchIfPresent(`${DIR}/manifest.json`, "json");
   if (manifest === null) return null;
   const [objText, mtlText] = await Promise.all([fetchIfPresent(`${DIR}/vector.obj`, "text"), fetchIfPresent(`${DIR}/vector.mtl`, "text")]);
@@ -249,19 +257,19 @@ export async function loadSdkModel(values, { faceplate = true, shellVersion = 1 
     node.castShadow = true;
     meshes.set(node.name, node);
   });
-  const rig = assemble(meshes, manifest.viewer_pose, values, await loadPrintParts(), shellVersion);
+  const sdkRig = assemble(meshes, manifest.viewer_pose, values, await loadPrintParts(), shellVersion);
   meshes.get("front_Screen_geo").visible = faceplate;
   const eye = materials.get(EYE_MATERIAL);
   const eyeBase = 0x40fc65; // stock Vector green
   return {
-    root: rig.root,
-    head: rig.head,
+    root: sdkRig.root,
+    head: sdkRig.head,
     source: manifest.source,
-    frontAxleShiftMm: rig.frontAxleShiftMm,
+    frontAxleShiftMm: sdkRig.frontAxleShiftMm,
     // headRad: head angle, up positive. liftRad: the lift's shoulder angle, up positive.
     // wheelAngles: the four wheel joint angles, front left, front right, rear left, rear right.
     setPose(headRad, liftRad, mood, wheelAngles, open = 1) {
-      rig.setPose(headRad, liftRad, mood, wheelAngles, open);
+      sdkRig.setPose(headRad, liftRad, mood, wheelAngles, open);
       eye.color.setHex(EYE_TINT[mood] ?? eyeBase);
     },
   };

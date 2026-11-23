@@ -253,13 +253,13 @@ replacement parts. Fit to a specific physical robot has not been measured.
 
 The SDK view supports `?faceplate=off` to inspect the LCD carrier, fasteners and camera bracket. The head cover has ten slits. The four microphone ports sit in the outer notches of the U-shaped gold touch plate. A convex indicator lens rises above the floor of its channel. Their profiles use the owner's three close-up photographs. See the [visual and physics checks](../evidence/stock-shell-physics-20261118.md) for the matched stock views and remaining hardware discrepancies.
 
+When `public/robot/sdk/rig/rig_manifest.json` is present alongside `public/robot/sdk/vector.obj`, the viewer defaults to the blended `Victor_rig_01.obj` hardware shell (with animated cleats, symmetric eyes, WireOS LCD plane, rear badge, and `?faceplate=off` internal carrier) and mounts the `Vic_charger_hp_geo.obj` charger dock mesh when present. Use `?look=sdk-only` to force the standalone `vector.obj` look, `?fork=printed` / `?wheels=printed` / `?print=1` to overlay printed Vector 2 STLs, and see `public/robot/sdk/DDL-ASSET-LICENSE.txt` for the Digital Dream Labs asset terms covering the rig and dock meshes.
+
 The shell and ear profiles are visual estimates
 from the [iFixit teardown photographs](https://www.ifixit.com/Guide/Anki+Vector+Capacitive+Touch+Sensor+Replacement/123280).
 The lens uses the camera mount from the parameter table. The robot uses its SDK
 wheel or fork wherever a print part is unavailable. To refresh the local print
-meshes, run `python3 tools/fetch_print_parts.py`. The download includes the
-creator’s attribution and noncommercial licence alongside each set. For a local
-Docker build add both `--build-arg WITH_SDK_MODEL=1` and `--build-arg WITH_PRINT_PARTS=1`.
+meshes, run `python3 tools/fetch_print_parts.py`. To populate the blended rig and charger dock meshes into `public/robot/sdk/`, run `python3 tools/fetch_rig_model.py` and `python3 tools/fetch_dock_model.py` (which include `DDL-ASSET-LICENSE.txt`). The printed-part download includes the creator’s attribution and noncommercial licence alongside each set. For a local Docker build add `--build-arg WITH_SDK_MODEL=1`, `--build-arg WITH_RIG_MODEL=1`, `--build-arg WITH_DOCK_MODEL=1`, and `--build-arg WITH_PRINT_PARTS=1`.
 
 A built bundle (`dist/`) or a container image that includes the model carries
 that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
@@ -289,6 +289,8 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 | `src/ui/`, `src/store.js` | The panels and the store between them and the core |
 | `tools/export_model.py` | Model, parameter values and fixtures from the Python; `--check` for drift |
 | `tools/fetch_sdk_model.py` | The SDK's robot model, into `public/robot/sdk/` |
+| `tools/fetch_rig_model.py` | Split `Victor_rig_01.obj` hardware rig + `rig_manifest.json`, into `public/robot/sdk/rig/` |
+| `tools/fetch_dock_model.py` | The charger dock mesh (`Vic_charger_hp_geo.obj`) + `dock_manifest.json`, into `public/robot/sdk/` |
 | `test/` | Ten test files (53 tests), `mutate.mjs`, the fixtures |
 | `demo.sh`, `Dockerfile` | One command to a running page; a static container on port 8080 |
 
