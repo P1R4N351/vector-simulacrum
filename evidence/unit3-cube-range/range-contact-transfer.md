@@ -25,3 +25,7 @@ For the two held-out ordinary pushes, the residual after scaling is comparable t
 ![Physical and simulated cube endpoints in shelf coordinates](endpoint-gain.png)
 
 [Per-view errors](endpoint-gain.csv) · [Reproduce the comparison](endpoint_gain.py)
+
+Sampling both predictions at the overhead frame times also reduced planar trajectory RMS on trial 4 from 1.16 to 0.63 mm (37 frames) and on trial 5 from 0.94 to 0.34 mm (38 frames). Trial 1 stayed above 18 mm RMS. Frames within a push are correlated, and lift changes the top marker's projection. These frame counts describe coverage of three trajectories.
+
+![Measured and replayed forward and lateral travel through the lift](travel-gain.png)

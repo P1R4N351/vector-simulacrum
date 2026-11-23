@@ -47,3 +47,33 @@ with (here / "endpoint-gain.csv").open("w", newline="") as stream:
     writer = csv.writer(stream)
     writer.writerow(["trial", "reference", "gain_fit_overhead_2_3", "replay_error_mm", "scaled_error_mm"])
     writer.writerows(rows)
+
+# Score identical overhead frame times, excluding the 1.5 s replay lead-in.
+import gzip
+import numpy as np
+
+with gzip.open(here.parent / "unit3-printed-fork-contact/trajectories.csv.gz", "rt") as stream:
+    paths = [r for r in csv.DictReader(stream)
+             if (r["fork"], r["heading"], r["drive"]) == ("stl", "overhead", "weld")
+             and all(float(r[k]) == 0 for k in ("depth_offset", "lateral_offset", "height_offset"))]
+frames = read("../unit3-paired-cube-push/traces.csv")
+fig, panels = plt.subplots(2, 3, figsize=(10, 5), layout="constrained", sharex=True)
+for col, trial in enumerate((1, 4, 5)):
+    path = np.array([[float(r[k]) for k in ("time", "forward_mm", "left_mm")]
+                     for r in paths if int(r["trial"]) == trial])
+    obs = np.array([[float(r[k]) for k in ("seconds", "forward_mm", "left_mm")]
+                    for r in frames if int(r["trial"]) == trial and r["camera"] == "frames"])
+    t = path[:, 0] - 1.5
+    obs = obs[(obs[:, 0] >= 0) & (obs[:, 0] <= t[-1])]
+    sampled = np.column_stack([np.interp(obs[:, 0], t, path[:, k]) for k in (1, 2)])
+    rms = [np.sqrt(np.mean(np.sum((obs[:, 1:] - g * sampled) ** 2, axis=1))) for g in (1, gain)]
+    panels[0, col].set_title(f"Trial {trial} · {len(obs)} frames\nRMS {rms[0]:.2f} → {rms[1]:.2f} mm")
+    for k, axis in enumerate(axes, 1):
+        ax = panels[k-1, col]
+        ax.scatter(obs[:, 0], obs[:, k], s=10, label="Overhead", color="#167496")
+        ax.plot(t, path[:, k], label="Replay", color="#333333")
+        ax.plot(t, gain * path[:, k], "--", label="Scaled", color="#8c42a8")
+        ax.set(xlim=(0, t[-1]), ylabel=axis.capitalize() + " (mm)")
+    panels[1, col].set_xlabel("Time after approach command (s)")
+panels[1, 0].legend(fontsize=8)
+fig.savefig(here / "travel-gain.png", dpi=160)
