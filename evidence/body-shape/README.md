@@ -232,9 +232,15 @@ With the real shape the robot stops where the rig's rear body meets the table. I
 Full suite there: 445 declared, 445 ran, 435 passed, 8 skipped for optional inputs, 2 failed. Both pass on `main` itself, so this change causes them:
 
 - `test_printed_parts.SyntheticParts.test_tread_masses_follow_the_wheel_bodies_not_the_table` computed its expected inertia change from `tread_spacing_mm` (23.0 mm a side) while the wheels are built at `tread_center_spacing_mm` (23.95 mm). The test now starts from where the wheels are; the printed-parts module then passes 27 of 27 and its mutation arm is caught.
-- `test_replay.Replay.test_contact_trial_medium_ccw_trace_and_fast_turn_rates`, segment `spin_cw_220`: the 42 mm contact trial (`contact_trial.py`, the browser's `?contact=42`) turns 2.16 % off the robot against a 2 % limit. That trial places its own contact patches, so the table's inset does not enter it; it was tuned with the treads 46 mm apart, and with the treads where the rig has them it misses by 0.16 points. **Not fixed here.** The trial needs retuning by its owner, and the limit is not loosened.
+- `test_replay.Replay.test_contact_trial_medium_ccw_trace_and_fast_turn_rates`, segment `spin_cw_220`: the 42 mm contact trial (`contact_trial.py`, the browser's `?contact=42`) turns 2.16 % off the robot against a 2 % limit. That trial places its own contact patches, so the table's inset does not enter it; it was tuned with the treads 46 mm apart, and with the treads where the rig has them it misses by 0.16 points. Not fixed in that run; see the next paragraphs.
 
 `web/tools/export_model.py --check`: 14 files up to date; `robot.json` is made on MuJoCo 4.0.1, as `web/test/robot.test.js` requires. The browser tests themselves (`npm test`) were not run.
+
+**After the contact-trial change** (2026-11-22, MuJoCo 4.0.1 through `run_in_ct.sh`). A turn of the table that changes nothing physical moves each of the trial's spin rates with a standard deviation of about 1.4 %, so the 2.16 % above was one draw. The trial's check now holds each spin's mean over eight table turns to the same 2 %. The span stays 42 mm. On this geometry the trial runs 1.21 % slow on average, worst spin 1.64 %, recorded as a model error; `main` scores 0.84 %, and spans of 43.5 and 48 mm fail ([Table turns](../stock-shell-physics-20261118.md#table-turns)).
+
+- Full suite: 445 declared, 445 ran, 437 passed, 0 failed, 8 skipped for optional inputs.
+- `npm test`: 62 passed, 0 failed, 1 skipped. Before, it was 60 passed and 2 failed: the body change rebuilt both free-cube scenes, but `web/test/fixtures/cube-landing.json` had not been regenerated.
+- `tests/mutate.py`: the arm "contact inset typed by hand" still looked for the old 3.1 mm inset and had no target; it now names 3.41. A new arm types the trial's span 1.5 mm long. Run alone through the harness's control, neutral and verdict logic, the two arms gave 2 of 2 caught, 0 survived and 0 set-up errors. The control passed, and the neutral arm ran the whole suite (445 ran, 8 skipped) and survived. Three cube arms (two in `hardware/cube_accel.py`, one in `simulacrum/cube.py`) have no target on `main` either; they are not changed here.
 
 ## What the checks caught while this was built
 

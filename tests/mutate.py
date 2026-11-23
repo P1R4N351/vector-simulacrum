@@ -32,8 +32,9 @@ sys.path.insert(0, str(HERE))
 
 import _common  # noqa: E402
 
-# A run that has not finished by then is reported as a set-up error. The contact-trial
-# check replays four spins at eight table turns, about seven minutes on its own.
+# A run that has not finished by then is reported as a set-up error. The neutral arm
+# runs the whole suite under it: 383 s on MuJoCo 4.0.1 on 2026-11-22, with the
+# contact-trial check's four spins at eight table turns.
 RUN_TIMEOUT_S = 1800
 P, M, R, H = "simulacrum/params.py", "simulacrum/mjcf.py", "simulacrum/robot.py", "simulacrum/hazards.py"
 T, V, TR, O, RP = ("simulacrum/task.py", "simulacrum/vec_env.py", "simulacrum/training.py",
