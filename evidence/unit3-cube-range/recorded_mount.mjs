@@ -21,7 +21,7 @@ for (const trial of trials) {
       sim.controlLevel = "override";
       const samples = trial.wheels;
       let index = 0;
-      for (let i = 0; i * sim.dt <= -samples[0][0] + 0.5; i++) {
+      for (let i = 0; i * sim.dt <= (trial.duration_s ?? (-samples[0][0] + 0.5)); i++) {
         const t = samples[0][0] + i * sim.dt;
         while (index + 1 < samples.length && samples[index + 1][0] <= t) index++;
         const [, left, right] = samples[index];
