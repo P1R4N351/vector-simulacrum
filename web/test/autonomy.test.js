@@ -125,7 +125,15 @@ test("driveOffCharger, explore, and multi-pose dockWithCharger seat cleanly at 4
   });
   try {
     assert.equal(diag.dockWithCharger(), true);
-    for (let i = 0; i < 14000 && diag.actionRunning; i++) diag.tick(1);
+    let checkedLocalStop = false;
+    for (let i = 0; i < 14000 && diag.actionRunning; i++) {
+      diag.tick(1);
+      if (!checkedLocalStop && diag.chargerContact && diag._action?.autonomy?.stage === "verify") {
+        assert.ok(diag._delay.every(slot => slot[0] === 0 && slot[1] === 0));
+        checkedLocalStop = true;
+      }
+    }
+    assert.ok(checkedLocalStop, "expected a local wheel stop during charger verification");
     assert.equal(diag.lastAction.result, "completed");
     assert.equal(diag.chargerContact, true);
     assert.equal(diag.batteryVolts, 4.2);
