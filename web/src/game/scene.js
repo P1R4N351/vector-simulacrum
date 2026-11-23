@@ -39,6 +39,8 @@ const SHAPE_OVERLAY = new THREE.MeshBasicMaterial({ color: 0x3df58c, wireframe: 
 const CLIFF_RAY_MAX_M = 0.06; // drawn length of a cliff beam that sees nothing
 
 function styleFor(name) {
+  // Stock shell contrast against the printed glyph in unit 3's shelf images.
+  if (name.startsWith("cube_shell_")) return { color: 0x3f3f3f, roughness: 0.6 };
   if (name.startsWith("wheel_")) return PALETTE.wheel;
   if (name.startsWith("obstacle_")) return PALETTE.obstacle;
   return PALETTE[name] ?? null;
