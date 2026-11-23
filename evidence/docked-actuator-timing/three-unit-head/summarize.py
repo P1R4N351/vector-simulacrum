@@ -10,6 +10,11 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from analyze import GyroReplay, params, recording, replay
 
+class StatusReplay(GyroReplay):
+    def reported_now(self):
+        return dict(super().reported_now(), settled=self._head_in_pos)
+
+
 path = Path(sys.argv[1])
 records = [json.loads(line) for line in path.read_text().splitlines()]
 model_name = sys.argv[2]
@@ -34,10 +39,18 @@ for i, cmd in enumerate(commands):
                onset_lo=t[first-1], onset_hi=t[first], clear_lo=t[last], clear_hi=t[last+1],
                settled_lo=t[edge], settled_hi=t[edge+1], peak_dps=max(abs(gyro)))
     init = replay._state_at(near, cmd["t"])
-    sim = GyroReplay(values=values, head_deg=np.degrees(init["head"]), lift_mm=init["lift"], noise_seed=0)
+    sim = StatusReplay(values=values, head_deg=np.degrees(init["head"]), lift_mm=init["lift"], noise_seed=0)
     segment = recording.Segment("head","head",0,1.35,target=cmd["target"])
     trace = replay._run(sim,segment,.32)
     ts = (np.arange(len(trace))+1)*sim.dt-.32
+    bits = np.array([r["settled"] for r in trace])
+    sim_release = ts[1:][bits[1:] & ~bits[:-1]].item()
+    row["sim_settled_s"] = sim_release
+    row["sim_settled_shifted_s"] = sim_release + .0916
+    falls = np.flatnonzero((t[1:] >= 0) & ~settled[1:] & settled[:-1])
+    assert len(falls) == 1 and falls[0] < edge
+    row["unsettled_lo"] = t[falls[0]]
+    row["unsettled_hi"] = t[falls[0]+1]
     modeled = [np.array([r[key] for r in trace]) for key in ("head_deg","pitch_speed")]
     window = (t >= 0) & (t <= 1)
     for measured, signal, name in zip([angle, gyro], modeled, ["angle","gyro"]):
@@ -57,6 +70,20 @@ for ax in axes[-1]: ax.set_xlabel("Seconds from command")
 fig.legend(*axes[0,0].get_legend_handles_labels(),loc="outside lower center",ncol=3)
 fig.suptitle(f"{path.stem.upper()} docked head sequence · bars mark head-in-position transition")
 fig.savefig(path.with_suffix(".png"),dpi=150)
+status_fig, panels = plt.subplots(1,2,figsize=(10,5), sharey=True,layout="constrained")
+for ix, row in enumerate(scores):
+    for panel, a, b, baseline, shifted in (
+        (panels[0], "unsettled_lo", "unsettled_hi", 0, .0916),
+        (panels[1], "settled_lo", "settled_hi", row["sim_settled_s"], row["sim_settled_shifted_s"])):
+        panel.plot([1000*row[a],1000*row[b]], [ix,ix], "|-", color="black",lw=2,label="SDK interval")
+        panel.plot(1000*baseline,ix,"o",color="#28758a",label="Frozen")
+        panel.plot(1000*shifted,ix,"+",ms=10,color="#be6825",label="+91.6 ms")
+panels[0].set(yticks=range(len(scores)),yticklabels=[f"{r['cycle']} · {r['target']}°" for r in scores],
+              ylabel="Cycle · target",title="Head leaves settled status")
+panels[1].set_title("Head returns to settled status")
+for panel in panels: panel.set_xlabel("Milliseconds after host command")
+status_fig.legend(*[items[:3] for items in panels[0].get_legend_handles_labels()], loc="outside lower center",ncol=3)
+status_fig.savefig(path.with_stem(path.stem+"-settling").with_suffix(".png"),dpi=150)
 with path.with_suffix(".csv").open("w") as stream:
     writer = csv.DictWriter(stream,fieldnames=scores[0],lineterminator="\n")
     writer.writeheader()

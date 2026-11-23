@@ -9,3 +9,11 @@ Dots and solid curves show measured head encoder and pitch gyro. Dashed curves s
 [State and command log](unit3.jsonl) · [Per-stroke transition brackets and errors](unit3.csv)
 
 Unit 1 and unit 2 were unavailable from both pods. The workshop PodNet access point had zero associated stations at the final check. No workshop trials are included.
+
+### Timing of the head status bit
+
+On unit 3 the firmware cleared HEAD_IN_POS after the command and set it again near the end of every move. Each black interval below is bounded by consecutive SDK receipts carrying opposite bit values. The simulation clears the bit at command submission. On all 12 moves that prediction preceded the last still-set sample, with a median gap of 138 ms. Applying the prior +91.6 ms offset still placed all 12 clear transitions early (median gap 46 ms). For the return to settled status the same offset improved bracket coverage from 1/12 to 8/12. Of the four shifted misses, one was early and three were late. Median distance to the interval fell from 38 ms to zero.
+
+The receipt clock includes action dispatch, firmware processing, and SDK state delivery. These recordings do not identify those delays separately. A single shift improves predictions for settled status and the continuous motion traces, while leaving a systematic discrepancy at command acceptance. No production timing parameter was changed.
+
+![Physical SDK transition brackets with both replay clocks](unit3-settling.png)
