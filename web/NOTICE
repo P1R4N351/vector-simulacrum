@@ -38,3 +38,11 @@ The optional detailed animation rig (`tools/fetch_rig_model.py`, slicing
 `Vic_charger_hp_geo.obj`), and Light Cube rig (`tools/fetch_cube_model.py`,
 normalizing `Victor_cube_rig.obj`) come from kercre123/vector-animations-raw
 and follow the Digital Dream Labs Software Asset License v1.0 (`DDL-ASSET-LICENSE.txt`).
+
+The optional standalone real-firmware runtime (`tools/fetch_firmware.py`)
+downloads unmodified `cube.dfu` (Dialog DA14580 Light Cube application) and
+`syscon.dfu` + `sysboot.bin` (STM32F030 body syscon image) at build/setup time
+from os-vector/wire-os-victor at commit 3cec4844d24c4719b5b3892e4979494bcd260424
+(Apache-2.0) without storing firmware binaries or keys in git. In-browser
+execution uses `src/sim/thumb.js` + `src/sim/cube_firmware.js` (ARMv6-M Thumb VM)
+and `src/sim/syscon_firmware.js` (CRC-32 spine framing).

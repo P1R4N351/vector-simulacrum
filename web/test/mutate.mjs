@@ -25,7 +25,7 @@ const COPIED = ["src/sim", "src/game", "src/program", "test", "public/robot/vect
   "public/robot/vector2", "camera_calibration.json", "camera_calibration_vector2.json", "package.json"];
 const SUITE = ["test/drive.test.js", "test/hazards.test.js", "test/robot.test.js", "test/tracks.test.js", "test/optics.test.js",
   "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js",
-  "test/program.test.js"];
+  "test/program.test.js", "test/firmware.test.js", "test/autonomy.test.js"];
 const ARMS = [
   { name: "control: untouched copy", file: null, mustFail: false },
   { name: "neutral: a comment added", file: "src/sim/drive.js", old: "export class TreadEncoder {", new: "// neutral change\nexport class TreadEncoder {", mustFail: false },
@@ -92,6 +92,12 @@ const ARMS = [
   { name: "program: a refused call loses the program's line", file: "src/program/runtime.js", old: "if (err instanceof Error) err.callStack = site.stack;", new: "", mustFail: true },
   { name: "cancelAction leaves the treads driving", file: "src/sim/robot.js", old: "    const stopped = this.stopAllMotors();\n", new: "    const stopped = true;\n", mustFail: true },
   { name: "3D cube: marker UVs mirrored horizontally", file: "src/game/cube.js", old: "uv.setXY(k, face.cx + (rMm / 11.5) * face.h, face.cy - (uMm / 11.5) * face.h);", new: "uv.setXY(k, face.cx - (rMm / 11.5) * face.h, face.cy - (uMm / 11.5) * face.h);", mustFail: true },
+  { name: "thumb: signExtend drops negative sign extension", file: "src/sim/thumb.js", old: "return (masked & signBit) ? (masked - (1 << bits)) : masked;", new: "return masked;", mustFail: true },
+  { name: "syscon: spineCrc32 inverts CRC output", file: "src/sim/syscon_firmware.js", old: "return crc >>> 0;", new: "return (~crc) >>> 0;", mustFail: true },
+  { name: "autonomy: sticky cliff overwritten by clear cell", file: "src/sim/autonomy.js", old: "if (kind === CELL_CLIFF || this.cells[i] !== CELL_CLIFF) this.cells[i] = kind;", new: "this.cells[i] = kind;", mustFail: true },
+  { name: "autonomy: optical marker ray occlusion ignored", file: "src/sim/autonomy.js", old: "if (hit >= 0 && hit < cDist - 0.020) return null;", new: "if (hit < -999) return null;", mustFail: true },
+  { name: "autonomy: dock approach turns away from marker", file: "src/sim/autonomy.js", old: "const faceYaw = Math.atan2(-ch.outY, -ch.outX);", new: "const faceYaw = Math.atan2(ch.outY, ch.outX);", mustFail: true },
+  { name: "program: host snapshot clears on_charger state", file: "src/program/host.js", old: "on_charger: this.sim.chargerContact, battery_volts: this.sim.batteryVolts,", new: "on_charger: false, battery_volts: this.sim.batteryVolts,", mustFail: true },
 ];
 
 function makeCopy() {

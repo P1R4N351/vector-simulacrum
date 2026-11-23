@@ -52,6 +52,9 @@ const CALLS = {
   },
   stop_all_motors: { args: 0, start: (h) => ({ now: h.sim.stopAllMotors() }) },
   request_control: { args: 0, start: (h) => ({ now: h.sim.requestControl() }) },
+  drive_off_charger: { args: 0, start: (h) => h._action(() => h.sim.driveOffCharger()) },
+  explore: { args: 1, start: (h, [s]) => h._action(() => h.sim.explore(number("explore", "seconds", s, { positive: true, optional: true }) ?? 12)) },
+  dock_with_charger: { args: 0, start: (h) => h._action(() => h.sim.dockWithCharger()) },
   state: { args: 0, start: () => ({ now: null }) },
   wait: {
     args: 1, start: (h, [s]) => {
@@ -91,6 +94,7 @@ export class ProgramHost {
     return {
       ...s, pose_angle_deg: s.pose_angle_rad / DEG, head_angle_deg: s.head_angle_rad / DEG,
       now_s: this.sim.tickCount * this.sim.dt,
+      on_charger: this.sim.chargerContact, battery_volts: this.sim.batteryVolts,
     };
   }
 
@@ -138,7 +142,7 @@ export class ProgramHost {
   _result() {
     const a = this.sim.lastAction;
     assert(a !== null, "an action ended without a result");
-    return { result: a.result, moved_mm: a.moved_mm, turned_deg: a.turned_deg, time_s: a.ticks * this.sim.dt };
+    return { ...a, result: a.result, moved_mm: a.moved_mm, turned_deg: a.turned_deg, time_s: a.ticks * this.sim.dt };
   }
 
   // Run the pending call for at most maxTicks control ticks. Returns the ticks run.

@@ -1,6 +1,7 @@
 // Optional localhost relay. One browser owns one simulated body.
 import { cameraRelay } from "./wire_camera.js";
 import dgram from "node:dgram";
+import http from "node:http";
 import { motorCommand } from "../src/sim/wire_body.js";
 
 export function wireRelay() {
@@ -70,6 +71,13 @@ export function wireRelay() {
           cube.send(hello);
         }
         cube.send(packet);
+      });
+      server.ws.on("wire:intent",(intent,client) => {
+        if (client!==owner || typeof intent!=="string") return;
+        const fn={explore:"StartExploring",dock:"FindHome",undock:"DriveOffCharger"}[intent];
+        if (!fn) return;
+        const req=http.get(`http://${host}:8888/consolefunccall?func=${encodeURIComponent(fn)}`,(res)=>res.resume());
+        req.on("error",()=>{});
       });
       server.httpServer?.once("close",close);
     },

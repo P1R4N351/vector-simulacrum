@@ -21,6 +21,31 @@ function draw(ctx, model, t) {
   ctx.strokeRect(SIZE / 2 - w / 2, SIZE / 2 - h / 2, w, h);
   ctx.fillStyle = "#d9dde2";
   for (const [cx, cy, , bx, by] of model.obstacles) ctx.fillRect(sx(cy) - (by * scale) / 2, sy(cx) - (bx * scale) / 2, by * scale, bx * scale);
+  const navMap = gameApi.navMap?.();
+  if (navMap) {
+    const cellPx = 20 * scale;
+    ctx.fillStyle = "rgba(61, 245, 140, 0.14)";
+    for (const [x, y] of navMap.clear ?? []) ctx.fillRect(sx(y) - cellPx / 2, sy(x) - cellPx / 2, cellPx, cellPx);
+    ctx.fillStyle = "rgba(255, 181, 71, 0.55)";
+    for (const [x, y] of navMap.obstacles ?? []) ctx.fillRect(sx(y) - cellPx / 2, sy(x) - cellPx / 2, cellPx, cellPx);
+    ctx.fillStyle = "rgba(255, 90, 77, 0.72)";
+    for (const [x, y] of navMap.cliffs ?? []) ctx.fillRect(sx(y) - cellPx / 2, sy(x) - cellPx / 2, cellPx, cellPx);
+    if (navMap.charger) {
+      ctx.fillStyle = "#5cb3ff";
+      ctx.fillRect(sx(navMap.charger.lipY) - 4, sy(navMap.charger.lipX) - 4, 8, 8);
+    }
+    if (navMap.cube) {
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillRect(sx(navMap.cube.y) - 3, sy(navMap.cube.x) - 3, 6, 6);
+    }
+    if (navMap.frontier) {
+      ctx.strokeStyle = "#ffb547";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(sx(navMap.frontier[1]), sy(navMap.frontier[0]), 3.5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
   const trail = gameApi.trail?.();
   if (trail && trail.count > 1) {
     ctx.strokeStyle = "#1d7a4b";

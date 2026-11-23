@@ -57,6 +57,18 @@ print("away from the edge at x", robot.state.x_mm.toFixed(0), "mm, heading",
       robot.state.pose_angle_deg.toFixed(0), "deg");
 `,
   },
+  {
+    id: "explore-dock",
+    title: "Explore and self-dock",
+    source: `// Autonomous mapping and self-docking using optical markers and occupancy grid.
+const scan = await robot.explore(8);
+print("explore:", scan.result, "cells:", scan.cells_mapped, "cube:", scan.cube_seen, "charger:", scan.charger_seen);
+const docked = await robot.dock_with_charger();
+print("dock:", docked.result, "attempts:", docked.attempts);
+const s = robot.state;
+print("on_charger:", s.on_charger, "volts:", s.battery_volts);
+`,
+  },
 ];
 
 export function exampleById(id) {

@@ -268,3 +268,28 @@ test("a program that stops calling the robot gets a hint, and Stop still ends it
   assert.ok(run.log.some((l) => l.text.startsWith("No robot call for 3 s.")), JSON.stringify(run.log));
   sim.dispose();
 });
+
+test("drive_off_charger, explore, and dock_with_charger complete and update robot.state", async () => {
+  const dockXml = readText("public/robot/vector-free-dock.xml");
+  const sim = new VectorSim(await mujoco(), {
+    xml: dockXml, values: v, derived: model.derived, camera: model.camera, startDocked: true, noiseSeed: 1,
+  });
+  try {
+    const run = await runInPage(sim, `
+      const off = await robot.drive_off_charger();
+      print("off:", off.result, robot.state.on_charger);
+      const exp = await robot.explore(3.5);
+      print("exp:", exp.result, exp.cells_mapped >= 20);
+      const docked = await robot.dock_with_charger();
+      print("dock:", docked.result, robot.state.on_charger, robot.state.battery_volts);
+    `);
+    assert.equal(run.status, "finished", JSON.stringify(run.log));
+    assert.deepEqual(run.prints, [
+      "off: completed false",
+      "exp: completed true",
+      "dock: completed true 4.2",
+    ]);
+  } finally {
+    sim.dispose();
+  }
+});
