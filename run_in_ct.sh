@@ -64,8 +64,8 @@ build_script() {
   printf 'mkdir -p %q\n' "$REMOTE_DIR"
   printf 'find %q -mindepth 1 -delete\n' "$REMOTE_DIR"
   printf 'base64 -d <<'"'"'VECTOR_SIMULACRUM_TAR'"'"' | tar -xzf - -C %q\n' "$REMOTE_DIR"
-  COPYFILE_DISABLE=1 tar --no-xattrs -czf - -C "$HERE" --exclude '__pycache__' --exclude '.DS_Store' \
-    --exclude './web/node_modules' --exclude './web/dist' --exclude './web/public/robot/sdk' . | base64
+  COPYFILE_DISABLE=1 tar --no-xattrs -czf - -C "$HERE" --exclude './.git' --exclude '__pycache__' --exclude '.DS_Store' \
+    --exclude './web/node_modules' --exclude './web/dist' --exclude './web/public/robot/sdk' --exclude './web/public/robot/firmware' . | base64
   printf 'VECTOR_SIMULACRUM_TAR\n'
   printf 'cd %q\n' "$REMOTE_DIR"
   interpreter_lines

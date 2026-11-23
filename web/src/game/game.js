@@ -44,6 +44,9 @@ const ACTIONS = {
   headDown: (sim) => sim.setHeadAngle(sim.v.head_angle_min_deg),
   liftUp: (sim) => sim.setLiftHeight(sim.v.lift_height_max_mm),
   liftDown: (sim) => sim.setLiftHeight(sim.v.lift_height_min_mm),
+  explore: (sim) => sim.explore(15),
+  dock: (sim) => sim.dockWithCharger(),
+  undock: (sim) => sim.driveOffCharger(),
 };
 const RPM = 60 / (2 * Math.PI);
 
@@ -63,6 +66,26 @@ async function fetchText(url) {
   const response = await fetch(url, { cache: "no-cache" });
   if (!response.ok) throw new Error(`${url} answered ${response.status}`);
   return response.text();
+}
+
+async function fetchOptionalBytes(url) {
+  try {
+    const response = await fetch(url, { cache: "no-cache" });
+    if (!response.ok) return null;
+    return new Uint8Array(await response.arrayBuffer());
+  } catch {
+    return null;
+  }
+}
+
+async function fetchOptionalJson(url) {
+  try {
+    const response = await fetch(url, { cache: "no-cache" });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
 }
 
 async function sha256Hex(text) {
@@ -109,12 +132,27 @@ async function loadEverything() {
   const doneCompile = bootLine("COMPILE AND SETTLE");
   const mapFile = options.get("map") === "live" ? "shelf-navmap-live.json" : "shelf-navmap.json";
   const navMap = shelf ? JSON.parse(await fetchText("./robot/vector2/" + mapFile)) : null;
-  const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
+  const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, camera: model.camera,
+    controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
     cubeStartXY: shelf ? mappedCubeXY(navMap, model.values.cube_size_mm, -66, 30) : null,
     startDocked,
     shelfOutline: shelf ? model.shelf_outline_mm : null,
     bodyRangeClock: options.has("rangeClock") ? options.get("rangeClock") === "body" : undefined, chargerContact: options.get("chargerContact") === "1" });
   doneCompile("OK");
+  if (options.get("firmware") !== "off") {
+    const doneFw = bootLine("REAL FIRMWARE");
+    const [cubeBytes, sysconBytes, manifest] = await Promise.all([
+      fetchOptionalBytes("./robot/firmware/cube.plain.bin"),
+      fetchOptionalBytes("./robot/firmware/syscon-flash.bin"),
+      fetchOptionalJson("./robot/firmware/firmware_manifest.json"),
+    ]);
+    if (cubeBytes || sysconBytes) {
+      sim.attachFirmware({ cubeBytes, sysconBytes, manifest });
+      doneFw("OK");
+    } else {
+      doneFw("OPTIONAL");
+    }
+  }
   return { mujoco, model, sim, free, navMap };
 }
 
@@ -208,6 +246,7 @@ function telemetryOf(sim, extra) {
     falling: s.falling, has_control: sim.hasControl, reacting: t.reacting, reactions: sim.reactions,
     fallen: t.fallen, edge_margin_mm: t.edge_margin_mm, action_running: sim.actionRunning,
     on_charger: t.on_charger, on_charger_platform: t.on_charger_platform,
+    firmware_active: t.firmware_active, autonomy_phase: t.autonomy_phase, firmware: sim.firmwareStatus(),
   };
 }
 
@@ -267,11 +306,18 @@ function installApi(ctx) {
   if (wireos) {
     const externalControl = () => note("WireOS controls the motors. Pause to freeze the simulated body.");
     for (const name of [...Object.keys(ACTIONS), "level", "control"]) press[name] = externalControl;
+    for (const intent of ["explore", "dock", "undock"]) {
+      press[intent] = () => {
+        import.meta.hot?.send("wire:intent", intent);
+        note(`Sent WireOS intent: ${intent}`);
+      };
+    }
     press.stop = () => useGame.setState({ paused: true });
     press.reset = () => window.location.reload();
   }
   Object.assign(gameApi, {
     press: (name) => press[name]?.(), setPad: (fwd, turn) => ctx.input.setPad(fwd, turn), trail: () => visuals.trailPoints(),
+    navMap: () => sim.navMapSnapshot(),
     runProgram: (source) => {
       programs.stop(); // a run in progress is replaced
       if (wireos) note("WireOS controls the motors: programs run only without WireOS");
@@ -396,6 +442,7 @@ function startLoop(ctx) {
     }
     const truth = sim.simTruth();
     if (now > blinkAt + 140) blinkAt = now + 2500 + 3000 * Math.random();
+    if (!wireMode && sim.cubeSensor?.firmware) visuals.updateCubeLights(Array.from(sim.cubeSensor.firmware.ledRgb));
     visuals.sync(truth, moodOf(truth, sim), now > blinkAt ? 0.1 : 1, ui.rays, ui.shapes, ui.camView);
     const q = sim.data.qpos;
     follow.set(q[0], q[2] + 0.02, -q[1]);

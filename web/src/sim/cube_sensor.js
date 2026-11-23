@@ -21,7 +21,12 @@ export class CubeSensor {
     this.packet = null;
     this.handlingCube = false;
     this.movementBroadcastCount = 0;
+    this.firmware = null;
     this.listeners = new CubeListeners();
+  }
+
+  attachFirmware(vm) {
+    this.firmware = vm;
   }
 
   sense(force, sigma) {
@@ -31,6 +36,11 @@ export class CubeSensor {
   }
 
   store(frame) {
+    if (this.firmware) {
+      this.firmware.pushFrame(frame);
+      this.last = frame;
+      return;
+    }
     if (this.buffered >= 32) return;
     this.buffered++;
     this.last = frame;
@@ -48,6 +58,18 @@ export class CubeSensor {
       this.positiveFirst = delta > 0;
       this.debounce = 90;
     }
+  }
+
+  _tickFirmware(nextTick, bodyStateStampMs) {
+    const pkts = this.firmware.tick();
+    this.ticks++;
+    this.buffered = 0;
+    const accel = pkts.find((p) => p[0] === 2 && p.length === 20);
+    if (!accel) return;
+    const v = new DataView(accel.buffer, accel.byteOffset, accel.byteLength);
+    this.taps = accel[1];
+    this.slots = [0, 1, 2].map((s) => [0, 1, 2].map((a) => v.getInt16(2 + 6 * s + 2 * a, true)));
+    this.receivePacket({ time_s: nextTick, taps: this.taps, slots: this.slots.slice() }, bodyStateStampMs);
   }
 
   receivePacket(packet, bodyStateStampMs) {
@@ -77,6 +99,10 @@ export class CubeSensor {
         this.store(frame);
         this.frames++;
       } else {
+        if (this.firmware) {
+          this._tickFirmware(nextTick, bodyStateStampMs);
+          continue;
+        }
         if (this.buffered) this.slots[this.ticks % 3] = this.last;
         this.buffered = 0;
         this.ticks++;

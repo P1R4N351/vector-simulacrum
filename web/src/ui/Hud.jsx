@@ -39,6 +39,8 @@ function StatusChips({ t, level, program }) {
       {t.action_running ? <Chip tone="info">ACTION RUNNING</Chip> : null}
       {t.on_charger ? <Chip tone="ok">ON CHARGER</Chip>
         : t.on_charger_platform ? <Chip tone="info">CHARGER RAMP</Chip> : null}
+      {t.firmware_active ? <Chip tone="ok">FIRMWARE ARMv6-M</Chip> : null}
+      {t.autonomy_phase ? <Chip tone="warn">{t.autonomy_phase}</Chip> : null}
       {program === "running" ? <Chip tone="info">PROGRAM RUNNING</Chip> : null}
     </div>
   );
@@ -213,6 +215,11 @@ function Controls({ press, level, chase, robotLook, hasDock, startDocked, shapes
       <button type="button" onClick={press("turnLeft90")}>Turn left 90{"°"}</button>
       <button type="button" onClick={press("turnRight90")}>Turn right 90{"°"}</button>
       <button type="button" onClick={press("stop")}>Stop</button>
+    </div>
+    <div className="buttons">
+      <button type="button" onClick={press("explore")}>Explore</button>
+      <button type="button" onClick={press("dock")}>Dock</button>
+      {hasDock ? <button type="button" onClick={press("undock")}>Undock</button> : null}
     </div>
     <div className="buttons">
       <button type="button" onClick={press("headUp")}>Head up</button>

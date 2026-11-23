@@ -11,11 +11,14 @@
 // block until done. Here an action is started and then advanced one control
 // tick per tick() call, so a frame loop can run it. The tick order is the same.
 
+import { AutonomyController } from "./autonomy.js";
+import { CubeFirmwareVm } from "./cube_firmware.js";
 import { TreadController, TreadEncoder, wholeMmps } from "./drive.js";
 import { CubeSensor } from "./cube_sensor.js";
 import { Hazards } from "./hazards.js";
 import { CHANNELS, ImuFilter } from "./imu_filter.js";
 import { ProxSensor } from "./prox.js";
+import { SysconFirmware } from "./syscon_firmware.js";
 import { assert, clamp, makeGauss, profileStep, pyRound, toward } from "./util.js";
 
 export const CONTROL_DEFAULT = "default";
@@ -65,12 +68,17 @@ export class VectorSim {
     this.mujoco = mujoco;
     this.shelfOutline = opts.shelfOutline;
     this.cubeStartXY = opts.cubeStartXY;
+    this.cameraSpec = opts.camera ?? null;
+    this._cubeFirmwareBytes = null;
+    this.sysconFirmware = null;
+    this._firmwareMeta = null;
     this.v = opts.values;
     this.d = opts.derived;
     this.dt = this.v.control_period_ms * 0.001;
     this.model = mujoco.MjModel.from_xml_string(opts.xml);
     this.data = new mujoco.MjData(this.model);
     this._indexModel();
+    this._autonomy = new AutonomyController(this, this.cameraSpec);
     this.reset(opts);
   }
 
@@ -114,7 +122,15 @@ export class VectorSim {
     this.cubeSensor = this._cubeAdr < 0 ? null : new CubeSensor(
       this.v, this.model.opt.timestep, opts.noiseSeed ?? 0, this._cubeForce(),
     );
-    if (this.cubeSensor) this.cubeSensor.handlingCube = this._cubeMountedOnFork;
+    if (this.cubeSensor) {
+      this.cubeSensor.handlingCube = this._cubeMountedOnFork;
+      if (this._cubeFirmwareBytes) {
+        this.cubeSensor.attachFirmware(
+          new CubeFirmwareVm(this._cubeFirmwareBytes, { railCounts: this.shelfOutline ? 444 : 426 }),
+        );
+      }
+    }
+    this._autonomy?.navMap.reset();
   }
 
   dispose() {
@@ -140,6 +156,7 @@ export class VectorSim {
     if (this._dockBody >= 0) this._dockPins = ["dock_pin_l", "dock_pin_r"].map(name => id("mjOBJ_SITE", name));
     this._tofSite = id("mjOBJ_SITE", "tof");
     this._sceneOnly = [1, 0, 0, 0, 0, 0]; // geom group 0 is the scene; the robot's own geoms are in group 1
+    this._cubeBody = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY.value, "cube");
     const cubeId = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR.value, "cube_accel");
     this._cubeAdr = cubeId < 0 ? -1 : model.sensor_adr[cubeId];
     this._cubeMountedOnFork = cubeId >= 0 &&
@@ -547,6 +564,18 @@ export class VectorSim {
       head_in_pos: this._headInPos,
       lift_in_pos: this._liftInPos,
     };
+    if (this.sysconFirmware) {
+      const counts = [this._encoders[0].counts, this._encoders[1].counts, Math.round(lift), Math.round(head / DEG)];
+      this.lastSpineFrame = this.sysconFirmware.packBodyFrame({
+        frameCounter: this.tick_,
+        motorPos: counts,
+        cliff: this.cliffRangesMm().map((mm) => (mm < 0 ? 4 : Math.max(4, Math.round(900 - 4.48 * mm)))),
+        batteryRaw: Math.trunc(this.batteryVolts * 2048 / 2.8),
+        chargerRaw: this.chargerContact ? Math.trunc(5 * 2048 / 2.8) : 0,
+        chargerFlags: this.chargerContact ? 3 : 0,
+        proxMm: prox.distance_mm,
+      });
+    }
   }
 
   // Facts the real robot does not report: for the display and for the tests.
@@ -564,6 +593,8 @@ export class VectorSim {
       wheel_angles_rad: this.wheelAnglesRad(), wheel_spin_radps: this.wheelSpinRadps(),
       battery_volts: this.batteryVolts, tread_heat: this.treadHeat.slice(),
       on_charger: Boolean(this.chargerContact), on_charger_platform: this._onDockPlatform(),
+      autonomy_phase: this._autonomy?.phase ?? null,
+      firmware_active: Boolean(this.sysconFirmware || this.cubeSensor?.firmware),
     };
   }
 
@@ -935,6 +966,7 @@ export class VectorSim {
   cancelAction() {
     const a = this._action;
     if (a === null) return false;
+    if (a.autonomy) this._autonomy.restoreControlLevel(a.autonomy);
     const [x, y] = this.poseMm();
     this.lastAction = {
       kind: a.kind, result: RESULT_CANCELLED, moved_mm: Math.hypot(x - a.start[0], y - a.start[1]),
@@ -954,6 +986,9 @@ export class VectorSim {
 
   // Why a running action must end now, or null.
   _interrupt() {
+    if (this._action?.autonomy) {
+      return (this.hazards.falling && this.poseMm()[2] < -5) ? RESULT_OFF_GROUND : null;
+    }
     if (this._cancelled) return RESULT_CLIFF;
     if (this.hazards.pickedUp || this.hazards.falling) return RESULT_OFF_GROUND;
     return null;
@@ -1022,6 +1057,52 @@ export class VectorSim {
     return made;
   }
 
+  attachFirmware({ cubeBytes = null, sysconBytes = null, manifest = null } = {}) {
+    this._cubeFirmwareBytes = cubeBytes;
+    this._firmwareMeta = manifest;
+    if (cubeBytes && this.cubeSensor) {
+      this.cubeSensor.attachFirmware(new CubeFirmwareVm(cubeBytes, { railCounts: this.shelfOutline ? 444 : 426 }));
+    }
+    if (sysconBytes) this.sysconFirmware = new SysconFirmware(sysconBytes);
+  }
+
+  navMapSnapshot() {
+    return this._autonomy.navMap.snapshot();
+  }
+
+  firmwareStatus() {
+    return {
+      active: Boolean(this.sysconFirmware || this.cubeSensor?.firmware),
+      cubeVersion: this.cubeSensor?.firmware?.version ?? null,
+      sysconVersion: this.sysconFirmware?.version ?? null,
+      sysconReset: this.sysconFirmware ? `0x${this.sysconFirmware.resetHandler.toString(16).padStart(8, "0")}` : null,
+      framesPacked: this.sysconFirmware?.framesPacked ?? 0,
+      bmaFramesRead: this.cubeSensor?.firmware?.bma?.framesRead ?? 0,
+      sourceCommit: this._firmwareMeta?.source_commit ?? null,
+    };
+  }
+
+  _startAutonomy(ctx) {
+    if (!this.hasControl || this._action !== null) {
+      this._autonomy.restoreControlLevel(ctx);
+      return this._refuse();
+    }
+    const maxS = Math.max(8, (ctx.deadlineTick - this.tick_) * this.dt + 2);
+    return this._newAction(ctx.mode, { autonomy: ctx, budget: Math.trunc(maxS / this.dt) + 200 });
+  }
+
+  driveOffCharger() {
+    return this._startAutonomy(this._autonomy.startUndock());
+  }
+
+  explore(durationS = 15) {
+    return this._startAutonomy(this._autonomy.startExplore(durationS));
+  }
+
+  dockWithCharger() {
+    return this._startAutonomy(this._autonomy.startDock());
+  }
+
   // A servo action leaves the treads alone: the Python's _servo_action never zeroes them.
   _newServoAction(kind, target, tol, span, speed) {
     assert(tol > 0 && speed > 0, "servo tolerance and speed must be positive");
@@ -1058,7 +1139,19 @@ export class VectorSim {
       return false;
     }
     a.budget -= 1;
-    const done = a.servo ? this._servoDone(a) : a.kind === "drive" ? this._steerDrive(a) : this._steerTurn(a);
+    let done = false;
+    if (a.autonomy) {
+      const stepRes = this._autonomy.step(a.autonomy);
+      if (!stepRes.running) {
+        const { running: _r, result, ...extra } = stepRes;
+        a.result = result ?? RESULT_COMPLETED;
+        a.extra = extra;
+        a.phase = "finish";
+        return false;
+      }
+    } else {
+      done = a.servo ? this._servoDone(a) : a.kind === "drive" ? this._steerDrive(a) : this._steerTurn(a);
+    }
     if (done) {
       a.result = RESULT_COMPLETED;
       a.phase = "finish";
@@ -1122,9 +1215,11 @@ export class VectorSim {
       this._inAction = false;
     }
     const [x, y] = this.poseMm();
+    if (a.autonomy) this._autonomy.restoreControlLevel(a.autonomy);
     this.lastAction = {
       kind: a.kind, result: a.result, moved_mm: Math.hypot(x - a.start[0], y - a.start[1]),
       turned_deg: (this._yawTotal - a.yaw0) / DEG, ticks: this.tick_ - a.tick0,
+      ...(a.extra ?? {}),
     };
     this._action = null;
     return false;

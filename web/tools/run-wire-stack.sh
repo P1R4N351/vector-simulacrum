@@ -5,9 +5,13 @@ repo=$(cd "${1:?pass the wire-os-victor checkout}" && pwd)
 build="$repo/_build/vicos/Simulator"
 sdk="${VICOS_SDK:-$HOME/.anki/vicos-sdk/dist/$(cat "$repo/project/VICOS_SDK_VERSION")}"
 qemu=$(readlink -f "$(command -v qemu-arm-static)")
-for name in vic-robot vic-engine vic-anim; do
+procs=(vic-robot vic-engine vic-anim)
+for name in "${procs[@]}"; do
   test -x "$build/bin/$name" || { echo "Build the Simulator $name target first" >&2; exit 1; }
 done
+if [ -x "$build/bin/vic-webserver" ]; then
+  procs+=(vic-webserver)
+fi
 # ARM asset enumeration under QEMU failed on the tested host ext4 build tree.
 # Stage resource directories on tmpfs so all three processes see the same files.
 state=$(mktemp -d /dev/shm/vector-wire.XXXXXXXX)
@@ -26,7 +30,7 @@ mkdir -p "$state"/{tmp,run,devsocket,data/data/com.anki.victor/{cache,persistent
 # Return failure from a fresh process inside the sandbox instead.
 printf '%s\n' 'int main(void) { return 1; }' | cc -static -x c -o "$state/deny-os-setting" -
 cp -r "$build/data" "$state/resources"
-for name in vic-robot vic-engine vic-anim; do
+for name in "${procs[@]}"; do
   bwrap --die-with-parent --unshare-user --unshare-pid \
     --ro-bind "$sdk/sysroot/usr/lib" /usr/lib --ro-bind "$sdk/sysroot/usr/share" /usr/share --symlink usr/lib /lib \
     --ro-bind "$state/deny-os-setting" /usr/bin/sudo \

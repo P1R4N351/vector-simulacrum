@@ -354,7 +354,7 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 
 | | |
 |---|---|
-| `src/sim/` | The port: `drive.js`, `hazards.js`, `prox.js`, `robot.js`, `util.js`; and `optics.js` (camera geometry). No browser APIs; runs under node |
+| `src/sim/` | The port: `drive.js`, `hazards.js`, `prox.js`, `robot.js`, `util.js`; `optics.js` (camera geometry); `thumb.js`, `cube_firmware.js`, `syscon_firmware.js` (real firmware execution); and `autonomy.js` (optical marker localization, `NavMapGrid`, explore & self-dock) |
 | `src/game/` | `game.js` (boot, control loop, views), `scene.js` (drawing), `sdkmodel.js` (the SDK model), `rigmodel.js` (blended `Victor_rig_01` rig), `dock.js` (charger dock OBJ & decals), `cube.js` (blended `Victor_cube_rig` & fiducials), `headcam.js` (the robot's camera), `tracks.js` (track path, cleats, spokes), `input.js` |
 | `camera_calibration.json` | One real robot's camera calibration |
 | `src/program/` | Programs written in the page: `host.js` (the robot end, calls against the simulator in robot time), `runtime.js` (the robot object, running a program, line numbers), `worker.js`, `runner.js` (the page end), `examples.js`. All but `worker.js` run under node |
@@ -364,8 +364,15 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 | `tools/fetch_rig_model.py` | Split `Victor_rig_01.obj` hardware rig + `rig_manifest.json`, into `public/robot/sdk/rig/` |
 | `tools/fetch_dock_model.py` | The charger dock mesh (`Vic_charger_hp_geo.obj`) + `dock_manifest.json`, into `public/robot/sdk/` |
 | `tools/fetch_cube_model.py` | Normalize `Victor_cube_rig.obj` Light Cube + `cube_rig_manifest.json`, into `public/robot/sdk/` |
-| `test/` | Eighteen test files (105 tests; five optional asset tests skip cleanly when unfetched), `mutate.mjs`, the fixtures |
-| `demo.sh`, `Dockerfile` | One command to a running page; a static container on port 8080 |
+| `tools/fetch_firmware.py` | Fetch & verify `cube.dfu` (decrypted in memory to `cube.plain.bin`) + `syscon-flash.bin` from `wire-os-victor`, into `public/robot/firmware/` |
+| `test/` | Tests, `mutate.mjs`, and fixtures |
+| `demo.sh`, `Dockerfile` | One command to a running page; a static container on port 8080 (`WITH_FIRMWARE=1` bundles real firmware) |
+
+### Standalone real firmware & autonomous explore / self-docking
+
+Run `python3 tools/fetch_firmware.py --download` to fetch unmodified Dialog DA14580 Light Cube firmware (`cube.dfu` decrypted in memory -> `cube.plain.bin`) and STM32F030 body syscon flash (`sysboot.bin` + `syscon.dfu` -> `syscon-flash.bin`) into `public/robot/firmware/` (gitignored; `?firmware=off` skips loading). In-browser execution runs unmodified `cube.plain.bin` inside an ARMv6-M Thumb VM (`src/sim/thumb.js` + `src/sim/cube_firmware.js`) and packs/verifies CRC-32 `BodyToHead` spine frames (`src/sim/syscon_firmware.js`).
+
+Use the **Explore**, **Dock**, and **Undock** HUD buttons — or `await robot.explore(seconds)`, `await robot.dock_with_charger()`, and `await robot.drive_off_charger()` in the **Program** tab (see the `"Explore and self-dock"` example) — to build a 20 mm `NavMapGrid` (rendered live on the MiniMap), detect charger and cube optical markers through the calibrated pinhole camera, and self-dock onto the charger pins (`4.20 V`). When connected to a live WireOS simulator via `?wireos=1` and `WIREOS_BODY=1`, `wire_relay.js` forwards **Explore / Dock / Undock** intents to `vic-webserver` (`run-wire-stack.sh` also launches `vic-webserver` when present).
 
 To use the measured shelf cube with the free scene, open
 `?cube=free&cubeSensor=unit3`. This selects its chip scale, noise and word format
