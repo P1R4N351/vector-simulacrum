@@ -1,0 +1,90 @@
+--- a/engine/vision/visionSystem.cpp
++++ b/engine/vision/visionSystem.cpp
+@@ -1273,6 +1273,7 @@
+                                                         useVariableHeight,
+                                                         poseData, cropRect);
+ 
++    fprintf(stderr,"BOUNDTRACE %u %d\n",unsigned(imageCache.GetTimeStamp()),int(cropInBounds));
+     if(!cropInBounds)
+     {
+       PRINT_CH_DEBUG(kLogChannelName, "VisionSystem.DetectMarkersWithCLAHE.CropRectOOB", "");
+@@ -1294,6 +1295,15 @@
+     
+     const Vision::Image& imgROI = imgPtr->GetROI(cropRect);
+     lastResult = _markerDetector->Detect(imgROI, _currentResult.observedMarkers);
++    static int capture = 0;
++    if(capture < 120){
++      char path[128];
++      snprintf(path,sizeof(path),"/probe/full-%03d.png",capture);
++      imgPtr->Save(path);
++      snprintf(path,sizeof(path),"/probe/crop-%03d.png",capture);
++      imgROI.Save(path);
++      fprintf(stderr,"CROPTRACE %d %u %d %d %d %d %d %zu\n",capture++,unsigned(imgROI.GetTimestamp()),cropRect.GetX(),cropRect.GetY(),cropRect.GetWidth(),cropRect.GetHeight(),int(IsModeEnabled(VisionMode::Markers_ChargerOnly)),_currentResult.observedMarkers.size());
++    }
+     if(RESULT_OK != lastResult) {
+       break;
+     }
+@@ -1605,6 +1615,8 @@
+   bool anyModeFailures = false;
+   
+   
++  static unsigned traceTick=0;
++  if(++traceTick<240) fprintf(stderr,"VISIONTRACE %u %u %d %d\n",traceTick,unsigned(imageCache.GetTimeStamp()),int(IsModeEnabled(VisionMode::Markers)),int(IsModeEnabled(VisionMode::Markers_Off)));
+   if(IsModeEnabled(VisionMode::Markers))
+   {
+     if(IsModeEnabled(VisionMode::Markers_Off))
+@@ -1619,6 +1631,14 @@
+                                        poseData.imuDataHistory.WasRotatingTooFast(imageCache.GetTimeStamp(),
+                                                                                   DEG_TO_RAD(kBodyTurnSpeedThreshBlock_degs),
+                                                                                   DEG_TO_RAD(kHeadTurnSpeedThreshBlock_degs)));
++      fprintf(stderr,"ROTTRACE %u %d\n",unsigned(imageCache.GetTimeStamp()),int(wasRotatingTooFast));
++      {
++        const auto& h=poseData.imuDataHistory;
++        auto it=h.begin(); if(it!=h.end()) ++it;
++        while(it!=h.end() && it->timestamp < imageCache.GetTimeStamp()) ++it;
++        const bool pair=it!=h.end();
++        fprintf(stderr,"IMUTRACE %u %u %u %d %.4f %.4f %.4f %.4f\n",unsigned(imageCache.GetTimeStamp()),h.empty()?0u:unsigned(h.front().timestamp),h.empty()?0u:unsigned(h.back().timestamp),int(pair),pair?double((it-1)->gyroRobotFrame.y):0.,pair?double(it->gyroRobotFrame.y):0.,pair?double((it-1)->gyroRobotFrame.z):0.,pair?double(it->gyroRobotFrame.z):0.);
++      }
+       if(!wasRotatingTooFast)
+       {
+         // Marker detection uses rolling shutter compensation
+--- a/engine/components/visionComponent.cpp
++++ b/engine/components/visionComponent.cpp
+@@ -1006,7 +1006,7 @@
+       HistRobotState* histStatePtr = nullptr;
+       HistStateKey histStateKey;
+ 
+-      lastResult = _robot->GetStateHistory()->ComputeAndInsertStateAt(procResult.timestamp, t, &histStatePtr, &histStateKey, true);
++      lastResult = _robot->GetStateHistory()->ComputeAndInsertStateAt(procResult.timestamp, t, &histStatePtr, &histStateKey, true);fprintf(stderr,"HISTTRACE %u %d\n",unsigned(procResult.timestamp),int(lastResult));
+ 
+       if(RESULT_FAIL_ORIGIN_MISMATCH == lastResult)
+       {
+--- a/engine/blockWorld/blockWorld.cpp
++++ b/engine/blockWorld/blockWorld.cpp
+@@ -860,13 +860,15 @@
+     return RESULT_OK;
+   }
+   
+-  // We cannot trust observations of objects if we were off treads, so no need to continue
++  // We cannot trust observations of objects if we were off treads
++  fprintf(stderr,"RAWTRACE %u %zu %d\n",unsigned(atTimestamp),objectsSeenRaw.size(),int(_robot->GetOffTreadsState()));
++  // , so no need to continue
+   if (_robot->GetOffTreadsState() != OffTreadsState::OnTreads) {
+     return RESULT_OK;
+   }
+   
+   // First, filter the raw observations
+-  auto objectsSeen = FilterRawObservedObjects(objectsSeenRaw);
++  auto objectsSeen = FilterRawObservedObjects(objectsSeenRaw);fprintf(stderr,"FILTERTRACE %u %zu\n",unsigned(atTimestamp),objectsSeen.size());
+   
+   // Have we observed a charger?
+   std::shared_ptr<ObservableObject> observedCharger = nullptr;
+@@ -1021,7 +1023,7 @@
+     const bool wasCameraMoving = (_robot->GetMoveComponent().IsCameraMoving() ||
+                                   _robot->GetMoveComponent().WasCameraMoving(atTimestamp));
+     const bool ignoreChargerAndIsCharger = (ignoreCharger && IsChargerType(objSeen->GetType(), false));
+-    if (ignoreChargerAndIsCharger || (wasCameraMoving && !isSelectedObject)) {
++    if (ignoreChargerAndIsCharger || (wasCameraMoving && !isSelectedObject)) {fprintf(stderr,"MOVETRACE %u %d %d\n",unsigned(atTimestamp),int(wasCameraMoving),int(isSelectedObject));
+       continue;
+     }
+     
