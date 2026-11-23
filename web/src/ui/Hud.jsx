@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { gameApi, useGame } from "../store.js";
 import MiniMap from "./MiniMap.jsx";
+import ProgramPanel from "./ProgramPanel.jsx";
 
 // toFixed keeps the sign of a value that rounds to zero ("-0"); drop it.
 const fmt = (value, digits = 0) => (Number.isFinite(value) ? value.toFixed(digits).replace(/^-(0(\.0+)?)$/, "$1") : "-");
@@ -11,20 +12,20 @@ const pair = (values, digits = 0) => `${fmt(values[0], digits)} / ${fmt(values[1
 const KEYS = [
   ["W A S D / arrows", "drive (Shift: faster)"], ["R F", "head up / down, while held"], ["T G", "lift up / down, while held"],
   ["1 2", "forward / back 100 mm"], ["3 4", "turn left / right 90°"], ["5 6", "head to its top / bottom"],
-  ["7 8", "lift to its top / bottom"], ["Space", "stop"],
+  ["7 8", "lift to its top / bottom"], ["Space", "stop (a program too)"],
   ["X", "take control back"], ["O", "cliff reaction on / off"], ["Backspace", "reset"],
   ["C  V  B  Q  P", "follow camera, sensor beams, physics shapes, robot camera, pause"],
 ];
 const RESULT_TEXT = {
   completed: "completed", cancelled_cliff: "cancelled by a cliff", no_control: "refused: no control",
-  timeout: "timed out", aborted_off_ground: "aborted: off the ground",
+  timeout: "timed out", aborted_off_ground: "aborted: off the ground", cancelled: "cancelled by Stop",
 };
 
 function Chip({ tone, children }) {
   return <span className={`chip ${tone}`}>{children}</span>;
 }
 
-function StatusChips({ t, level }) {
+function StatusChips({ t, level, program }) {
   const control = t.fallen ? ["bad", "FELL OFF THE TABLE"]
     : t.reacting ? ["warn", "REACTING TO A CLIFF"]
       : t.has_control ? ["ok", "HAS CONTROL"] : ["warn", "NO CONTROL · PRESS X"];
@@ -36,6 +37,7 @@ function StatusChips({ t, level }) {
       {t.picked_up ? <Chip tone="warn">PICKED UP</Chip> : null}
       {t.falling ? <Chip tone="bad">FALLING</Chip> : null}
       {t.action_running ? <Chip tone="info">ACTION RUNNING</Chip> : null}
+      {program === "running" ? <Chip tone="info">PROGRAM RUNNING</Chip> : null}
     </div>
   );
 }
@@ -159,13 +161,15 @@ export default function Hud() {
   const robotLook = useGame((s) => s.robotLook);
   const shapes = useGame((s) => s.shapes);
   const camView = useGame((s) => s.camView);
+  const programStatus = useGame((s) => s.program.status);
+  const [tab, setTab] = useState("controls");
   if (!t || !model) return null;
   const press = (name) => () => gameApi.press?.(name);
   return (
     <div className="hud">
       <header className="panel top-left">
         <h1>Vector simulacrum</h1>
-        <StatusChips t={t} level={level} />
+        <StatusChips t={t} level={level} program={programStatus} />
         {paused ? <div className="paused">PAUSED</div> : null}
       </header>
       <section className="panel right">
@@ -181,41 +185,55 @@ export default function Hud() {
         <About model={model} robotLook={robotLook} />
       </section>
       <section className="panel bottom-left">
-        <div className="buttons">
-          <button type="button" onClick={press("forward100")}>Forward 100 mm</button>
-          <button type="button" onClick={press("back100")}>Back 100 mm</button>
-          <button type="button" onClick={press("turnLeft90")}>Turn left 90{"°"}</button>
-          <button type="button" onClick={press("turnRight90")}>Turn right 90{"°"}</button>
-          <button type="button" onClick={press("stop")}>Stop</button>
+        <div className="tabs" role="tablist" aria-label="Panel">
+          {[["controls", "Controls"], ["program", "Program"]].map(([id, label]) => (
+            <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>{label}</button>
+          ))}
         </div>
-        <div className="buttons">
-          <button type="button" onClick={press("headUp")}>Head up</button>
-          <button type="button" onClick={press("headLevel")}>Head level</button>
-          <button type="button" onClick={press("headDown")}>Head down</button>
-          <button type="button" onClick={press("liftUp")}>Lift up</button>
-          <button type="button" onClick={press("liftDown")}>Lift down</button>
-        </div>
-        <div className="buttons">
-          <button type="button" onClick={press("control")}>Take control</button>
-          <button type="button" className={level === "default" ? "" : "danger"} onClick={press("level")}>
-            {level === "default" ? "Turn cliff reaction off" : "Turn cliff reaction on"}
-          </button>
-          <button type="button" onClick={press("chase")}>{chase ? "Free camera" : "Follow robot"}</button>
-          {robotLook === "sdk" ? (
-            <button type="button" onClick={press("shapes")}>{shapes ? "Hide physics shapes" : "Show physics shapes"}</button>
-          ) : null}
-          <button type="button" onClick={press("camera")}>{camView ? "Hide robot camera" : "Show robot camera"}</button>
-          <button type="button" onClick={press("pause")}>{paused ? "Resume" : "Pause"}</button>
-          <button type="button" onClick={press("reset")}>Reset</button>
-        </div>
-        <ul className="keys">
-          {KEYS.map(([key, what]) => <li key={key}><kbd>{key}</kbd><span>{what}</span></li>)}
-          {padConnected ? <li><kbd>Gamepad</kbd><span>left stick drives, right stick tilts the head</span></li> : null}
-        </ul>
+        {tab === "program" ? <ProgramPanel /> : <Controls press={press} level={level} chase={chase} robotLook={robotLook}
+          shapes={shapes} camView={camView} paused={paused} padConnected={padConnected} />}
       </section>
       {camView ? <CameraView camera={model.camera} /> : null}
-      <TouchPad />
+      {tab === "program" ? null : <TouchPad />}
       <Notice />
     </div>
+  );
+}
+
+function Controls({ press, level, chase, robotLook, shapes, camView, paused, padConnected }) {
+  return (
+    <>
+    <div className="buttons">
+      <button type="button" onClick={press("forward100")}>Forward 100 mm</button>
+      <button type="button" onClick={press("back100")}>Back 100 mm</button>
+      <button type="button" onClick={press("turnLeft90")}>Turn left 90{"°"}</button>
+      <button type="button" onClick={press("turnRight90")}>Turn right 90{"°"}</button>
+      <button type="button" onClick={press("stop")}>Stop</button>
+    </div>
+    <div className="buttons">
+      <button type="button" onClick={press("headUp")}>Head up</button>
+      <button type="button" onClick={press("headLevel")}>Head level</button>
+      <button type="button" onClick={press("headDown")}>Head down</button>
+      <button type="button" onClick={press("liftUp")}>Lift up</button>
+      <button type="button" onClick={press("liftDown")}>Lift down</button>
+    </div>
+    <div className="buttons">
+      <button type="button" onClick={press("control")}>Take control</button>
+      <button type="button" className={level === "default" ? "" : "danger"} onClick={press("level")}>
+        {level === "default" ? "Turn cliff reaction off" : "Turn cliff reaction on"}
+      </button>
+      <button type="button" onClick={press("chase")}>{chase ? "Free camera" : "Follow robot"}</button>
+      {robotLook === "sdk" ? (
+        <button type="button" onClick={press("shapes")}>{shapes ? "Hide physics shapes" : "Show physics shapes"}</button>
+      ) : null}
+      <button type="button" onClick={press("camera")}>{camView ? "Hide robot camera" : "Show robot camera"}</button>
+      <button type="button" onClick={press("pause")}>{paused ? "Resume" : "Pause"}</button>
+      <button type="button" onClick={press("reset")}>Reset</button>
+    </div>
+    <ul className="keys">
+      {KEYS.map(([key, what]) => <li key={key}><kbd>{key}</kbd><span>{what}</span></li>)}
+      {padConnected ? <li><kbd>Gamepad</kbd><span>left stick drives, right stick tilts the head</span></li> : null}
+    </ul>
+    </>
   );
 }

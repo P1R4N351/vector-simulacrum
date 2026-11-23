@@ -9,6 +9,8 @@
 // the parameter table. Each frame runs as many whole control ticks as real
 // time has passed, up to MAX_TICKS_PER_FRAME; past that the simulation runs
 // slower than real time (and says so in the readout) rather than stall the page.
+// While a program written in the page runs, it owns the robot: robot time then moves
+// only while the program waits on a call (program/host.js), and held keys do nothing.
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -22,6 +24,7 @@ import shelfCube from "../sim/shelf_cube.json";
 import { loadCubeLook } from "./cube.js";
 import { buildVisuals } from "./scene.js";
 import { loadSdkModel } from "./sdkmodel.js";
+import { createProgramRunner } from "../program/runner.js";
 
 const MAX_TICKS_PER_FRAME = 24;
 const TELEMETRY_PERIOD_MS = 100;
@@ -196,11 +199,12 @@ function moodOf(truth, sim) {
 }
 
 function installApi(ctx) {
-  const { sim, visuals, driver } = ctx;
+  const { sim, visuals, driver, programs } = ctx;
   const note = (text) => useGame.setState({ notice: text === null ? null : { text, at: performance.now() } });
   const press = {
-    stop: () => sim.stopAllMotors(),
+    stop: () => (programs.running ? programs.stop() : sim.stopAllMotors()),
     reset: () => {
+      programs.stop();
       sim.reset({ noiseSeed: 1 });
       driver.reset();
       visuals.clearTrail();
@@ -220,10 +224,20 @@ function installApi(ctx) {
   };
   for (const [name, start] of Object.entries(ACTIONS)) {
     press[name] = () => {
-      if (!start(sim)) note(sim.hasControl ? "Refused: an action is already running" : "Refused: no control (press X)");
+      if (programs.running) note("A program is running: stop it first");
+      else if (!start(sim)) note(sim.hasControl ? "Refused: an action is already running" : "Refused: no control (press X)");
     };
   }
-  Object.assign(gameApi, { press: (name) => press[name]?.(), setPad: (fwd, turn) => ctx.input.setPad(fwd, turn), trail: () => visuals.trailPoints() });
+  Object.assign(gameApi, {
+    press: (name) => press[name]?.(), setPad: (fwd, turn) => ctx.input.setPad(fwd, turn), trail: () => visuals.trailPoints(),
+    runProgram: (source) => {
+      programs.stop(); // a run in progress is replaced
+      if (sim.actionRunning) note("Refused: an action started from the buttons is still running");
+      else programs.run(source);
+    },
+    stopProgram: () => programs.stop(),
+    clearProgramLog: () => programs.clearLog(),
+  });
   return press;
 }
 
@@ -255,11 +269,28 @@ function startLoop(ctx) {
   let lastTelemetry = 0;
   let ticksInWindow = 0;
   let blinkAt = last + 3000;
+  let programWas = false;
+  let shownVersion = -1;
+  let shownWaiting = null;
+
+  // A program's run, or held input, for this frame's ticks. Returns the ticks run.
+  function runTicks(intent, ticks) {
+    const { programs } = ctx;
+    if (programWas && !programs.running) driver.reset(); // held keys take over again from a standstill
+    programWas = programs.running;
+    if (!programs.running) {
+      driver.apply(intent);
+      sim.tick(ticks);
+      return ticks;
+    }
+    const ran = programs.advance(ticks);
+    if (programs.waitingOn === null) debt = 0; // robot time waits for the program
+    return ran;
+  }
 
   function advance(now, dtS) {
     const intent = ctx.input.read();
     if (intent.padConnected !== useGame.getState().padConnected) useGame.setState({ padConnected: intent.padConnected });
-    driver.apply(intent);
     debt += dtS;
     let ticks = Math.floor(debt / sim.dt);
     if (ticks > MAX_TICKS_PER_FRAME) {
@@ -267,9 +298,16 @@ function startLoop(ctx) {
       debt = 0;
     } else debt -= ticks * sim.dt;
     const wasRunning = sim.actionRunning;
-    sim.tick(ticks);
-    ticksInWindow += ticks;
+    ticksInWindow += runTicks(intent, ticks);
     if (wasRunning && !sim.actionRunning) useGame.setState({ lastAction: sim.lastAction });
+  }
+
+  function publishProgram() {
+    const { programs } = ctx;
+    if (programs.version === shownVersion && programs.waitingOn === shownWaiting) return;
+    shownVersion = programs.version;
+    shownWaiting = programs.waitingOn;
+    useGame.setState({ program: programs.view() });
   }
 
   function frame(now) {
@@ -301,6 +339,7 @@ function startLoop(ctx) {
     if (now - lastTelemetry >= TELEMETRY_PERIOD_MS) {
       const rate = (ticksInWindow * sim.dt * 1000) / (now - lastTelemetry);
       useGame.setState({ telemetry: telemetryOf(sim, { rate: ui.paused ? 0 : rate }) });
+      publishProgram();
       lastTelemetry = now;
       ticksInWindow = 0;
     }
@@ -343,7 +382,9 @@ export async function bootGame(canvas) {
     const doneScene = bootLine("SCENE");
     const cube = free && sdk ? await loadCubeLook(model.values.cube_size_mm) : null;
     const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube);
-    const ctx = { ...view, sim, visuals, driver: makeDriver(sim), input: null, raf: 0 };
+    // The worker is named here, in this form, so that the bundler finds it and builds it.
+    const programs = createProgramRunner(sim, () => new Worker(new URL("../program/worker.js", import.meta.url), { type: "module" }));
+    const ctx = { ...view, sim, visuals, driver: makeDriver(sim), programs, input: null, raf: 0 };
     const press = installApi(ctx);
     ctx.input = createInput((name) => press[name]?.());
     doneScene("OK");
