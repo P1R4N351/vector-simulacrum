@@ -1,6 +1,7 @@
 // Use the SDK's optical surface when installed; the collision boxes remain visible otherwise.
 import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+import { repairDockNormals } from "./dock.js";
 
 export const CUBE_FACE_ATLAS = {
   negX: { n: [-1, 0, 0], right: [0, -1, 0], up: [0, 0, 1], cx: 0.16211, cy: 0.15625, h: 0.10156 },
@@ -38,7 +39,7 @@ export function stockCubeTexture(image) {
 
 // These three adjacent faces were rectified from a stock cube photograph.
 // Local orientations describe the photographed upright pose; the robot approaches -X.
-export function makeCubeMarks(sizeMm) {
+export function makeCubeMarks(sizeMm, surfaceHalfM = sizeMm * 0.0005) {
   const group = new THREE.Group();
   const loader = new THREE.TextureLoader();
   const photoScale = 272 / 256; // 8 px transparent margin on each side
@@ -62,7 +63,7 @@ export function makeCubeMarks(sizeMm) {
     mark.scale.set(scale, scale, 1);
     mark.up.fromArray(up);
     mark.lookAt(new THREE.Vector3(...normal));
-    mark.position.fromArray(normal).multiplyScalar(sizeMm * .0005);
+    mark.position.fromArray(normal).multiplyScalar(surfaceHalfM);
     group.add(mark);
   }
   return group;
@@ -119,8 +120,69 @@ export function repairCubeUVs(geometry) {
   return geometry;
 }
 
+const CUBE_LED_TAGS = ["phong2SG", "Block1_lightA_mat1SG", "Block1_lightC_matSG", "Block1_lightD_matSG"];
+
+function cubeMaterialForTag(tag) {
+  if (tag === "blinn2SG") {
+    return new THREE.MeshStandardMaterial({ color: 0x16171a, roughness: 0.86, metalness: 0.02 });
+  }
+  if (tag === "phong3SG") {
+    return new THREE.MeshStandardMaterial({ color: 0x8e8470, roughness: 0.34, metalness: 0.42 });
+  }
+  if (CUBE_LED_TAGS.includes(tag)) {
+    return new THREE.MeshStandardMaterial({
+      color: 0xd8dde4, roughness: 0.28, metalness: 0.04, emissive: 0x000000, emissiveIntensity: 1.0,
+    });
+  }
+  return new THREE.MeshStandardMaterial({ color: 0x2b2d32, roughness: 0.48, metalness: 0.06 });
+}
+
+export function assembleCubeRigObj(objText, sizeMm = 44, { includeMarks = true } = {}) {
+  const group = new THREE.Group();
+  group.name = "Victor_cube_rig";
+  const holder = new THREE.Group();
+  holder.scale.setScalar(sizeMm / 44);
+  const byTag = new Map();
+  const meshes = [];
+  new OBJLoader().parse(objText).traverse((node) => {
+    if (!node.isMesh || !node.geometry?.attributes?.position) return;
+    const tag = Array.isArray(node.material) ? node.material[0]?.name : node.material?.name;
+    node.geometry = repairDockNormals(node.geometry);
+    node.material = cubeMaterialForTag(tag);
+    const isLed = CUBE_LED_TAGS.includes(tag);
+    node.castShadow = !isLed;
+    node.receiveShadow = true;
+    if (isLed) byTag.set(tag, node);
+    meshes.push(node);
+  });
+  for (const m of meshes) holder.add(m);
+  group.add(holder);
+  if (includeMarks) group.add(makeCubeMarks(sizeMm, (21.58 / 44) * sizeMm * 0.001));
+  group.userData.leds = CUBE_LED_TAGS.map((tag) => byTag.get(tag) ?? null);
+  return group;
+}
+
+async function fetchOkText(url) {
+  const resp = await fetch(url, { cache: "no-cache" });
+  const type = resp.headers.get("content-type") ?? "";
+  if (!resp.ok || type.includes("text/html")) return null;
+  return resp.text();
+}
+
 export async function loadCubeLook(sizeMm, base = "./robot/sdk/", options = {}) {
   try {
+    if (options.rig !== false) {
+      if (options.requireManifest !== false) {
+        const mText = await fetchOkText(`${base}cube_rig_manifest.json`);
+        if (mText && JSON.parse(mText).sha256) {
+          const rigText = await fetchOkText(`${base}Victor_cube_rig.obj`);
+          if (rigText) return assembleCubeRigObj(rigText, sizeMm, { includeMarks: options.includeMarks !== false });
+        }
+      } else {
+        const rigText = await fetchOkText(`${base}Victor_cube_rig.obj`);
+        if (rigText) return assembleCubeRigObj(rigText, sizeMm, { includeMarks: options.includeMarks !== false });
+      }
+    }
     if (options.requireManifest !== false) {
       const manifest = await (await fetch(base + "manifest.json")).json();
       if (!manifest.sha256?.["cube.obj"] || !manifest.sha256?.["cube.jpg"]) return null;

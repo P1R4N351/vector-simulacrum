@@ -16,6 +16,8 @@ export const useGame = create(() => ({
   shapes: false, // physics shapes drawn over the SDK model
   camView: true, // the robot's own camera view
   robotLook: "shapes", // "sdk" when the SDK's robot model is drawn
+  hasDock: false,
+  startDocked: false,
   padConnected: false,
   telemetry: null,
   lastAction: null,

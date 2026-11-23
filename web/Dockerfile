@@ -13,13 +13,15 @@ ARG WITH_SDK_MODEL=0
 ARG WITH_PRINT_PARTS=0
 ARG WITH_RIG_MODEL=0
 ARG WITH_DOCK_MODEL=0
+ARG WITH_CUBE_MODEL=0
 WORKDIR /w
-COPY tools/fetch_sdk_model.py tools/fetch_print_parts.py tools/fetch_rig_model.py tools/fetch_dock_model.py tools/
+COPY tools/fetch_sdk_model.py tools/fetch_print_parts.py tools/fetch_rig_model.py tools/fetch_dock_model.py tools/fetch_cube_model.py tools/
 COPY public/robot/model.json public/robot/model.json
 RUN mkdir -p public/robot/sdk && \
     if [ "$WITH_SDK_MODEL" = "1" ]; then python3 tools/fetch_sdk_model.py --download; fi
 RUN if [ "$WITH_PRINT_PARTS" = "1" ]; then test "$WITH_SDK_MODEL" = "1" && python3 tools/fetch_print_parts.py; fi
 RUN if [ "$WITH_DOCK_MODEL" = "1" ]; then python3 tools/fetch_dock_model.py; fi
+RUN if [ "$WITH_CUBE_MODEL" = "1" ]; then python3 tools/fetch_cube_model.py --download; fi
 RUN if [ "$WITH_RIG_MODEL" = "1" ]; then pip install --no-cache-dir numpy && python3 tools/fetch_rig_model.py --download; fi
 
 FROM node:22-alpine AS build

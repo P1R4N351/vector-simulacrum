@@ -88,7 +88,11 @@
  "source": {
   "table_sha256": "dc5190e6a228dda4cf1cfa48fdb928247317bee68e88e0605489b6e680eb4868",
   "trial_xml_sha256": "87a5ba047c346d0cd21d2527bd22484a2fe9b62519fd46a48448996ae6e4ca83",
+  "vector-contact42-dock_sha256": "6dc393ec180ed2009f06a6bb44421918f84cca06e9c06b08e48d59772721ef9b",
+  "vector-contact42-free-dock_sha256": "346f1e17dc53f88be6cb29d721f92bb9dc0bcaf3b89a6f1eeeff8209e68041ed",
   "vector-contact42-free_sha256": "9b66fd873d3c52bed0ffca5f8c57217da5b821554f760f4f06153c7af003cb01",
+  "vector-dock_sha256": "e0c7a915c0a08f1c58b0a72de113c97923bed665c1d02576641b22a1eb5925f7",
+  "vector-free-dock_sha256": "86489427eafc647eceafbfb3a0839a8a0c892e2c687880c83937901320221d5c",
   "vector-free_sha256": "5f1126e2ea874fcbc7b7ce1ef2359613b34ede8396b00617d24f9e6fa1eba3fa",
   "xml_sha256": "46ca51d9db4a4b75f50fe1c2a0303a97d0859a464a73ef4aebd255348243ecb7"
  },

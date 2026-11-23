@@ -83,12 +83,15 @@ async function loadEverything() {
   const trial = options.get("contact") === "42";
   const shelf = options.get("env") === "shelf" ||
     (!options.has("env") && options.get("cubeSensor") === "unit3");
-  const free = shelf || options.get("cube") === "free";
+  const free = shelf || !["none", "0"].includes(options.get("cube"));
+  const hasTableDock = !shelf && !["none", "0"].includes(options.get("dock"));
+  const startDocked = options.get("start") === "docked" || options.get("dock") === "docked";
   const vector2 = shelf || options.get("robot") === "2";
   const printedFork = options.get("fork") === "printed";
   if (printedFork && !vector2) throw new Error("Printed fork calibration requires robot=2");
   const directory = vector2 ? "./robot/vector2" + (printedFork ? "/printed" : "") : "./robot";
-  const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "") + (shelf ? "-shelf" : "");
+  const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "")
+    + (shelf ? "-shelf" : hasTableDock ? "-dock" : "");
   const [{ default: loadMujoco }, xml, modelText] = await Promise.all([
     traced("PHYSICS RUNTIME", import("@mujoco/mujoco")),
     traced(trial ? "ROBOT MODEL · 42 MM CONTACT" : "ROBOT MODEL",
@@ -99,14 +102,16 @@ async function loadEverything() {
   if (free && options.get("cubeSensor") === "unit3") Object.assign(model.values, shelfCube);
   if (free && vector2 && options.get("cubeSensor") === "unit3") model.values.supervisor_loop_ms = 5.083;
   const doneCheck = bootLine("MODEL CHECKSUM");
-  doneCheck(await checkModel(xml, free ? model.source[sceneName + "_sha256"] : (trial ? model.source.trial_xml_sha256 : model.source.xml_sha256)));
+  const expectedHash = model.source[`${sceneName}_sha256`]
+    ?? (trial ? model.source.trial_xml_sha256 : model.source.xml_sha256);
+  doneCheck(await checkModel(xml, expectedHash));
   const mujoco = await traced("WEBASSEMBLY", loadMujoco({ locateFile: (p) => (p.endsWith(".wasm") ? mujocoWasmUrl : p) }));
   const doneCompile = bootLine("COMPILE AND SETTLE");
   const mapFile = options.get("map") === "live" ? "shelf-navmap-live.json" : "shelf-navmap.json";
   const navMap = shelf ? JSON.parse(await fetchText("./robot/vector2/" + mapFile)) : null;
   const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
     cubeStartXY: shelf ? mappedCubeXY(navMap, model.values.cube_size_mm, -66, 30) : null,
-    startDocked: shelf && options.get("start") === "docked",
+    startDocked,
     shelfOutline: shelf ? model.shelf_outline_mm : null,
     bodyRangeClock: options.has("rangeClock") ? options.get("rangeClock") === "body" : undefined, chargerContact: options.get("chargerContact") === "1" });
   doneCompile("OK");
@@ -125,7 +130,7 @@ function makeRenderer(canvas) {
   scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment()).texture;
   scene.environmentIntensity = 0.55;
   const camera = new THREE.PerspectiveCamera(38, 1, 0.005, 20);
-  camera.position.set(0.19, 0.125, 0.19);
+  camera.position.set(0.24, 0.16, 0.28);
   camera.layers.enable(HIDDEN_FROM_ROBOT); // the main view sees the drawing aids the robot's camera does not
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
@@ -202,6 +207,7 @@ function telemetryOf(sim, extra) {
     prox_lift: s.prox_is_lift_in_fov, cliff: t.cliff_flags, cliff_detected: s.cliff_detected, picked_up: s.picked_up,
     falling: s.falling, has_control: sim.hasControl, reacting: t.reacting, reactions: sim.reactions,
     fallen: t.fallen, edge_margin_mm: t.edge_margin_mm, action_running: sim.actionRunning,
+    on_charger: t.on_charger, on_charger_platform: t.on_charger_platform,
   };
 }
 
@@ -219,10 +225,23 @@ function installApi(ctx) {
     stop: () => (programs.running ? programs.stop() : sim.stopAllMotors()),
     reset: () => {
       programs.stop();
-      sim.reset({ noiseSeed: 1 });
+      sim.reset({ noiseSeed: 1, startDocked: useGame.getState().startDocked });
       driver.reset();
       visuals.clearTrail();
       useGame.setState({ lastAction: null });
+      note(null);
+    },
+    toggleDockStart: () => {
+      if (programs.running) {
+        note("A program is running: stop it first");
+        return;
+      }
+      if (sim._dockBody < 0) return;
+      const next = !useGame.getState().startDocked;
+      sim.reset({ noiseSeed: 1, startDocked: next });
+      driver.reset();
+      visuals.clearTrail();
+      useGame.setState({ startDocked: next, lastAction: null });
       note(null);
     },
     chase: () => useGame.setState((s) => ({ chase: !s.chase })),
@@ -438,8 +457,10 @@ export async function bootGame(canvas) {
     const { mujoco, model, sim, free, navMap } = await loadEverything();
     const sdk = await loadRobotLook(model);
     const doneScene = bootLine("SCENE");
-    const cube = free && sdk ? await loadCubeLook(model.values.cube_size_mm) : null;
     const options = new URLSearchParams(window.location.search);
+    const cube = free && options.get("look") !== "shapes"
+      ? await loadCubeLook(model.values.cube_size_mm, "./robot/sdk/", { rig: options.get("look") !== "sdk-only" })
+      : null;
     const dockId = mujoco.mj_name2id(sim.model, mujoco.mjtObj.mjOBJ_BODY.value, "dock");
     const dock = dockId >= 0 && options.get("look") !== "shapes" ? await loadDockLook() : null;
     const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube, navMap, dock);
@@ -452,6 +473,8 @@ export async function bootGame(canvas) {
     useGame.setState({
       model, level: sim.controlLevel, telemetry: telemetryOf(sim, { rate: 0 }), bootDone: true,
       robotLook: sdk === null ? "shapes" : "sdk",
+      hasDock: dockId >= 0,
+      startDocked: Boolean(sim.startDocked),
     });
     if (typeof window !== "undefined") {
       window.__sim = sim; // debug handles, as window.__store

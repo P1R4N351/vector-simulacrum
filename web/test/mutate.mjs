@@ -19,7 +19,9 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const COPIED = ["src/sim", "src/game", "src/program", "test", "public/robot/vector.xml", "public/robot/vector-contact42.xml",
-  "public/robot/vector-free.xml", "public/robot/vector-contact42-free.xml", "public/robot/model.json",
+  "public/robot/vector-free.xml", "public/robot/vector-contact42-free.xml", "public/robot/vector-dock.xml",
+  "public/robot/vector-contact42-dock.xml", "public/robot/vector-free-dock.xml",
+  "public/robot/vector-contact42-free-dock.xml", "public/robot/model.json",
   "public/robot/vector2", "camera_calibration.json", "camera_calibration_vector2.json", "package.json"];
 const SUITE = ["test/drive.test.js", "test/hazards.test.js", "test/robot.test.js", "test/tracks.test.js", "test/optics.test.js",
   "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js",
