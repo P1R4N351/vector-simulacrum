@@ -536,7 +536,12 @@ class RangeSensors(unittest.TestCase):
         self.assertGreaterEqual(min(readings), sim.v["tof_report_min_mm"])
 
     def test_forward_range_never_reports_below_its_minimum(self) -> None:
-        near = (35.0, 0.0, 50.0, 10.0, 200.0, 100.0)  # face 20 mm from the sensor
+        near = (41.0, 0.0, 50.0, 10.0, 200.0, 100.0)  # face 26 mm from the sensor
+        v = params.values(params.load(), QUIET)
+        wrist_x = v["lift_base_position_mm"][0] + v["lift_arm_length_mm"] * math.cos(
+            mjcf.lift_angle_of_height(v, v["lift_height_min_mm"]))
+        hook_tip_x = wrist_x + v["lift_fork_hook_slices_mm"][-1][1]
+        self.assertGreater(near[0] - 0.5 * near[3], hook_tip_x + 1.0, "the wall must clear the lowered fork's hooks")
         sim = _quiet_sim(obstacles=[near])
         state = sim.advance(0.05)
         self.assertLess(sim.sim_truth()["tof_hits_mm"][0], sim.v["tof_report_min_mm"])

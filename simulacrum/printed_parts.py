@@ -636,7 +636,7 @@ def _apply_fork(root: ET.Element, v: Dict[str, Any], fork: Dict[str, Any]) -> No
     reference = next(g for g in body.findall("geom") if g.get("name") == "lift_fork_geom")
     contact = {k: val for k, val in reference.attrib.items() if k not in ("name", "type", "pos", "size", "mass")}
     for geom in body.findall("geom"):
-        if geom.get("name", "").startswith(("lift_fork_geom", "fork_side_")):
+        if geom.get("name", "").startswith(("lift_fork_geom", "fork_side_", "fork_hook_", "fork_upright_")):
             geom.set("contype", "0")
             geom.set("conaffinity", "0")
             geom.set("mass", "0")

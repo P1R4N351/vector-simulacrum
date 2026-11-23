@@ -77,24 +77,24 @@
   ]
  ],
  "provenance_counts": {
-  "assumed": 38,
+  "assumed": 39,
   "chosen": 9,
   "fitted": 19,
   "manual": 17,
   "measured": 10,
-  "sdk": 96
+  "sdk": 101
  },
  "robot_model": "vector_1",
  "source": {
-  "table_sha256": "dc5190e6a228dda4cf1cfa48fdb928247317bee68e88e0605489b6e680eb4868",
-  "trial_xml_sha256": "87a5ba047c346d0cd21d2527bd22484a2fe9b62519fd46a48448996ae6e4ca83",
-  "vector-contact42-dock_sha256": "6dc393ec180ed2009f06a6bb44421918f84cca06e9c06b08e48d59772721ef9b",
-  "vector-contact42-free-dock_sha256": "346f1e17dc53f88be6cb29d721f92bb9dc0bcaf3b89a6f1eeeff8209e68041ed",
-  "vector-contact42-free_sha256": "9b66fd873d3c52bed0ffca5f8c57217da5b821554f760f4f06153c7af003cb01",
-  "vector-dock_sha256": "e0c7a915c0a08f1c58b0a72de113c97923bed665c1d02576641b22a1eb5925f7",
-  "vector-free-dock_sha256": "86489427eafc647eceafbfb3a0839a8a0c892e2c687880c83937901320221d5c",
-  "vector-free_sha256": "5f1126e2ea874fcbc7b7ce1ef2359613b34ede8396b00617d24f9e6fa1eba3fa",
-  "xml_sha256": "46ca51d9db4a4b75f50fe1c2a0303a97d0859a464a73ef4aebd255348243ecb7"
+  "table_sha256": "36aa16c7cd4ffa2ebc70a4bb52b673071157a55b1a0cf74d0db24b4fe7b5ff51",
+  "trial_xml_sha256": "eeb58d20ffb69d3ca07998d1900af2c0e7262cbc80bea73d344d2639eb08416d",
+  "vector-contact42-dock_sha256": "1c2f2c638b02aa94c5a8ea101427872f326d8c601f149aa84cfe1829255e06b2",
+  "vector-contact42-free-dock_sha256": "e36614da34e2e79ce839d748bab7b04e2e43c7d3315e8e8050ff897c2c1963c2",
+  "vector-contact42-free_sha256": "2e888b58e2735d092631ddbf7e16980a5a31d411b6a3b11b5f132b43f075c714",
+  "vector-dock_sha256": "d6c0e0453a7bdec4e25eb5556a48aa527e5f3058d6fe8bff81f2cfaf656f7179",
+  "vector-free-dock_sha256": "c910e42717e34d2843179a1d2dc32ce2aaa4d2a43d8a4788343b28d0931be66f",
+  "vector-free_sha256": "34563ceef0707e5432ceb26bb95ebe219667f444055f559a88deb2b8811f322b",
+  "xml_sha256": "e08248b6ab08dae082c12407827b22bd3d9bd27574bd41c0805c6cbf8424c548"
  },
  "values": {
   "accel_bias_mg": [
@@ -186,6 +186,11 @@
   ],
   "cube_chip_yaw_deg": 0.0,
   "cube_mass_g": 50.0,
+  "cube_notch_pocket_half_z_mm": 13.7,
+  "cube_notch_pocket_xy_mm": [
+   14.0,
+   20.5
+  ],
   "cube_outer_mm": 45.0,
   "cube_size_mm": 44.0,
   "cube_tick_ms": 10.0,
@@ -263,6 +268,84 @@
    0.0,
    45.0
   ],
+  "lift_fork_hook_slices_mm": [
+   [
+    4.5,
+    5.0,
+    -16.3,
+    -6.2
+   ],
+   [
+    5.0,
+    5.5,
+    -14.9,
+    -6.2
+   ],
+   [
+    5.5,
+    6.0,
+    -13.5,
+    -6.2
+   ],
+   [
+    6.0,
+    6.5,
+    -12.3,
+    -6.2
+   ],
+   [
+    6.5,
+    7.0,
+    -11.0,
+    -5.6
+   ],
+   [
+    7.0,
+    7.5,
+    -9.7,
+    -4.9
+   ],
+   [
+    7.5,
+    8.0,
+    -8.4,
+    -4.3
+   ],
+   [
+    8.0,
+    8.5,
+    -7.2,
+    -3.7
+   ],
+   [
+    8.5,
+    9.0,
+    -5.9,
+    -3.1
+   ],
+   [
+    9.0,
+    9.5,
+    -4.7,
+    -2.7
+   ],
+   [
+    9.5,
+    10.0,
+    -3.4,
+    -2.6
+   ]
+  ],
+  "lift_fork_hook_upright_mm": [
+   1.0,
+   4.5,
+   -20.0,
+   -2.0
+  ],
+  "lift_fork_hook_y_mm": [
+   15.6,
+   19.2
+  ],
   "lift_fork_side_center_mm": [
    2,
    22,
@@ -286,6 +369,7 @@
   "lift_rad_per_encoder_count": 0.0052465,
   "lift_servo_kp_mNm_per_rad": 600.0,
   "lift_servo_kv_mNms_per_rad": 12.0,
+  "lift_servo_torque_max_mNm": 60.0,
   "lift_speed_default_radps": 10.0,
   "lift_speed_max_radps": 10.0,
   "lift_xbar_height_mm": 8.5,
