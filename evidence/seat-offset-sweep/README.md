@@ -21,3 +21,5 @@ From this directory, with web dependencies installed, run the following commands
 python3 inputs.py .. | node replay.mjs > sweep.csv
 python3 score.py
 ```
+
+As an additional static check, move the initial chassis 14, 15 and 16 mm outward before settling, spanning the nominal optical depths. All seven starts retained electrical contact at +14 mm. At +15 and +16 mm, all fourteen starts were already electrically off before a wheel command. This puts the simulated contact boundary close to where the optical reconstruction places the physical robot at rest. [Static checks](static-check.csv) · Reproduce with `python3 inputs.py .. | node replay.mjs --static`.
