@@ -11,3 +11,11 @@ In W32, the 9.2 mm planar step included 5.9 mm **forward** along the last off-ch
 ## Prediction from the last observed charger pose
 
 The stock engine calls SetPoseOnCharger after a successful charger mount. It uses the charger's orientation and sets the robot origin 30 mm along the charger's local X axis. Applying that transform to the last observed charger in the same SDK origin predicts the first on-charger XY position within **0.82 mm for all eleven recordings** with a matching observation, including W5 and W7 outside the numbered subset plotted above. The charger observations preceded contact by 5.8–8.9 seconds. W32's error fell from 9.34 mm at last off to 0.24 mm at first on. W3's correction appeared one report earlier. Between 124 and 57 ms before the first on flag, SDK XY jumped 7.2 mm onto the predicted target. Scoring only the flag-crossing interval would miss that correction. These are checks of the reported position. The independent camera measures chassis motion. [Per-trial predictions](charger-target.csv) · [Stock mount callback](https://github.com/os-vector/wire-os-victor/blob/3cec4844d24c4719b5b3892e4979494bcd260424/engine/robotToEngineImplMessaging.cpp#L137-L147) · [Docked pose transform](https://github.com/os-vector/wire-os-victor/blob/3cec4844d24c4719b5b3892e4979494bcd260424/engine/charger.cpp#L121-L130)
+
+## Heading on the next completed return
+
+The canonical simulator sets reported heading to the dock's outward direction on successful localization. We computed that direction by projecting the negative local X axis of the last same-origin charger observation onto the shelf plane and wrapping the SDK heading difference to ±180°. Across the original eleven returns the largest absolute first-on error was 0.239°. On the subsequently completed W35, the error fell from +6.813° at last off to +0.069° at first on, with the same transform and no fitted offset. This checks the heading target conditional on a successful mount and an observed dock orientation. It does not measure chassis rotation or test whether the simulated robot reaches the dock.
+
+![Measured headings relative to the predicted target](heading-transfer.png)
+
+[Observed quaternions and SDK headings](heading-inputs.csv) · [Reproduce the plot](heading_check.py)
