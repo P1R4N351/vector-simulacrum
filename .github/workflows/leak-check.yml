@@ -72,6 +72,72 @@ jobs:
           sys.exit(1 if findings else 0)
           PY
 
+  # The text scan above reads files only, so a commit's author, committer and message pass it, and a
+  # merge or squash made on GitHub is authored with the account's commit email without the pre-push
+  # hook ever seeing it. This job reads the commits the push or pull request adds, with the same
+  # secret pattern list, and reports commit + field + pattern id (never the matched text). On a push
+  # it runs after the fact: a merge GitHub made is already on the branch when this turns red.
+  authors:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Commits added by this push or pull request
+        id: range
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "pull_request" ]; then
+            # The checkout is GitHub's trial merge, which never lands: scan the pull request's own
+            # commits, from the base (first parent) to the pull request head (second parent).
+            base="$(git rev-parse HEAD^1)"
+            head="$(git rev-parse HEAD^2)"
+          elif [ -n "${BEFORE:-}" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] \
+               && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            base="$BEFORE"
+            head="$(git rev-parse HEAD)"
+          elif git rev-parse --verify --quiet origin/main >/dev/null; then
+            # New branch, or a force push whose old tip is gone: everything the branch adds over main.
+            base="$(git merge-base origin/main HEAD)"
+            head="$(git rev-parse HEAD)"
+          else
+            # No main to compare with: every commit reachable from HEAD.
+            base=""
+            head="$(git rev-parse HEAD)"
+          fi
+          echo "base ${base:-none}; head $head; $(git rev-list --count ${base:+$base..}$head) commit(s)."
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "head=$head" >> "$GITHUB_OUTPUT"
+      - name: Author scan self-test (the scan must be able to find a planted canary)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s .github/leak-check -p 'test_author_scan.py' -v
+          python3 .github/leak-check/author_scan.py --self-test
+      - name: Decode patterns and scan the commits
+        env:
+          LEAK_PATTERNS_JSON_B64: ${{ secrets.LEAK_PATTERNS_JSON }}
+          BASE: ${{ steps.range.outputs.base }}
+          HEAD_SHA: ${{ steps.range.outputs.head }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${LEAK_PATTERNS_JSON_B64:-}" ]; then
+            echo "::warning::LEAK_PATTERNS_JSON secret is not set for this run (fork pull request, or secret not configured). Skipping author scan."
+            exit 0
+          fi
+          mkdir -p "$RUNNER_TEMP/lc"
+          echo "$LEAK_PATTERNS_JSON_B64" | base64 -d > "$RUNNER_TEMP/lc/patterns.json"
+          python3 .github/leak-check/author_scan.py --patterns "$RUNNER_TEMP/lc/patterns.json" \
+            --head "$HEAD_SHA" ${BASE:+--base "$BASE"}
+
   # The text scan above skips binary files, so a name drawn into a plot legend or a photo caption
   # passes it. This job OCRs only the images the push or pull request adds or modifies, with the
   # same secret pattern list, and reports path + pattern id (never the matched text).
