@@ -14,32 +14,38 @@ import numpy as np
 from recorded_mount import ROOT, read_trial, table
 
 
-def main():
-    trials = [read_trial(c, o)[0] for c, o in zip(table("return-scores.csv"), table("mount-target-inputs.csv"), strict=True)]
-    optical = table("fork-yaw-motion.csv")
+def replay(trials, case):
     export = """import {rearEnvelope} from './rear_envelope.mjs'; import {readText} from '../../web/test/helpers.js';
     process.stdout.write(rearEnvelope(readText('public/robot/vector2/vector-free-dock.xml'),'driven_rear_envelope'));"""
     xml = subprocess.check_output(["node","--input-type=module","-e",export],cwd=ROOT,text=True)
+
+    model = ET.fromstring(xml)
+    shaft = case.startswith("Shaft")
+    if shaft:
+        for name in ["left_wheel","right_wheel"]:
+            motor=model.find(f".//actuator/general[@name='{name}']")
+            cap=float(motor.get("gainprm").split()[0])
+            joint=motor.get("joint")
+            motor.clear()
+            motor.tag="velocity"
+            motor.attrib.update(name=name,joint=joint,kv=case.split()[1],forcelimited="true",forcerange=f"{-cap} {cap}")
+    with tempfile.TemporaryDirectory() as tmp:
+        path=Path(tmp)/"model.xml"
+        ET.ElementTree(model).write(path)
+        inputs=[dict(trial, shaft_replay=shaft, interpolate=case!="Held command", immediate_wheels=case=="Immediate linear") for trial in trials]
+        raw=subprocess.check_output(["node",str(ROOT/"recorded_mount.mjs"),str(path)],input=json.dumps(inputs),
+                                    env=dict(os.environ,VECTOR_TRACE_SHAFTS="1"),text=True)
+    data=np.genfromtxt(io.StringIO(raw),names=True,delimiter=",",dtype=None,encoding="utf8")
+    return data
+
+
+def main():
+    trials = [read_trial(c, o)[0] for c, o in zip(table("return-scores.csv"), table("mount-target-inputs.csv"), strict=True)]
+    optical = table("fork-yaw-motion.csv")
     scores = []
     fig, axes = plt.subplots(2,5,figsize=(14,6),sharex="col",sharey="row",layout="constrained")
     for case in ["Held command","Linear command","Shaft 0.08","Shaft 0.8"]:
-        model = ET.fromstring(xml)
-        shaft = case.startswith("Shaft")
-        if shaft:
-            for name in ["left_wheel","right_wheel"]:
-                motor=model.find(f".//actuator/general[@name='{name}']")
-                cap=float(motor.get("gainprm").split()[0])
-                joint=motor.get("joint")
-                motor.clear()
-                motor.tag="velocity"
-                motor.attrib.update(name=name,joint=joint,kv=case.split()[1],forcelimited="true",forcerange=f"{-cap} {cap}")
-        with tempfile.TemporaryDirectory() as tmp:
-            path=Path(tmp)/"model.xml"
-            ET.ElementTree(model).write(path)
-            inputs=[dict(trial, shaft_replay=shaft, interpolate=case!="Held command") for trial in trials]
-            raw=subprocess.check_output(["node",str(ROOT/"recorded_mount.mjs"),str(path)],input=json.dumps(inputs),
-                                        env=dict(os.environ,VECTOR_TRACE_SHAFTS="1"),text=True)
-        data=np.genfromtxt(io.StringIO(raw),names=True,delimiter=",",dtype=None,encoding="utf8")
+        data=replay(trials, case)
         for col,trial in enumerate(trials):
             name=trial["name"]
             run=data[data["session"]==name]

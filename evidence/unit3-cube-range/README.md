@@ -406,3 +406,15 @@ For the independent travel check, compare the chassis origin with displacement i
 Run `python mount_pitch.py` from this folder with the canonical web dependencies installed.
 
 At the physical 3° crossing time, both simulated configurations were still 9.4–13.1 mm farther out than the SDK estimated across the five returns. On D they were at 55.37 mm versus 42.25 mm reported. The two model poses at that instant agree within 0.001 mm in every return. The early travel discrepancy is thus common to the fixed and driven rear-support versions; a change that acts only when those versions diverge would leave it in place.
+
+### Where does the early reverse travel go?
+
+[Approach travel overlays](mount-approach-travel.png) · [Travel differences and acquisition times](mount-approach-travel.csv) · [Analysis](mount_approach_travel.py)
+
+Use the same start and end time for physical and simulated travel in each return. The endpoint is the physical head-corrected 3° crossing. Integrate mean left/right peripheral speed projected onto the dock axis using the reported or simulated heading (planar projection). Compare the physical wheel integral with SDK position and the simulated shaft integral with MuJoCo chassis translation. Positive values are inward. SDK position uses wheel odometry and is not independent ground truth. Camera frames for these trials cover the later approach. In particular these early-window differences cannot measure physical slip.
+
+On A–E with held commands and driven rear support, simulated shaft travel fell 9.25–11.81 mm short of the physical wheel integral. Simulated shaft and chassis inward travel differed by at most 0.013 mm. SDK travel exceeded the physical wheel integral by 0.12–1.32 mm. On D the four distances were 46.55 mm SDK, 45.23 mm from measured wheel reports, 33.42 mm from simulated shafts and 33.43 mm from simulated chassis travel.
+
+Linear interpolation alone left shaft deficits of 8.42–10.14 mm. Bypassing the 75 ms wheel-command queue with that same interpolation reduced them to 6.30–7.98 mm. The tight direct-shaft diagnostic reduced them to 0.55–0.94 mm and early chassis-to-SDK gaps to 0.53–2.35 mm. It still lost the later acquisition on E and arrived early on B/C, as in the shaft replay above. Early travel is sensitive to treating already-measured speeds as external commands and applying the motor response again. The comparison does not justify reducing the physical command delay or changing contact friction.
+
+Run `python mount_approach_travel.py` from this directory with the canonical web dependencies installed.

@@ -21,6 +21,7 @@ for (const trial of trials) {
       headDeg: trial.head, liftMm: trial.lift, noiseSeed: 1});
     try {
       sim.controlLevel = "override";
+      if (trial.immediate_wheels) sim._wheelDelay = 0;
       const samples = trial.wheels;
       let index = 0;
       let shaftTargets;
