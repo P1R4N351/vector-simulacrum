@@ -46,3 +46,13 @@ Matching admits the physical counter-change packet and one neighboring packet on
 Both reconstructions miss W34 counter 76. The retained Z values rise from 6,865 to 10,509 counts (+3,644), opening the positive-first branch in the hold case. The following retained steps are −724 and −2,864 counts. Neither reaches the required reversal below −2,880. The physical cube nevertheless incremented its counter. This illustrates why evaluating simulated impacts requires scoring both the transmitted acceleration and the generated counter. The missing high-rate waveform cannot be inferred uniquely from these three-slot packets. Keep the detector threshold fixed.
 
 [Replay events](accel-only-taps.csv) · [Per-event matches](accel-only-scores.csv). Reproduce with `node accel_only.mjs > accel-only-taps.csv` and `python accel_only_plot.py` in this directory.
+
+## Fork contact during the wheelstand mount
+
+![Physical cube acceleration and fork replay](mount-replay.png)
+
+Each physical cube reported one tap between 0.8 s before and 0.1 s after the robot detected a stand. The peak change from rest was 3.04 g in W33, 1.05 g in W34 and 1.98 g in W35. The fork replay made contact in all three trials and produced one tap only in W35. Seeding W35 with the last visual observation shifts the cube center by 5.51 mm and yaw by 4.08 degrees. Its predicted peak rises from 0.35 to 0.40 g, still below the physical peak.
+
+The diagnostic extracts the fork collision geometry, free cube with rubber corners, sensor site and solver options from the canonical shelf XML. The cube starts upright and settles on a horizontal plane. The prescribed fork follows interpolated SDK position, yaw, pitch and lift height, with chassis pitch about the rear axle. This approximation omits wheel and body impacts, robot recoil, and fork compliance. The physical fork was printed and missing a tooth. SDK poses can drift during a wheelstand. These runs cannot identify which omitted effect dominates. Each three-slot sensor packet shares its receipt or simulated packet time. The alignment uses robot stand detection, which can occur after contact.
+
+[SDK trajectory](path.csv.gz) · [Visual cube observations](observations.csv) · [Impact scores](mount-scores.csv). With the web dependencies installed, Python MuJoCo 4.0.1, NumPy and Matplotlib, run `python mount_replay.py` from this directory.

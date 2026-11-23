@@ -20,3 +20,11 @@ The effective physical release occurred with less travel than the canonical defa
 - [W34 camera picks](hubs.csv) give hand-picked hub centers in the established 1000 × 440 corrected shelf view. Reverse travel uses their horizontal midpoint, converted with 48 mm divided by the median projected horizontal axle spacing. Perspective and ramp pitch affect this approximation.
 - [W35 camera tracks](departure-hubs.csv) give normalized correlation scores for two hub patches and a static dock patch. Tracks use the established shelf correction, limited per-frame search, horizontal displacement relative to the dock patch and the 124 px initial hub separation. Camera times use V4L2 frame PTS plus the median offset from the capture host's monotonic-to-UTC clock samples, then subtract the SDK receipt time at the flag edge.
 - With web dependencies installed and NumPy and Matplotlib available, run python analyze.py in this directory to regenerate both plots and the [departure replay](departure-replay.csv). The canonical MuJoCo web model used for this analysis was main at 31e04c2. No model parameter was fitted.
+
+## Independent seated baseline
+
+A fresh 61.92 s physical recording contains 1,033 SDK reports. All asserted the on-charger flag. Both wheel speeds were zero throughout, with no change in reported XY. The stable seated interval provides a control for spontaneous flag transitions and odometry jitter. The W34 position jump occurred during entry. This baseline supplies no independent contact-on depth because the robot stayed seated throughout.
+
+![Final W34 approach and independent seated baseline](rest-check.png)
+
+[Fresh physical SDK reports](rest.csv.gz) · [Reproduce the comparison](rest_check.py).
