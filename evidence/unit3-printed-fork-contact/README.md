@@ -274,3 +274,21 @@ At 4.985, 5.264 and 5.498 s we expressed the optically reconstructed cube in the
 The minimum RMS displacement across the two later views ranges from 8.49 to 16.56 mm at the recorded alignment. Shifting the wrist trajectory in 10 ms steps from −200 to +200 ms gave a best value of 6.25 mm. That fit missed the middle exposure by 8.52 mm and the final exposure by 2.38 mm. Within the tested registration and timing models, keeping the same cube point fixed to the fork over the full interval fails. Shorter periods of sticking, sliding or changing contacts remain possible. The sweep is a sensitivity analysis rather than an error bar.
 
 [Timing sweep](wrist-pivot.png) · [Displacements and best point for each reconstruction](wrist-pivot.csv). Run wrist_pivot.py ../.. from this directory.
+
+### Could a missing fork tooth explain the sideways sweep?
+
+At 4.98 s the lift was near its starting height and the overhead glyph was 0.20 mm right of its starting position. At 5.50 s the encoder reached 65.50 mm. Four optical reconstructions put the cube center 8.63–14.64 mm right by then. At 6.00 s the lift had descended to about 45 mm. The reconstructions disagree more there, giving 4.80–15.01 mm right. With the lift back down, the settled overhead displacement was 26.72 mm right. This establishes substantial lateral travel by peak lift and additional net travel by settling. The sparse exposures and changing marker projection leave the exact timing of the remaining travel unresolved.
+
+The installed fork was later reported to have a missing tooth. Its fracture date, side and dimensions are unknown. We tested four hypothetical cuts into the upper portion of the printed fork, removing collision material on either its left or right above a plane 8 or 16 mm below the wrist. The crossbar below the plane, drive, recorded wrist motion, cube pose, mass and friction were fixed. This varies contact shape only. It cannot capture a bent tooth, a rough fracture catching an edge, or the compliance of the print.
+
+| Trial 1 fork | Right travel at peak lift (mm) | Settled right travel (mm) | Peak tilt (°) |
+|---|---:|---:|---:|
+| Intact | 0.24 | 0.40 | 2.29 |
+| Left, −8 mm | −1.07 | −1.09 | 7.43 |
+| Right, −8 mm | 0.26 | 0.39 | 5.70 |
+| Left, −16 mm | 0.02 | 0.01 | 1.82 |
+| Right, −16 mm | −0.55 | −0.52 | 1.07 |
+
+The shallow left cut increased tilt most and sent the cube left. The deeper left cut also increased endpoint error on ordinary pushes 4 and 5 from 1.34/1.07 to 1.81/1.96 mm. The right cuts produced the intact endpoints on those two pushes. None of these variants recovered the observed rightward sweep. The canonical fork geometry remains the intact reference.
+
+[Physical and simulated displacement overlay](unilateral-fork.png) · [All 25 runs](unilateral-fork.csv) · [Replay script](unilateral_fork.py). Run the script with the repository root and the registered fork XML built by build_fixture.py.
