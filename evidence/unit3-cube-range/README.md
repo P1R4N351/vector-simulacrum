@@ -127,3 +127,53 @@ We corrected the native crops using the fitted See3CAM division lens and subtrac
 The canonical browser physics, starting docked at 33.4 mm lift and −9.5° head, releases after **14.01–14.28 mm** of forward chassis travel across commands of 25, 40 and 60 mm/s (last on through first off). Its chassis origin drops 2.44–2.45 mm and pitch changes −0.81°. That is longer than either in-bracket optical estimate. These observations constrain total travel from the initial seating to electrical release. They do not isolate pad length from initial pose or establish the correct replacement dimension.
 
 [Optical displacement and simulated release](release-optics.png) · [Tracked landmarks](release-landmarks.png) · [Session scores](release-optics.csv) · [Per-frame scores](release-frames.csv) · [Sim runs](release-replay.csv). Run release_replay.mjs with Node and the web dependencies, then release_optics.py with NumPy, OpenCV and Matplotlib. The timestamped rectified grayscale crops used by the analysis are in release-optics.zip.
+
+## When the printed fork crosses the range beam
+
+![Ray intersections versus lift height and measured ranges on three shelf pushes](fork-beam.png)
+
+In a quarter-millimetre sweep, at least one of the 19 browser rays struck the printed fork between 35 and 49.5 mm of lift height. The three collision boxes gave 34.5 to 50.5 mm. The firmware flags a wider 34–56 mm band. The geometric sweep measures line of sight with the wrist level and counts each ray equally.
+
+During the nine in-band samples on held-out push trials 3–5, unit 3 reported the 30 mm sensor floor three times. At the reported encoder time, the printed fork intercepted **zero rays** for all three floor readings. Using lift height interpolated **71 ms earlier**, those same readings intercepted 19, 11 and 16 rays. Each of the six longer-range readings intercepted at most one ray. The delay was taken from the earlier approach analysis on trials 1–2.
+
+A majority-of-rays rule classified 3/9 floor versus longer readings at zero delay and 9/9 at 71 ms. Including the adjacent SDK sample before and after each in-band sample gives 14/21 and 17/21, respectively. Trials 1–2 together gave 9/15 and 7/15 on that expanded window. The earlier lift height explains a timing pattern on three pushes. It does not yet predict continuous range or transfer across all five trials. A cube close to the fork can also return the minimum distance. The recorded lift is sampled roughly every 100 ms, so the 71 ms alignment depends on interpolation.
+
+Generate the local printed scenes as described in the web README, then run `node fork_beam.mjs > fork-beam.csv` and `python fork_beam.py` from this directory. The physical observations come from samples.csv. No production sensor settings changed.
+
+### Independent dock-motion check
+
+![Archived dock range reports versus lift, and classification across seven runs](dock-beam.png)
+
+Seven other unit 3 recordings (G, J, K, L, M, O and Q) contain lift height, range, signal quality and charger status. We selected SDK rows with dock contact, both reported wheel speeds zero, and lift between 34 and 56 mm. The dedicated docked actuator timing logs omit range. These seven recordings include dock departure or arrival behavior; the object in the beam is unlabelled.
+
+The unchanged majority-of-19-rays rule classified **125/182** minimum-distance versus longer reports at the recorded lift height and **142/182** at the lift height 71 ms earlier. Six recordings improved; J tied. At 71 ms the rule missed 10 of 75 minimum readings and predicted 30 additional minimum readings. Run K (return to dock) was the weakest, with every one of its five minimum readings missed. This is a test of the 30 mm reporting floor only.
+
+In 96/182 rows the reported distance and signal quality had both been constant for at least 250 ms. Restricting the score to the 57 rows where either field actually changed gives **43/57** at zero delay and **49/57** at 71 ms. An unchanged pair can reflect either a repeated report or a fresh equal measurement. SDK arrival time does not identify which. These observations support testing report cadence separately from optical geometry.
+
+[Per-run confusion counts](dock-beam.csv). Run `python dock_beam.py` to recreate the comparison from the archived JSONL and fork-beam.csv.
+
+**Encoder validity changes the interpretation of this result.** The published firmware assigns status bit 0x00400000 to an invalid lift encoder. All 19 selected rows of K and all 28 of J carry that bit. All 135 selected rows from the other five runs clear it. Restricting the comparison to these 135 improves the score from 99/135 at zero delay to 113/135 at 71 ms. K provides evidence about ranging cadence, but its reported wrist height cannot validate fork geometry. [Firmware status definitions](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/clad/src/clad/types/robotStatusAndActions.clad)
+
+In K the last rapid range/quality change occurred at 78.546 s. The next four changes arrived 997, 1023, 1038 and 1003 ms apart. The published body controller schedules a new front range measurement every 200 body ticks while docked with tread drive inactive, every 12 ticks while off dock with tread drive inactive, or every six ticks with tread drive active. At 5 ms per tick these correspond to 1000, 60 and 30 ms. Tread drive uses motor power, which can differ from measured wheel speed at zero. The one-second sequence agrees with docked slow ranging. The SDK trace lacks the raw acquisition counter and motor power needed to reconstruct every transition. [Body range scheduler](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/syscon/src/opto.cpp#L76-L100) · [Tread drive determination](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/syscon/src/motors.cpp#L145-L151)
+
+### The body timer predicts a 1.024 s dock period
+
+![Held-out range change times against the nominal clock and the audio-derived timer](dock-clock.png)
+
+The 5 ms body tick used above was rounded. The public syscon uses a 48 MHz clock and schedules each main loop from an 80-sample microphone frame, with decimation 96 and clock division by 2 × 16. That gives **5.12 ms per body tick**. The front range scheduler's 200, 12 and 6 tick settings therefore correspond to **1024, 61.44 and 30.72 ms**. This derivation concerns the published body timer; engine and SDK reporting have separate clocks. [Timer setup](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/syscon/src/timer.h#L13-L22) · [Audio frame size](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/syscon/schema/messages.h#L227) · [System clock](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/syscon/common/hardware.h#L20)
+
+In each of G, J, K, L, M, O and Q, the first two observed range/quality changes 0.8–1.2 s apart during continuous dock contact with zero wheel speeds established the slow regime and its phase. Each subsequent 3.25 s window contained three pair changes. We predicted all 21 times from the second anchor without further synchronization or fitting. Mean absolute arrival error was **48.8 ms at 1.000 s** and **19.6 ms at 1.024 s**. Each pair change occurred sometime between the preceding SDK row and the first changed row, subject to transport latency. Allowing that interval at both anchor and forecast placed **20/21** changes within the audio-derived clock bounds versus **13/21** at the nominal period. The largest residual at 1.024 s was 78.7 ms. Selection conditions on an already-observed slow interval; entry into that mode, distance accuracy and the two faster periods remain untested by this forecast.
+
+[Per-update timing and bounds](dock-clock.csv). Reproduce with `python dock_clock.py`.
+
+### Can the existing off-dock recordings distinguish 30.72 from 61.44 ms?
+
+![Observed range changes and candidate timing bounds](fast-clock.png)
+
+The native braking CSV preserves the body frame counter but omits the proximity acquisition counter. The firmware increments the latter on a rising ready-status bit and transmits it separately. The archived pickup SDK events expose range and quality. They omit that counter too. [Firmware fields](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/syscon/src/opto.cpp#L102-L118)
+
+We split seven recordings into disjoint windows of 17 consecutive off-dock SDK reports with both measured wheels stopped or at least one wheel at 30 mm/s or faster. Windows exclude receipt gaps above 200 ms and changes of speed class. For each candidate period we maximized the number of observable changes over all acquisition phases at the host receipt times. An unchanged pair can span multiple acquisitions. Wheel speed is an imperfect proxy for drive power.
+
+During motion, 35/87 windows exceeded the 61.44 ms ceiling; **13/87 also exceeded the 30.72 ms ceiling**. At rest the counts were 52/206 and 20/206. Packet batching is visible on an independent robot clock. In one stationary run G window, 14 range/quality changes arrived in 236 ms while the latest camera frame timestamp advanced 957 ms. In a moving G window, all 16 pairs changed in 634 ms of host time while the camera timestamp also advanced 957 ms. Camera timestamps constrain transport behavior but their ages relative to range acquisitions are unknown. The SDK receipt stream cannot independently establish the fast acquisition period. A discriminating measurement would log the body frame index, proximity sampleCount and tread drive power on the same clock.
+
+[Window-level counts and both clocks](fast-clock.csv). Reproduce with `python fast_clock.py`.
