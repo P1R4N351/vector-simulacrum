@@ -38,3 +38,13 @@ Across 25 strokes the two intervals overlapped on 5. The gap between the interva
 ![Status-to-motion timing by robot and stroke](state-relative.png)
 
 [Per-move intervals](state-relative.csv) · [Reproduction](state_relative.py) · [WireOS SDK state construction](https://github.com/os-vector/wire-os-victor/blob/3cec4844d24c4719b5b3892e4979494bcd260424/engine/robot.cpp#L2314-L2347)
+
+### Does an extra delay after command acceptance transfer?
+
+The median midpoint discrepancy between status clearing and the first gyro magnitude above 10°/s on the nine archived unit 1 and unit 2 strokes gave 83.7 ms. We froze that value and shifted the simulated motion relative to the observed status transition on 16 unit 3 strokes. Each comparison used the encoder and pitch gyro through 1.1 s after command submission. Both variants use identical initial posture, recorded samples and actuator dynamics.
+
+With the midpoint of the physical status bracket as the timing reference, the four archived unit 3 strokes improved slightly in median per-stroke RMS (4.26° → 4.01° encoder, 21.77 → 21.11°/s gyro). On the 12 new moves the median worsened (2.42° → 2.51°, 18.92 → 19.20°/s). The unknown time of acceptance matters. Anchoring to the earliest possible acceptance favored the delay on 14 of 16 moves for both sensors. Anchoring to the latest favored it on zero. The comparison uses retrospective status alignment, which is available only when a measured status trace exists. The workshop threshold result alone does not support adding 83.7 ms to the production motion profile.
+
+![Held-out per-stroke errors aligned at midpoint of SDK status transition](status-transfer.png)
+
+[All three timing references and trial scores](status-transfer.csv) · [Reproduction](status_transfer.py)
