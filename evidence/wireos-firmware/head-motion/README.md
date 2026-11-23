@@ -27,3 +27,18 @@ Duration above the threshold shows a direction effect that repeats off the dock.
 ![unit 3 gyro overlays aligned at first motion, with head-status release where recorded](unit3-aligned.png)
 
 [Per-move onset and clearance alignment results](unit3-aligned.csv)
+
+### Held-out test of lowering acceleration
+
+The two docked full lowers imply a 1.426× acceleration multiplier if their shorter gyro duration comes entirely from a faster triangular profile. We applied this multiplier only in a diagnostic MuJoCo replay. We tested two independent off-dock full lowers and six partial docked lowers. Both replays start at the measured posture and use the same command timing and 200 ms status dwell.
+
+| Held-out group | Encoder RMS, frozen → faster | Gyro RMS, frozen → faster | Gyro RMS matched at encoder angles, frozen → faster |
+|---|---:|---:|---:|
+| Off-dock full lowers (2) | 3.05 → 4.15° | 16.46 → 25.37°/s | 13.86 → 18.73°/s |
+| Docked partial lowers (6) | 1.34 → 2.35° | 14.47 → 20.43°/s | 12.56 → 12.03°/s |
+
+Entries are median per-move RMS. Time-based columns use the 91.6 ms offset previously estimated on other robots. On the unshifted host clock the candidate worsened both signals on every move. The final column pairs gyro with reported encoder angle over the middle 80% of each stroke, averaging replay speeds at repeated encoder levels. That comparison removes a common command delay but remains sensitive to relative timing between the two sensors. It favored the faster candidate on only three of six partial strokes and neither full stroke. We retained the existing actuator parameters. Threshold-crossing duration alone makes a poor calibration target here.
+
+![Physical and replayed encoder and gyro through eight independent lowers](lowering.png)
+
+[Trial scores](lowering.csv) · [Reproduction script](lowering.py)
