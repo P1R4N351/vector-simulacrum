@@ -1,0 +1,12 @@
+run,sec,active_action,prior_status,proxy_broadcast,sdk_observed
+R10,83.0173,dock,2261441,True,True
+R10,83.6938,dock,2228481,True,True
+R11,76.6286,dock,164801,True,True
+R11,76.9744,dock,164801,True,True
+R5,26.8004,pickup for inward transport,164423,False,False
+R5,29.2522,pickup for inward transport,834,False,False
+R5,32.8444,reverse inward,164739,False,False
+R5,38.3435,set cube down,518,False,False
+R8,51.9992,,180741,True,True
+A,63.8676,dock,164289,True,True
+A,66.095,dock,164289,True,True
