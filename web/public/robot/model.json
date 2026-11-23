@@ -78,7 +78,7 @@
  ],
  "provenance_counts": {
   "assumed": 38,
-  "chosen": 8,
+  "chosen": 9,
   "fitted": 19,
   "manual": 17,
   "measured": 10,
@@ -86,7 +86,7 @@
  },
  "robot_model": "vector_1",
  "source": {
-  "table_sha256": "77b5b2288727e841fb8690156dea7e173649aad023816b5a377714e80871649d",
+  "table_sha256": "dc5190e6a228dda4cf1cfa48fdb928247317bee68e88e0605489b6e680eb4868",
   "trial_xml_sha256": "87a5ba047c346d0cd21d2527bd22484a2fe9b62519fd46a48448996ae6e4ca83",
   "vector-contact42-free_sha256": "9b66fd873d3c52bed0ffca5f8c57217da5b821554f760f4f06153c7af003cb01",
   "vector-free_sha256": "5f1126e2ea874fcbc7b7ce1ef2359613b34ede8396b00617d24f9e6fa1eba3fa",
@@ -313,6 +313,7 @@
   "table_thickness_mm": 20.0,
   "table_width_mm": 600.0,
   "tip_support_clearance_mm": 0.3,
+  "tip_supports_driven": 0,
   "tof_found_pitch_limit_deg": 5.0,
   "tof_fov_deg": 25.0,
   "tof_lift_clear_ms": 90.0,

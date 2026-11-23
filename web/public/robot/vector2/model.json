@@ -80,7 +80,7 @@
  ],
  "provenance_counts": {
   "assumed": 35,
-  "chosen": 8,
+  "chosen": 9,
   "fitted": 23,
   "manual": 14,
   "measured": 11,
@@ -122,7 +122,7 @@
   ]
  ],
  "source": {
-  "table_sha256": "b215e5051b5e897f550bd6de54d265fdd3754a842e6d53584ee06bc87a44bf1e",
+  "table_sha256": "7ce6fcba6f02e20fe0eb9d1e7f73755b3f1caee4d6fa0caf284b7e8e8790d1b9",
   "trial_xml_sha256": "af2cf527ab8d08307841565760d6e02b96077a5e3c3fb66a45e4e36529330366",
   "vector-contact42-free-shelf_sha256": "8c979cd19606e6438b11de5e3d2115681988ba2f99c5e246f6fd4a43b8a68b48",
   "vector-contact42-free_sha256": "524b6f69e8843da636ff1d8282c53cd15c3b227d5e2ef5ef83c4897cefc8bee8",
@@ -351,6 +351,7 @@
   "table_thickness_mm": 20.0,
   "table_width_mm": 600.0,
   "tip_support_clearance_mm": 0.3,
+  "tip_supports_driven": 0,
   "tof_found_pitch_limit_deg": 5.0,
   "tof_fov_deg": 25.0,
   "tof_lift_clear_ms": 90.0,
