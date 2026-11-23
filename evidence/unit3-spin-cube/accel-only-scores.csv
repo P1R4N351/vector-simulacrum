@@ -1,0 +1,13 @@
+trial,physical_counter,mode,matched,delta_receipt_ms
+W33,73,hold,1,33.904999999999994
+W33,73,linear,1,0.0
+W34,74,hold,1,0.0
+W34,74,linear,0,
+W34,75,hold,1,39.41700000000004
+W34,75,linear,0,
+W34,76,hold,0,
+W34,76,linear,0,
+W35,77,hold,1,42.022000000000006
+W35,77,linear,1,42.022000000000006
+W35,78,hold,1,0.0
+W35,78,linear,0,
