@@ -7,28 +7,34 @@
 The text scan in leak-check.yml reads tracked files only, so a commit's author and committer are
 invisible to it. A merge or squash made on GitHub (the merge button, `gh pr merge`, the merges API)
 is authored by GitHub with the account's commit email, and the pre-push hook never sees it, because
-nobody pushed it. This reads every commit in BASE..HEAD (merges included; every commit reachable
-from HEAD when --base is not given) and matches the same pattern document against the author name,
-author email, committer name and committer email of each, separately. A finding is reported as
-commit, field and pattern id only; the matched text is never printed, so the log does not
-republish what it caught.
+nobody pushed it. This reads every commit in BASE..HEAD (merges and both sides of them included;
+every commit reachable from HEAD when --base is not given) and matches the same pattern document
+against the author name, author email, committer name and committer email of each, separately. A
+finding is reported as commit, field and pattern id only; the matched text is never printed, so the
+log does not republish what it caught.
 
-Commit messages are not read here.
+Commit messages are not read here. The co-author lines GitHub adds to a squash name the account's
+noreply address, and one current pattern also matches the words of such a line, so a message scan
+would add a false positive and no finding.
 
 It runs after the fact on a push: a merge GitHub made is already on the branch when this job turns
 red. It cannot predict the identity GitHub will give a merge it has not made yet.
 
---self-test builds a throwaway repository with one commit carrying a canary author and one carrying
-a canary committer between clean commits, scans it with a pattern that exists only for the test,
-and requires exactly the planted fields to be found and nothing else. It is the instrument proving
+--self-test builds a throwaway repository and scans it through the same path a real run takes,
+pattern file and exit code included. It plants a canary in each of the four fields: in the middle
+of a name, in lower case where the pattern is upper case with the i flag, and on a side branch
+reachable only through a merge's second parent. It requires exactly those four findings, a clean
+result on a clean range, and every commit read when no base is given. It is the instrument proving
 it can fail before its silence is trusted.
 
-Exit 0 clean, 1 findings, 2 usage, 3 instrument fault (git missing or failed, a revision that does
-not resolve, more than MAX_COMMITS commits, or a self-test that did not behave). A fault is never
-reported as clean.
+Exit 0 clean, 1 findings, 2 usage, 3 instrument fault (a pattern file that is unreadable,
+malformed or does not compile; git missing or failed; a revision that does not resolve; more than
+MAX_COMMITS commits; or a self-test that did not behave). A fault is never reported as clean or as
+a finding.
 """
 
 import argparse
+import io
 import json
 import os
 import re
@@ -36,14 +42,16 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from contextlib import redirect_stdout
 
 MAX_COMMITS = 20_000
+MAX_PATTERNS = 10_000
 GIT_TIMEOUT_S = 120
 FIELDS = ("author name", "author email", "committer name", "committer email")
 FORMAT = "%H%x00%an%x00%ae%x00%cn%x00%ce"
 SHA = re.compile(r"[0-9a-f]{40}")
-CANARY_PATTERN = r"\bQK8V\b"
-CANARY_NAME = "QK8V Canary"
+FINDING = re.compile(r"[0-9a-f]{12}: .+: .+")
+CANARY_DOC = {"patterns": [{"id": "canary", "category": "self-test", "regex": r"\bQK8V\b", "flags": "i"}]}
 CANARY_EMAIL = "qk8v@example.invalid"
 
 EXIT_CLEAN, EXIT_FINDINGS, EXIT_USAGE, EXIT_FAULT = 0, 1, 2, 3
@@ -54,17 +62,31 @@ class Fault(Exception):
 
 
 def load_patterns(path):
+    """[(id, compiled regex)] from a {"patterns": [{"id", "regex", "flags"}...]} document.
+
+    Every way the document can be wrong is a Fault. A message names the pattern by position and
+    id, never by its regex, since the regexes are the values the project keeps out of the log.
+    """
     try:
         with open(path, encoding="utf-8") as fh:
             spec = json.load(fh)
     except (OSError, ValueError) as exc:
         raise Fault("cannot read pattern file: %s" % exc.__class__.__name__)
+    entries = spec.get("patterns") if isinstance(spec, dict) else None
+    if not isinstance(entries, list) or not entries:
+        raise Fault("pattern file has no list of patterns")
+    if len(entries) > MAX_PATTERNS:
+        raise Fault("pattern file has %d patterns, over the %d limit" % (len(entries), MAX_PATTERNS))
     out = []
-    for entry in spec.get("patterns", []):
+    for index, entry in enumerate(entries):
+        if not (isinstance(entry, dict) and isinstance(entry.get("id"), str) and entry["id"]
+                and isinstance(entry.get("regex"), str) and isinstance(entry.get("flags", ""), str)):
+            raise Fault("pattern %d is not an object with a string id, regex and flags" % index)
         flags = re.IGNORECASE if "i" in entry.get("flags", "") else 0
-        out.append((entry["id"], re.compile(entry["regex"], flags)))
-    if not out:
-        raise Fault("pattern file has no patterns")
+        try:
+            out.append((entry["id"], re.compile(entry["regex"], flags)))
+        except re.error:
+            raise Fault("pattern %d (%s) does not compile" % (index, entry["id"]))
     return out
 
 
@@ -123,35 +145,70 @@ def scan(repo, base, head, patterns):
     return found, findings
 
 
+def run_scan(patterns_path, repo, base, head):
+    """The whole of a real run after argument parsing: load, scan, choose the exit code."""
+    _, findings = scan(repo, base, head, load_patterns(patterns_path))
+    return EXIT_FINDINGS if findings else EXIT_CLEAN
+
+
+def captured_scan(patterns_path, repo, base, head):
+    out = io.StringIO()
+    with redirect_stdout(out):
+        code = run_scan(patterns_path, repo, base, head)
+    return code, out.getvalue()
+
+
+def commit(repo, env, message, **identity):
+    git(repo, ["commit", "-q", "--allow-empty", "-m", message], env=dict(env, **identity))
+    return resolve(repo, "HEAD")
+
+
+def build_canary_repo(repo):
+    """Plant one canary per field; return (base, last canary commit, {finding line})."""
+    env = dict(os.environ, GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1",
+               GIT_AUTHOR_NAME="Clean Author", GIT_AUTHOR_EMAIL="clean@example.invalid",
+               GIT_COMMITTER_NAME="Clean Author", GIT_COMMITTER_EMAIL="clean@example.invalid")
+    git(repo, ["init", "-q", "-b", "main"], env=env)
+    base = commit(repo, env, "Start")
+    git(repo, ["checkout", "-q", "-b", "side"], env=env)
+    side = commit(repo, env, "Side work", GIT_AUTHOR_NAME="Ada QK8V Lovelace")
+    git(repo, ["checkout", "-q", "main"], env=env)
+    author_email = commit(repo, env, "Add a file", GIT_AUTHOR_EMAIL=CANARY_EMAIL)
+    git(repo, ["merge", "-q", "--no-ff", "-m", "Merge side", "side"],
+        env=dict(env, GIT_COMMITTER_NAME="Merge QK8V Bot"))
+    merge = resolve(repo, "HEAD")
+    committer_email = commit(repo, env, "Fix", GIT_COMMITTER_EMAIL=CANARY_EMAIL)
+    commit(repo, env, "Tidy")
+    want = {"%s: author name: canary" % side[:12], "%s: author email: canary" % author_email[:12],
+            "%s: committer name: canary" % merge[:12], "%s: committer email: canary" % committer_email[:12]}
+    return base, committer_email, want
+
+
 def self_test():
     work = tempfile.mkdtemp(prefix="author-scan-self-test-")
     try:
         repo = os.path.join(work, "repo")
         os.mkdir(repo)
-        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
-        clean = dict(env, GIT_AUTHOR_NAME="Clean Author", GIT_AUTHOR_EMAIL="clean@example.invalid",
-                     GIT_COMMITTER_NAME="Clean Author", GIT_COMMITTER_EMAIL="clean@example.invalid")
-        git(repo, ["init", "-q"], env=clean)
-        git(repo, ["commit", "-q", "--allow-empty", "-m", "Start"], env=clean)
-        base = resolve(repo, "HEAD")
-        git(repo, ["commit", "-q", "--allow-empty", "-m", "Add a file"],
-            env=dict(clean, GIT_AUTHOR_NAME=CANARY_NAME, GIT_AUTHOR_EMAIL=CANARY_EMAIL))
-        planted_author = resolve(repo, "HEAD")
-        git(repo, ["commit", "-q", "--allow-empty", "-m", "Merge"], env=dict(clean, GIT_COMMITTER_EMAIL=CANARY_EMAIL))
-        planted_committer = resolve(repo, "HEAD")
-        git(repo, ["commit", "-q", "--allow-empty", "-m", "Tidy"], env=clean)
-        patterns = [("canary", re.compile(CANARY_PATTERN, re.IGNORECASE))]
-        got = [(sha, match_fields(fields, patterns)) for sha, fields in commits(repo, base, "HEAD")]
-        want = {planted_author: [("author name", "canary"), ("author email", "canary")],
-                planted_committer: [("committer email", "canary")]}
-        if len(got) != 3 or {sha: hits for sha, hits in got if hits} != want:
-            raise Fault("self-test: canary not found exactly as planted")
-        if len(commits(repo, None, "HEAD")) != 4:
+        patterns_path = os.path.join(work, "patterns.json")
+        with open(patterns_path, "w", encoding="utf-8") as fh:
+            json.dump(CANARY_DOC, fh)
+        base, last_canary, want = build_canary_repo(repo)
+        code, out = captured_scan(patterns_path, repo, base, "HEAD")
+        got = {line for line in out.splitlines() if FINDING.fullmatch(line)}
+        if code != EXIT_FINDINGS or got != want or "scanned 5 commit(s); 4 finding(s)." not in out:
+            raise Fault("self-test: the canaries were not found exactly as planted")
+        if "qk8v" in out.lower():
+            raise Fault("self-test: the scan printed the text it matched")
+        code, out = captured_scan(patterns_path, repo, last_canary, "HEAD")
+        if code != EXIT_CLEAN or "scanned 1 commit(s); 0 finding(s)." not in out:
+            raise Fault("self-test: a clean range was not reported clean")
+        code, out = captured_scan(patterns_path, repo, None, "HEAD")
+        if code != EXIT_FINDINGS or "scanned 6 commit(s); 4 finding(s)." not in out:
             raise Fault("self-test: a scan without --base did not read every commit")
     finally:
         shutil.rmtree(work, ignore_errors=True)
-    print("self-test passed: the planted author name, author email and committer email were found; "
-          "the clean commits were not.")
+    print("self-test passed: a canary in each of the four fields was found, through the pattern file, "
+          "in the middle of a name, in lower case and behind a merge; the clean commits were not.")
     return EXIT_CLEAN
 
 
@@ -176,11 +233,10 @@ def main(argv):
     try:
         if args.self_test:
             return self_test()
-        _, findings = scan(args.repo, args.base, args.head, load_patterns(args.patterns))
+        return run_scan(args.patterns, args.repo, args.base, args.head)
     except Fault as exc:
         print("INSTRUMENT FAULT (not a finding): %s" % exc)
         return EXIT_FAULT
-    return EXIT_FINDINGS if findings else EXIT_CLEAN
 
 
 if __name__ == "__main__":

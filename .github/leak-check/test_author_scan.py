@@ -124,9 +124,27 @@ class Repository(unittest.TestCase):
         with self.assertRaises(author_scan.Fault):
             author_scan.git(self.repo, ["log", "no-such-revision"])
 
-    def test_empty_pattern_file_is_a_fault(self):
+    def test_malformed_pattern_files_are_faults_not_findings(self):
+        documents = {
+            "no patterns": {"patterns": []},
+            "a top-level list": [{"id": "tok", "regex": "x"}],
+            "an entry without an id": {"patterns": [{"regex": "x"}]},
+            "an entry that is a string": {"patterns": ["x"]},
+            "a regex that is not a string": {"patterns": [{"id": "tok", "regex": 7}]},
+            "a regex that does not compile": {"patterns": [{"id": "tok", "regex": "(ZQ4X"}]},
+        }
+        for name, document in documents.items():
+            with self.subTest(document=name):
+                with open(self.patterns, "w", encoding="utf-8") as fh:
+                    json.dump(document, fh)
+                code, out = run_main(["--patterns", self.patterns, "--repo", self.repo, "--head", "HEAD"])
+                self.assertEqual(code, author_scan.EXIT_FAULT, out)
+                self.assertIn("INSTRUMENT FAULT", out)
+                self.assertNotIn("ZQ4X", out)
+
+    def test_pattern_file_that_is_not_json_is_a_fault(self):
         with open(self.patterns, "w", encoding="utf-8") as fh:
-            json.dump({"patterns": []}, fh)
+            fh.write("{not json")
         code, out = run_main(["--patterns", self.patterns, "--repo", self.repo, "--head", "HEAD"])
         self.assertEqual(code, author_scan.EXIT_FAULT, out)
 
@@ -139,6 +157,15 @@ class SelfTest(unittest.TestCase):
     def test_self_test_passes(self):
         code, out = run_main(["--self-test"])
         self.assertEqual(code, author_scan.EXIT_CLEAN, out)
+
+    def test_self_test_fails_when_a_planted_canary_is_missed(self):
+        original = author_scan.FIELDS
+        author_scan.FIELDS = original[:3]
+        try:
+            code, out = run_main(["--self-test"])
+        finally:
+            author_scan.FIELDS = original
+        self.assertEqual(code, author_scan.EXIT_FAULT, out)
 
 
 if __name__ == "__main__":
