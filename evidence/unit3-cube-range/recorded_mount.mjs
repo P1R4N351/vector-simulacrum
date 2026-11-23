@@ -1,3 +1,4 @@
+import { pinOffsets } from "./pin_offsets.mjs";
 // Replay measured wheel-speed profiles from dock-relative SDK starting poses.
 import { readFileSync } from "node:fs";
 import { VectorSim } from "../../web/src/sim/robot.js";
@@ -8,7 +9,8 @@ const trials = JSON.parse(readFileSync(0, "utf8"));
 const mj = await mujoco();
 const model = readJson("public/robot/vector2/model.json");
 const dock = readText("public/robot/vector2/vector-free-dock.xml");
-console.log("session,variant,t_s,out_mm,lat_mm,yaw_deg,left_mmps,right_mmps,on");
+const tracePins = process.env.VECTOR_TRACE_DOCK_PINS === "1";
+console.log("session,variant,t_s,out_mm,lat_mm,yaw_deg,left_mmps,right_mmps,on" + (tracePins ? ",lx,ly,lz,rx,ry,rz" : ""));
 const extraModel = process.argv[2] ? readFileSync(process.argv[2], "utf8") : null;
 for (const trial of trials) {
   for (const variant of extraModel ? ["supplied"] : ["canonical", "driven_rear_envelope", "driven_mean_only"]) {
@@ -28,7 +30,7 @@ for (const trial of trials) {
         const [x, y] = sim.poseMm();
         const { wl, wr } = sim.reportedNow();
         console.log([trial.name, variant, t, x + 120, y, sim._yaw() * 180 / Math.PI,
-          wl, wr, +sim.chargerContact].join(","));
+          wl, wr, +sim.chargerContact, ...(tracePins ? pinOffsets(sim).flat() : [])].join(","));
         sim.tick(1);
       }
     } finally { sim.dispose(); }
