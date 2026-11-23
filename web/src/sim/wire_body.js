@@ -78,9 +78,12 @@ export class WireBody {
       this.cubeSensor = sensor;
       this.cubeTick = this.cubeTaps = 0;
     }
+    // The unit 3 shelf cell reported 0x01bc in direct BLE captures. Other scenes
+    // use the upstream LightCube PROTO default (1.5 V, truncated ADC counts).
+    const railCounts = this.sim.shelfOutline ? 444 : 426;
     const frames = [];
     if ((this.seq - 1) % 200 === 0 && this.lastAdvertisementSeq !== this.seq) {
-      frames.push(cubeFrame([0, 0, 0], true, false));
+      frames.push(cubeFrame([0, 0, 0], true, false, railCounts));
       this.lastAdvertisementSeq = this.seq;
     }
     // The sensor only retains its latest three slots after a delivery interruption.
@@ -92,13 +95,13 @@ export class WireBody {
       const reportEnd = this.cubeTick % 3 === 0;
       const tapped = reportEnd && sensor.packet.taps !== this.cubeTaps;
       if (reportEnd) this.cubeTaps = sensor.packet.taps;
-      frames.push(cubeFrame(slot, false, tapped));
+      frames.push(cubeFrame(slot, false, tapped, railCounts));
     }
     return frames;
   }
 }
 
-function cubeFrame(slot, advertised, tapped) {
+function cubeFrame(slot, advertised, tapped, railCounts) {
   const bytes = new Uint8Array(40), v = new DataView(bytes.buffer);
   v.setUint32(0,0x56494343,true);
   v.setUint32(4,1,true);
@@ -106,6 +109,6 @@ function cubeFrame(slot, advertised, tapped) {
   bytes.set(new TextEncoder().encode("AA:BB:CC:DD:EE:01"),9);
   slot.forEach((counts,i) => v.setInt16(30+2*i,counts,true));
   bytes[36] = tapped ? 1 : 0;
-  v.setUint16(38,Math.trunc(1.5*1024/3.6),true);
+  v.setUint16(38,railCounts,true);
   return bytes;
 }

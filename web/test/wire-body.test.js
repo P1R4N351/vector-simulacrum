@@ -109,6 +109,17 @@ test("cube v1 preserves physical slot ordering and a wrapping firmware tap count
     const view = new DataView(bytes.buffer);
     assert.deepEqual([30,32,34].map(offset => view.getInt16(offset,true)), sensor.slots[i%3]);
     assert.equal(bytes[36], Number(i === 2));
+    assert.equal(view.getUint16(38,true),426);
     assert.deepEqual(body.cubeFrames(), []);
   }
+});
+
+test("shelf cube advertises and reports the measured rail ADC word", () => {
+  const sensor = {ticks: 0, slots: [[0,0,8192],[0,0,8192],[0,0,8192]], packet: null};
+  const body = new WireBody({cubeSensor: sensor, shelfOutline: [[0,0],[200,0],[0,200]]});
+  body.seq = 1;
+  sensor.ticks = 1;
+  const frames = body.cubeFrames();
+  assert.deepEqual(frames.map(bytes => bytes[8]), [1,2]);
+  for (const bytes of frames) assert.equal(new DataView(bytes.buffer).getUint16(38,true),444);
 });
