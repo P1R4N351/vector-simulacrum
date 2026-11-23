@@ -281,3 +281,24 @@ All five canonical starts stalled with the chassis origin within 0.08 mm of 35 m
 In the full native routine the direct case traveled about 49 mm outward during its final half-turn and began backing with the origin about 138 mm ahead of the lip. Its first reverse attempt hit the 1.60 s controller limit. Extending that limit alone to 7 s recovered the direct start after retries but lost the previously successful diagonal start. The evidence therefore points to both starting pose and tread contact before electrical acquisition.
 
 Reproduce the recorded-pose comparison with `python recorded_mount.py` and the canonical web dependencies installed. The zero on each time axis is the first recorded SDK on-contact report.
+
+### Does the driven rear support transfer to flat spins and wheelstands?
+
+[Native gyro overlays](support-transfer.png) · [Wheelstand pitch and cube accelerometer overlays](support-wheelstand.png) · [Per-turn errors](support-transfer.csv) · [Tipping thresholds](support-balance.csv) · [Table-orientation sensitivity](support-sensitivity.csv) · [Wheelstand scores](support-wheelstand.csv) · [Four-support dock returns](support-dock.csv)
+
+We compared the fixed supports in the current Vector 2 model, the rear-only ramp experiment, and the existing four-support option. With no refitting, rear-only supports recovered 3/5 recorded docks (B/C/E); four driven supports recovered 2/5 (B/E). Both missed D. The four-support option also changes the joint gearing implementation and support mass, so this is a comparison of complete candidates.
+
+For flat turns we replayed the published hybrid shaft speeds and 17 ms gyro offset at each recorded starting head angle, using the exported default collision model. Wheel tracking stayed within 0.01 mm/s. On the previously held-out CCW stop the braking gyro RMSE was 9.18°/s for both fixed and rear-driven supports. On the held-out CW stop it rose from 10.48 to 12.52°/s. Repeating both stops at tabletop azimuths of 0°, 15°, 30° and 45° yielded zero rear-support contacts above 1 µN in all 24 runs. The gyro differences coexist with zero measured rear-support load and sensitivity to the numerical contact solution. They provide no estimate of rear tread friction. Rear and side tipping thresholds changed by less than 0.006° across the three configurations in the gravity-release simulation. These angles are an internal regression check.
+
+We reused the two physical cube wheelstands, the 58-piece printed-fork fixture with its published SHA-256, and the existing 60 mN·m experimental lift cap. Each replay spans four combinations of starting time and lift-command onset. These four cases describe uncertainty in one recording. Medians of peak pitch and cube specific force are shown below.
+
+| Configuration | W4 pitch | W8 pitch | W4 cube peak | W8 cube peak |
+|---|---:|---:|---:|---:|
+| Recorded | 72.25° | 72.50° | 4.50 g | 2.36 g |
+| Fixed | 45.02° | 43.48° | 3.36 g | 4.32 g |
+| Driven rear | 36.02° | 36.29° | 2.42 g | 2.28 g |
+| Four driven | 52.60° | 33.46° | 2.32 g | 3.22 g |
+
+The W8 cube peak is within 0.08 g with the driven rear supports even though chassis peak pitch is short by 36°. Neither driven candidate transfers consistently across both wheelstands and the dock. We retain these as experimental configurations. Wheelstand numbers here use the model and MuJoCo version of this comparison; earlier ablations in the wheelstand archive used their contemporary model.
+
+Run `support_transfer.py`, `support_sensitivity.py`, and `support_dock.py` with Python, MuJoCo 4.0.1, NumPy, OpenCV, Matplotlib, Node and installed canonical web dependencies. Run `support_wheelstand.py /path/to/fixture.xml` for the two dynamic wheelstands ([fixture reproduction](../unit3-wheelstand/reproduction/README.md)).
