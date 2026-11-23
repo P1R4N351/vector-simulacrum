@@ -9,3 +9,19 @@ Trial 2 was the clearest discriminator. Its initial range was 58 mm against 67 m
 All 15 simulations had fork contact. On trial 1, all three still missed the 26.72 mm lateral sweep. A contact flag alone gives little information about the resulting grip. The physical results favor retaining the calibrated RGB depth on these five trials. They do not identify the cause of trial 2's short ToF reading.
 
 [Results by trial](range-contact-transfer.csv) · [Starting range measurements](initial-depth.csv) · [Physical endpoints](../unit3-paired-cube-push/comparison.csv). Run range_contact_transfer.py with the repository root and the registered printed-fork XML as in the [fixture replay](../unit3-printed-fork-contact/README.md).
+
+## Does replay underpredict travel along the right direction?
+
+The camera-initialized replay crossed the 2 mm motion threshold on all five moving trials. This series contains no stationary negative control. We also tested its settled displacement vector. A least-squares multiplier fitted to the overhead endpoints of pushes 2 and 3 gave 1.207. We froze that multiplier for pushes 4 and 5 and checked the onboard camera plus odometry separately.
+
+| Trial | Overhead error, original → scaled (mm) | Onboard error, original → scaled (mm) |
+|---|---:|---:|
+| 4 | 1.34 → 0.52 | 1.01 → 0.13 |
+| 5 | 1.07 → 0.21 | 1.72 → 0.69 |
+| 1, sideways sweep | 26.43 → 26.30 | 24.92 → 24.97 |
+
+For the two held-out ordinary pushes, the residual after scaling is comparable to the 0.65 and 0.71 mm disagreements between the physical displacement vectors. The sweep remains roughly 25 mm off in both views. It needs a different contact trajectory during lift. The multiplier diagnoses an endpoint pattern on one surface with one printed fork. It does not identify friction, grip, fork compliance or an appropriate simulator coefficient.
+
+![Physical and simulated cube endpoints in shelf coordinates](endpoint-gain.png)
+
+[Per-view errors](endpoint-gain.csv) · [Reproduce the comparison](endpoint_gain.py)
