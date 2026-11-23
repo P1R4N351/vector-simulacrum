@@ -234,6 +234,7 @@ export class VectorSim {
     this.data.ctrl[this._act.lift] = this.d.lift_angle_min;
     this.mujoco.mj_forward(this.model, this.data);
     this._yawPrev = this._yawTotal = this._yaw();
+    this._dockTravelMm = [0, 0];
   }
 
   // Start with the head and lift already at a given angle and height (clamped to the limits).
@@ -530,7 +531,7 @@ export class VectorSim {
     const [accel, gyro] = this._imu();
     const [head, lift] = this._reportedHeadAndLift();
     this.state = {
-      time_s: this.tick_ * this.dt, x_mm: x, y_mm: y, z_mm: z, pose_angle_rad: this._yaw(),
+      time_s: this.tick_ * this.dt, x_mm: x - this._dockTravelMm[0], y_mm: y - this._dockTravelMm[1], z_mm: z, pose_angle_rad: this._yaw(),
       pose_pitch_rad: this._pitch(), left_wheel_speed_mmps: left, right_wheel_speed_mmps: right,
       head_angle_rad: head, lift_height_mm: lift, prox_distance_mm: prox.distance_mm,
       prox_found_object: prox.found_object, prox_is_lift_in_fov: prox.is_lift_in_fov,
@@ -790,12 +791,19 @@ export class VectorSim {
         ctrl[at] = clamp(ctrl[at] + power[index] * rate * this.dt, bounds[2 * at], bounds[2 * at + 1]);
       }
     }
+    const before = (this._dockBody >= 0 || this.chargerContact) ? this.poseMm() : null;
     this._physicsStep();
     this.tick_ += 1;
     this._updateHeadStatus();
     this._updateLiftStatus();
 
     if (this._dockBody >= 0 && (power || this.startDocked || this.bodyRangeClock)) this.chargerContact = this._padsTouchDock();
+    // The supervisor discards planar travel on electrical contact (VIC-1046).
+    if (this.chargerContact && before) {
+      const after = this.poseMm();
+      this._dockTravelMm[0] += after[0] - before[0];
+      this._dockTravelMm[1] += after[1] - before[1];
+    }
     if (this.bodyRangeClock) this._advanceRangeClock(power);
     const yaw = this._yaw();
     this._yawTotal += Math.atan2(Math.sin(yaw - this._yawPrev), Math.cos(yaw - this._yawPrev));

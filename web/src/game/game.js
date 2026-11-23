@@ -179,7 +179,7 @@ function telemetryOf(sim, extra) {
   const s = sim.state;
   const t = sim.simTruth();
   return {
-    ...extra, time_s: sim.tickCount * sim.dt, x_mm: sim.poseMm()[0], y_mm: sim.poseMm()[1],
+    ...extra, time_s: sim.tickCount * sim.dt, x_mm: s.x_mm, y_mm: s.y_mm,
     z_mm: t.z_mm, heading_deg: (sim.headingTotalRad() * 180) / Math.PI, wheel_cmd: t.wheel_command_mmps,
     wheel_meas: [s.left_wheel_speed_mmps, s.right_wheel_speed_mmps], motor_power: t.motor_power,
     front_rpm: [t.wheel_spin_radps[0] * RPM, t.wheel_spin_radps[1] * RPM],

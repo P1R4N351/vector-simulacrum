@@ -255,6 +255,7 @@ class VectorSim:
         self.data.ctrl[self._act["lift"]] = self.d["lift_angle_min"]
         mujoco.mj_forward(self.model, self.data)
         self._yaw_prev = self._yaw_total = self._yaw()
+        self._dock_travel_mm = [0.0, 0.0]
 
     def _pose_servos(self, head_deg: float, lift_mm: Optional[float]) -> None:
         """Start with the head and lift already at a given angle and height (clamped to the limits)."""
@@ -460,7 +461,7 @@ class VectorSim:
         head, lift = self._reported_head_and_lift()
         moving = (abs(left) + abs(right)) > self.v["wheel_stopped_threshold_mmps"]
         self.state = RobotState(
-            time_s=self.tick * self.dt, x_mm=x, y_mm=y, z_mm=z, pose_angle_rad=self._yaw(),
+            time_s=self.tick * self.dt, x_mm=x - self._dock_travel_mm[0], y_mm=y - self._dock_travel_mm[1], z_mm=z, pose_angle_rad=self._yaw(),
             pose_pitch_rad=self._pitch(), left_wheel_speed_mmps=left, right_wheel_speed_mmps=right,
             head_angle_rad=head, lift_height_mm=lift, prox_distance_mm=prox.distance_mm,
             prox_found_object=prox.found_object, prox_is_lift_in_fov=prox.is_lift_in_fov,
@@ -669,7 +670,12 @@ class VectorSim:
         self._maybe_react()
         self._ramp_commands()
         self._write_controls()
+        before = self.pose_mm() if self.charger_contact else None
         self._physics_step()
+        if before is not None:
+            after = self.pose_mm()
+            self._dock_travel_mm[0] += after[0] - before[0]
+            self._dock_travel_mm[1] += after[1] - before[1]
         self.tick += 1
         self._update_head_status()
         self._update_lift_status()

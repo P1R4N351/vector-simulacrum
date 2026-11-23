@@ -66,3 +66,34 @@ test("shelf range acquisition stays slow under WireOS head and lift power until 
     sim.dispose();
   }
 });
+
+test("rolling on the dock advances range and physics while reported XY holds until release", async () => {
+  const { values, derived, shelf_outline_mm } = readJson("public/robot/vector2/model.json");
+  const sim = new VectorSim(await mujoco(), {
+    values, derived, shelfOutline: shelf_outline_mm, startDocked: true,
+    xml: readText("public/robot/vector2/vector-free-shelf.xml"),
+  });
+  try {
+    const initial = sim.poseMm();
+    const count = sim.rawRangeSample().count;
+    sim.setWheelMotors(40, 40);
+    let heldTravel = 0;
+    for (let i = 0; i < 400 && sim.chargerContact; i++) {
+      sim.tick(1);
+      if (sim.chargerContact) {
+        heldTravel = sim.poseMm()[0] - initial[0];
+        assert.ok(Math.abs(sim.state.x_mm - initial[0]) < 1e-7);
+        assert.ok(Math.abs(sim.state.y_mm - initial[1]) < 1e-7);
+      }
+    }
+    assert.ok(!sim.chargerContact && heldTravel > 2);
+    assert.ok(sim.rawRangeSample().count - count > 1);
+    sim.tick(20);
+    assert.ok(sim.state.x_mm > initial[0]);
+    assert.ok(sim.poseMm()[0] - sim.state.x_mm >= heldTravel - 0.01);
+    sim.reset();
+    assert.equal(sim.state.x_mm, sim.poseMm()[0]);
+  } finally {
+    sim.dispose();
+  }
+});
