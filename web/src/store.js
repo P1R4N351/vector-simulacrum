@@ -20,6 +20,8 @@ export const useGame = create(() => ({
   telemetry: null,
   lastAction: null,
   notice: null,
+  // A program written in the page: status idle | running | finished | failed | stopped.
+  program: { status: "idle", errorLine: null, log: [], waitingOn: null },
 }));
 
 // Imperative surface, filled in by game/game.js once it has booted.

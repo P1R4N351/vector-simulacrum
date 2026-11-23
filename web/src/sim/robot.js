@@ -25,6 +25,7 @@ export const RESULT_CLIFF = "cancelled_cliff";
 export const RESULT_NO_CONTROL = "no_control";
 export const RESULT_TIMEOUT = "timeout";
 export const RESULT_OFF_GROUND = "aborted_off_ground";
+export const RESULT_CANCELLED = "cancelled";
 export const CLIFF_NAMES = ["front_left", "front_right", "back_left", "back_right"];
 const MAX_ACTION_S = 60.0; // code-loop bound for one action, not a model of the robot
 const MM = 0.001;
@@ -909,6 +910,24 @@ export class VectorSim {
 
   get actionRunning() {
     return this._action !== null;
+  }
+
+  // End a running action at once, as cancelling an SDK action does: treads to zero,
+  // head and lift held where they are. The Python has no counterpart (its actions block);
+  // the page's program runner uses this when a program is stopped. False when none was running.
+  cancelAction() {
+    const a = this._action;
+    if (a === null) return false;
+    const [x, y] = this.poseMm();
+    this.lastAction = {
+      kind: a.kind, result: RESULT_CANCELLED, moved_mm: Math.hypot(x - a.start[0], y - a.start[1]),
+      turned_deg: (this._yawTotal - a.yaw0) / DEG, ticks: this.tick_ - a.tick0,
+    };
+    this._action = null;
+    this._inAction = false;
+    const stopped = this.stopAllMotors();
+    assert(stopped || !this.hasControl, "motors must stop once the action is gone");
+    return true;
   }
 
   _budgetTicks(expectedS) {
