@@ -133,6 +133,14 @@ class Randomisation(unittest.TestCase):
 
 @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
 class Episode(unittest.TestCase):
+    def test_body_range_clock_starts_fresh_each_episode(self) -> None:
+        env = VectorTask(5, TaskConfig(body_range_clock=True))
+        env.step((0.0, 0.0))
+        env.reset()
+        self.assertTrue(env.sim.body_range_clock)
+        self.assertEqual(env.sim._range_body_ticks, 0)
+        self.assertEqual(env.sim._range_body_phase_us, 0)
+
     @staticmethod
     def _drive_to_the_end(env: "VectorTask", action: tuple) -> list:
         results = []
