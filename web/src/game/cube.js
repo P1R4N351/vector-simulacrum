@@ -41,20 +41,25 @@ export function stockCubeTexture(image) {
 export function makeCubeMarks(sizeMm) {
   const group = new THREE.Group();
   const loader = new THREE.TextureLoader();
+  const photoScale = 272 / 256; // 8 px transparent margin on each side
   const faces = [
-    [new URL("./cube-marks/front.png", import.meta.url), [-1, 0, 0], [0, 0, 1]],
-    [new URL("./cube-marks/side.png", import.meta.url), [0, -1, 0], [0, 0, 1]],
-    [new URL("./cube-marks/top.png", import.meta.url), [0, 0, 1], [1, 0, 0]],
+    [new URL("./cube-marks/front.png", import.meta.url), [-1, 0, 0], [0, 0, 1], photoScale],
+    [new URL("./cube-marks/side.png", import.meta.url), [0, -1, 0], [0, 0, 1], photoScale],
+    [new URL("./cube-marks/top.png", import.meta.url), [0, 0, 1], [1, 0, 0], photoScale],
+    [new URL("./cube-marks/wireos/lightCube_circle_front.png", import.meta.url), [1, 0, 0], [0, 0, 1], 1],
+    [new URL("./cube-marks/wireos/lightCube_circle_right.png", import.meta.url), [0, 1, 0], [0, 0, 1], 1],
+    [new URL("./cube-marks/wireos/lightCube_circle_bottom.png", import.meta.url), [0, 0, -1], [1, 0, 0], 1],
   ];
-  const width = (23 / 44) * sizeMm * .001 * 272 / 256;
+  const width = (23 / 44) * sizeMm * .001;
   const geometry = new THREE.PlaneGeometry(width, width);
-  for (const [url, normal, up] of faces) {
+  for (const [url, normal, up, scale] of faces) {
     const map = loader.load(url.href);
     map.colorSpace = THREE.SRGBColorSpace;
     const material = new THREE.MeshStandardMaterial({
       map, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, roughness: .8,
     });
     const mark = new THREE.Mesh(geometry, material);
+    mark.scale.set(scale, scale, 1);
     mark.up.fromArray(up);
     mark.lookAt(new THREE.Vector3(...normal));
     mark.position.fromArray(normal).multiplyScalar(sizeMm * .0005);

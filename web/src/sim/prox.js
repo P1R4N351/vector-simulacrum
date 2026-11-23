@@ -74,9 +74,12 @@ export class ProxSensor {
 
   // One reading. hits: per ray, the distance in mm to what it hit, or -1 for nothing.
   read(hits, liftHeightMm, pitchRad) {
+    return this.report(this.acquire(hits, liftHeightMm), liftHeightMm, pitchRad);
+  }
+
+  acquire(hits, liftHeightMm) {
     const v = this.v;
-    assert(Number.isFinite(liftHeightMm) && Number.isFinite(pitchRad), "lift height and pitch must be finite");
-    const liftInView = this._liftInView(liftHeightMm);
+    assert(Number.isFinite(liftHeightMm), "lift height must be finite");
     const inBeam = liftHeightMm >= v.tof_lift_occluding_min_mm && liftHeightMm <= v.tof_lift_occluding_max_mm;
     let [quality, raw] = inBeam ? [v.tof_lift_quality, v.tof_lift_distance_mm] : this._signal(hits);
     if (quality <= v.tof_quality_min) {
@@ -85,6 +88,13 @@ export class ProxSensor {
     } else {
       raw *= 1 + this._gauss(0, v.tof_range_std_fraction);
     }
+    return { quality, raw };
+  }
+
+  report({ quality, raw }, liftHeightMm, pitchRad) {
+    const v = this.v;
+    assert(Number.isFinite(liftHeightMm) && Number.isFinite(pitchRad), "lift height and pitch must be finite");
+    const liftInView = this._liftInView(liftHeightMm);
     const limit = (v.tof_found_pitch_limit_deg * Math.PI) / 180;
     const unobstructed = quality <= v.tof_quality_min || raw >= v.tof_report_max_mm;
     const found = !liftInView && quality > v.tof_quality_min && raw < v.tof_report_max_mm && pitchRad >= -limit && pitchRad <= limit;

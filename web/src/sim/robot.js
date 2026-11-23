@@ -43,11 +43,27 @@ export function liftHeightOfAngle(v, angleRad) {
   return Math.sin(angleRad) * v.lift_arm_length_mm + v.lift_base_position_mm[2];
 }
 
+function polygonMargin(x, y, outline) {
+  let inside = false;
+  let distance = Infinity;
+  for (let i = 0; i < outline.length; i++) {
+    const [ax, ay] = outline[i];
+    const [bx, by] = outline[(i + 1) % outline.length];
+    const dx = bx - ax, dy = by - ay;
+    const t = clamp(((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy), 0, 1);
+    distance = Math.min(distance, Math.hypot(x - ax - t * dx, y - ay - t * dy));
+    if ((ay > y) !== (by > y) && x < ax + (y - ay) * dx / dy) inside = !inside;
+  }
+  return inside ? distance : -distance;
+}
+
 export class VectorSim {
   // opts: { xml, values, derived, controlLevel, startXyMm, headingDeg, headDeg, liftMm, noiseSeed }
   constructor(mujoco, opts) {
     assert(mujoco && opts && typeof opts.xml === "string", "VectorSim needs the mujoco module and the MJCF");
     this.mujoco = mujoco;
+    this.shelfOutline = opts.shelfOutline;
+    this.cubeStartXY = opts.cubeStartXY;
     this.v = opts.values;
     this.d = opts.derived;
     this.dt = this.v.control_period_ms * 0.001;
@@ -71,13 +87,26 @@ export class VectorSim {
     this._gauss = makeGauss(opts.noiseSeed ?? 0);
     // The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
     this._proxSensor = new ProxSensor(this.v, (opts.noiseSeed ?? 0) + 1);
+    this.bodyRangeClock = opts.bodyRangeClock ?? this.bodyRangeClock ?? false;
+    this.chargerContact = opts.chargerContact ?? this.chargerContact ?? false;
+    this._rangeBodyTicks = 0;
+    this._rangeBodyPhaseUs = 0;
+    this._rangeSample = null;
+    this._rangeSampleCount = 0;
     this._tofHitsMm = [];
     this.mujoco.mj_resetData(this.model, this.data);
     this._initCommands();
     this.hazards = new Hazards(this.v);
+    if (this.cubeStartXY) {
+      const joint = this.mujoco.mj_name2id(this.model, this.mujoco.mjtObj.mjOBJ_JOINT.value, "cube_root");
+      assert(joint >= 0, "mapped cube placement requires a free cube");
+      this.data.qpos.set(this.cubeStartXY.map(mm => mm * MM), this.model.jnt_qposadr[joint]);
+    }
+    this.startDocked = opts.startDocked ?? this.startDocked ?? false;
     this._place(opts.startXyMm ?? [0, 0], opts.headingDeg ?? 0);
     this._poseServos(opts.headDeg ?? 0, opts.liftMm ?? null);
     this._settle();
+    if (this.startDocked) this.chargerContact = this._padsTouchDock();
     this.cubeSensor = this._cubeAdr < 0 ? null : new CubeSensor(
       this.v, this.model.opt.timestep, opts.noiseSeed ?? 0, this._cubeForce(),
     );
@@ -102,6 +131,9 @@ export class VectorSim {
     const qadr = (name) => model.jnt_qposadr[id("mjOBJ_JOINT", `${name}_joint`)];
     const dof = (name) => model.jnt_dofadr[id("mjOBJ_JOINT", `${name}_joint`)];
     this._cliffAdr = CLIFF_NAMES.map((name) => sensor(`cliff_${name}`));
+    this._dockBody = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY.value, "dock");
+    this._chassisBody = id("mjOBJ_BODY", "chassis");
+    if (this._dockBody >= 0) this._dockPins = ["dock_pin_l", "dock_pin_r"].map(name => id("mjOBJ_SITE", name));
     this._tofSite = id("mjOBJ_SITE", "tof");
     this._sceneOnly = [1, 0, 0, 0, 0, 0]; // geom group 0 is the scene; the robot's own geoms are in group 1
     const cubeId = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR.value, "cube_accel");
@@ -152,6 +184,9 @@ export class VectorSim {
     );
     this._headTarget = this._headCmd = 0;
     this._liftTarget = this._liftCmd = this.d.lift_angle_min;
+    this._pendingHeadCommand = null;
+    this._headInPos = true;
+    this._headInToleranceSince = null;
     this._liftInPos = true;
     this._liftInToleranceSince = null;
     this._headSpeed = v.head_speed_default_radps;
@@ -163,7 +198,7 @@ export class VectorSim {
     this._servoDelay = pyRound(v.servo_command_delay_ms / v.control_period_ms);
     assert(this._wheelDelay >= 0 && this._servoDelay >= 0, "command delays must not be negative");
     const slots = Math.max(this._wheelDelay, this._servoDelay) + 1;
-    this._delay = Array.from({ length: slots }, () => [0, 0, this._headCmd, this._liftCmd]);
+    this._delay = Array.from({ length: slots }, () => [0, 0, this._headCmd, this._liftCmd, null]);
     this._delayAt = 0;
     this._reactPhase = "idle";
     this._reactTicks = 0;
@@ -175,15 +210,25 @@ export class VectorSim {
 
   _place(startXyMm, headingDeg) {
     assert(startXyMm.length === 2 && Number.isFinite(headingDeg), "bad start pose");
-    const yaw = headingDeg * DEG;
+    let yaw = headingDeg * DEG, pitch = 0, z = 0;
+    if (this.startDocked) {
+      assert(this._dockBody >= 0, "docked start requires a dock in the scene");
+      this.mujoco.mj_forward(this.model, this.data);
+      const dock = this._dockBody, orientation = this.data.xmat.subarray(9 * dock);
+      const origin = this.data.xpos.subarray(3 * dock);
+      startXyMm = [origin[0] / MM + 30 * orientation[0], origin[1] / MM + 30 * orientation[3]];
+      yaw = Math.atan2(orientation[3], orientation[0]) - Math.PI;
+      pitch = 8.2 * DEG;
+      z = origin[2] + 6.3 * MM;
+    }
     const qpos = this.data.qpos;
     qpos[0] = startXyMm[0] * MM;
     qpos[1] = startXyMm[1] * MM;
-    qpos[2] = 0;
-    qpos[3] = Math.cos(0.5 * yaw);
-    qpos[4] = 0;
-    qpos[5] = 0;
-    qpos[6] = Math.sin(0.5 * yaw);
+    qpos[2] = z;
+    qpos[3] = Math.cos(yaw / 2) * Math.cos(pitch / 2);
+    qpos[4] = -Math.sin(yaw / 2) * Math.sin(pitch / 2);
+    qpos[5] = Math.cos(yaw / 2) * Math.sin(pitch / 2);
+    qpos[6] = Math.sin(yaw / 2) * Math.cos(pitch / 2);
     qpos[this._q.lift] = this.d.lift_angle_min;
     qpos[this._q.wrist] = -this.d.lift_angle_min;
     this.data.ctrl[this._act.lift] = this.d.lift_angle_min;
@@ -201,7 +246,7 @@ export class VectorSim {
     qpos[this._q.head] = head;
     qpos[this._q.lift] = lift;
     qpos[this._q.wrist] = -lift;
-    this._headTarget = this._headCmd = head;
+    this._acceptedHeadTarget = this._headTarget = this._headCmd = head;
     this._liftTarget = this._liftCmd = lift;
     this._servoRate = [0, 0];
     for (const slot of this._delay) {
@@ -353,7 +398,36 @@ export class VectorSim {
 
   // What the time-of-flight sensor reports now (prox.js), from the lift height the robot reports.
   _prox() {
-    return this._proxSensor.read(this._castTof(), this._reportedHeadAndLift()[1], this._pitch());
+    const lift = this._reportedHeadAndLift()[1];
+    if (!this.bodyRangeClock) return this._proxSensor.read(this._castTof(), lift, this._pitch());
+    this.rawRangeSample();
+    return this._proxSensor.report(this._rangeSample, lift, this._pitch());
+  }
+
+  rawRangeSample() {
+    if (this._rangeSample === null) this._acquireRange();
+    return { ...this._rangeSample, count: this._rangeSampleCount };
+  }
+
+  _acquireRange() {
+    this._rangeSample = this._proxSensor.acquire(this._castTof(), this._reportedHeadAndLift()[1]);
+    this._rangeSampleCount = (this._rangeSampleCount + 1) & 0xffff;
+  }
+
+  _advanceRangeClock(power) {
+    // Syscon timer.h and opto.cpp: 5.12 ms per body tick. Preserve phase on mode changes.
+    this._rangeBodyPhaseUs += Math.round(this.dt * 1e6);
+    const ticks = Math.floor(this._rangeBodyPhaseUs / 5120);
+    this._rangeBodyPhaseUs %= 5120;
+    const driven = power ? power.some(duty => Math.abs(duty) > 0.1)
+      : this._controllers.some(controller => Math.abs(controller.power) > 0.1);
+    const target = driven ? 6 : (this.chargerContact ? 200 : 12);
+    for (let i = 0; i < ticks; i++) {
+      if (++this._rangeBodyTicks >= target) {
+        this._rangeBodyTicks = 0;
+        this._acquireRange();
+      }
+    }
   }
 
   // Read filtered gyro and accelerometer once, apply scale, bias and noise, clip to range.
@@ -370,8 +444,11 @@ export class VectorSim {
         + this._gauss(0, mg * v.accel_noise_rms_mg), -aMax, aMax);
     }
     for (let i = 0; i < 3; i++) {
-      gyro[i] = clamp(out[3 + i] + v.gyro_bias_dps[i] * DEG
-        + this._gauss(0, v.gyro_noise_rms_dps * DEG), -gMax, gMax);
+      // True rates are already corrected. The stock 0.989 Z correction scales each count.
+      const step = gMax * (i === 2 ? 0.989 : 1) / 32768;
+      const rate = out[3 + i] + this._gauss(0, v.gyro_noise_rms_dps * DEG);
+      const count = clamp(Math.round(rate / step), -32768, 32767);
+      gyro[i] = clamp(count * step + v.gyro_bias_dps[i] * DEG, -gMax, gMax);
     }
     this._imuSample = [accel, gyro];
   }
@@ -462,6 +539,7 @@ export class VectorSim {
       picked_up: this.hazards.pickedUp, falling: this.hazards.falling,
       wheels_moving: Math.abs(left) + Math.abs(right) > this.v.wheel_stopped_threshold_mmps,
       has_control: this.hasControl,
+      head_in_pos: this._headInPos,
       lift_in_pos: this._liftInPos,
     };
   }
@@ -470,7 +548,7 @@ export class VectorSim {
   simTruth() {
     const v = this.v;
     const [x, y, z] = this.poseMm();
-    const margin = Math.min(0.5 * v.table_length_mm - Math.abs(x), 0.5 * v.table_width_mm - Math.abs(y));
+    const margin = this.shelfOutline ? polygonMargin(x, y, this.shelfOutline) : Math.min(0.5 * v.table_length_mm - Math.abs(x), 0.5 * v.table_width_mm - Math.abs(y));
     return {
       fallen: z < -v.table_thickness_mm, edge_margin_mm: margin, z_mm: z,
       cliff_flags: this.hazards.cliff.slice(), wheel_speeds_mmps: this._wheelSpeeds(),
@@ -508,8 +586,11 @@ export class VectorSim {
     slot[1] = this._wheelCmd[1];
     slot[2] = this._headCmd;
     slot[3] = this._liftCmd;
+    slot[4] = this._pendingHeadCommand;
+    this._pendingHeadCommand = null;
     const wheels = this._delay[(this._delayAt - this._wheelDelay + size) % size];
     const servos = this._delay[(this._delayAt - this._servoDelay + size) % size];
+    if (servos[4] !== null) this._acceptHeadTarget(servos[4]);
     this._delayAt = (this._delayAt + 1) % size;
     return [wheels[0], wheels[1], servos[2], servos[3]];
   }
@@ -526,10 +607,14 @@ export class VectorSim {
     this._reactTicks = pyRound(v.cliff_reaction_pause_ms / v.control_period_ms);
     this._wheelTarget = [0, 0];
     this._wheelCmd = [0, 0];
-    this._headTarget = this._headCmd = this.headAngleRad();
+    this._headCmd = this.headAngleRad();
+    this._headTarget = this._headCmd;
+    this._acceptHeadTarget(this._headCmd);
+    this._pendingHeadCommand = null;
     this._liftTarget = this._liftCmd = this.data.qpos[this._q.lift];
     this._servoRate = [0, 0];
     for (const slot of this._delay) {
+      slot[4] = null;
       slot[0] = 0;
       slot[1] = 0;
       slot[2] = this._headCmd;
@@ -603,6 +688,11 @@ export class VectorSim {
     const scale = this.batteryVolts / v.motor_reference_voltage_v;
     const duties = [this._controllers[0].update(left, measured[0]), this._controllers[1].update(right, measured[1])];
     assert(Math.max(Math.abs(duties[0]), Math.abs(duties[1])) <= v.motor_power_max, "power outside its limit");
+    this._applyWheelDuty(duties, scale);
+  }
+
+  _applyWheelDuty(duties, scale) {
+    const v = this.v;
     const tau = v.tread_heat_tau_s;
     const rates = v.tread_heat_loss_rate_per_s;
     const keep = [1 - rates[0] * tau * this.treadHeat[0], 1 - rates[1] * tau * this.treadHeat[1]];
@@ -611,6 +701,31 @@ export class VectorSim {
     ctrl[this._act.left] = duties[0] * scale * keep[0];
     ctrl[this._act.right] = duties[1] * scale * keep[1];
     for (let i = 0; i < 2; i++) this.treadHeat[i] += (Math.abs(duties[i]) - this.treadHeat[i]) * Math.min(1, this.dt / tau);
+  }
+
+  _setHeadTarget(target) {
+    this._headTarget = this._pendingHeadCommand = target;
+  }
+
+  _acceptHeadTarget(target) {
+    if (target !== this._acceptedHeadTarget || !this._headInPos || Math.abs(target - this.headAngleRad()) >= this.v.head_angle_tol_deg * DEG) {
+      this._headInPos = false;
+      this._headInToleranceSince = null;
+    }
+    this._acceptedHeadTarget = target;
+  }
+
+  _updateHeadStatus() {
+    if (this._headInPos) return;
+    const angleError = Math.abs(this.data.qpos[this._q.head] - this._acceptedHeadTarget);
+    const finalCommand = this.data.ctrl[this._act.head] === this._acceptedHeadTarget;
+    if (!finalCommand || angleError >= this.v.head_angle_tol_deg * DEG) {
+      this._headInToleranceSince = null;
+    } else if (this._headInToleranceSince === null) {
+      this._headInToleranceSince = this.tick_;
+    } else if ((this.tick_ - this._headInToleranceSince) * this.dt > 0.200) {
+      this._headInPos = true;
+    }
   }
 
   _updateLiftStatus() {
@@ -626,7 +741,34 @@ export class VectorSim {
     }
   }
 
-  _tickOnce() {
+  // Electrical contact envelope from simulacrum/dock.py, in dock-local metres.
+  _padsTouchDock() {
+    const { xpos, xmat, site_xpos } = this.data;
+    const chassis = this._chassisBody, dock = this._dockBody;
+    const c = xmat.subarray(9 * chassis, 9 * chassis + 9);
+    const d = xmat.subarray(9 * dock, 9 * dock + 9);
+    if (c[2] * d[2] + c[5] * d[5] + c[8] * d[8] <= 0.85) return false;
+    const project = (v, axis) => v[0] * d[axis] + v[1] * d[3 + axis] + v[2] * d[6 + axis];
+    const center = [0, 1, 2].map(i => xpos[3 * chassis + i] - xpos[3 * dock + i]);
+    const x = project(center, 0), z = project(center, 2);
+    if (x < -0.030 || x > 0.065 || Math.abs(project(center, 1)) > 0.032 || z < -0.002 || z > 0.035) return false;
+    const leftSign = c[1] * d[1] + c[4] * d[4] + c[7] * d[7] > 0 ? -1 : 1;
+    return this._dockPins.every((pin, side) => {
+      const y = (side === 0 ? leftSign : -leftSign) * 0.00990;
+      const delta = [0, 1, 2].map(i => xpos[3 * chassis + i] - site_xpos[3 * pin + i]
+        - 0.0355 * c[3 * i] + y * c[3 * i + 1] + 0.001 * c[3 * i + 2]);
+      const height = project(delta, 2);
+      return Math.abs(project(delta, 0)) <= 0.009 && Math.abs(project(delta, 1)) <= 0.0038 && height >= -0.005 && height <= 0.004;
+    });
+  }
+
+  // One body frame under the external WireOS motor controller.
+  tickWireBody(power) {
+    assert(power.length === 4 && power.every(n => Number.isFinite(n) && Math.abs(n) <= 1), "bad motor duty");
+    this._tickOnce(power);
+  }
+
+  _tickOnce(power = null) {
     const travel = this._treadTravelMm();
     this._encoders[0].update(travel[0]);
     this._encoders[1].update(travel[1]);
@@ -634,12 +776,27 @@ export class VectorSim {
     this._sampleImu();
     const accel = this._imu()[0];
     this.hazards.update(this.cliffRangesMm(), Math.hypot(accel[0], accel[1], accel[2]));
-    this._maybeReact();
-    this._rampCommands();
-    this._writeControls();
+    if (power === null) {
+      this._maybeReact();
+      this._rampCommands();
+      this._writeControls();
+    } else {
+      const v = this.v, ctrl = this.data.ctrl;
+      this.batteryVolts = v.battery_rest_voltage_v - v.battery_sag_v_per_power * (Math.abs(power[0]) + Math.abs(power[1]));
+      this._applyWheelDuty([power[0], -power[1]], this.batteryVolts / v.motor_reference_voltage_v);
+      for (const [index, name, rate] of [[2, "lift", 20], [3, "head", 2 * Math.PI]]) {
+        const at = this._act[name];
+        const bounds = this.model.actuator_ctrlrange;
+        ctrl[at] = clamp(ctrl[at] + power[index] * rate * this.dt, bounds[2 * at], bounds[2 * at + 1]);
+      }
+    }
     this._physicsStep();
     this.tick_ += 1;
+    this._updateHeadStatus();
     this._updateLiftStatus();
+
+    if ((power || this.startDocked) && this._dockBody >= 0) this.chargerContact = this._padsTouchDock();
+    if (this.bodyRangeClock) this._advanceRangeClock(power);
     const yaw = this._yaw();
     this._yawTotal += Math.atan2(Math.sin(yaw - this._yawPrev), Math.cos(yaw - this._yawPrev));
     this._yawPrev = yaw;
@@ -694,7 +851,8 @@ export class VectorSim {
     if (!this.hasControl || this._action !== null) return false;
     this._wheelTarget = [0, 0];
     this._wheelAccel = [0, 0];
-    this._headTarget = this._headCmd = this.headAngleRad();
+    this._headCmd = this.headAngleRad();
+    this._setHeadTarget(this._headCmd);
     this._liftTarget = this._liftCmd = this.data.qpos[this._q.lift];
     this._liftInPos = false;
     this._liftInToleranceSince = null;
@@ -709,7 +867,7 @@ export class VectorSim {
     const v = this.v;
     this._headSpeed = v.head_speed_default_radps;
     this._servoRate[0] = 0;
-    this._headTarget = clamp(angleDeg, v.head_angle_min_deg, v.head_angle_max_deg) * DEG;
+    this._setHeadTarget(clamp(angleDeg, v.head_angle_min_deg, v.head_angle_max_deg) * DEG);
     return true;
   }
 
@@ -804,7 +962,7 @@ export class VectorSim {
     const target = clamp(angleDeg, v.head_angle_min_deg, v.head_angle_max_deg) * DEG;
     const span = Math.abs(target - this.headAngleRad());
     const made = this._newServoAction("head", target, v.head_angle_tol_deg * DEG, span, this._headSpeed);
-    this._headTarget = target;
+    this._setHeadTarget(target);
     return made;
   }
 

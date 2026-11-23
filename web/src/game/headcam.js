@@ -40,8 +40,9 @@ export function makeHeadCamera(mujoco, sim, spec, parent) {
   camera.projectionMatrix.set(...projectionRows(spec, spec.near_mm * 0.001, FAR_M));
   camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
   // Looking down is a turn about the camera's own x axis (to the right in the image) by a negative angle.
-  const extraPitch = spec.pitch_down_in_model ? 0 : spec.pitch_down_deg;
-  const tilt = new THREE.Matrix4().makeRotationX((-extraPitch * Math.PI) / 180);
+  const mountDown = spec.pitch_down_in_model ? 0 : spec.pitch_down_deg;
+  const rgbUp = spec.rgb_pitch_up_deg ?? 0;
+  const tilt = new THREE.Matrix4().makeRotationX(((rgbUp - mountDown) * Math.PI) / 180);
   const frustum = frustumLines(spec);
   parent.add(camera, frustum);
   return {

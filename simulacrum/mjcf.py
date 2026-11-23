@@ -12,9 +12,12 @@ x forward, y left, z up. The table top is the plane z = 0.
 from __future__ import annotations
 
 import csv
+import json
 import math
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
+
+from . import dock as dock_model
 
 MM = 0.001
 GRAM = 0.001
@@ -25,6 +28,7 @@ CLIFF_NAMES = ("front_left", "front_right", "back_left", "back_right")
 ROBOT_GEOM_GROUP = 1
 # Where the model may carry a light cube: nowhere (the default) or in the lift.
 CUBE_MOUNTS = (None, "lift", "free")
+DOCK_MOUNTS = dock_model.DOCK_MOUNTS
 
 
 def num(value: float) -> str:
@@ -209,6 +213,21 @@ def _wheels_xml(v: Dict[str, Any]) -> str:
             + _wheel_xml(v, "wheel_rl", rear, half, rr, False) + _wheel_xml(v, "wheel_rr", rear, -half, rr, False))
 
 
+def _camera_optics(v: Dict[str, Any]) -> str:
+    width, height = v["camera_resolution_px"]
+    # Keep explicitly changed FOVs and other stream modes on their specified projection.
+    if (width, height) == (800, 600):
+        path = Path(__file__).resolve().parent.parent / "web" / "camera_calibration_vector2.json"
+        cal = json.loads(path.read_text())
+        if (v["camera_fov_vertical_deg"] == cal["reported_fov_y_deg"] and
+                v["camera_fov_horizontal_deg"] == cal["reported_fov_x_deg"]):
+            # MuJoCo's principalpixel is the displacement of the image centre from the optical axis.
+            # Only the sensor aspect ratio matters when focal and principal offsets are in pixels.
+            return (f'sensorsize="{num(width / height)} 1" focalpixel="{cal["fx_px"]} {cal["fy_px"]}" '
+                    f'principalpixel="{num(width / 2 - cal["cx_px"])} {num(height / 2 - cal["cy_px"])}"')
+    return f'fovy="{num(v["camera_fov_vertical_deg"])}"'
+
+
 def _head_xml(v: Dict[str, Any]) -> str:
     lo, hi = math.radians(v["head_angle_min_deg"]), math.radians(v["head_angle_max_deg"])
     assert lo < 0.0 < hi, "head range must straddle level"
@@ -235,7 +254,7 @@ def _head_xml(v: Dict[str, Any]) -> str:
         f'mass="{num(v["head_mass_g"] * GRAM)}" rgba="0.25 0.25 0.3 1" group="{ROBOT_GEOM_GROUP}" '
         f'{_contact_attrs(v, v["chassis_friction"])}/>\n'
         f'      <camera name="head_cam" pos="{vec([c * MM for c in cam])}" xyaxes="0 -1 0 {camera_up}" '
-        f'fovy="{num(v["camera_fov_vertical_deg"])}" resolution="{int(res[0])} {int(res[1])}"/>\n'
+        f'{_camera_optics(v)} resolution="{int(res[0])} {int(res[1])}"/>\n'
         f'      <site name="imu" pos="{vec([c * MM for c in imu])}" quat="{vec(imu_quat)}" size="0.001"/>\n'
         f'    </body>\n'
     )
@@ -418,15 +437,34 @@ def _sensors_xml(v: Dict[str, Any], cube: Any = None) -> str:
     return out
 
 
-def _scene_xml(v: Dict[str, Any], obstacles: Sequence[Sequence[float]]) -> str:
+def shelf_survey():
+    return json.loads(Path(__file__).with_name("p2_shelf.json").read_text())
+
+
+def _shelf_mesh(thickness_mm):
+    """Triangular prisms preserve each surveyed edge, including a clipped corner."""
+    outline = shelf_survey()["outline_mm"]
+    assets, geoms = [], []
+    for i, a in enumerate(outline):
+        b = outline[(i + 1) % len(outline)]
+        vertices = [n * MM for z in (0, -thickness_mm)
+                    for x, y in ((0, 0), a, b) for n in (x, y, z)]
+        name = f"shelf_{i}"
+        assets.append(f'<mesh name="{name}" vertex="{vec(vertices)}"/>')
+        geoms.append(f'<geom name="{name}" type="mesh" mesh="{name}" '
+                     'contype="0" conaffinity="1" rgba="0.28 0.29 0.31 1"/>')
+    return "<asset>" + "".join(assets) + "</asset>", "".join(geoms)
+
+
+def _scene_xml(v: Dict[str, Any], obstacles: Sequence[Sequence[float]], shelf_geoms: str = "") -> str:
     """Table with real edges, a floor below it, and optional boxes (centre and size in mm)."""
     assert len(obstacles) <= MAX_OBSTACLES, "too many obstacles"
     half = (0.5 * v["table_length_mm"] * MM, 0.5 * v["table_width_mm"] * MM, 0.5 * v["table_thickness_mm"] * MM)
     assert all(h > 0.0 for h in half) and v["table_height_mm"] > v["table_thickness_mm"], "bad table size"
     out = (f'    <geom name="floor" type="plane" pos="0 0 {num(-v["table_height_mm"] * MM)}" size="0 0 1" '
            f'contype="0" conaffinity="1" rgba="0.5 0.5 0.5 1"/>\n'
-           f'    <geom name="table" type="box" pos="0 0 {num(-half[2])}" size="{vec(half)}" '
-           f'contype="0" conaffinity="1" rgba="0.8 0.7 0.55 1"/>\n')
+           + (shelf_geoms or f'    <geom name="table" type="box" pos="0 0 {num(-half[2])}" size="{vec(half)}" '
+           f'contype="0" conaffinity="1" rgba="0.8 0.7 0.55 1"/>\n'))
     for index, box in enumerate(obstacles):
         assert len(box) == 6 and all(s > 0.0 for s in box[3:]), "obstacle is (cx, cy, cz, sx, sy, sz) in mm"
         out += (f'    <geom name="obstacle_{index}" type="box" pos="{vec([c * MM for c in box[:3]])}" '
@@ -435,8 +473,46 @@ def _scene_xml(v: Dict[str, Any], obstacles: Sequence[Sequence[float]]) -> str:
     return out
 
 
+def _dock_geom_attrs(role: str) -> str:
+    """Contact and visual attributes for one role in dock_surface.csv."""
+    assert role in ("ramp", "guide", "shell", "pin"), f"unknown dock role {role!r}"
+    if role == "pin":
+        return 'contype="0" conaffinity="0" rgba="0.78 0.63 0.33 1"'
+    if role == "guide":
+        return 'contype="0" conaffinity="1" priority="2" condim="3" friction="0.05 0.005 0.0001" rgba="0.18 0.19 0.21 1"'
+    return 'contype="0" conaffinity="1" rgba="0.18 0.19 0.21 1"'
+
+
+def _dock_xml(dock: Any) -> str:
+    """Return `<body name="dock">...</body>` when requested, else empty string."""
+    pose = dock_model.resolve_dock_pose(dock)
+    if pose is None:
+        return ""
+    x_mm, y_mm, yaw_deg = pose
+    yaw = math.radians(yaw_deg)
+    quat = vec((math.cos(0.5 * yaw), 0.0, 0.0, math.sin(0.5 * yaw)))
+    geoms = []
+    for box in dock_model.load_surface_boxes():
+        pos = vec([c * MM for c in box.center_mm])
+        half = vec([c * MM for c in box.half_mm])
+        bquat = vec(box.quat)
+        geoms.append(f'      <geom name="dock_{box.part}" type="box" pos="{pos}" quat="{bquat}" '
+                     f'size="{half}" {_dock_geom_attrs(box.role)}/>\n')
+    pin_l = vec([c * MM for c in dock_model.PIN_LEFT_MM])
+    pin_r = vec([c * MM for c in dock_model.PIN_RIGHT_MM])
+    marker = vec([c * MM for c in dock_model.MARKER_POS_MM])
+    return (
+        f'    <body name="dock" pos="{vec((x_mm * MM, y_mm * MM, 0.0))}" quat="{quat}">\n'
+        + "".join(geoms)
+        + f'      <site name="dock_pin_l" pos="{pin_l}" size="0.001"/>\n'
+        + f'      <site name="dock_pin_r" pos="{pin_r}" size="0.001"/>\n'
+        + f'      <site name="dock_marker" pos="{marker}" zaxis="-1 0 0" size="0.002"/>\n'
+        + '    </body>\n'
+    )
+
+
 def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cube: Any = None,
-               body: Any = None) -> str:
+               body: Any = None, *, dock: Any = None, environment: str = "table") -> str:
     """Return the whole model, robot and scene, as one MJCF string; cube="lift" adds a carried cube.
 
     body=None draws the robot as the table's boxes and cylinders. body=<manifest from
@@ -446,18 +522,31 @@ def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cub
     gravity = -v["gravity_mmps2"] * MM
     assert gravity < 0.0, "gravity must point down"
     assert v["sim_timestep_ms"] > 0.0, "timestep must be positive"
+    if environment not in ("table", "p2_shelf"):
+        raise ValueError(f"unknown environment {environment}")
+    shelf_assets, shelf_geoms = "", ""
+    if environment == "p2_shelf":
+        if dock is not None:
+            raise ValueError("the shelf survey already places the dock")
+        dock = shelf_survey()["dock_pose_mm"]
+        shelf_assets, shelf_geoms = _shelf_mesh(v["table_thickness_mm"])
+    dock_body = _dock_xml(dock)
     if body is not None:
         lower, upper = body["frames"]["lift_lower"]["origin_mm"], v["lift_base_position_mm"]
         d = derive(v, (lower[0] - upper[0], lower[2] - upper[2]))
-        return _build_mesh_body(v, d, obstacles, cube, body)
+        return _build_mesh_body(v, d, obstacles, cube, body, shelf_assets, shelf_geoms, dock_body)
     d = derive(v)
     return (
         '<mujoco model="vector_simulacrum">\n'
         '  <compiler angle="radian" autolimits="true"/>\n'
         f'  <option timestep="{num(v["sim_timestep_ms"] * 0.001)}" gravity="0 0 {num(gravity)}" '
         'integrator="implicitfast" cone="elliptic">\n    <flag multiccd="enable"/>\n  </option>\n'
-        '  <worldbody>\n'
-        + _scene_xml(v, obstacles)
+        + (f'  <visual><global offwidth="{int(v["camera_resolution_px"][0])}" '
+           f'offheight="{int(v["camera_resolution_px"][1])}"/></visual>\n'
+           if tuple(v["camera_resolution_px"]) == (800, 600) else '')
+        + shelf_assets + '  <worldbody>\n'
+        + _scene_xml(v, obstacles, shelf_geoms)
+        + dock_body
         + '    <body name="chassis" pos="0 0 0">\n'
         + _chassis_xml(v, d) + _sites_xml(v)
         + _wheels_xml(v).replace("    <", "      <").replace("    </", "      </")
@@ -555,7 +644,7 @@ def _lower_link_xml(v: Dict[str, Any], d: Dict[str, Any], body: Dict[str, Any]) 
 
 
 def _build_mesh_body(v: Dict[str, Any], d: Dict[str, Any], obstacles: Sequence[Sequence[float]],
-                     cube: Any, body: Dict[str, Any]) -> str:
+                     cube: Any, body: Dict[str, Any], shelf_assets: str, shelf_geoms: str, dock_body: str) -> str:
     """The parametric model with the rig's shape swapped in for the robot's contact and drawing."""
     chassis = _as_carrier(_chassis_xml(v, d), "chassis_geom") + _mesh_geoms_xml(v, body, "chassis", "      ")
     head = _as_carrier(_head_xml(v), "head_geom")
@@ -582,9 +671,9 @@ def _build_mesh_body(v: Dict[str, Any], d: Dict[str, Any], obstacles: Sequence[S
         '  <compiler angle="radian" autolimits="true"/>\n'
         f'  <option timestep="{num(v["sim_timestep_ms"] * 0.001)}" gravity="0 0 {num(-v["gravity_mmps2"] * MM)}" '
         'integrator="implicitfast" cone="elliptic">\n    <flag multiccd="enable"/>\n  </option>\n'
-        + _mesh_assets_xml(body) +
+        + _mesh_assets_xml(body) + shelf_assets +
         '  <worldbody>\n'
-        + _scene_xml(v, obstacles)
+        + _scene_xml(v, obstacles, shelf_geoms) + dock_body
         + '    <body name="chassis" pos="0 0 0">\n'
         + chassis + _sites_xml(v) + indent(_wheels_xml(v)) + indent(head) + indent(lift)
         + _lower_link_xml(v, d, body)

@@ -95,6 +95,17 @@ class Filter(unittest.TestCase):
 
 @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
 class InTheRobot(unittest.TestCase):
+    def test_reported_gyro_has_the_stock_steps_before_residual_bias(self):
+        sim = VectorSim(values={**TABLE, **QUIET})
+        for target in (-180.013, 0.037, 180.013):
+            sim._imu_filter.reset(np.r_[np.zeros(3), np.full(3, math.radians(target))])
+            sim._sample_imu()
+            for axis, reported in enumerate(sim._imu()[1]):
+                step = TABLE["gyro_range_dps"] / 32768 * (0.989 if axis == 2 else 1)
+                corrected = math.degrees(reported) - TABLE["gyro_bias_dps"][axis]
+                self.assertAlmostEqual(corrected / step, round(corrected / step), places=8)
+                self.assertLessEqual(abs(corrected - target), step / 2)
+
     def test_the_filter_steps_at_every_physics_step_and_starts_settled(self) -> None:
         sim = VectorSim(values=params.values(params.load(), QUIET))
         self.assertEqual(sim._imu_filter.updates, 0)

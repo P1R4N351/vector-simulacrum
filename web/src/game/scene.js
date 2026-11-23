@@ -1,6 +1,6 @@
 // Everything drawn: the model's own geoms, plus labelled cosmetics..
 //
-// The physics model is boxes and cylinders: one mesh per MuJoCo geom, placed
+// The viewer builds one mesh per MuJoCo geom, placed
 // each frame from the solver's geom poses. The scenery is always drawn that
 // way. The robot is drawn with the Vector SDK's 3D model when it has been
 // fetched (sdkmodel.js), with the physics shapes available as an overlay;
@@ -12,6 +12,7 @@
 // group that turns z-up into three.js y-up, so poses are copied unconverted.
 
 import * as THREE from "three";
+import { faceTexture } from "./wire_face.js";
 import { makeCubeMarks } from "./cube.js";
 import { HIDDEN_FROM_ROBOT, makeHeadCamera } from "./headcam.js";
 import { makeBeltPath, makeCleats, makeSpokes } from "./tracks.js";
@@ -38,6 +39,8 @@ const SHAPE_OVERLAY = new THREE.MeshBasicMaterial({ color: 0x3df58c, wireframe: 
 const CLIFF_RAY_MAX_M = 0.06; // drawn length of a cliff beam that sees nothing
 
 function styleFor(name) {
+  // Stock shell contrast against the printed glyph in unit 3’s shelf images.
+  if (name.startsWith("cube_shell_")) return { color: 0x3f3f3f, roughness: 0.6 };
   if (name.startsWith("wheel_")) return PALETTE.wheel;
   if (name.startsWith("obstacle_")) return PALETTE.obstacle;
   return PALETTE[name] ?? null;
@@ -53,6 +56,17 @@ function geomMesh(mujoco, model, index, name) {
   else if (type === kinds.mjGEOM_CYLINDER.value) {
     geometry = new THREE.CylinderGeometry(size[0], size[0], 2 * size[1], 40);
     geometry.rotateX(Math.PI / 2); // three's cylinder runs along y, MuJoCo's along z
+  }
+  if (type === kinds.mjGEOM_MESH.value) {
+    const asset = model.geom_dataid[index];
+    const vertex = 3 * model.mesh_vertadr[asset];
+    const face = 3 * model.mesh_faceadr[asset];
+    geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(
+      model.mesh_vert.slice(vertex, vertex + 3 * model.mesh_vertnum[asset]), 3));
+    geometry.setIndex(new THREE.Uint32BufferAttribute(
+      model.mesh_face.subarray(face, face + 3 * model.mesh_facenum[asset]), 1));
+    geometry.computeVertexNormals();
   }
   if (geometry === null) throw new Error(`geom ${name} has a type this viewer does not draw (${type})`);
   const rgba = model.geom_rgba.subarray(4 * index, 4 * index + 4);
@@ -178,7 +192,7 @@ function hideFromRobot(object) {
 
 // sdk: the loaded SDK robot model, or null to draw the robot as its physics shapes.
 // cameraSpec: the camera block of model.json.
-export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
+export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, navMap = null) {
   const { model } = sim;
   const v = sim.v;
   const nameOf = (kind, index) => mujoco.mj_id2name(model, mujoco.mjtObj[kind].value, index);
@@ -187,19 +201,40 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
   root.name = "model_root";
   root.rotation.x = -Math.PI / 2;
   scene.add(root);
+  if (navMap) {
+    // SDK seated origin is 30 mm up the ramp; the survey places its lip at x=-66.
+    const offset = 3 * idOf("mjOBJ_BODY", "dock");
+    const dockedX = sim.data.xpos[offset] - 0.030;
+    const cell = navMap.cell_mm * 0.001;
+    const geometry = new THREE.PlaneGeometry(cell * 0.96, cell * 0.96);
+    const material = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.32, depthWrite: false });
+    const observations = new THREE.InstancedMesh(geometry, material, navMap.cells.length);
+    observations.name = "Native shelf map";
+    navMap.cells.forEach(([i, j, kind, conflict], index) => {
+      observations.setMatrixAt(index, new THREE.Matrix4().makeTranslation(
+        dockedX + (i + 0.5) * cell, sim.data.xpos[offset + 1] + (j + 0.5) * cell, 0.0004));
+      observations.setColorAt(index, new THREE.Color(conflict ? 0xffb547 : kind === 7 ? 0xef5149 : 0x50cda2));
+    });
+    hideFromRobot(observations);
+    root.add(observations);
+  }
   addLights(scene);
   const grid = new THREE.GridHelper(8, 32, 0x323a43, 0x242a31);
   grid.position.y = -v.table_height_mm * 0.001 + 0.0005;
+  hideFromRobot(grid);
   scene.add(grid);
 
   const meshes = [];
   const robotMeshes = [];
+  const dockId = idOf("mjOBJ_BODY", "dock");
   const cubeId = idOf("mjOBJ_BODY", "cube");
   for (let i = 0; i < model.ngeom; i++) {
     const mesh = geomMesh(mujoco, model, i, nameOf("mjOBJ_GEOM", i));
-    if (model.geom_bodyid[i] === cubeId) {
+    if (model.geom_rgba[4 * i + 3] === 0) {
+      mesh.visible = false;
+    } else if (model.geom_bodyid[i] === cubeId) {
       mesh.visible = cube === null;
-    } else if (sdk !== null && model.geom_bodyid[i] !== 0) {
+    } else if (sdk !== null && model.geom_bodyid[i] !== 0 && model.geom_bodyid[i] !== dockId) {
       mesh.material = SHAPE_OVERLAY;
       mesh.castShadow = false;
       robotMeshes.push(mesh);
@@ -317,7 +352,44 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null) {
     trail.geometry.setDrawRange(0, trailState.count);
   }
 
+  let firmwareFace = null;
+  let cubeLeds;
+  const cubeBody = bodyGroups.find(body => body.id===cubeId);
   return {
+    updateCubeLights(colors) {
+      if (!cubeBody) return;
+      if (!cubeLeds) {
+        const edge = v.cube_size_mm*.0005-.0035+.0002;
+        // Attach to the physics body; the optional SDK mesh can have its own scale.
+        const holder = new THREE.Group();
+        bodyGroups.push({id:cubeId,group:holder});
+        root.add(holder);
+        cubeLeds = [[1,0],[0,1],[-1,0],[0,-1]].map(([x,y]) => {
+          const led = new THREE.Mesh(new THREE.BoxGeometry(x ? .007 : .019, y ? .007 : .019,.007),
+            new THREE.MeshBasicMaterial({toneMapped:false}));
+          led.position.set(x*edge,y*edge,edge);
+          holder.add(led);
+          return led;
+        });
+      }
+      cubeLeds.forEach((led,i) => {
+        const [r,g,b] = colors.slice(i*3,i*3+3);
+        led.visible = r+g+b>0;
+        led.material.color.setHex((r<<16)|(g<<8)|b);
+      });
+    },
+    updateFirmwareFace(frame) {
+      const screen = sdk ? sdk.head.getObjectByName("wireos_lcd") : face.mesh;
+      if (!screen) return;
+      if (!firmwareFace) {
+        firmwareFace = faceTexture();
+        screen.material.map = firmwareFace.texture;
+        screen.material.needsUpdate = true;
+        screen.visible = true;
+        if (sdk) for (const name of ["eye_L_geo","eye_R_geo"]) sdk.head.getObjectByName(name).visible = false;
+      }
+      firmwareFace.update(frame);
+    },
     // truth: sim.simTruth(); mood: "calm" | "squint" | "alarm" | "dim"; open: eyelid 0..1
     headCamera,
     sync(truth, mood, open, showRays, showShapes, showCamera) {

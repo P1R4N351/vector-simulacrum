@@ -2,3 +2,4 @@ node_modules/
 dist/
 # The SDK robot model is under the Anki Image and 3D Model License: fetched, never committed.
 public/robot/sdk/
+public/robot/vector2/printed/
