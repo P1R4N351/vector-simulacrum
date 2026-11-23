@@ -28,3 +28,13 @@ The standalone simulator now sends the head command to the status controller thr
 These are per-control-tick predictions on the unshifted host clock. Error is zero inside the physical last-set/first-clear interval. The queued prediction falls late on every unit 2 move and early on every new unit 3 move. Stacking the additional 91.6 ms receipt offset onto the queue worsens median onset error on all three archived recordings. The offset remains an explicit comparison in the figure. [Cross-recording scoring script](acceptance.py)
 
 ![Physical SDK transition brackets with both replay clocks](unit3-settling.png)
+
+### Motion relative to the status transition
+
+We compared the time between HEAD_IN_POS clearing and the first pitch gyro magnitude above 10°/s within each recorded stream. This removes any constant host-command offset. The firmware populates the SDK gyro from head IMU data, status from its latest status flags, and the SDK image timestamp from the last processed camera image. That image timestamp cannot date the two state fields. The SDK interval subtracts the opposite endpoints of the two callback brackets. The replay uses its own 5 ms control-tick brackets. Variable receipt delay and relative sensor filtering remain possible.
+
+Across 25 strokes the two intervals overlapped on 5. The gap between the intervals had medians of 26 ms on archived unit 1, 42 ms on archived unit 2, 5 ms on archived unit 3, and 20 ms on the new unit 3 session. This diagnostic isolates a discrepancy within the status-to-gyro sequence that a common time shift cannot resolve. The source recordings and actuator parameters are unchanged.
+
+![Status-to-motion timing by robot and stroke](state-relative.png)
+
+[Per-move intervals](state-relative.csv) · [Reproduction](state_relative.py) · [WireOS SDK state construction](https://github.com/os-vector/wire-os-victor/blob/3cec4844d24c4719b5b3892e4979494bcd260424/engine/robot.cpp#L2314-L2347)
