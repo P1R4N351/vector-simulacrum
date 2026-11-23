@@ -129,6 +129,10 @@ test("driveOffCharger, explore, and multi-pose dockWithCharger seat cleanly at 4
     assert.equal(diag.lastAction.result, "completed");
     assert.equal(diag.chargerContact, true);
     assert.equal(diag.batteryVolts, 4.2);
+    const dock = diag._autonomy.navMap.chargerPose;
+    const target = [dock.lipX - 30 * dock.outX, dock.lipY - 30 * dock.outY];
+    assert.ok(Math.hypot(diag.state.x_mm - target[0], diag.state.y_mm - target[1]) < 0.1);
+    assert.ok(Math.abs(diag.state.pose_angle_rad - Math.atan2(dock.outY, dock.outX)) < 0.04);
   } finally {
     diag.dispose();
   }
