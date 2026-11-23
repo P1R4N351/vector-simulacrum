@@ -32,7 +32,10 @@ sys.path.insert(0, str(HERE))
 
 import _common  # noqa: E402
 
-RUN_TIMEOUT_S = 300
+# A run that has not finished by then is reported as a set-up error. The neutral arm
+# runs the whole suite under it: 383 s on MuJoCo 4.0.1 on 2026-11-22, with the
+# contact-trial check's four spins at eight table turns.
+RUN_TIMEOUT_S = 1800
 P, M, R, H = "simulacrum/params.py", "simulacrum/mjcf.py", "simulacrum/robot.py", "simulacrum/hazards.py"
 T, V, TR, O, RP = ("simulacrum/task.py", "simulacrum/vec_env.py", "simulacrum/training.py",
                    "simulacrum/onnx_policy.py", "run_policy.py")
@@ -59,6 +62,7 @@ SPIN_CUBE = TCB + "test_the_force_at_the_chip_gives_the_turn_centre_and_the_samp
 TIF, TRK = "test_imu_fit.AccelerometerFit.", "test_rank."
 TD, TRC, TRP = "test_drive.", "test_recording.RecordingFiles.", "test_replay.Replay."
 TP, TM, TS, TT, TG = "test_params.", "test_mjcf.GeneratedModel.", "test_sim.", "test_task.", "test_training."
+BM, TBM = "simulacrum/body_mesh.py", "test_body_mesh."
 FALL_TEST = TT + "Episode.test_a_fall_ends_the_episode_as_a_failure_with_a_penalty"
 VARIED_TEST = TT + "Randomisation.test_every_assumed_parameter_but_the_timestep_is_varied"
 NO_TORCH_TEST = TG + "Pipeline.test_onnx_runs_without_torch_and_reproduces_the_recorded_closed_loop"
@@ -215,6 +219,8 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
     ("head and lift commands act without their delay", R,
      "servos = self._delay[(self._delay_at - self._servo_delay) % size]", "servos = slot",
      (TRP + "test_head_and_lift_match_the_robot_on_fit_and_held_out_moves",), True),
+    ("contact trial span typed 1.5 mm long", "contact_trial.py", "SPAN_MM = 42.0\n", "SPAN_MM = 43.5\n",
+     (TRP + "test_contact_trial_medium_ccw_trace_and_fast_turn_rates",), True),
     ("replay compares the left wheel's model speed with the right wheel's record", RP2,
      '+ [(m["wr"], r["wr"]) for m, r in zip(model, rows)])', '+ [(m["wl"], r["wr"]) for m, r in zip(model, rows)])',
      (TRP + "test_the_fast_spins_of_the_second_recording_replay",), True),
@@ -385,7 +391,7 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
       TSF + "test_the_table_holds_the_fitted_inset_and_its_range_covers_each_spins_fit"), True),
     ("held-out spins get the fitted inset both times", SF, "dict(values, tread_contact_inset_mm=0.0)",
      "dict(values, tread_contact_inset_mm=inset)", (TSF + "test_held_out_unit3_spins_come_closer_to_the_robots_rate",), True),
-    ("contact inset typed by hand", J, '"tread_contact_inset_mm": {"value": 3.1,', '"tread_contact_inset_mm": {"value": 3.5,',
+    ("contact inset typed by hand", J, '"tread_contact_inset_mm": {"value": 3.41,', '"tread_contact_inset_mm": {"value": 3.5,',
      (TSF + "test_the_table_holds_the_fitted_inset_and_its_range_covers_each_spins_fit",), True),
     ("camera turn centre read behind the lens", CS, '"centre_x_mm": LENS_X_MM + float(np.median(fwd))',
      '"centre_x_mm": LENS_X_MM - float(np.median(fwd))',
@@ -640,6 +646,50 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
      (TSVC + "test_it_refuses_an_output_folder_that_already_holds_anything",), False),
     ("saver accepts a repeated image id", SVC, ' or row.get("id") in ids:', ":",
      (TSVC + "test_frames_before_begin_or_a_repeated_image_id_stop_the_save",), False),
+    ("fill needs all six directions", BM, "min_votes: int = 5) -> np.ndarray:", "min_votes: int = 6) -> np.ndarray:",
+     (TBM + "Solids.test_fill_closes_a_shell_with_a_large_hole",), False),
+    ("fill takes four directions", BM, "min_votes: int = 5) -> np.ndarray:", "min_votes: int = 4) -> np.ndarray:",
+     (TBM + "Solids.test_fill_leaves_a_pocket_open_on_two_sides_empty",), False),
+    ("tread hulls rest on the table", BM, "spaces = np.vstack((shrunk, [[0.0, 0.0, -1.0, floor_mm]]))",
+     "spaces = np.vstack((shrunk, [[0.0, 0.0, -1.0, -1.0]]))",
+     (TBM + "Solids.test_clipped_hull_stands_on_its_floor",), False),
+    ("hinge turn sign flipped", BM, "return np.column_stack((c * x - s * z, points[:, 1], s * x + c * z))",
+     "return np.column_stack((c * x + s * z, points[:, 1], -s * x + c * z))",
+     (TBM + "Geometry.test_hinge_turn_raises_the_front_and_undoes",), False),
+    ("fidelity sees no rig surface outside the pieces", BM, "    outside = ~inside_any(ref, planes)\n",
+     "    outside = np.zeros(len(ref), dtype=bool)\n", (TBM + "Fidelity.test_a_missing_piece_shows_as_protrusion",), False),
+    ("lower links not held to the lift", M, 'polycoef="0 1 0 0 0"', 'polycoef="0 0 0 0 0"',
+     (TBM + "MeshModeModel.test_lower_links_are_a_body_held_to_the_lift",), False),
+    ("mesh mode keeps the chassis box's contact", M, '    chassis = _as_carrier(_chassis_xml(v, d), "chassis_geom") + ',
+     "    chassis = _chassis_xml(v, d) + ", (TBM + "MeshModeModel.test_primitives_keep_mass_but_lose_contact",), False),
+    ("loose scraps kept in the solid", BM, "    return np.isin(labels, 1 + np.flatnonzero(sizes >= MIN_COMPONENT_FRACTION * sizes.max()))",
+     "    return solid", (TBM + "Solids.test_clean_keeps_the_body_and_drops_scraps",), False),
+    ("tread hull not shrunk", BM, "    shrunk[:, 3] += inset_mm  # inside", "    shrunk[:, 3] += 0.0  # inside",
+     (TBM + "Solids.test_tread_hull_is_shrunk_inside_the_tip_supports",), False),
+    ("touchdown ignores the wheel radius", BM, "if np.any(reach & (r * np.sin(phi + theta) <= -radius)):",
+     "if np.any(reach & (r * np.sin(phi + theta) <= 0.0)):", (TBM + "Geometry.test_touchdown_has_the_known_answer",), False),
+    ("treads placed at the firmware's spacing", M, '    half = 0.5 * v["tread_center_spacing_mm"]  # as built',
+     '    half = 0.5 * v["tread_spacing_mm"]  # as built',
+     (TM + "test_treads_sit_at_the_built_spacing_not_the_firmware_constant",), False),
+    ("head box offset ignored", M, "    box_pos = f' pos=\"{vec([c * MM for c in offset])}\"' if any(offset) else \"\"",
+     "    box_pos = \"\"", (TM + "test_head_box_offset_moves_the_box_and_only_when_set",), False),
+    ("carried cube keeps the engine's size", M, '    half = 0.5 * v["cube_outer_mm"]', '    half = 0.5 * v["cube_size_mm"]',
+     (TM + "test_cube_contact_uses_its_outer_size",), False),
+    ("clip ignores the bounding half-spaces", BM, "    eq = np.vstack((ConvexHull(points).equations, extra))",
+     "    eq = ConvexHull(points).equations", (TBM + "Solids.test_clip_keeps_only_what_lies_inside",), False),
+    ("mesh mode counts the arm mass twice", M,
+     "lift = lift.replace(f'mass=\"{num(d[\"masses_g\"][\"arm\"] * GRAM)}\"', f'mass=\"{num(0.5 * d[\"masses_g\"][\"arm\"] * GRAM)}\"', 1)",
+     "lift = lift", (TBM + "MeshModeModel.test_primitives_keep_mass_but_lose_contact",), False),
+    ("head mass left at the neck", M, '    hx, _, hz = v["head_box_center_wrt_neck_mm"]\n', "    hx, hz = 0.0, 0.0\n",
+     (TBM + "MeshModeModel.test_the_real_body_keeps_the_tables_centre_of_mass",), False),
+    ("visual looks ignored", M, "        drawn = _PLAIN_VISUAL if look is None else f'material=\"rig_{look}\"'\n",
+     "        drawn = _PLAIN_VISUAL\n", (TBM + "MeshModeModel.test_visual_meshes_take_their_looks",), False),
+    ("polygon looks miscounted", BM, "[MATERIAL_LOOK[material]] * (len(line.split()) - 3))",
+     "[MATERIAL_LOOK[material]] * (len(line.split()) - 2))",
+     (TBM + "Looks.test_every_triangle_gets_the_look_of_its_material",), False),
+    ("a group keeps its first material", BM, "                material = line.split(None, 1)[1].strip()\n",
+     "                material = material or line.split(None, 1)[1].strip()\n",
+     (TBM + "Looks.test_every_triangle_gets_the_look_of_its_material",), False),
     ("printed parts change the stock model", PPF, "    if not parts:\n        return xml\n",
      "    if not parts and False:\n        return xml\n", (TPP + "DefaultUnchanged.test_no_parts_hands_back_the_same_string",), False),
     ("filament density ignored", PPF, "rho = density_g_cm3 * fill * 1e-3", "rho = fill * 1e-3",

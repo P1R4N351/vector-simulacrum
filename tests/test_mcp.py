@@ -129,7 +129,7 @@ class Wheelstand(unittest.TestCase):
     def test_with_no_recording_it_gives_the_tables_expected_angles(self) -> None:
         body = call("wheelstand_balance", {})["body"]
         self.assertAlmostEqual(body["expected_deg"]["rear"], 64.885, delta=0.001)
-        self.assertAlmostEqual(body["expected_deg"]["side"], 51.843, delta=0.001)
+        self.assertAlmostEqual(body["expected_deg"]["side"], 53.471, delta=0.001)
         ruler = call("wheelstand_balance", {"outer_tread_width_mm": 60})["body"]
         self.assertEqual(ruler["geometry_mm"]["edge_y"], 30.0)
         self.assertTrue(call("wheelstand_balance", {"outer_tread_width_mm": 5})["error"])
@@ -139,7 +139,9 @@ class Wheelstand(unittest.TestCase):
         session, truth = test_wheelstand.a_session(-21.0, 24.0, 0.4)
         with tempfile.TemporaryDirectory() as tmp:
             session.write(Path(tmp) / "ws.jsonl")
-            body = mcp_service.tool_wheelstand_balance({"path": "ws.jsonl", "outer_tread_width_mm": 56}, root=Path(tmp))
+            v = params.values(params.load())
+            width = v["tread_center_spacing_mm"] + v["tread_width_mm"]  # the table's own outer tread width
+            body = mcp_service.tool_wheelstand_balance({"path": "ws.jsonl", "outer_tread_width_mm": width}, root=Path(tmp))
         self.assertEqual(body["stands"]["rear"]["method"], "bracket")
         self.assertAlmostEqual(body["com_mm"]["com_z_mm"], 24.0, delta=1e-6)
         self.assertEqual(body["com_mm"]["side_edge_from"], "ruler")

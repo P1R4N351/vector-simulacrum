@@ -44,15 +44,15 @@
  ],
  "derived": {
   "chassis_com_mm": [
-   -29.978027405651037,
+   -30.353027405651037,
    0.0,
-   15.7625
+   15.5125
   ],
-  "chassis_height_mm": 24.2,
+  "chassis_height_mm": 26.0,
   "chassis_inertia": [
-   1.6224800000000004e-05,
-   3.7216400000000005e-05,
-   4.1728400000000005e-05
+   1.7128400000000007e-05,
+   4.397e-05,
+   4.7578400000000005e-05
   ],
   "lift_angle_max": 0.7925150244593042,
   "lift_angle_min": -0.1982661014310845,
@@ -77,20 +77,20 @@
   ]
  ],
  "provenance_counts": {
-  "assumed": 36,
+  "assumed": 35,
   "chosen": 8,
   "fitted": 23,
   "manual": 14,
   "measured": 11,
-  "sdk": 93
+  "sdk": 97
  },
  "robot_model": "vector_2",
  "source": {
-  "table_sha256": "eb094719d225a1278844cf461c27939925e648be80eeeedc0eb655d9909ff43f",
-  "trial_xml_sha256": "eaa151ec2860668e83df6d4a8306d1f6d90227393fc741f4ba4d06dd53b489fa",
-  "vector-contact42-free_sha256": "a052d3f49852472fe1a5228979ba72263fcbd69de4e4e830d3f76f90031cff0d",
-  "vector-free_sha256": "a35f55028fcbcb0e0a722681f0d663d9cbc82243ec0c07e34e2caacd563ce1cf",
-  "xml_sha256": "1d333bf896284dd498d75b6aab0390136625df8c2950f8696ec21eed7ed1b890"
+  "table_sha256": "b215e5051b5e897f550bd6de54d265fdd3754a842e6d53584ee06bc87a44bf1e",
+  "trial_xml_sha256": "0b0f9d0c08aa60e7b9821ad103b5b6d9105cb876319a1522056e5bc9d7e7cff3",
+  "vector-contact42-free_sha256": "3479e4c5c7c202bf326f070a1879a7cf4580e24d4a66c23363cff2df00a22938",
+  "vector-free_sha256": "00be00097855007f4d78295ea1eafd99961bb32ddf28d6e0fdc154aafb4129fc",
+  "xml_sha256": "923b943e62032e83d22bf842745a369f816d8f58786aec0c0ade49306aafdd1d"
  },
  "values": {
   "accel_bias_mg": [
@@ -118,10 +118,10 @@
    800,
    600
   ],
-  "chassis_center_x_mm": -15.0,
+  "chassis_center_x_mm": -17.5,
   "chassis_friction": 0.3,
-  "chassis_ground_clearance_mm": 3.0,
-  "chassis_length_mm": 56.0,
+  "chassis_ground_clearance_mm": 1.2,
+  "chassis_length_mm": 61.0,
   "chassis_top_z_mm": 27.2,
   "chassis_width_mm": 32.2,
   "cliff_detect_range_mm": 25.0,
@@ -182,6 +182,7 @@
   ],
   "cube_chip_yaw_deg": 0.0,
   "cube_mass_g": 50.0,
+  "cube_outer_mm": 45.0,
   "cube_size_mm": 44.0,
   "cube_tick_ms": 10.0,
   "directive_forward_speed_max_mmps": 160.0,
@@ -212,10 +213,15 @@
   "head_angle_max_deg": 45.0,
   "head_angle_min_deg": -22.0,
   "head_angle_tol_deg": 2.0,
+  "head_box_center_wrt_neck_mm": [
+   1.5,
+   0.0,
+   1.0
+  ],
   "head_box_mm": [
-   34.0,
-   40.0,
-   34.0
+   39.7,
+   46.4,
+   38.8
   ],
   "head_camera_pitch_down_deg": 4.0,
   "head_camera_position_mm": [
@@ -333,7 +339,8 @@
   "tof_weak_distance_mm": 69.0,
   "tof_weak_distance_sd_mm": 22.2,
   "total_mass_g": 170.0,
-  "tread_contact_inset_mm": 3.1,
+  "tread_center_spacing_mm": 47.9,
+  "tread_contact_inset_mm": 3.41,
   "tread_friction": 0.9,
   "tread_friction_power_fraction": 0.1573,
   "tread_heat_loss_rate_per_s": [
@@ -344,7 +351,7 @@
   "tread_mm_per_encoder_count": 0.126904,
   "tread_noload_speed_mmps": 305.0,
   "tread_spacing_mm": 46.0,
-  "tread_width_mm": 10.0,
+  "tread_width_mm": 11.5,
   "turn_tolerance_deg": 2.0,
   "wheel_accel_default_mmps2": 200.0,
   "wheel_accel_zero_is_immediate": true,

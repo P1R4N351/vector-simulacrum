@@ -132,6 +132,34 @@ Run `python contact_trial.py trace` for the time-aligned overlay CSV or pass a r
 
 Two additional owner photographs show the back head-on and at rear three-quarter. They expose the continuous sweep from the electrode down the grey shell, the convex glossy pivot surrounds, the rear badge, and a central rounded recess crossing a low horizontal parting line. The web mesh now carries this contour from the belly to the touch plate; the indicator follows the upper arc. The photos supply shape and relative placement; absolute depths are estimates. The earlier FCC underside and stock side views constrain the lower return and side silhouette.
 
+## Table turns
+
+Pull request #114 moved the treads to where Anki's rig has them: centres 47.9 mm apart, 11.5 mm wide (they had been 46 and 10 mm). With the trial's 42 mm span unchanged, the run E test failed on MuJoCo 4.0.1: `spin_cw_220` ran 2.16 % slow against a 2 % limit.
+
+Turning the 1.5 m table box about its own vertical axis changes nothing physical, but it moves each spin's steady rate. The table was turned by k × 11.25 rad for k = 0 to 7. Within the box's quarter-turn symmetry those turns are 0, 14.6, 29.2, 43.7, 58.3, 72.9, 87.5 and 12.0°. On this geometry, each spin's standard deviation over the eight turns was 0.9–1.8 %. The default model is as sensitive: from a turn of 0 to one of 30 rad, its 150 mm/s CCW error went from −3.1 to +3.1 %. A cylinder on a box goes through MuJoCo's general convex collider. With single-contact collision, the one contact of each 11.5 mm patch landed 27–29 mm from the robot's centre line (standard deviation 3–5 mm per patch), against a tread centre at 23.95 mm. At that spread an unbiased trial keeps all four spins within 2 % at only about half the orientations, so one orientation cannot resolve the limit. The test now holds each spin's mean over the eight turns to the same 2 %.
+
+Run E steady rates are read at the robot's 25 sample times in the second half of each spin, as the test reads them. Spins are listed CCW 150 / CW 150 / CCW 220 / CW 220 mm/s.
+
+| Trial | Mean error over the eight turns | Worst spin | Turns with all four within 2 % |
+| --- | --- | ---: | ---: |
+| `main` 1fe224e, 42 mm | −0.84 / +0.79 / +0.12 / +0.23 % | 0.84 % | 6 of 8 |
+| This PR, 42 mm, kept | −1.34 / −0.71 / −1.14 / −1.64 % | 1.64 % | 0 of 8 |
+| 41.0 mm | +0.25 / +0.74 / +0.68 / −0.74 % | 0.74 % | 5 of 8 |
+| 41.5 mm | −0.32 / +0.07 / −0.39 / −0.67 % | 0.67 % | 4 of 8 |
+| 43.5 mm | −4.04 / −3.27 / −3.15 / −4.26 % | 4.26 % | 0 of 8 |
+| 48.0 mm, no inset | −11.54 / −10.41 / −10.82 / −9.93 % | 11.54 % | 0 of 8 |
+
+The corrected geometry leaves every spin slow, by 1.21 % on average. That is a model error of the trial on this geometry, within the 2 % limit, and it is recorded here rather than tuned away. The span is an equivalent span fitted to these recordings. Averaged over the four spins, the error falls steadily with span: +0.23, −0.33, −1.21, −3.68 and −10.67 % at 41.0, 41.5, 42.0, 43.5 and 48.0 mm. So 41.0 to 41.5 mm would remove the bias. But at 41.5 mm the 100 mm/s CCW trace, which the test still reads at one orientation, came out at 22.6 °/s RMS against its 21 limit (19.3 at 42 mm), so the span stays 42 mm. Whether the trace has the same orientation spread was not measured. The 43.5 and 48 mm spans fail the averaged check, and the mutation check types the span 1.5 mm long and expects the test to fail.
+
+Two other contact proxies were measured over the same turns and not adopted:
+
+- **Narrow patch cylinders on the tread centre line.** Worst spin 0.77 % for a 0.5 mm patch, 1.31 % for 1 mm and 0.82 % for 2 mm. The 0.5 mm patch raised the 100 mm/s CCW trace to 21.8 °/s RMS, over the test's 21. The 1 mm patch braked worse than the tread copy (below).
+- **A sphere of the tread radius.** Identical results at every turn. But the front spheres contain the front cliff sensor sites: at (2, ±14, 8) mm the front sphere spans heights 5.2–23.8 mm. MuJoCo's documentation says a rangefinder ignores only the body its site is on, so the cliff rays would meet the sphere; this was not run. A sphere also reaches 8.75 mm beyond the tread's outer face at axle height.
+
+Native braking on this geometry, from `experiment_pressure.py` in native mode at the 1 ms step (unit 2's two native stops, hybrid braking gyro RMS): the tread copy at 42 mm gave 9.97 °/s, the 1 mm patch 12.28 and the sphere 10.69. The spheres' 16.91 °/s in [Separating numerical drift](endurance-drift/pressure.md) was measured on the earlier geometry.
+
+`python contact_trial.py turns` prints each spin's error at the eight turns, with their mean and standard deviation.
+
 ## Vector 2.0 underside appearance
 
 The separate owner photograph identifies this unit by its printed “MODEL: Vector 2.0” label. Its stepped battery door, centre-front screw, brass pads and offset rectangular label differ from the Anki underside photograph. A planar registration using the centres of the four cliff windows places the pad centres about 35.2 mm behind the front axle, at lateral offsets of about 9.9 mm. The pads measure approximately 12.2 by 5.5 mm in the registered plane. Relief and screw depth are visual estimates. The two serial fields are represented without copying the owner's identifiers.

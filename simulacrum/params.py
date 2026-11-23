@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional, Sequence
 PROVENANCE = ("measured", "fitted", "manual", "sdk", "assumed", "chosen")
 CHOSEN_KINDS = ("scene", "numeric")
 KINDS = ("robot", "scene", "numeric", "reference")
-SOURCE_KINDS = ("vendor_firmware", "vendor_webots_model", "vendor_sdk", "household_code")
+SOURCE_KINDS = ("vendor_firmware", "vendor_webots_model", "vendor_sdk", "household_code", "vendor_animation_rig")
 TABLE_PATH = Path(__file__).resolve().parent.parent / "parameters.json"
 # The base table describes Vector 1.0 by its sources; a variant file replaces the entries that differ.
 MODELS = {"vector_1": None, "vector_2": TABLE_PATH.parent / "parameters-vector2.json"}

@@ -1,0 +1,10 @@
+replays scored: 0 for the treads, 18 for head and lift
+  servo_command_delay_ms: 105.0 -> 105.0
+  head_speed_max_radps: 10.0 -> 10.0
+  lift_speed_max_radps: 10.0 -> 10.0
+wheel segments the fit used: 0.129 before, 0.129 after
+wheel segments held out: 0.128 before, 0.128 after
+head and lift segments the fit used: 0.033 before, 0.033 after
+head and lift segments held out: 0.035 before, 0.035 after
+FIT {"head_speed_max_radps": 10.0, "lift_speed_max_radps": 10.0, "servo_command_delay_ms": 105.0}
+rc=0

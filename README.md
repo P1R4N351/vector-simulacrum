@@ -33,6 +33,7 @@ most sensitive to, by a wide margin ("The assumed values, ranked" below).
 | `parameters.json` | The single source of every physical number, with provenance |
 | `simulacrum/params.py` | Loads and checks the table; draws randomised robots from a seed |
 | `simulacrum/mjcf.py` | Generates the MJCF (robot and table scene) from the table |
+| `simulacrum/body_mesh.py` | The robot's real outer shape from Anki's animation rig, fetched at a pinned hash and cut into convex collision pieces and visual meshes; `VectorSim(body=...)` uses it. See [evidence/body-shape](evidence/body-shape/README.md) |
 | `simulacrum/drive.py` | The firmware's tread encoder arithmetic and speed control law |
 | `simulacrum/robot.py` | `VectorSim`: SDK-shaped commands and state, sensor noise, cliff reaction |
 | `simulacrum/hazards.py` | Cliff, falling and picked-up flags |
@@ -1697,6 +1698,14 @@ compiler. Skips like these are marked "optional input" (`tests/_common.py`).
 `--require-mujoco` still fails on any other skip; `tests/test_run_all.py`
 checks that. The runner says which tests it skipped. (The 2026-11-16 version
 had 170 tests; the figures below describe what was added at that time.)
+
+The contact trial's run E check holds each spin's mean over eight turns of the
+table to 2 %, not one orientation's rate (2026-11-22). Turning the table
+changes nothing physical, yet it moves each spin's rate with a standard
+deviation of about 1.4 %. One orientation is a draw from that spread; the
+mean is what the limit was meant to judge. Spans of 43.5 and 48 mm fail the
+averaged check:
+[Table turns](evidence/stock-shell-physics-20261118.md#table-turns).
 
 What they cover: the table's rules, with the new ones (a measurement or a
 fit must cite the recording; a fit needs a range; the table describes

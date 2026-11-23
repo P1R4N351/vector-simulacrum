@@ -48,6 +48,24 @@ class GeneratedModel(unittest.TestCase):
         self.assertAlmostEqual(float(_find(changed, "geom", "wheel_fl_geom").get("size")), 0.015, places=9)
         self.assertAlmostEqual(_floats(_find(changed, "body", "wheel_fl").get("pos"))[2], 0.015, places=9)
 
+    def test_treads_sit_at_the_built_spacing_not_the_firmware_constant(self) -> None:
+        changed = ET.fromstring(mjcf.build_mjcf(params.values(self.doc, {"tread_center_spacing_mm": 47.9,
+                                                                            "tread_spacing_mm": 46.0})))
+        self.assertAlmostEqual(_floats(_find(changed, "body", "wheel_fl").get("pos"))[1], 0.02395, places=9)
+        self.assertAlmostEqual(_floats(_find(changed, "body", "wheel_rr").get("pos"))[1], -0.02395, places=9)
+
+    def test_head_box_offset_moves_the_box_and_only_when_set(self) -> None:
+        offset = self.v["head_box_center_wrt_neck_mm"]
+        pos = _find(self.root, "geom", "head_geom").get("pos")
+        self.assertIsNotNone(pos, "the head box was written without its offset")
+        self.assertEqual(_floats(pos), [c * 0.001 for c in offset])
+        centred = ET.fromstring(mjcf.build_mjcf(params.values(self.doc, {"head_box_center_wrt_neck_mm": [0.0, 0.0, 0.0]})))
+        self.assertIsNone(_find(centred, "geom", "head_geom").get("pos"))
+
+    def test_cube_contact_uses_its_outer_size(self) -> None:
+        changed = ET.fromstring(mjcf.build_mjcf(params.values(self.doc, {"cube_outer_mm": 45.0}), (), "lift"))
+        self.assertEqual(_floats(_find(changed, "geom", "cube_geom").get("size")), [0.0225] * 3)
+
     def test_the_wheels_and_tip_supports_take_the_tread_friction(self) -> None:
         for name in ("wheel_fl_geom", "wheel_rr_geom", "tip_front_l", "tip_rear_r"):
             friction = _floats(_find(self.root, "geom", name).get("friction"))
@@ -81,6 +99,8 @@ class GeneratedModel(unittest.TestCase):
             "tof_range_std_fraction", "battery_sag_v_per_power", "motor_reference_voltage_v",
             "tread_heat_tau_s", "tread_heat_loss_rate_per_s", "tof_quality_at_100mm", "tof_quality_distance_exponent",
             "tof_quality_floor", "tof_weak_distance_mm", "tof_weak_distance_sd_mm", "tof_lift_quality",
+            # the firmware's WHEEL_DIST_MM, in its turn arithmetic; the model puts the treads at tread_center_spacing_mm
+            "tread_spacing_mm",
             # the carried cube's chip and app, run by simulacrum/cube.py
             "cube_accel_bandwidth_hz", "cube_accel_frame_period_ms", "cube_accel_filter_second_pole",
             "cube_accel_noise_density_ug", "cube_accel_noise_axis_scale", "cube_accel_bias_mg", "cube_accel_scale"}

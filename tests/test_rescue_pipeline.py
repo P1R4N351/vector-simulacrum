@@ -76,3 +76,35 @@ class RescuePipelineTests(unittest.TestCase):
         self.assertLess(log_on["nocube_final_patient_tilt_deg"], 5.0)
         self.assertGreater(log_off["nocube_final_patient_tilt_deg"], 85.0)
         self.assertTrue(log_on["nocube_rescuer_clear_at_end"])
+
+
+class RescueOptions(unittest.TestCase):
+    @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)  # the pipeline imports mujoco
+    def test_overrides_are_checked_by_name(self) -> None:
+        rp = _load_rescue_pipeline()
+        self.assertEqual(rp.scene_values({"tread_width_mm": 11.5})["tread_width_mm"], 11.5)
+        with self.assertRaises(AssertionError):
+            rp.scene_values({"tread_widht_mm": 11.5})
+
+    @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
+    def test_overrides_reach_both_robots(self) -> None:
+        rp = _load_rescue_pipeline()
+        xml = rp.scene_xml(None, 50.0, 0.5, 0.9, False, with_cube=False, values=rp.scene_values({"tread_width_mm": 11.5}))
+        model = rp.mj.MjModel.from_xml_string(xml)
+        for name in ("wheel_fl_geom", "patient_wheel_fl_geom"):
+            self.assertAlmostEqual(float(model.geom(name).size[1]), 0.00575, places=9, msg=name)  # half the width
+
+    @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
+    def test_real_body_fork_pieces_count_as_fork_contact(self) -> None:
+        import test_body_mesh
+
+        rp = _load_rescue_pipeline()
+        with tempfile.TemporaryDirectory() as tmp:
+            body = test_body_mesh.boxes_body(Path(tmp))
+            model = rp.mj.MjModel.from_xml_string(rp.scene_xml(None, 50.0, 0.5, 0.9, False, with_cube=False, body=body))
+            sets = rp.make_geom_sets(model)
+            names = {model.geom(i).name for i in sets["rf"]}
+            self.assertIn("fork_hull_0", names)
+            self.assertIn("patient_fork_hull_0", {model.geom(i).name for i in sets["pf"]})
+            for joint in ("lift_lower_joint", "patient_lift_lower_joint"):
+                self.assertGreaterEqual(rp.mj.mj_name2id(model, rp.mj.mjtObj.mjOBJ_JOINT, joint), 0, joint)

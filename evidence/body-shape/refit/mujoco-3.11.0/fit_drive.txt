@@ -1,0 +1,11 @@
+replays scored: 27 for the treads, 0 for head and lift
+  command_delay_ms: 75.0 -> 75.0
+  tread_friction_power_fraction: 0.1573 -> 0.1573
+  wheel_stall_torque_mNm: 156.25 -> 156.25
+  wheel_armature_gcm2: 2380.0 -> 2380.0
+wheel segments the fit used: 0.125 before, 0.125 after
+wheel segments held out: 0.130 before, 0.130 after
+head and lift segments the fit used: 0.032 before, 0.032 after
+head and lift segments held out: 0.035 before, 0.035 after
+FIT {"command_delay_ms": 75.0, "tread_friction_power_fraction": 0.1573, "wheel_armature_gcm2": 2380.0, "wheel_stall_torque_mNm": 156.25}
+rc=0

@@ -116,7 +116,7 @@ class VectorSim:
                  start_xy_mm: Tuple[float, float] = (0.0, 0.0), heading_deg: float = 0.0,
                  obstacles: Sequence[Sequence[float]] = (), head_deg: float = 0.0,
                  lift_mm: Optional[float] = None, noise_seed: int = 0, cube: Optional[str] = None,
-                 cube_app: str = "last") -> None:
+                 cube_app: str = "last", body: Optional[Dict[str, Any]] = None) -> None:
         assert control_level in (CONTROL_DEFAULT, CONTROL_OVERRIDE), "unknown control level"
         assert isinstance(noise_seed, int), "noise seed must be an int"
         assert cube in mjcf.CUBE_MOUNTS, "unknown cube placement"
@@ -131,7 +131,11 @@ class VectorSim:
         self.control_level = control_level
         self.dt = self.v["control_period_ms"] * 0.001
         # Existing replay builders accept the original two-argument scene interface.
-        xml = mjcf.build_mjcf(self.v, obstacles) if cube is None else mjcf.build_mjcf(self.v, obstacles, cube)
+        # body: a built body from simulacrum.body_mesh.load, for the robot's real outer shape.
+        if body is not None:
+            xml = mjcf.build_mjcf(self.v, obstacles, cube, body)
+        else:
+            xml = mjcf.build_mjcf(self.v, obstacles) if cube is None else mjcf.build_mjcf(self.v, obstacles, cube)
         self.model = mujoco.MjModel.from_xml_string(xml)
         self.data = mujoco.MjData(self.model)
         self._index_model()
@@ -176,6 +180,8 @@ class VectorSim:
         assert mjcf.ROBOT_GEOM_GROUP != 0, "the robot's geoms must not share the scene's group"
         self._scene_only = np.array(scene_only, dtype=np.uint8)
         self._q = {n: int(m.jnt_qposadr[joint(n + "_joint")]) for n in ("head", "lift", "wrist")}
+        lower = joint("lift_lower_joint")  # present only with the real body shape
+        self._lower_q = int(m.jnt_qposadr[lower]) if lower >= 0 else -1
         self._dof = {n: int(m.jnt_dofadr[joint(n + "_joint")]) for n in ("wheel_fl", "wheel_fr", "head", "lift")}
         self._wheel_q = [int(m.jnt_qposadr[joint(n + "_joint")]) for n in ("wheel_fl", "wheel_fr")]
         self._act = {n: act(n) for n in ("left_wheel", "right_wheel", "head", "lift")}
@@ -231,6 +237,8 @@ class VectorSim:
         qpos[3], qpos[4], qpos[5], qpos[6] = math.cos(0.5 * yaw), 0.0, 0.0, math.sin(0.5 * yaw)
         qpos[self._q["lift"]] = self.d["lift_angle_min"]
         qpos[self._q["wrist"]] = -self.d["lift_angle_min"]
+        if self._lower_q >= 0:
+            qpos[self._lower_q] = self.d["lift_angle_min"]
         self.data.ctrl[self._act["lift"]] = self.d["lift_angle_min"]
         mujoco.mj_forward(self.model, self.data)
         self._yaw_prev = self._yaw_total = self._yaw()
@@ -243,6 +251,8 @@ class VectorSim:
         assert math.isfinite(head) and math.isfinite(lift), "bad head or lift start"
         qpos = self.data.qpos
         qpos[self._q["head"]], qpos[self._q["lift"]], qpos[self._q["wrist"]] = head, lift, -lift
+        if self._lower_q >= 0:
+            qpos[self._lower_q] = lift
         self._head_target = self._head_cmd = head
         self._lift_target = self._lift_cmd = lift
         self._servo_rate = [0.0, 0.0]
