@@ -82,19 +82,19 @@
   "fitted": 19,
   "manual": 17,
   "measured": 10,
-  "sdk": 101
+  "sdk": 104
  },
  "robot_model": "vector_1",
  "source": {
-  "table_sha256": "36aa16c7cd4ffa2ebc70a4bb52b673071157a55b1a0cf74d0db24b4fe7b5ff51",
-  "trial_xml_sha256": "eeb58d20ffb69d3ca07998d1900af2c0e7262cbc80bea73d344d2639eb08416d",
-  "vector-contact42-dock_sha256": "1c2f2c638b02aa94c5a8ea101427872f326d8c601f149aa84cfe1829255e06b2",
-  "vector-contact42-free-dock_sha256": "e36614da34e2e79ce839d748bab7b04e2e43c7d3315e8e8050ff897c2c1963c2",
-  "vector-contact42-free_sha256": "2e888b58e2735d092631ddbf7e16980a5a31d411b6a3b11b5f132b43f075c714",
-  "vector-dock_sha256": "d6c0e0453a7bdec4e25eb5556a48aa527e5f3058d6fe8bff81f2cfaf656f7179",
-  "vector-free-dock_sha256": "c910e42717e34d2843179a1d2dc32ce2aaa4d2a43d8a4788343b28d0931be66f",
-  "vector-free_sha256": "34563ceef0707e5432ceb26bb95ebe219667f444055f559a88deb2b8811f322b",
-  "xml_sha256": "e08248b6ab08dae082c12407827b22bd3d9bd27574bd41c0805c6cbf8424c548"
+  "table_sha256": "601396c38affa24bf10410128f6cb5aac173d3d769507be841203d7b9bc7384d",
+  "trial_xml_sha256": "c8ccbd3eed75bdef0d46cb8722d88e7abe008d9905965d13eb50c9ddf2daa1c9",
+  "vector-contact42-dock_sha256": "db6d35dd2790c9dfdcc1934e786811799d5c16175db98803166ea4c3c64c4f4c",
+  "vector-contact42-free-dock_sha256": "34a47795c1fc2c68c12c49b9a656a1a0d5b3977f1ae663314244016ae22f29e0",
+  "vector-contact42-free_sha256": "dd7fc0cb7774cbd081828977e3af9a95eb35d5328a03980278669d2c5b0dc01b",
+  "vector-dock_sha256": "aafe71071ccb8bff904280a15f2ddb6084135cf29765ce5101e520b3f317b115",
+  "vector-free-dock_sha256": "161142a7c039eb58729bc1d921e9fbbf47d86255b5903675cc14a881fcb34464",
+  "vector-free_sha256": "3658488b1d7ff6a6a6cb579a275b6569c200f46e17ac77e0b8675fba6e70228e",
+  "xml_sha256": "0a74cfff7a62c755a4fb3b0d65eb5193b6672f1b4d7cde686645e3cdc6a48414"
  },
  "values": {
   "accel_bias_mg": [
@@ -268,6 +268,8 @@
    0.0,
    45.0
   ],
+  "lift_error_sum_decay": 0.02,
+  "lift_error_sum_max": 5.0,
   "lift_fork_hook_slices_mm": [
    [
     4.5,
@@ -366,6 +368,7 @@
    0.1,
    3000.0
   ],
+  "lift_power_in_position_max": 0.1,
   "lift_rad_per_encoder_count": 0.0052465,
   "lift_servo_kp_mNm_per_rad": 600.0,
   "lift_servo_kv_mNms_per_rad": 12.0,

@@ -110,6 +110,27 @@ def _profile_step(current: float, target: float, rate: float, cap: float, accel:
     return nxt, (0.0 if nxt == target else rate)
 
 
+def lift_error_sum_step(v: Dict[str, Any], error_sum: float, error_rad: float, final: bool) -> float:
+    """One control tick of the firmware lift's integral term (LIFTC:858-892).
+
+    Holding its final target within lift_angle_tol_deg, the lift adds nothing to the sum and only
+    bleeds it while its power (Kp x error + Ki x sum) is above lift_power_in_position_max. Off
+    target, or while the target is still moving, the error goes on the sum. The sum is clipped to
+    lift_error_sum_max either way.
+    """
+    assert math.isfinite(error_sum) and math.isfinite(error_rad), "bad lift error"
+    kp, ki = v["lift_power_gains"][0], v["lift_power_gains"][1]
+    cap = v["lift_error_sum_max"]
+    assert cap > 0.0 and v["lift_error_sum_decay"] > 0.0, "the error sum needs a positive cap and decay"
+    if abs(error_rad) < math.radians(v["lift_angle_tol_deg"]) and final:
+        power = kp * error_rad + ki * error_sum
+        if abs(power) > v["lift_power_in_position_max"]:
+            error_sum -= v["lift_error_sum_decay"] * (1.0 if power > 0.0 else -1.0)
+    else:
+        error_sum += error_rad
+    return _clamp(error_sum, -cap, cap)
+
+
 class VectorSim:
     """A simulated Vector on a table. One instance is one robot and one scene."""
 
@@ -231,6 +252,8 @@ class VectorSim:
         self._head_in_tolerance_since = None
         self._lift_in_pos = True
         self._lift_in_tolerance_since = None
+        self._lift_servo_cmd = self._lift_cmd  # the lift target the motor acts on this tick, before the integral term
+        self._lift_error_sum = 0.0  # the firmware's angleErrorSum_ (rad x control ticks)
         self._wheel_delay = int(round(v["command_delay_ms"] / v["control_period_ms"]))
         self._servo_delay = int(round(v["servo_command_delay_ms"] / v["control_period_ms"]))
         assert self._wheel_delay >= 0 and self._servo_delay >= 0, "command delays must not be negative"
@@ -252,7 +275,7 @@ class VectorSim:
         qpos[self._q["wrist"]] = -self.d["lift_angle_min"]
         if self._lower_q >= 0:
             qpos[self._lower_q] = self.d["lift_angle_min"]
-        self.data.ctrl[self._act["lift"]] = self.d["lift_angle_min"]
+        self.data.ctrl[self._act["lift"]] = self._lift_servo_cmd = self.d["lift_angle_min"]
         mujoco.mj_forward(self.model, self.data)
         self._yaw_prev = self._yaw_total = self._yaw()
         self._dock_travel_mm = [0.0, 0.0]
@@ -273,6 +296,7 @@ class VectorSim:
         for slot in self._delay:
             slot[2], slot[3] = head, lift
         self.data.ctrl[self._act["head"]], self.data.ctrl[self._act["lift"]] = head, lift
+        self._lift_servo_cmd, self._lift_error_sum = lift, 0.0
         mujoco.mj_forward(self.model, self.data)
 
     def _settle(self) -> None:
@@ -591,12 +615,24 @@ class VectorSim:
         else:
             left, right = 0.0, 0.0
         ctrl = self.data.ctrl
-        ctrl[self._act["head"]], ctrl[self._act["lift"]] = delayed[2], delayed[3]
+        ctrl[self._act["head"]] = delayed[2]
+        self._write_lift(delayed[3])
         self._applied = [left, right]
         for i, speed in enumerate((left, right)):
             if speed != 0.0:
                 self._dir_sign[i] = 1.0 if speed > 0.0 else -1.0
         self._drive_treads(left, right)
+
+    def _write_lift(self, command: float) -> None:
+        """Aim the lift servo at this tick's target plus the integral term, then update the error sum.
+
+        The firmware computes its power from the sum before this tick adds to it (LIFTC:834, 888).
+        The target is final once the commanded profile has reached the target last set.
+        """
+        error = command - float(self.data.qpos[self._q["lift"]])
+        self.data.ctrl[self._act["lift"]] = command + mjcf.lift_integral_offset_rad(self.v, self._lift_error_sum)
+        self._lift_servo_cmd = command
+        self._lift_error_sum = lift_error_sum_step(self.v, self._lift_error_sum, error, command == self._lift_target)
 
     def _drive_treads(self, left_mmps: float, right_mmps: float) -> None:
         """The firmware's speed loop: commanded and measured speed in, motor power out.
@@ -652,7 +688,7 @@ class VectorSim:
         if self._lift_in_pos:
             return
         angle = float(self.data.qpos[self._q["lift"]])
-        final_command = self.data.ctrl[self._act["lift"]] == self._lift_target
+        final_command = self._lift_servo_cmd == self._lift_target
         if not final_command or abs(angle - self._lift_target) >= math.radians(self.v["lift_angle_tol_deg"]):
             self._lift_in_tolerance_since = None
         elif self._lift_in_tolerance_since is None:
@@ -729,10 +765,17 @@ class VectorSim:
         self._head_cmd = self.head_angle_rad()
         self._set_head_target(self._head_cmd)
         self._lift_target = self._lift_cmd = float(self.data.qpos[self._q["lift"]])
-        self._lift_in_pos = False
+        self._retarget_lift()  # the firmware stops the lift by aiming it where it is (LIFTC:927-930, 458-474)
         self._lift_in_tolerance_since = None
         self._servo_rate = [0.0, 0.0]
         return True
+
+    def _retarget_lift(self) -> None:
+        """A new lift target. Arriving while the lift is in position, it clears the error sum, so a
+        short move is not overpowered by the sum unwinding (LIFTC:566-573)."""
+        if self._lift_in_pos:
+            self._lift_error_sum = 0.0
+        self._lift_in_pos = False
 
     def _interrupt(self) -> Optional[str]:
         """Why a running action must end now, or None.
@@ -769,7 +812,7 @@ class VectorSim:
         assert math.isfinite(duration_s) and duration_s >= 0.0, "bad lift duration"
         target = mjcf.lift_angle_of_height(self.v, height_mm)
         if target != self._lift_target or abs(target - self.data.qpos[self._q["lift"]]) >= math.radians(self.v["lift_angle_tol_deg"]):
-            self._lift_in_pos = False
+            self._retarget_lift()
         self._lift_in_tolerance_since = None
         self._lift_target = target
         self._lift_speed = abs(speed_radps) if speed_radps else self.v["lift_speed_default_radps"]

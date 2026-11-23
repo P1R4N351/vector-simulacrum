@@ -6,7 +6,7 @@
 // before them the fork only pushed the cube along the table.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CONTROL_DEFAULT, VectorSim } from "../src/sim/robot.js";
+import { CONTROL_DEFAULT, VectorSim, liftAngleOfHeight } from "../src/sim/robot.js";
 import { mujoco, readJson, readText } from "./helpers.js";
 
 const MM = 0.001;
@@ -95,7 +95,11 @@ for (const scene of ["vector-free", "vector-free-dock"]) {
         const rest = cubeZmm(mj, sim);
         assert.equal(runAction(sim, sim.driveStraight(GAP_MM + PUSH_MM, SPEED_MMPS)).result, "completed");
         sim.tick(Math.round(0.3 / sim.dt));
-        runAction(sim, sim.setLiftHeight(model.values.lift_height_max_mm));
+        const lift = runAction(sim, sim.setLiftHeight(model.values.lift_height_max_mm));
+        // Carrying the cube the lift still reaches its target: the firmware's integral term (lift-integral.test.js).
+        assert.equal(lift.result, "completed", `offset ${offset} mm: the lift ended ${lift.result}`);
+        const short = liftAngleOfHeight(model.values, model.values.lift_height_max_mm) - sim.data.qpos[sim._q.lift];
+        assert.ok(short < model.values.lift_angle_tol_deg * Math.PI / 180, `offset ${offset} mm: the lift is ${short.toFixed(4)} rad short`);
         sim.tick(Math.round(1.5 / sim.dt));
         const held = cubeZmm(mj, sim) - rest;
         runAction(sim, sim.driveStraight(-BACK_MM, SPEED_MMPS));

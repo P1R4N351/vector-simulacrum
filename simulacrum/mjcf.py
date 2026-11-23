@@ -56,6 +56,17 @@ def lift_height_of_angle(v: Dict[str, Any], angle_rad: float) -> float:
     return math.sin(angle_rad) * v["lift_arm_length_mm"] + v["lift_base_position_mm"][2]
 
 
+def lift_integral_offset_rad(v: Dict[str, Any], error_sum: float) -> float:
+    """How far the lift's integral term moves the servo's target (rad).
+
+    The firmware's lift power is Kp x error + Ki x error sum (LIFTC:832-835). The model's servo
+    stands for Kp x error, so the sum adds Ki / Kp x the sum to the angle the servo pulls toward.
+    """
+    kp, ki = v["lift_power_gains"][0], v["lift_power_gains"][1]
+    assert kp > 0.0 and ki >= 0.0 and math.isfinite(error_sum), "bad lift gains or error sum"
+    return ki / kp * error_sum
+
+
 def _part_masses(v: Dict[str, Any]) -> Dict[str, float]:
     """Masses in grams. The chassis is what is left of the total."""
     arm = v["lift_mass_g"] * v["lift_arm_mass_fraction"]
@@ -508,9 +519,12 @@ def _actuators_xml(v: Dict[str, Any], d: Dict[str, Any]) -> str:
     out += (f'    <position name="head" joint="head_joint" kp="{num(v["head_servo_kp_mNm_per_rad"] * 0.001)}" '
             f'kv="{num(v["head_servo_kv_mNms_per_rad"] * 0.001)}" ctrlrange="{num(lo)} {num(hi)}" '
             f'forcerange="{num(-s_tq)} {num(s_tq)}"/>\n')
+    # The integral term moves the lift's target past either end of its travel (robot.py); the joint's
+    # own range still stops the arm there, as the real lift's end stops do.
+    reach = lift_integral_offset_rad(v, v["lift_error_sum_max"])
     out += (f'    <position name="lift" joint="lift_joint" kp="{num(v["lift_servo_kp_mNm_per_rad"] * 0.001)}" '
             f'kv="{num(v["lift_servo_kv_mNms_per_rad"] * 0.001)}" '
-            f'ctrlrange="{num(d["lift_angle_min"])} {num(d["lift_angle_max"])}" '
+            f'ctrlrange="{num(d["lift_angle_min"] - reach)} {num(d["lift_angle_max"] + reach)}" '
             f'forcerange="{num(-l_tq)} {num(l_tq)}"/>\n')
     return out
 

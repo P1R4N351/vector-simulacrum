@@ -1133,7 +1133,14 @@ The firmware does publish the head and lift control gains (`head_power_gains`
 and `lift_power_gains` in the table, from `headController.cpp` and
 `liftController.cpp`), but in units of motor power. Turning them into the
 model's torques needs the head and lift motors' strength, which no source
-gives. They stay assumed.
+gives. They stay assumed. One ratio needs no strength: the lift's integral
+term, Ki / Kp of the error summed every control tick, moves the lift servo's
+target by that much, because the servo stands for Kp x error. The model runs
+it as the firmware does (`tests/test_lift_integral.py`): without it the lift
+stopped 2.7° short under the light cube and `set_lift_height` timed out, and
+at the end of a move it sagged where the recorded robot holds past its
+target (REC2, 60 mm commanded: 61.85 mm recorded, 59.50 mm before, 61.52 mm
+with the term).
 
 ### The conferral with an external review lane
 

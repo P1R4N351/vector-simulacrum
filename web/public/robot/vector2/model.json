@@ -84,7 +84,7 @@
   "fitted": 23,
   "manual": 14,
   "measured": 11,
-  "sdk": 102
+  "sdk": 105
  },
  "robot_model": "vector_2",
  "shelf_outline_mm": [
@@ -122,17 +122,17 @@
   ]
  ],
  "source": {
-  "table_sha256": "09c2c00f4bbd5374b30215c5cc370aa502820c03b4c92b6a7b4909778806c801",
-  "trial_xml_sha256": "c0d95a96c03a3cd04cb1d1aa32af47167d2f2b04ae25adc16e971606fdd7fd1b",
-  "vector-contact42-dock_sha256": "e185ee5428eeb620223ecc3ac68a833ac755b3b77b61d0353ca6a1c96c8b0722",
-  "vector-contact42-free-dock_sha256": "898fa8ca85d92621d5eefc843806fd9f9d95bf0a26eeee14659b7f890da33aae",
-  "vector-contact42-free-shelf_sha256": "10598ce537ead025dcadbe412dc3b776877119ed695d720a8b2507a07e241a07",
-  "vector-contact42-free_sha256": "1da9850532e72b54d764dc4da007246d5e41f4828e52e25e5b5bc0ff4c5cbc7a",
-  "vector-dock_sha256": "e0f206c9e8d16fdd86aeb3af9be36f02be9096b2a188aaad62e0b2ac0c170ef7",
-  "vector-free-dock_sha256": "c1fff13e5e9ad7401d42374d126d5f28c7ce26773d3bd350855f606bb8bf36bb",
-  "vector-free-shelf_sha256": "d53086886ee0fffdcf0e3483c0171f769d55b128d54a9422736927c853c56307",
-  "vector-free_sha256": "f54d03738652363ce4d1ec164e5fa7a177d99637a62d4f70576c27dcbd435f23",
-  "xml_sha256": "55683108ef3d0ae483c520642ef80e766d1f706bf271f6bbafd68d9806d07188"
+  "table_sha256": "9eabd41c5dd6ee22cacc13b65e86f4fd06739b087f43a0adb59704eba74e0345",
+  "trial_xml_sha256": "d428f733b8b1cf225785d17e1d0afd054a1891ec72d19ba8d4eb3c95f95f6a7c",
+  "vector-contact42-dock_sha256": "4b3563167a4d2eb4baf6b9bbf2b2dc5f938b98e8d5b7f12896ef2466508f8c2f",
+  "vector-contact42-free-dock_sha256": "f6626a8334a9d56f7cedffa8fb17941704544fbaf838090088937030d54932ac",
+  "vector-contact42-free-shelf_sha256": "b08880fe5ad567f9c499a48ddee03d2e0db0711626b3ef4a1d440b56a495a086",
+  "vector-contact42-free_sha256": "df6fcc12e0fa83e4960b828d6e3f87c1e6c434a7aec6ff3b70e7ea167f7a1f54",
+  "vector-dock_sha256": "45972ea11aae8db58117b37ce7fa80594718626b197a6c19fd53163a60e54384",
+  "vector-free-dock_sha256": "db0fcb048629aed68d34fa55ae9bd313cd4e777ff4547a6fdeaa49a0522a1ff2",
+  "vector-free-shelf_sha256": "2077ece0d17c386e4f976df326a92f917d49aefad3315aee49ee8efd99838e35",
+  "vector-free_sha256": "92d1fa8a896b2e3a770088a57266db95b441ecb20eed24a7b4dd77d272e740f8",
+  "xml_sha256": "67beb4de207fc94075e87ef6d01cee8a84318692140041a55e04018eb43d3cb3"
  },
  "values": {
   "accel_bias_mg": [
@@ -306,6 +306,8 @@
    0.0,
    45.0
   ],
+  "lift_error_sum_decay": 0.02,
+  "lift_error_sum_max": 5.0,
   "lift_fork_hook_slices_mm": [
    [
     4.5,
@@ -404,6 +406,7 @@
    0.1,
    3000.0
   ],
+  "lift_power_in_position_max": 0.1,
   "lift_rad_per_encoder_count": 0.0052465,
   "lift_servo_kp_mNm_per_rad": 600.0,
   "lift_servo_kv_mNms_per_rad": 12.0,

@@ -193,7 +193,7 @@
     <general name="left_wheel" joint="wheel_fl_joint" gainprm="0.15625" biastype="affine" biasprm="0 0 -0.00742827869" ctrlrange="-1 1"/>
     <general name="right_wheel" joint="wheel_fr_joint" gainprm="0.15625" biastype="affine" biasprm="0 0 -0.00742827869" ctrlrange="-1 1"/>
     <position name="head" joint="head_joint" kp="0.3" kv="0.004" ctrlrange="-0.383972435 0.785398163" forcerange="-0.03 0.03"/>
-    <position name="lift" joint="lift_joint" kp="0.6" kv="0.012" ctrlrange="-0.198266101 0.792515024" forcerange="-0.06 0.06"/>
+    <position name="lift" joint="lift_joint" kp="0.6" kv="0.012" ctrlrange="-0.364932768 0.959181691" forcerange="-0.06 0.06"/>
   </actuator>
   <sensor>
     <rangefinder name="cliff_front_left" site="cliff_front_left"/>

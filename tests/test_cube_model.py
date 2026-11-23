@@ -293,13 +293,21 @@ class SpinWithTheCube(unittest.TestCase):
     chain from force to samples is tested exactly by the classes above."""
 
     WHEEL_MMPS = 80.0
-    STILL_S, SPIN_UP_S, MEASURE_S = 1.0, 2.0, 2.0
+    # Eight seconds of spin: over two, what is left of the tread vibration moved the fed centre by up to 4.7 mm
+    # between cube masses of 23 and 27 g on the model before the lift's integral term (0.48 to 4.67 mm from
+    # the chip's circle), and by 0.88 to 5.66 mm with it; over eight, 0.90 to 1.45 and 0.77 to 2.13 mm.
+    HOLD_S, STILL_S, SPIN_UP_S, MEASURE_S = 1.0, 1.0, 2.0, 8.0
 
     def test_the_force_at_the_chip_gives_the_turn_centre_and_the_samples_agree_within_their_error(self) -> None:
         import mujoco
         from simulacrum.robot import VectorSim
         sim = VectorSim(values=HOLDABLE, cube="lift", noise_seed=6)
         assert sim.cube is not None
+        # Hold the cube a moment first, as the spin test with the real cube does: from the start the lift's
+        # integral term spends about 0.5 s taking out the cube's sag (test_lift_integral), and the still
+        # samples must be still.
+        sim.advance(self.HOLD_S)
+        held_m = len(sim.cube.messages)
         forces: List[np.ndarray] = []
         inner = sim.cube.step
         sim.cube.step = lambda t, f: (forces.append(np.array(f, dtype=float)), inner(t, f))[1]
@@ -327,7 +335,7 @@ class SpinWithTheCube(unittest.TestCase):
         self.assertLess(float(np.hypot(*(np.array(fed["centre_mm"]) - truth))), SPIN_TOLERANCE_MM,
                         "the fed force says %s mm, the chip circles %s mm" % (fed["centre_mm"], truth.tolist()))
         cpg = V["cube_accel_counts_per_g"]
-        s_still = cube.samples_g(cube.rows(sim.cube.messages[:still_m]), cpg)
+        s_still = cube.samples_g(cube.rows(sim.cube.messages[held_m:still_m]), cpg)
         s_spin = cube.samples_g(cube.rows(sim.cube.messages[first_m:]), cpg)
         got = cube.turn_centre(s_still, s_spin, omega, V["gravity_mmps2"])
         error_g = np.sqrt(s_still.var(axis=0) / len(s_still) + s_spin.var(axis=0) / len(s_spin))[:2]

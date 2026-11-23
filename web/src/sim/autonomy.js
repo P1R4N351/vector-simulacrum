@@ -10,6 +10,15 @@ const DOCK_MARKER_HALF_M = 0.023;
 const DOCK_MARKER_X_MM = 93.205;
 const DOCK_MARKER_Z_M = 0.0485;
 const CUBE_MARKER_HALF_M = 0.0115;
+const BACKUP_SPEEDS_MMPS = [-102, -112, -96, -122, -106]; // by wiggle count, as before
+const BACKUP_MIN_TICKS = 320;
+const BACKUP_MARGIN = 1.3;
+const SEAT_DEPTH_MM = 30; // the seated robot's origin is this far behind the lip (_localizeOnCharger)
+const LIFT_UP_WAIT_TICKS = 200; // control ticks (1 s): the longest the dock waits for the lift to reach its backing height
+// Control ticks (1.65 s) a retry may take pulling forward to its goal. At 165 the pull stopped about 47 mm out, short of
+// its 78 or 90 mm goal with the rear skids still on the dock's lip; the alignment turn after it could not turn there,
+// and the next backup set off 7.1 to 8.8 degrees off the dock's axis.
+const PULL_MAX_TICKS = 330;
 
 export const CELL_MM = 20;
 export const GRID_HALF_CELLS = 25;
@@ -804,7 +813,9 @@ export class AutonomyController {
       ctx.fixCount = 0;
       ctx.wiggleCount = 0;
       ctx.phaseName = "DOCKING";
-      sim.commandLiftHeight(45);
+      // The lift moves only while the robot stands: down through the turn onto the dock's axis, up after it,
+      // and in position before the robot backs on (align_back, lift_up). Raised as the turn began, with the
+      // backup starting as it ended, the dock from a docked start failed for 7 of 8 noise seeds.
       const outYaw = Math.atan2(ch.outY, ch.outX);
       ctx.mountOutYaw = outYaw;
       this._startSubTurn(ctx.sub, wrapAngle(outYaw - sim.state.pose_angle_rad) / DEG, 95);
@@ -817,12 +828,29 @@ export class AutonomyController {
       sim.controlLevel = "override";
       sim.commandLiftHeight(45);
       ctx.attempts += 1;
-      ctx.backupTicks = 0;
-      ctx.stage = "backup";
+      ctx.sub = { kind: "wait", ticks: 0, waitTicks: LIFT_UP_WAIT_TICKS };
+      ctx.stage = "lift_up";
+      return { running: true };
+    }
+    if (ctx.stage === "lift_up") {
+      // Stand still until the lift is in position (or the wait runs out), then back onto the dock.
+      this._stepSub(ctx.sub);
+      if (sim._liftInPos || ctx.sub.ticks >= ctx.sub.waitTicks) {
+        ctx.backupTicks = 0;
+        ctx.stage = "backup";
+      }
       return { running: true };
     }
     if (ctx.stage === "backup") {
       ctx.backupTicks += 1;
+      if (ctx.backupTicks === 1) {
+        // Ticks for the way to the seat at this attempt's speed, with a margin, and never fewer than the 320 it had:
+        // first backups starting 140 to 149 mm out ran out of ticks 21.6 to 30.3 mm short of the lip.
+        const seat = this.navMap.chargerPose;
+        const fwd = seat ? (sim.state.x_mm - seat.lipX) * seat.outX + (sim.state.y_mm - seat.lipY) * seat.outY : 0;
+        const speed = Math.abs(BACKUP_SPEEDS_MMPS[ctx.wiggleCount % BACKUP_SPEEDS_MMPS.length]);
+        ctx.backupBudget = Math.max(BACKUP_MIN_TICKS, Math.ceil(BACKUP_MARGIN * (fwd + SEAT_DEPTH_MM) / (speed * sim.dt)));
+      }
       const pitchDeg = Math.abs(sim._pitch() / DEG);
       const zMm = sim.poseMm()[2];
       if (zMm < -5 || pitchDeg > 25) {
@@ -839,7 +867,7 @@ export class AutonomyController {
       const rearLat = ch ? -(rearX - ch.lipX) * ch.outY + (rearY - ch.lipY) * ch.outX : 0;
       const twisted = ctx.backupTicks > 90 && Math.abs(wrapAngle(outYaw - yaw)) > 10 * DEG && !sim.chargerContact;
       const pastRear = ch && !sim.chargerContact && !sim._onDockPlatform() && rearFwd < -95;
-      if (sim.chargerContact || ctx.backupTicks > 320 || twisted || pastRear) {
+      if (sim.chargerContact || ctx.backupTicks > ctx.backupBudget || twisted || pastRear) {
         if (sim.chargerContact) {
           sim._stopTreadsAtContact();
           if (ch) sim._localizeOnCharger(ch);
@@ -852,9 +880,11 @@ export class AutonomyController {
         ctx.stage = "verify";
         return { running: true };
       }
-      const spd = [-102, -112, -96, -122, -106][ctx.wiggleCount % 5];
+      const spd = BACKUP_SPEEDS_MMPS[ctx.wiggleCount % BACKUP_SPEEDS_MMPS.length];
       const desYawErr = rearFwd > -2 ? clamp(0.015 * rearLat, -0.20, 0.20) : 0;
-      const steer = rearFwd > -2 ? 140 * wrapAngle(outYaw + desYawErr - yaw) : 0;
+      // Past the lip the lateral term stops but the heading is still held. Backing straight on from 150 mm with up to
+      // 3 mm and 1 degree of offset, 4 of 9 climbs seated unheld and 8 of 9 held; a miss wedges about 18 degrees round.
+      const steer = 140 * wrapAngle(outYaw + desYawErr - yaw);
       sim._wheelTarget = [spd - steer, spd + steer];
       return { running: true };
     }
@@ -893,7 +923,7 @@ export class AutonomyController {
       const frontFwd = ch ? (sim.state.x_mm - ch.lipX) * ch.outX + (sim.state.y_mm - ch.lipY) * ch.outY : 80;
       const frontLat = ch ? -(sim.state.x_mm - ch.lipX) * ch.outY + (sim.state.y_mm - ch.lipY) * ch.outX : 0;
       const pullGoal = ctx.wiggleCount % 2 === 0 ? 90 : 78;
-      if (frontFwd >= pullGoal || ctx.pullTicks >= 165) {
+      if (frontFwd >= pullGoal || ctx.pullTicks >= PULL_MAX_TICKS) {
         sim._wheelTarget = [0, 0];
         ctx.mountOutYaw = outYaw;
         ctx.alignTicks = 0;

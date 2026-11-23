@@ -65,6 +65,9 @@ TP, TM, TS, TT, TG = "test_params.", "test_mjcf.GeneratedModel.", "test_sim.", "
 BM, TBM = "simulacrum/body_mesh.py", "test_body_mesh."
 HT, TCU = "evidence/cube-pickup/holding_torque.py", "test_cube_pickup."
 PICKUP_TEST = TCU + "Pickup.test_the_robot_picks_up_and_carries_a_cube_it_docks_with"
+TLI = "test_lift_integral."
+LIFT_STILL_TEST = "test_autonomy.AutonomyMujoco.test_the_lift_holds_still_while_the_robot_turns_onto_the_dock_and_backs_on"
+LOADED_LIFT_TEST = TLI + "SteadyLoad.test_under_load_the_lift_reaches_its_target_and_the_action_completes"
 FALL_TEST = TT + "Episode.test_a_fall_ends_the_episode_as_a_failure_with_a_penalty"
 VARIED_TEST = TT + "Randomisation.test_every_assumed_parameter_but_the_timestep_is_varied"
 NO_TORCH_TEST = TG + "Pipeline.test_onnx_runs_without_torch_and_reproduces_the_recorded_closed_loop"
@@ -762,6 +765,42 @@ ARMS: Tuple[Tuple[str, str, str, str, Tuple[str, ...], bool], ...] = (
      "torque = float(data.qfrc_bias[lift_dof] - data.qfrc_bias[wrist_dof])",
      "torque = float(data.qfrc_bias[lift_dof] + data.qfrc_bias[wrist_dof])",
      (TCU + "LiftTorque.test_the_lift_can_hold_the_heaviest_cube_the_table_allows",), True),
+    ("lift integral term left out", M, "    return ki / kp * error_sum\n", "    return 0.0 * error_sum\n",
+     (TLI + "ControlRange.test_the_offset_is_ki_over_kp_of_the_sum", LOADED_LIFT_TEST, PICKUP_TEST), True),
+    ("lift servo held to the joint's travel", M,
+     "            f'ctrlrange=\"{num(d[\"lift_angle_min\"] - reach)} {num(d[\"lift_angle_max\"] + reach)}\" '\n",
+     "            f'ctrlrange=\"{num(d[\"lift_angle_min\"])} {num(d[\"lift_angle_max\"])}\" '\n",
+     (TLI + "ControlRange.test_the_servo_may_aim_past_either_end_by_the_largest_offset_and_the_joint_may_not",
+      LOADED_LIFT_TEST, PICKUP_TEST), True),
+    ("lift error sum never clipped", R, "    return _clamp(error_sum, -cap, cap)\n", "    return error_sum\n",
+     (TLI + "ErrorSum.test_the_sum_is_clipped_both_ways",), True),
+    ("lift error sum grows while the lift holds its target", R,
+     "    if abs(error_rad) < math.radians(v[\"lift_angle_tol_deg\"]) and final:\n", "    if False:\n",
+     (TLI + "ErrorSum.test_holding_its_target_with_little_power_the_lift_leaves_the_sum_alone",
+      TLI + "ErrorSum.test_holding_its_target_with_more_power_the_lift_bleeds_the_sum_toward_zero"), True),
+    ("lift error sum bled away from zero", R,
+     "            error_sum -= v[\"lift_error_sum_decay\"] * (1.0 if power > 0.0 else -1.0)\n",
+     "            error_sum += v[\"lift_error_sum_decay\"] * (1.0 if power > 0.0 else -1.0)\n",
+     (TLI + "ErrorSum.test_holding_its_target_with_more_power_the_lift_bleeds_the_sum_toward_zero",), True),
+    ("a new lift target leaves the sum wound up", R,
+     "        if self._lift_in_pos:\n            self._lift_error_sum = 0.0\n        self._lift_in_pos = False\n",
+     "        self._lift_in_pos = False\n",
+     (TLI + "Retarget.test_a_new_target_reaching_an_in_position_lift_clears_the_sum",
+      TLI + "Retarget.test_stopping_an_in_position_lift_clears_the_sum"), True),
+    ("lift in-position status reads the servo's aim", R,
+     "        final_command = self._lift_servo_cmd == self._lift_target\n",
+     "        final_command = self.data.ctrl[self._act[\"lift\"]] == self._lift_target\n",
+     (TS + "Servos.test_lift_status_clears_on_motion_and_latches_after_settling",), True),
+    ("dock raises the lift during its turn onto the dock", "simulacrum/autonomy.py",
+     "        # The lift moves only while the robot stands: down through the turn onto the dock's axis, up after it,\n"
+     "        # and in position before the robot backs on (align_back, lift_up). Raised as the turn began, with the\n"
+     "        # backup starting as it ended, the dock from a docked start failed for 7 of 8 noise seeds.\n",
+     "        sim.command_lift_height(45.0)\n",
+     (LIFT_STILL_TEST,), True),
+    ("dock backs on before the lift is up", "simulacrum/autonomy.py",
+     "                ctx.sub, ctx.stage = _SubMotion(kind=\"wait\", wait_ticks=LIFT_UP_WAIT_TICKS), \"lift_up\"\n",
+     "                ctx.backup_ticks, ctx.stage = 0, \"backup\"\n",
+     (LIFT_STILL_TEST,), True),
 )
 NEUTRAL =("docstring reworded", R, '"""A simulated Vector on a table. One instance is one robot and one scene."""',
            '"""A simulated Vector on a table: one instance is one robot and one scene."""')
