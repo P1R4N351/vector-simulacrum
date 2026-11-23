@@ -69,6 +69,18 @@ const s = robot.state;
 print("on_charger:", s.on_charger, "volts:", s.battery_volts);
 `,
   },
+  {
+    id: "nomad-nav",
+    title: "NoMaD visual explore & navigate",
+    source: `// Goal-Masked NoMaD diffusion: capture current view, explore, then return visually.
+const goal = await robot.nomad_capture_goal("home_view");
+print("captured goal node", goal.node_id);
+const exp = await robot.nomad_explore(3);
+print("explore nodes:", exp.nodes, "edges:", exp.edges);
+const nav = await robot.nomad_navigate(4, goal.node_id);
+print("navigate:", nav.result, "pred_dist:", nav.pred_dist, "nodes:", robot.state.nomad_nodes);
+`,
+  },
 ];
 
 export function exampleById(id) {

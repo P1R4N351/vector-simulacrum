@@ -49,8 +49,9 @@ most sensitive to, by a wide margin ("The assumed values, ranked" below).
 | `simulacrum/vec_env.py` | Many tasks stepped together, in up to 4 worker processes |
 | `simulacrum/training.py` | PPO with `rsl_rl`, ONNX export, the parity recording |
 | `simulacrum/onnx_policy.py` | Runs an exported policy with `onnxruntime` only |
+| `simulacrum/nomad_cam.py`, `nomad_model.py`, `nomad_onnx.py`, `nomad.py` | Goal-Masked NoMaD visual diffusion policy (`64x36` calibrated `head_cam` renderer, Transformer + FiLM 1D U-Net + DDIM sampler, `TopologicalGraph`, closed-loop explorer/navigator) |
 | `replay_recording.py`, `fit_recording.py` | The comparison tables below; the fit (prints values, changes no file) |
-| `train.py`, `run_policy.py`, `evaluate.py`, `smoke.py` | Train and export; run without torch; compare with baselines; all three in one go |
+| `train.py`, `train_nomad.py`, `run_policy.py`, `run_nomad.py`, `evaluate.py`, `smoke.py` | Train and export PPO / NoMaD policies; run without torch; compare baselines |
 | `rank_assumed.py` | Moves each assumed or chosen value to its bounds and measures what that does to the training task |
 | `build_mjcf.py` | Writes the generated MJCF to a file |
 | `demo.py`, `measure.py` | A short run; the model figures quoted below |
@@ -71,6 +72,8 @@ most sensitive to, by a wide margin ("The assumed values, ranked" below).
 ./run_in_ct.sh fit_recording.py                     # refit (4 workers; prints values, changes no file)
 ./run_in_ct.sh measure.py                           # the model figures in this file
 ./run_in_ct.sh smoke.py                             # train, export, check without torch, compare
+./run_in_ct.sh train_nomad.py --out /root/nomad-out # train Goal-Masked NoMaD and export ONNX + web weights
+./run_in_ct.sh run_nomad.py --model-dir /root/nomad-out # run torch-free NoMaD ONNX explore + navigate
 ./run_in_ct.sh rank_assumed.py --policy /root/vector-runs/smoke3/policy.onnx   # what each assumed value does (about 25 minutes)
 python3 -m simulacrum.recording                     # anywhere: what the recording itself says
 python3 -m simulacrum.imu_fit                       # anywhere with numpy: the accelerometer's offsets

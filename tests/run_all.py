@@ -30,7 +30,7 @@ MODULES = ("test_params", "test_mjcf", "test_drive", "test_recording", "test_imu
            "test_wheelstand", "test_motor_heat", "test_prox", "test_spin_fit", "test_camera_spins",
            "test_imu_filter", "test_record_listen", "test_hazards", "test_mujoco_pin",
            "test_hold_cube", "test_cube_accel", "test_cube_model", "test_cube_firmware", "test_cube_surface",
-           "test_capture_peers", "test_rescue_pipeline", "test_body_mesh", "test_printed_parts", "test_wheelstand_replay", "test_autonomy", "test_run_all")
+           "test_capture_peers", "test_rescue_pipeline", "test_body_mesh", "test_printed_parts", "test_wheelstand_replay", "test_autonomy", "test_nomad", "test_run_all")
 EXIT_OK, EXIT_USAGE, EXIT_ENV, EXIT_RED = 0, 2, 3, 7
 
 

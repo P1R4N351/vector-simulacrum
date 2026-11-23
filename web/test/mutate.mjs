@@ -22,10 +22,10 @@ const COPIED = ["src/sim", "src/game", "src/program", "test", "public/robot/vect
   "public/robot/vector-free.xml", "public/robot/vector-contact42-free.xml", "public/robot/vector-dock.xml",
   "public/robot/vector-contact42-dock.xml", "public/robot/vector-free-dock.xml",
   "public/robot/vector-contact42-free-dock.xml", "public/robot/model.json",
-  "public/robot/vector2", "camera_calibration.json", "camera_calibration_vector2.json", "package.json"];
+  "public/robot/vector2", "public/robot/nomad", "camera_calibration.json", "camera_calibration_vector2.json", "package.json"];
 const SUITE = ["test/drive.test.js", "test/hazards.test.js", "test/robot.test.js", "test/tracks.test.js", "test/optics.test.js",
   "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js",
-  "test/program.test.js", "test/firmware.test.js", "test/autonomy.test.js"];
+  "test/program.test.js", "test/firmware.test.js", "test/autonomy.test.js", "test/nomad.test.js"];
 const ARMS = [
   { name: "control: untouched copy", file: null, mustFail: false },
   { name: "neutral: a comment added", file: "src/sim/drive.js", old: "export class TreadEncoder {", new: "// neutral change\nexport class TreadEncoder {", mustFail: false },
@@ -98,6 +98,10 @@ const ARMS = [
   { name: "autonomy: optical marker ray occlusion ignored", file: "src/sim/autonomy.js", old: "if (hit >= 0 && hit < cDist - 0.020) return null;", new: "if (hit < -999) return null;", mustFail: true },
   { name: "autonomy: dock approach turns away from marker", file: "src/sim/autonomy.js", old: "const faceYaw = Math.atan2(-ch.outY, -ch.outX);", new: "const faceYaw = Math.atan2(ch.outY, ch.outX);", mustFail: true },
   { name: "program: host snapshot clears on_charger state", file: "src/program/host.js", old: "on_charger: this.sim.chargerContact, battery_volts: this.sim.batteryVolts,", new: "on_charger: false, battery_volts: this.sim.batteryVolts,", mustFail: true },
+  { name: "nomad: goal mask leaks unmasked goal token", file: "src/sim/nomad.js", old: "const keep = 1 - goalMask;", new: "const keep = 1;", mustFail: true },
+  { name: "nomad: DDIM denoising step flips noise sign", file: "src/sim/nomad.js", old: "const x0 = clamp((x[i] - sOneT * eps[i]) / sAbT, -1.8, 1.8);", new: "const x0 = clamp((x[i] + sOneT * eps[i]) / sAbT, -1.8, 1.8);", mustFail: true },
+  { name: "nomad: topological Dijkstra ignores edge weights", file: "src/sim/nomad.js", old: "const alt = dist[u] + w;", new: "const alt = dist[u] + 1;", mustFail: true },
+  { name: "nomad: trajectory selector rewards driving off cliff", file: "src/sim/nomad.js", old: "if (state.cliff_detected && traj[1][0] > 0) score -= 250;", new: "if (state.cliff_detected && traj[1][0] > 0) score += 250;", mustFail: true },
 ];
 
 function makeCopy() {

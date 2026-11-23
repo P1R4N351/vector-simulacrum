@@ -12,6 +12,7 @@
 // tick per tick() call, so a frame loop can run it. The tick order is the same.
 
 import { AutonomyController } from "./autonomy.js";
+import { NomadAutonomy } from "./nomad.js";
 import { CubeFirmwareVm } from "./cube_firmware.js";
 import { TreadController, TreadEncoder, wholeMmps } from "./drive.js";
 import { CubeSensor } from "./cube_sensor.js";
@@ -79,6 +80,7 @@ export class VectorSim {
     this.data = new mujoco.MjData(this.model);
     this._indexModel();
     this._autonomy = new AutonomyController(this, this.cameraSpec);
+    this._nomad = new NomadAutonomy(this, this.cameraSpec);
     this.reset(opts);
   }
 
@@ -131,6 +133,7 @@ export class VectorSim {
       }
     }
     this._autonomy?.navMap.reset();
+    this._nomad?.reset();
   }
 
   dispose() {
@@ -614,7 +617,8 @@ export class VectorSim {
       wheel_angles_rad: this.wheelAnglesRad(), wheel_spin_radps: this.wheelSpinRadps(),
       battery_volts: this.batteryVolts, tread_heat: this.treadHeat.slice(),
       on_charger: Boolean(this.chargerContact), on_charger_platform: this._onDockPlatform(),
-      autonomy_phase: this._autonomy?.phase ?? null,
+      autonomy_phase: this._nomad?.phase ?? this._autonomy?.phase ?? null,
+      nomad_ready: Boolean(this._nomad?.policy),
       firmware_active: Boolean(this.sysconFirmware || this.cubeSensor?.firmware),
     };
   }
@@ -998,7 +1002,7 @@ export class VectorSim {
   cancelAction() {
     const a = this._action;
     if (a === null) return false;
-    if (a.autonomy) this._autonomy.restoreControlLevel(a.autonomy);
+    if (a.autonomy) (a.autonomy.controller ?? this._autonomy).restoreControlLevel(a.autonomy);
     const [x, y] = this.poseMm();
     this.lastAction = {
       kind: a.kind, result: RESULT_CANCELLED, moved_mm: Math.hypot(x - a.start[0], y - a.start[1]),
@@ -1102,6 +1106,19 @@ export class VectorSim {
     return this._autonomy.navMap.snapshot();
   }
 
+  attachNomad(policy, spec = null) {
+    this._nomad.attachPolicy(policy, spec ?? this.cameraSpec);
+  }
+
+  nomadSnapshot() {
+    return this._nomad.snapshot();
+  }
+
+  nomadCaptureGoal(label = "goal") {
+    if (!this._nomad.policy) return null;
+    return this._nomad.captureGoal(label);
+  }
+
   firmwareStatus() {
     return {
       active: Boolean(this.sysconFirmware || this.cubeSensor?.firmware),
@@ -1115,8 +1132,9 @@ export class VectorSim {
   }
 
   _startAutonomy(ctx) {
+    const ctrl = ctx.controller ?? this._autonomy;
     if (!this.hasControl || this._action !== null) {
-      this._autonomy.restoreControlLevel(ctx);
+      ctrl.restoreControlLevel(ctx);
       return this._refuse();
     }
     const maxS = Math.max(8, (ctx.deadlineTick - this.tick_) * this.dt + 2);
@@ -1133,6 +1151,19 @@ export class VectorSim {
 
   dockWithCharger() {
     return this._startAutonomy(this._autonomy.startDock());
+  }
+
+  nomadExplore(durationS = 10) {
+    if (!this._nomad.policy) return this._refuse();
+    return this._startAutonomy(this._nomad.startExplore(durationS));
+  }
+
+  nomadNavigate(maxS = 20, goalNodeId = null) {
+    if (!this._nomad.policy) return this._refuse();
+    const gid = goalNodeId ?? this._nomad.goalNodeId;
+    const hasNode = gid !== null && gid >= 0 && gid < this._nomad.graph.nodes.length;
+    if (!hasNode && !this._nomad.goalImgU8) return this._refuse();
+    return this._startAutonomy(this._nomad.startNavigate(maxS, goalNodeId));
   }
 
   // A servo action leaves the treads alone: the Python's _servo_action never zeroes them.
@@ -1173,7 +1204,8 @@ export class VectorSim {
     a.budget -= 1;
     let done = false;
     if (a.autonomy) {
-      const stepRes = this._autonomy.step(a.autonomy);
+      const ctrl = a.autonomy.controller ?? this._autonomy;
+      const stepRes = ctrl.step(a.autonomy);
       if (!stepRes.running) {
         const { running: _r, result, ...extra } = stepRes;
         a.result = result ?? RESULT_COMPLETED;
@@ -1247,7 +1279,7 @@ export class VectorSim {
       this._inAction = false;
     }
     const [x, y] = this.poseMm();
-    if (a.autonomy) this._autonomy.restoreControlLevel(a.autonomy);
+    if (a.autonomy) (a.autonomy.controller ?? this._autonomy).restoreControlLevel(a.autonomy);
     this.lastAction = {
       kind: a.kind, result: a.result, moved_mm: Math.hypot(x - a.start[0], y - a.start[1]),
       turned_deg: (this._yawTotal - a.yaw0) / DEG, ticks: this.tick_ - a.tick0,
