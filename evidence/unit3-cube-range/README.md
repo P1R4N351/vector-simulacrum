@@ -350,3 +350,13 @@ Replay each recorded wheel profile with driven rear tread support. For each pin,
 With guide collisions enabled, the left pin was the limiting longitudinal contact on A and D. At closest approach the longitudinal excesses were 23.28 and 27.05 mm. Both pairs were within lateral tolerance then; vertical excess was 1.24 and 1.94 mm. In the successful B, C and E replays, the limiting longitudinal coordinate was only 0.02–0.14 mm inside its window at first acquisition.
 
 Without guide collisions, A came close: the left pad missed the longitudinal window by 2.05 mm and the right missed the lateral window by 2.15 mm on the same tick. Both pads were within height tolerance. D still missed longitudinally by 15.27 mm. The electrical tolerances here belong to the simulator. The physical SDK provides a combined charger flag and cannot identify individual pin offsets. The results point to approach travel with guides present and two-axis alignment on guide-free A. Reproduce with `python mount_pins.py` from this directory with web dependencies installed.
+
+### Would continuing to back up recover the missed contacts?
+
+[Chassis travel through first contact or timeout](mount-duration.png) · [Contact times, terminal poses and wheel travel](mount-duration.csv) · [Reproduction](mount_duration.py)
+
+Run each recorded backup for seven seconds from its own start, using the same dock, starting pose and precontact commands. From the first physical on-report onward, either finish the recorded profile and hold its final zero command, hold the last off-report wheel pair, or command −30 mm/s on both sides. This gives A and D approximately 2.77 and 2.26 s of additional command time beyond the physical on-report. Score up to first simulated contact or timeout. The extensions are simulation counterfactuals. There are no physical gyro or camera observations under the extended command.
+
+With the canonical supports all five runs timed out around 35 mm outward in every condition. With driven rear supports, B, C and E acquired before the command branches diverged. A and D missed in all three conditions. Holding the last wheel pair on A produced 84.8 mm of reverse encoder travel after the physical contact time, while the chassis moved 0.84 mm outward along the dock axis. D reported 74.3 mm of wheel travel for 7.70 mm of inward chassis travel. Equal targets gave similar terminal poses, 19.6 and 20.1 mm off center with headings of −33.3° and −35.2°. The disparity includes both rotation and slip. These runs identify a translation failure under sustained reverse drive; they do not support extending the timer as a standalone fix.
+
+Run `python mount_duration.py` here with the canonical web dependencies installed.
