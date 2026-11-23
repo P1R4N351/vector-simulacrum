@@ -7,8 +7,10 @@
 // faulty arm must make the suite fail; the untouched copy and a comment-only
 // change must pass. An arm whose text is not found exactly once, or that
 // leaves the file unchanged, is a fault of this script and is reported as
-// SETUP-ERROR, never as a verdict on the tests.
-// Exit: 0 every arm as required, 7 a fault survived (or a clean copy failed), 3 a set-up error.
+// SETUP-ERROR, never as a verdict on the tests. If the untouched or the
+// comment-only copy fails, the copy itself is broken (a file it needs is not
+// copied, say) and every other verdict would be void, so the run stops there.
+// Exit: 0 every arm as required, 7 a fault survived, 3 a set-up error or a failing clean copy.
 import { spawnSync } from "node:child_process";
 import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -18,7 +20,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const COPIED = ["src/sim", "src/game", "src/program", "test", "public/robot/vector.xml", "public/robot/vector-contact42.xml",
   "public/robot/vector-free.xml", "public/robot/vector-contact42-free.xml", "public/robot/model.json",
-  "camera_calibration.json", "package.json"];
+  "public/robot/vector2", "camera_calibration.json", "camera_calibration_vector2.json", "package.json"];
 const SUITE = ["test/drive.test.js", "test/hazards.test.js", "test/robot.test.js", "test/tracks.test.js", "test/optics.test.js",
   "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js",
   "test/program.test.js"];
@@ -132,10 +134,15 @@ for (const arm of ARMS) {
   } finally {
     rmSync(dir, { recursive: true, force: true }); // this script's own temporary copy
   }
-  if (verdict.startsWith("SETUP-ERROR")) tally.setupErrors.push(arm.name);
-  else if (verdict === "SURVIVED" || verdict === "FAILED ON A CLEAN COPY") tally.survived.push(arm.name);
-  else tally.asRequired += 1;
   console.log(`${verdict.padEnd(22)} ${arm.name}`);
+  if (verdict === "FAILED ON A CLEAN COPY") {
+    console.log("RUN VOID: a copy with no fault in it fails the suite, so no arm below it could mean anything.");
+    console.log(JSON.stringify({ arms: ARMS.length, void: true, clean_copy_failed: arm.name }));
+    process.exit(3);
+  }
+  if (verdict.startsWith("SETUP-ERROR")) tally.setupErrors.push(arm.name);
+  else if (verdict === "SURVIVED") tally.survived.push(arm.name);
+  else tally.asRequired += 1;
 }
 const faulty = ARMS.filter((arm) => arm.mustFail).length;
 console.log(JSON.stringify({ arms: ARMS.length, faulty, as_required: tally.asRequired, survived: tally.survived, setup_errors: tally.setupErrors }));
