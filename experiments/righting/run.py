@@ -76,7 +76,7 @@ def pose(data, prefix):
 
 def run(model, side, args):
     data = mj.MjData(model)
-    low, high = model.actuator("lift").ctrlrange
+    low, high = model.joint("lift_joint").range
     root = data.joint("patient_root").qpos
     root[:3] = (0, 0, 0.039)
     mj.mju_mulQuat(

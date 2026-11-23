@@ -162,7 +162,7 @@ def init_state(model, data, side, args):
     """Initialize sideways patient and rescuer (carrying cube unless no_cube)."""
     data.joint("patient_root").qpos[:3] = (0.0, 0.0, 0.039)
     data.joint("patient_root").qpos[3:] = sideways_quat(side)
-    lo, hi = model.actuator("lift").ctrlrange
+    lo, hi = model.joint("lift_joint").range
     for prefix in ("", "patient_"):
         is_rescuer = prefix == ""
         lift_0 = (lo if args.no_cube else hi) if is_rescuer else lo
@@ -228,7 +228,7 @@ def stage_a_place(model, data, args, gsets, frames, next_frame_t, log):
     """Carry cube to drop point, release weld, and reverse to standoff."""
     assert model is not None and data is not None, "valid MuJoCo model/data required"
     values = args._values
-    lo, hi = model.actuator("lift").ctrlrange
+    lo, hi = model.joint("lift_joint").range
     weld_id = model.equality("carry_weld").id
     stop_x = args._cube_drop_target[0] - 0.048
     reverse_x = stop_x - args.recovery_dock_standoff_mm * 0.001
@@ -261,7 +261,7 @@ def stage_a_place(model, data, args, gsets, frames, next_frame_t, log):
 
 def stage_b_engage(model, data, args, gsets, frames, next_frame_t, log):
     """Raise patient lift toward dropped cube while rescuer waits at standoff."""
-    lo, _ = model.actuator("lift").ctrlrange
+    lo, _ = model.joint("lift_joint").range
     max_steps = round(args.engage_duration_s / model.opt.timestep)
     start_t = data.time
     fork_steps = 0
@@ -339,7 +339,7 @@ def execute_lever_stroke(model, data, pat_lift_ctrl, gsets, frames,
                          next_frame_t, args):
     """Execute contact-triggered belly/fork-side lift-and-push stroke."""
     assert model is not None and data is not None, "valid MuJoCo model/data required"
-    lo, hi = model.actuator("lift").ctrlrange
+    lo, hi = model.joint("lift_joint").range
     t0, hit = data.time, None
     best = worst = patient_tilt_deg(data)
     direct_steps = dual_steps = rc_steps = 0
@@ -376,7 +376,7 @@ def execute_lever_stroke(model, data, pat_lift_ctrl, gsets, frames,
 def stage_c_recovery(model, data, side, pat_lift_ctrl, args, gsets,
                      frames, next_frame_t, log):
     """Navigate continuously to belly/cube lever pose and run righting stroke."""
-    lo, hi = model.actuator("lift").ctrlrange
+    lo, hi = model.joint("lift_joint").range
     lift_h0 = lo + 0.23 * (hi - lo)
     ref_x = 0.0113 if args.no_cube else float(data.body("cube").xpos[0])
     yaw = math.radians(168.7) * side
@@ -430,7 +430,7 @@ def run_one(model, side, args):
     log = dict(side=side)
     init_state(model, data, side, args)
     if args.no_cube:
-        pat_lift = model.actuator("lift").ctrlrange[0]
+        pat_lift = model.joint("lift_joint").range[0]
     else:
         next_t = stage_a_place(model, data, args, gsets, frames, next_t, log)
         next_t = stage_b_engage(model, data, args, gsets, frames, next_t, log)

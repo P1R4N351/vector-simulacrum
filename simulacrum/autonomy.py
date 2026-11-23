@@ -28,6 +28,15 @@ CELL_PROX = 2
 CELL_CUBE = 3
 CELL_CLIFF = 4
 CELL_CHARGER = 5
+BACKUP_SPEEDS_MMPS = (-102.0, -112.0, -96.0, -122.0, -106.0)  # by wiggle count, as before
+BACKUP_MIN_TICKS = 320
+BACKUP_MARGIN = 1.3
+SEAT_DEPTH_MM = 30.0  # the seated robot's origin is this far behind the lip (web/src/sim/robot.js _localizeOnCharger)
+LIFT_UP_WAIT_TICKS = 200  # control ticks (1 s): the longest the dock waits for the lift to reach its backing height
+# Control ticks (1.65 s) a retry may take pulling forward to its goal. At 165 the pull stopped about 47 mm out, short of
+# its 78 or 90 mm goal with the rear skids still on the dock's lip; the alignment turn after it could not turn there,
+# and the next backup set off 7.1 to 8.8 degrees off the dock's axis (web/src/sim/autonomy.js, the browser's dock).
+PULL_MAX_TICKS = 330
 
 DOCK_CORNERS_LOCAL = (
     (-0.0005, DOCK_MARKER_HALF_M, DOCK_MARKER_HALF_M),
@@ -401,6 +410,7 @@ class _DockCtx:
     cliff_recovered: bool = False
     mount_out_yaw: float = 0.0
     backup_ticks: int = 0
+    backup_budget: int = 320
     pull_ticks: int = 0
     align_ticks: int = 0
     sub: _SubMotion = field(default_factory=_SubMotion)
@@ -648,6 +658,12 @@ class DockingExplorer:
     def _step_dock_backup(self, ctx: _DockCtx, dock_st: Dict[str, Any]) -> Optional[str]:
         sim, ch = self.sim, self.nav_map.charger_pose
         ctx.backup_ticks += 1
+        if ctx.backup_ticks == 1:
+            # Ticks for the way to the seat at this attempt's speed, with a margin, and never fewer than the 320 it had:
+            # first backups starting 140 to 149 mm out ran out of ticks 21.6 to 30.3 mm short of the lip (the browser's dock).
+            fwd = (sim.state.x_mm - ch["lip_x"]) * ch["out_x"] + (sim.state.y_mm - ch["lip_y"]) * ch["out_y"] if ch else 0.0
+            speed = abs(BACKUP_SPEEDS_MMPS[ctx.wiggle_count % len(BACKUP_SPEEDS_MMPS)])
+            ctx.backup_budget = max(BACKUP_MIN_TICKS, int(math.ceil(BACKUP_MARGIN * (fwd + SEAT_DEPTH_MM) / (speed * sim.dt))))
         if sim.pose_mm()[2] < -5.0 or abs(math.degrees(sim._pitch())) > 25.0:
             return "aborted_off_ground"
         yaw, out_yaw = sim.state.pose_angle_rad, ctx.mount_out_yaw
@@ -656,13 +672,16 @@ class DockingExplorer:
         rlat = -(rx - ch["lip_x"]) * ch["out_y"] + (ry - ch["lip_y"]) * ch["out_x"] if ch else 0.0
         twisted = ctx.backup_ticks > 90 and abs(_wrap(out_yaw - yaw)) > math.radians(10.0) and not dock_st["on_charger"]
         past_rear = ch is not None and not dock_st["on_charger"] and not dock_st["on_charger_platform"] and rfwd < -95.0
-        if dock_st["on_charger"] or ctx.backup_ticks > 320 or twisted or past_rear:
+        if dock_st["on_charger"] or ctx.backup_ticks > ctx.backup_budget or twisted or past_rear:
             sim._wheel_target = [0.0, 0.0]
             ctx.sub, ctx.stage = _SubMotion(kind="wait", wait_ticks=22), "verify"
             return None
-        spd = (-102.0, -112.0, -96.0, -122.0, -106.0)[ctx.wiggle_count % 5]
+        spd = BACKUP_SPEEDS_MMPS[ctx.wiggle_count % len(BACKUP_SPEEDS_MMPS)]
         des_err = _clamp(0.015 * rlat, -0.20, 0.20) if rfwd > -2.0 else 0.0
-        steer = 140.0 * _wrap(out_yaw + des_err - yaw) if rfwd > -2.0 else 0.0
+        # Past the lip the lateral term stops but the heading is still held. Backing straight on from 150 mm with up to
+        # 3 mm and 1 degree of offset, 4 of 9 climbs seated unheld and 8 of 9 held (the browser's dock); a miss wedges
+        # about 18 degrees round.
+        steer = 140.0 * _wrap(out_yaw + des_err - yaw)
         sim._wheel_target = [spd - steer, spd + steer]
         return None
 
@@ -690,7 +709,7 @@ class DockingExplorer:
             out_yaw = math.atan2(ch["out_y"], ch["out_x"]) if ch else ctx.mount_out_yaw
             fwd = (sim.state.x_mm - ch["lip_x"]) * ch["out_x"] + (sim.state.y_mm - ch["lip_y"]) * ch["out_y"] if ch else 80.0
             lat = -(sim.state.x_mm - ch["lip_x"]) * ch["out_y"] + (sim.state.y_mm - ch["lip_y"]) * ch["out_x"] if ch else 0.0
-            if fwd >= (90.0 if ctx.wiggle_count % 2 == 0 else 78.0) or ctx.pull_ticks >= 165:
+            if fwd >= (90.0 if ctx.wiggle_count % 2 == 0 else 78.0) or ctx.pull_ticks >= PULL_MAX_TICKS:
                 sim._wheel_target = [0.0, 0.0]
                 ctx.mount_out_yaw, ctx.align_ticks, ctx.stage = out_yaw, 0, "wiggle_align"
                 return None
@@ -743,7 +762,9 @@ class DockingExplorer:
             ctx.stage = "route_predock"
             return None
         ctx.fix_count, ctx.wiggle_count = 0, 0
-        sim.command_lift_height(45.0)
+        # The lift moves only while the robot stands: down through the turn onto the dock's axis, up after it,
+        # and in position before the robot backs on (align_back, lift_up). Raised as the turn began, with the
+        # backup starting as it ended, the dock from a docked start failed for 7 of 8 noise seeds.
         ctx.mount_out_yaw = math.atan2(ch["out_y"], ch["out_x"])
         self._start_turn(ctx.sub, math.degrees(_wrap(ctx.mount_out_yaw - sim.state.pose_angle_rad)), 95.0)
         ctx.stage = "align_back"
@@ -793,6 +814,12 @@ class DockingExplorer:
                 self.sim.control_level = "override"
                 self.sim.command_lift_height(45.0)
                 ctx.attempts += 1
+                ctx.sub, ctx.stage = _SubMotion(kind="wait", wait_ticks=LIFT_UP_WAIT_TICKS), "lift_up"
+            return None
+        if ctx.stage == "lift_up":
+            # Stand still until the lift is in position (or the wait runs out), then back onto the dock.
+            self._step_sub(ctx.sub)
+            if self.sim._lift_in_pos or ctx.sub.ticks >= ctx.sub.wait_ticks:
                 ctx.backup_ticks, ctx.stage = 0, "backup"
             return None
         if ctx.stage == "backup":

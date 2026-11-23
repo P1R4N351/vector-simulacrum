@@ -335,7 +335,10 @@ class Servos(unittest.TestCase):
         sim.advance(0.5)
         fork = mujoco.mj_name2id(sim.model, mujoco.mjtObj.mjOBJ_BODY, "lift_fork")
         self.assertAlmostEqual(float(sim.data.xpos[fork][2]) * 1000.0, sim.lift_height_mm(), delta=0.5)
-        self.assertAlmostEqual(sim.lift_height_mm(), 70.0, delta=1.0)
+        # Within the firmware's tolerance of the target, not on it: the lift's integral term keeps what it wound
+        # up on the way (LIFTC:858-888), as the robot's lift does (REC2 lift_6: 60 mm commanded, 61.85 mm held).
+        off = mjcf.lift_angle_of_height(sim.v, sim.lift_height_mm()) - mjcf.lift_angle_of_height(sim.v, 70.0)
+        self.assertLess(abs(off), math.radians(sim.v["lift_angle_tol_deg"]))
 
     def test_head_and_lift_rates_change_nothing_while_neither_is_commanded(self) -> None:
         def drive(overrides: dict) -> list:

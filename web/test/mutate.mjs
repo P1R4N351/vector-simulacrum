@@ -25,7 +25,7 @@ const COPIED = ["src/sim", "src/game", "src/program", "test", "public/robot/vect
   "public/robot/vector2", "public/robot/nomad", "camera_calibration.json", "camera_calibration_vector2.json", "package.json"];
 const SUITE = ["test/drive.test.js", "test/hazards.test.js", "test/robot.test.js", "test/tracks.test.js", "test/optics.test.js",
   "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js",
-  "test/program.test.js", "test/firmware.test.js", "test/autonomy.test.js", "test/nomad.test.js"];
+  "test/program.test.js", "test/firmware.test.js", "test/autonomy.test.js", "test/nomad.test.js", "test/lift-integral.test.js"];
 const ARMS = [
   { name: "control: untouched copy", file: null, mustFail: false },
   { name: "neutral: a comment added", file: "src/sim/drive.js", old: "export class TreadEncoder {", new: "// neutral change\nexport class TreadEncoder {", mustFail: false },
@@ -45,6 +45,14 @@ const ARMS = [
   { name: "rear wheel angles read from the front wheels", file: "src/sim/robot.js", old: 'this._allWheelQ = ["wheel_fl", "wheel_fr", "wheel_rl", "wheel_rr"].map(qadr);', new: 'this._allWheelQ = ["wheel_fl", "wheel_fr", "wheel_fl", "wheel_fr"].map(qadr);', mustFail: true },
   { name: "rear wheel spin read from the front wheels", file: "src/sim/robot.js", old: 'this._allWheelDof = ["wheel_fl", "wheel_fr", "wheel_rl", "wheel_rr"].map(dof);', new: 'this._allWheelDof = ["wheel_fl", "wheel_fr", "wheel_fl", "wheel_fr"].map(dof);', mustFail: true },
   { name: "lift target reported as an angle, not a height", file: "src/sim/robot.js", old: "return liftHeightOfAngle(this.v, this._liftTarget);", new: "return this._liftTarget;", mustFail: true },
+  { name: "lift integral term left out", file: "src/sim/robot.js", old: "return (ki / kp) * errorSum;", new: "return 0 * errorSum;", mustFail: true },
+  { name: "lift error sum never clipped", file: "src/sim/robot.js", old: "return clamp(sum, -cap, cap);", new: "return sum;", mustFail: true },
+  { name: "a new lift target leaves the sum wound up", file: "src/sim/robot.js", old: "    if (this._liftInPos) this._liftErrorSum = 0;\n", new: "", mustFail: true },
+  { name: "dock raises the lift during its turn onto the dock", file: "src/sim/autonomy.js", old: "      // The lift moves only while the robot stands: down through the turn onto the dock's axis, up after it,\n", new: "      sim.commandLiftHeight(45);\n", mustFail: true },
+  { name: "dock backs on before the lift is up", file: "src/sim/autonomy.js", old: "      ctx.stage = \"lift_up\";\n", new: "      ctx.backupTicks = 0;\n      ctx.stage = \"backup\";\n", mustFail: true },
+  { name: "dock retry stops pulling forward at 165 ticks", file: "src/sim/autonomy.js", old: "ctx.pullTicks >= PULL_MAX_TICKS", new: "ctx.pullTicks >= 165", mustFail: true },
+  { name: "dock backup budget fixed at 320 ticks", file: "src/sim/autonomy.js", old: "ctx.backupTicks > ctx.backupBudget", new: "ctx.backupTicks > 320", mustFail: true },
+  { name: "dock stops holding heading past the lip", file: "src/sim/autonomy.js", old: "      const steer = 140 * wrapAngle(outYaw + desYawErr - yaw);\n", new: "      const steer = rearFwd > -2 ? 140 * wrapAngle(outYaw + desYawErr - yaw) : 0;\n", mustFail: true },
   { name: "track path: rear arc too long", file: "src/game/tracks.js", old: "const rearArc = rear.r * (2 * Math.PI - 2 * gamma);", new: "const rearArc = rear.r * (2 * Math.PI - gamma);", mustFail: true },
   { name: "track path: runs backwards along the top", file: "src/game/tracks.js", old: "if (u < straight) return between2(onWheel(rear, top), onWheel(front, top), u / straight);", new: "if (u < straight) return between2(onWheel(front, top), onWheel(rear, top), u / straight);", mustFail: true },
   { name: "track path: normal points inward on the wheels", file: "src/game/tracks.js", old: "z: wheel.z + wheel.r * Math.sin(angle), nx: Math.cos(angle), nz: Math.sin(angle),", new: "z: wheel.z + wheel.r * Math.sin(angle), nx: -Math.cos(angle), nz: -Math.sin(angle),", mustFail: true },
@@ -127,7 +135,9 @@ function applyArm(dir, arm) {
 
 function runSuite(dir) {
   const done = spawnSync(process.execPath, ["--test", ...SUITE],
-    { cwd: dir, encoding: "utf8", timeout: 180000 });
+    // 600 s bounds a hung suite. The suite ran 96 s on main on a host at load 5.7 and 192 s with the lift and dock
+    // change at load 11.8, where tests the change does not touch took 1.4 to 2.2 times as long: 180 s timed out.
+    { cwd: dir, encoding: "utf8", timeout: 600000 });
   const counted = /^(?:ℹ|#) tests (\d+)$/m.exec(done.stdout ?? "");
   return { status: done.status, tests: counted ? Number(counted[1]) : 0, timedOut: done.error?.code === "ETIMEDOUT" };
 }

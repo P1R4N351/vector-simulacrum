@@ -9,6 +9,7 @@ lifts the cube. The geometry checks need no MuJoCo; the torque and pickup checks
 from __future__ import annotations
 
 import importlib.util
+import math
 import unittest
 import xml.etree.ElementTree as ET
 from typing import List
@@ -156,9 +157,13 @@ class Pickup(unittest.TestCase):
     def test_the_robot_picks_up_and_carries_a_cube_it_docks_with(self) -> None:
         trial = _load(TRIAL, "cube_pickup_trial")
         v = params.values(params.load())
+        top = mjcf.lift_angle_of_height(v, v["lift_height_max_mm"])
         for offset in (-1.0, 0.0, 1.0):
             row = trial.trial(v, offset)
             self.assertEqual(row["drive_result"], "completed", row)
+            # Carrying the cube the lift still reaches its target (the integral term, test_lift_integral).
+            self.assertEqual(row["lift_result"], "completed", row)
+            self.assertLess(top - mjcf.lift_angle_of_height(v, row["lift_height_mm"]), math.radians(v["lift_angle_tol_deg"]), row)
             self.assertGreater(row["cube_rise_mm"], trial.PICKUP_RISE_MM, row)
             self.assertGreater(row["rise_after_backing_mm"], trial.PICKUP_RISE_MM, row)
             self.assertLess(row["tilt_after_backing_deg"], 10.0, row)

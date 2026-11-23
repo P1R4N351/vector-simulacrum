@@ -60,3 +60,35 @@ class AutonomyMujoco(unittest.TestCase):
             self.assertEqual(dock_res["result"], "completed", f"{label}: {dock_res}")
             self.assertTrue(autonomy.sync_dock_contact(sim)["on_charger"], label)
             self.assertAlmostEqual(sim.battery_volts, 4.2, places=2)
+
+    def test_the_lift_holds_still_while_the_robot_turns_onto_the_dock_and_backs_on(self) -> None:
+        """The lift moves only while the robot stands. Raised at the start of the turn onto the dock's axis, with
+        the backup starting as the turn ended, the dock from a docked start failed for 7 of 8 noise seeds once
+        the lift had the firmware's integral term (test_lift_integral).
+
+        Each visit to a stage is measured on its own: across retries the lift is in position at 45 mm anywhere
+        within its tolerance. Within one visit the lift moved at most 0.17 mm in the turn and 0.52 mm in a backup,
+        as the climb changes the load on it (the three docks of test_undock_and_dock_multiple_poses, and the
+        browser's alike); raised there it moves 13 mm."""
+        sim = autonomy.make_dock_sim(start_docked=True)
+        ctrl = autonomy.DockingExplorer(sim)
+        self.assertEqual(ctrl.undock(), "completed")
+        visits = []
+        step = ctrl._step_dock_state
+
+        def watch(ctx, dock_st):
+            stage = ctx.stage if ctx.stage in ("align_back", "backup") else None
+            if stage is not None:
+                if not visits or visits[-1][0] != stage or visits[-1][2]:
+                    visits.append([stage, [], False])
+                visits[-1][1].append(sim.lift_height_mm())
+            elif visits:
+                visits[-1][2] = True
+            return step(ctx, dock_st)
+
+        ctrl._step_dock_state = watch
+        self.assertEqual(ctrl.dock(55.0)["result"], "completed")
+        self.assertEqual({stage for stage, _, _ in visits}, {"align_back", "backup"})
+        for stage, seen, _ in visits:
+            self.assertGreater(len(seen), 20, stage)
+            self.assertLess(max(seen) - min(seen), 1.0, "the lift moved %.2f mm during %s" % (max(seen) - min(seen), stage))

@@ -48,6 +48,32 @@ export function liftHeightOfAngle(v, angleRad) {
   return Math.sin(angleRad) * v.lift_arm_length_mm + v.lift_base_position_mm[2];
 }
 
+// How far the lift's integral term moves the servo's target (rad), as simulacrum/mjcf.py:
+// the firmware's power is Kp x error + Ki x error sum (LIFTC:832-835) and the servo stands for Kp x error.
+export function liftIntegralOffsetRad(v, errorSum) {
+  const [kp, ki] = v.lift_power_gains;
+  assert(kp > 0 && ki >= 0 && Number.isFinite(errorSum), "bad lift gains or error sum");
+  return (ki / kp) * errorSum;
+}
+
+// One control tick of the firmware lift's integral term (LIFTC:858-892), as simulacrum/robot.py:
+// holding its final target within tolerance the lift only bleeds the sum while its power is above
+// lift_power_in_position_max; off target, or while the target still moves, the error goes on the sum.
+export function liftErrorSumStep(v, errorSum, errorRad, final) {
+  assert(Number.isFinite(errorSum) && Number.isFinite(errorRad), "bad lift error");
+  const [kp, ki] = v.lift_power_gains;
+  const cap = v.lift_error_sum_max;
+  assert(cap > 0 && v.lift_error_sum_decay > 0, "the error sum needs a positive cap and decay");
+  let sum = errorSum;
+  if (Math.abs(errorRad) < v.lift_angle_tol_deg * DEG && final) {
+    const power = kp * errorRad + ki * sum;
+    if (Math.abs(power) > v.lift_power_in_position_max) sum -= v.lift_error_sum_decay * (power > 0 ? 1 : -1);
+  } else {
+    sum += errorRad;
+  }
+  return clamp(sum, -cap, cap);
+}
+
 function polygonMargin(x, y, outline) {
   let inside = false;
   let distance = Infinity;
@@ -213,6 +239,8 @@ export class VectorSim {
     this._headInToleranceSince = null;
     this._liftInPos = true;
     this._liftInToleranceSince = null;
+    this._liftServoCmd = this._liftCmd; // the lift target the motor acts on this tick, before the integral term
+    this._liftErrorSum = 0; // the firmware's angleErrorSum_ (rad x control ticks)
     this._headSpeed = v.head_speed_default_radps;
     this._liftSpeed = v.lift_speed_default_radps;
     this._headAccel = v.head_accel_default_radps2;
@@ -255,7 +283,7 @@ export class VectorSim {
     qpos[6] = Math.sin(yaw / 2) * Math.cos(pitch / 2);
     qpos[this._q.lift] = this.d.lift_angle_min;
     qpos[this._q.wrist] = -this.d.lift_angle_min;
-    this.data.ctrl[this._act.lift] = this.d.lift_angle_min;
+    this.data.ctrl[this._act.lift] = this._liftServoCmd = this.d.lift_angle_min;
     this.mujoco.mj_forward(this.model, this.data);
     this._yawPrev = this._yawTotal = this._yaw();
     this._dockTravelMm = [0, 0];
@@ -283,6 +311,8 @@ export class VectorSim {
     const ctrl = this.data.ctrl;
     ctrl[this._act.head] = head;
     ctrl[this._act.lift] = lift;
+    this._liftServoCmd = lift;
+    this._liftErrorSum = 0;
     this.mujoco.mj_forward(this.model, this.data);
   }
 
@@ -738,9 +768,8 @@ export class VectorSim {
     } else if (this.hasControl) {
       [left, right] = delayed;
     }
-    const ctrl = this.data.ctrl;
-    ctrl[this._act.head] = delayed[2];
-    ctrl[this._act.lift] = delayed[3];
+    this.data.ctrl[this._act.head] = delayed[2];
+    this._writeLift(delayed[3]);
     this._applied = [left, right];
     if (left !== 0) this._dirSign[0] = left > 0 ? 1 : -1;
     if (right !== 0) this._dirSign[1] = right > 0 ? 1 : -1;
@@ -801,10 +830,26 @@ export class VectorSim {
     }
   }
 
+  // Aim the lift servo at this tick's target plus the integral term, then update the error sum.
+  // The firmware computes its power from the sum before this tick adds to it (LIFTC:834, 888).
+  _writeLift(command) {
+    const error = command - this.data.qpos[this._q.lift];
+    this.data.ctrl[this._act.lift] = command + liftIntegralOffsetRad(this.v, this._liftErrorSum);
+    this._liftServoCmd = command;
+    this._liftErrorSum = liftErrorSumStep(this.v, this._liftErrorSum, error, command === this._liftTarget);
+  }
+
+  // A new lift target. Arriving while the lift is in position, it clears the error sum, so a short
+  // move is not overpowered by the sum unwinding (LIFTC:566-573).
+  _retargetLift() {
+    if (this._liftInPos) this._liftErrorSum = 0;
+    this._liftInPos = false;
+  }
+
   _updateLiftStatus() {
     if (this._liftInPos) return;
     const angleError = Math.abs(this.data.qpos[this._q.lift] - this._liftTarget);
-    const finalCommand = this.data.ctrl[this._act.lift] === this._liftTarget;
+    const finalCommand = this._liftServoCmd === this._liftTarget;
     if (!finalCommand || angleError >= this.v.lift_angle_tol_deg * DEG) {
       this._liftInToleranceSince = null;
     } else if (this._liftInToleranceSince === null) {
@@ -869,11 +914,17 @@ export class VectorSim {
       const v = this.v, ctrl = this.data.ctrl;
       this.batteryVolts = v.battery_rest_voltage_v - v.battery_sag_v_per_power * (Math.abs(power[0]) + Math.abs(power[1]));
       this._applyWheelDuty([power[0], -power[1]], this.batteryVolts / v.motor_reference_voltage_v);
-      for (const [index, name, rate] of [[2, "lift", 20], [3, "head", 2 * Math.PI]]) {
+      // The lift's control range reaches past its travel for the model's own integral term; the
+      // firmware's power carries its own, so here the target stays within the travel.
+      const bounds = this.model.actuator_ctrlrange, head = this._act.head;
+      for (const [index, name, rate, lo, hi] of [
+        [2, "lift", 20, this.d.lift_angle_min, this.d.lift_angle_max],
+        [3, "head", 2 * Math.PI, bounds[2 * head], bounds[2 * head + 1]],
+      ]) {
         const at = this._act[name];
-        const bounds = this.model.actuator_ctrlrange;
-        ctrl[at] = clamp(ctrl[at] + power[index] * rate * this.dt, bounds[2 * at], bounds[2 * at + 1]);
+        ctrl[at] = clamp(ctrl[at] + power[index] * rate * this.dt, lo, hi);
       }
+      this._liftServoCmd = ctrl[this._act.lift];
     }
     const before = (this._dockBody >= 0 || this.chargerContact) ? this.poseMm() : null;
     this._physicsStep();
@@ -947,7 +998,7 @@ export class VectorSim {
     this._headCmd = this.headAngleRad();
     this._setHeadTarget(this._headCmd);
     this._liftTarget = this._liftCmd = this.data.qpos[this._q.lift];
-    this._liftInPos = false;
+    this._retargetLift(); // the firmware stops the lift by aiming it where it is (LIFTC:927-930, 458-474)
     this._liftInToleranceSince = null;
     this._servoRate = [0, 0];
     return true;
@@ -969,7 +1020,7 @@ export class VectorSim {
     assert(Number.isFinite(durationS) && durationS >= 0, "bad lift duration");
     const target = liftAngleOfHeight(this.v, heightMm);
     if (target !== this._liftTarget || Math.abs(target - this.data.qpos[this._q.lift]) >= this.v.lift_angle_tol_deg * DEG) {
-      this._liftInPos = false;
+      this._retargetLift();
     }
     this._liftInToleranceSince = null;
     this._liftTarget = target;

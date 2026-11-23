@@ -7,7 +7,7 @@ import {
   NavMapGrid,
   observeMarkers,
 } from "../src/sim/autonomy.js";
-import { VectorSim } from "../src/sim/robot.js";
+import { VectorSim, liftHeightOfAngle } from "../src/sim/robot.js";
 import { mujoco, readJson, readText } from "./helpers.js";
 
 const model = readJson("public/robot/model.json");
@@ -143,5 +143,70 @@ test("driveOffCharger, explore, and multi-pose dockWithCharger seat cleanly at 4
     assert.ok(Math.abs(diag.state.pose_angle_rad - Math.atan2(dock.outY, dock.outX)) < 0.04);
   } finally {
     diag.dispose();
+  }
+});
+
+test("after a longer explore from the dock, the robot backs on and seats at 4.2 V", async () => {
+  // A start the backup's held heading decides. With the steering stopping at the lip, the first of six backups here
+  // ran out of ticks short of the lip and the five after it twisted 10.1 to 11.5 degrees off the dock's axis on the
+  // climb; none seated.
+  const runtime = await mujoco();
+  const sim = new VectorSim(runtime, {
+    xml: dockXml, values: model.values, derived: model.derived, camera: model.camera,
+    startDocked: true, noiseSeed: 1,
+  });
+  try {
+    assert.equal(sim.driveOffCharger(), true);
+    for (let i = 0; i < 1500 && sim.actionRunning; i++) sim.tick(1);
+    assert.equal(sim.explore(3.5), true);
+    for (let i = 0; i < 4000 && sim.actionRunning; i++) sim.tick(1);
+    assert.equal(sim.lastAction.result, "completed");
+    assert.equal(sim.dockWithCharger(), true);
+    for (let i = 0; i < 14000 && sim.actionRunning; i++) sim.tick(1);
+    assert.equal(sim.lastAction.result, "completed");
+    assert.equal(sim.chargerContact, true);
+    assert.equal(sim.batteryVolts, 4.2);
+  } finally {
+    sim.dispose();
+  }
+});
+
+test("the lift holds still while the robot turns onto the dock and backs on", async () => {
+  // As tests/test_autonomy.py: raised as the turn began, with the backup starting as it ended, the dock from a
+  // docked start failed for 7 of 8 noise seeds once the lift had the firmware's integral term.
+  const runtime = await mujoco();
+  const sim = new VectorSim(runtime, {
+    xml: dockXml, values: model.values, derived: model.derived, camera: model.camera,
+    startDocked: true, noiseSeed: 1,
+  });
+  try {
+    assert.equal(sim.driveOffCharger(), true);
+    for (let i = 0; i < 1500 && sim.actionRunning; i++) sim.tick(1);
+    assert.equal(sim.lastAction.result, "completed");
+    // Each visit to a stage on its own: across retries the lift is in position at 45 mm anywhere within its
+    // tolerance. Within one visit it moved at most 0.18 mm in the turn and 0.49 mm in a backup, as the climb changes
+    // the load on it; raised there it moves 13 mm.
+    const visits = [];
+    let current = null;
+    assert.equal(sim.dockWithCharger(), true);
+    for (let i = 0; i < 14000 && sim.actionRunning; i++) {
+      const stage = sim._action?.autonomy?.stage;
+      const watched = stage === "align_back" || stage === "backup" ? stage : null;
+      if (watched !== current) {
+        current = watched;
+        if (watched) visits.push({ stage: watched, seen: [] });
+      }
+      if (watched) visits[visits.length - 1].seen.push(liftHeightOfAngle(model.values, sim.data.qpos[sim._q.lift]));
+      sim.tick(1);
+    }
+    assert.equal(sim.lastAction.result, "completed");
+    assert.deepEqual([...new Set(visits.map(v => v.stage))].sort(), ["align_back", "backup"]);
+    for (const { stage, seen } of visits) {
+      assert.ok(seen.length > 20, `${stage}: only ${seen.length} ticks`);
+      const span = Math.max(...seen) - Math.min(...seen);
+      assert.ok(span < 1.0, `the lift moved ${span.toFixed(2)} mm during ${stage}`);
+    }
+  } finally {
+    sim.dispose();
   }
 });
