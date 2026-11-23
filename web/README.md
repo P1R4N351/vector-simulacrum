@@ -372,3 +372,14 @@ The free-cube HUD also shows the upward axis inferred from acceleration and
 the movement listener state. The latest packet's `events` lists transitions
 in slot order with the packet send time. These are engine listener candidates
 before SDK broadcast suppression during carrying or docking.
+
+### Unit 3 printed fork contact
+
+For the local noncommercial Vector 2 demo, run these from the web directory. The exporter uses the same STL registration, convex decomposition and seed as the five physical cube push replays. It retains the wrist mass and joint and replaces the three contact boxes. The exact print installed on unit 3 remains unconfirmed.
+
+```sh
+python3 tools/fetch_print_parts.py
+uv run --python 3.12 --with numpy --with coacd==1.0.14 python tools/export_printed_fork.py
+```
+
+Open `/?robot=2&fork=printed&cube=free&contact=42` in the local simulator. Toggle the collision overlay to inspect the fork opening. Rerun the exporter after changing the base scenes. The locally generated scenes contain geometry derived from Dauler's forks7.stl and carry the source part's usage terms in `public/robot/sdk/print/Anki_Vector_Lifting_Forks-LICENSE.txt`. [Physical trial results](../evidence/unit3-printed-fork-contact/README.md)
