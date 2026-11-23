@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { CUBE_FACE_ATLAS, repairCubeUVs, repairMeshNormals } from "../src/game/cube.js";
 import { printFork } from "../src/game/printparts.js";
+import { assembleRigBlend, makeRigMaterials } from "../src/game/rigmodel.js";
 import { assemble } from "../src/game/sdkmodel.js";
 import { addShellTrim } from "../src/game/shell.js";
 import { addCrownAndBackpack } from "../src/game/topology.js";
@@ -309,4 +310,109 @@ test("optional SDK vector.obj and cube.obj pass 3D geometry and normal checks", 
       verifyCubeMarkerLayout(node.geometry, "sdk-cube");
     }
   });
+});
+
+function makeSyntheticBoxObj(tag, hx = 4, hy = 4, hz = 4, cx = 0, cy = 0, cz = 0) {
+  const verts = [
+    [cx - hx, cy - hy, cz - hz], [cx + hx, cy - hy, cz - hz],
+    [cx + hx, cy + hy, cz - hz], [cx - hx, cy + hy, cz - hz],
+    [cx - hx, cy - hy, cz + hz], [cx + hx, cy - hy, cz + hz],
+    [cx + hx, cy + hy, cz + hz], [cx - hx, cy + hy, cz + hz],
+  ];
+  const tris = [
+    [1, 3, 2], [1, 4, 3], [5, 6, 7], [5, 7, 8],
+    [1, 2, 6], [1, 6, 5], [2, 3, 7], [2, 7, 6],
+    [3, 4, 8], [3, 8, 7], [4, 1, 5], [4, 5, 8],
+  ];
+  const vLines = verts.map(([x, y, z]) => `v ${x} ${y} ${z}`);
+  const fLines = tris.map(([a, b, c]) => `f ${a} ${b} ${c}`);
+  return [`o box_${tag}`, `usemtl ${tag}`, ...vLines, ...fLines].join("\n") + "\n";
+}
+
+function makeSyntheticRigInputs(v) {
+  const partTexts = new Map([
+    ["chassis.obj", makeSyntheticBoxObj("gloss_black", 20, 18, 12, -28, 0, 15)],
+    ["head_shell.obj", makeSyntheticBoxObj("dark_grey", 12, 14, 10, 0, 0, 0)],
+    ["head_visor.obj", makeSyntheticBoxObj("visor", 2, 13, 9, 13, 0, 2)],
+    ["eye_l.obj", makeSyntheticBoxObj("eye", 0.5, 4, 5, 0, 0, 0)],
+    ["eye_r.obj", makeSyntheticBoxObj("eye", 0.5, 4, 5, 0, 0, 0)],
+    ["lift_upper.obj", makeSyntheticBoxObj("gunmetal", 20, 3, 3, 18, 0, 0)],
+    ["lift_lower.obj", makeSyntheticBoxObj("gunmetal", 20, 3, 3, 18, 0, 0)],
+    ["fork.obj", makeSyntheticBoxObj("dark_grey", 10, 18, 2, 12, 0, -20)],
+    ["wheel_fl.obj", makeSyntheticBoxObj("dark_grey", 12, 5, 12, 0, 0, 0)],
+    ["wheel_fr.obj", makeSyntheticBoxObj("dark_grey", 12, 5, 12, 0, 0, 0)],
+    ["wheel_bl.obj", makeSyntheticBoxObj("dark_grey", 9, 5, 9, 0, 0, 0)],
+    ["wheel_br.obj", makeSyntheticBoxObj("dark_grey", 9, 5, 9, 0, 0, 0)],
+  ]);
+  const manifest = {
+    source: { rig: "synthetic" },
+    frames: {
+      neck_mm: v.neck_position_mm ?? [0, 0, 44],
+      eye_l_offset_mm: [13.67, 5.22, 3.55],
+      eye_r_offset_mm: [13.67, -4.38, 3.55],
+      upper_origin_mm: v.lift_base_position_mm ?? [-33, 0, 31],
+      lower_origin_mm: [-31, 0, 21],
+      wheel_front_mm: [0, 0, v.wheel_front_radius_mm ?? 13.85],
+      wheel_rear_mm: [-(v.wheel_base_mm ?? 47.285), 0, v.wheel_rear_radius_mm ?? 10.1],
+      tread_contact_left_y_mm: [18.15, 29.65],
+      tread_contact_right_y_mm: [-29.73, -18.23],
+    },
+  };
+  return { manifest, partTexts };
+}
+
+test("assembleRigBlend supports shell versions, faceplate toggle, level fork, 84 cleats, and symmetric eyes", () => {
+  assert.equal(makeRigMaterials(1).byTag.get("ear_ring").color.getHex(), 0xc4af7b);
+  assert.equal(makeRigMaterials(2).byTag.get("ear_ring").color.getHex(), 0x626469);
+  const v = readJson("public/robot/model.json").values;
+  const { manifest, partTexts } = makeSyntheticRigInputs(v);
+
+  const covered = withMockDocument(() => assembleRigBlend(manifest, partTexts, v, [null, null, null], { faceplate: true, shellVersion: 1 }));
+  assert.equal(covered.cleats.mesh.count, 84);
+  assert.ok(covered.head.getObjectByName("wireos_lcd"));
+  assert.ok(covered.root.getObjectByName("Rear badge"));
+  assert.equal(covered.head.getObjectByName("head_visor").visible, true);
+
+  covered.setPose(0, -0.2, "squint", [0, 0, 0, 0], 0.5);
+  covered.root.updateMatrixWorld(true);
+  const eyeLZ = new THREE.Box3().setFromObject(covered.head.getObjectByName("eye_L_geo")).getCenter(new THREE.Vector3()).z;
+  const eyeRZ = new THREE.Box3().setFromObject(covered.head.getObjectByName("eye_R_geo")).getCenter(new THREE.Vector3()).z;
+  assert.ok(Math.abs(eyeLZ - eyeRZ) < 1e-5, `eye Z asymmetry ${eyeLZ} vs ${eyeRZ}`);
+  for (const liftAngle of [-0.5, 0.0, 0.45]) {
+    covered.setPose(0, liftAngle, "calm", [0, 0, 0, 0], 1);
+    assert.ok(Math.abs(covered.forkSwing.rotation.y + covered.forkLevel.rotation.y) < 1e-9);
+  }
+
+  const exposed = withMockDocument(() => assembleRigBlend(manifest, partTexts, v, [null, null, null], { faceplate: false, shellVersion: 2 }));
+  assert.equal(exposed.head.getObjectByName("head_visor").visible, false);
+  assert.ok(exposed.head.getObjectByName("face_carrier_mount"));
+});
+
+const HAVE_RIG = existsSync(join(ROOT, "public/robot/sdk/rig/rig_manifest.json"));
+
+test("optional blended Victor_rig_01 meshes pass topology, eye symmetry, 84 cleats, and low-lift checks", { skip: !HAVE_RIG }, () => {
+  const v = readJson("public/robot/model.json").values;
+  const manifest = readJson("public/robot/sdk/rig/rig_manifest.json");
+  const parts = [
+    "chassis", "head_shell", "head_visor", "eye_l", "eye_r",
+    "lift_upper", "lift_lower", "fork", "wheel_fl", "wheel_fr", "wheel_bl", "wheel_br",
+  ];
+  const partTexts = new Map(parts.map((p) => [`${p}.obj`, readText(`public/robot/sdk/rig/${p}.obj`)]));
+  const rig = withMockDocument(() => assembleRigBlend(manifest, partTexts, v, [null, null, null], { faceplate: true, shellVersion: 1 }));
+  assertCleanTree(rig.root, "rig-blend");
+  assert.equal(rig.cleats.mesh.count, 84);
+
+  for (const open of [1.0, 0.35]) {
+    rig.setPose(0, 0, open < 1 ? "squint" : "calm", [0, 0, 0, 0], open);
+    rig.root.updateMatrixWorld(true);
+    const eyeLZ = new THREE.Box3().setFromObject(rig.head.getObjectByName("eye_L_geo")).getCenter(new THREE.Vector3()).z;
+    const eyeRZ = new THREE.Box3().setFromObject(rig.head.getObjectByName("eye_R_geo")).getCenter(new THREE.Vector3()).z;
+    assert.ok(Math.abs(eyeLZ - eyeRZ) < 1e-5, `open=${open}: eye Z mismatch ${eyeLZ} vs ${eyeRZ}`);
+  }
+
+  const lowLift = Math.asin((v.lift_height_min_mm - v.lift_base_position_mm[2]) / v.lift_arm_length_mm);
+  rig.setPose(0, lowLift, "calm", [0, 0, 0, 0], 1.0);
+  rig.root.updateMatrixWorld(true);
+  const forkZMinMm = new THREE.Box3().setFromObject(rig.forkLevel).min.z * 1000;
+  assert.ok(forkZMinMm > 0.2 && forkZMinMm < 3.0, `unexpected blended fork low-lift Z ${forkZMinMm} mm`);
 });

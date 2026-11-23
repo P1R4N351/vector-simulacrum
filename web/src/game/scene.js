@@ -14,6 +14,7 @@
 import * as THREE from "three";
 import { faceTexture } from "./wire_face.js";
 import { makeCubeMarks } from "./cube.js";
+import { makeDockDecals } from "./dock.js";
 import { HIDDEN_FROM_ROBOT, makeHeadCamera } from "./headcam.js";
 import { makeBeltPath, makeCleats, makeSpokes } from "./tracks.js";
 
@@ -192,7 +193,7 @@ function hideFromRobot(object) {
 
 // sdk: the loaded SDK robot model, or null to draw the robot as its physics shapes.
 // cameraSpec: the camera block of model.json.
-export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, navMap = null) {
+export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, navMap = null, dock = null) {
   const { model } = sim;
   const v = sim.v;
   const nameOf = (kind, index) => mujoco.mj_id2name(model, mujoco.mjtObj[kind].value, index);
@@ -234,7 +235,13 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
       mesh.visible = false;
     } else if (model.geom_bodyid[i] === cubeId) {
       mesh.visible = cube === null;
-    } else if (sdk !== null && model.geom_bodyid[i] !== 0 && model.geom_bodyid[i] !== dockId) {
+    } else if (model.geom_bodyid[i] === dockId) {
+      if (dock !== null) {
+        mesh.material = SHAPE_OVERLAY;
+        mesh.castShadow = false;
+        robotMeshes.push(mesh);
+      }
+    } else if (sdk !== null && model.geom_bodyid[i] !== 0) {
       mesh.material = SHAPE_OVERLAY;
       mesh.castShadow = false;
       robotMeshes.push(mesh);
@@ -243,6 +250,7 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
     root.add(mesh);
   }
   const bodies = cubeId >= 0 ? [["cube", cube ?? makeCubeMarks(v.cube_size_mm)]] : [];
+  if (dockId >= 0) bodies.push(["dock", dock ?? makeDockDecals({ includePins: true })]);
   let face = null;
   let shapeCleats = null;
   if (sdk !== null) bodies.push(["chassis", sdk.root]); // the model's frame is the robot's: origin under the front axle
@@ -401,9 +409,9 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
       if (showRays) syncRays(data, truth);
       const q = data.qpos;
       syncTrail(q[0], q[1], q[2]);
+      for (const mesh of robotMeshes) mesh.visible = showShapes;
       if (sdk !== null) {
         sdk.setPose(sim.headAngleRad(), sim.liftAngleRad(), mood, truth.wheel_angles_rad, open);
-        for (const mesh of robotMeshes) mesh.visible = showShapes;
       } else {
         face.draw(mood, open);
         const frontR = 0.001 * v.wheel_front_radius_mm;

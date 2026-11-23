@@ -25,6 +25,7 @@ import { createInput } from "./input.js";
 import { mappedCubeXY } from "../sim/shelf_cube_pose.js";
 import shelfCube from "../sim/shelf_cube.json";
 import { loadCubeLook } from "./cube.js";
+import { loadDockLook } from "./dock.js";
 import { buildVisuals } from "./scene.js";
 import { loadSdkModel } from "./sdkmodel.js";
 import { createProgramRunner } from "../program/runner.js";
@@ -407,7 +408,13 @@ async function loadRobotLook(model) {
     return null;
   }
   try {
-    const sdk = await loadSdkModel(model.values, { faceplate: options.get("faceplate") !== "off", shellVersion: (options.get("shell") ?? (model.robot_model === "vector_2" ? "2" : "1")) === "2" ? 2 : 1 });
+    const sdk = await loadSdkModel(model.values, {
+      faceplate: options.get("faceplate") !== "off",
+      shellVersion: (options.get("shell") ?? (model.robot_model === "vector_2" ? "2" : "1")) === "2" ? 2 : 1,
+      rig: options.get("look") !== "sdk-only",
+      printedFork: options.get("fork") === "printed" || options.get("print") === "1",
+      printedWheels: options.get("wheels") === "printed" || options.get("print") === "1",
+    });
     done(sdk === null ? "NOT FETCHED: DRAWING SHAPES" : "OK");
     return sdk;
   } catch (err) {
@@ -432,7 +439,10 @@ export async function bootGame(canvas) {
     const sdk = await loadRobotLook(model);
     const doneScene = bootLine("SCENE");
     const cube = free && sdk ? await loadCubeLook(model.values.cube_size_mm) : null;
-    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube, navMap);
+    const options = new URLSearchParams(window.location.search);
+    const dockId = mujoco.mj_name2id(sim.model, mujoco.mjtObj.mjOBJ_BODY.value, "dock");
+    const dock = dockId >= 0 && options.get("look") !== "shapes" ? await loadDockLook() : null;
+    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube, navMap, dock);
     // The worker is named here, in this form, so that the bundler finds it and builds it.
     const programs = createProgramRunner(sim, () => new Worker(new URL("../program/worker.js", import.meta.url), { type: "module" }));
     const ctx = { ...view, sim, visuals, driver: makeDriver(sim), programs, input: null, raf: 0 };
