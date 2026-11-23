@@ -44,6 +44,8 @@ for i, cmd in enumerate(commands):
     trace = replay._run(sim,segment,.32)
     ts = (np.arange(len(trace))+1)*sim.dt-.32
     bits = np.array([r["settled"] for r in trace])
+    sim_accept = ts[1:][~bits[1:] & bits[:-1]].item()
+    row["sim_unsettled_s"] = sim_accept
     sim_release = ts[1:][bits[1:] & ~bits[:-1]].item()
     row["sim_settled_s"] = sim_release
     row["sim_settled_shifted_s"] = sim_release + .0916
@@ -73,7 +75,7 @@ fig.savefig(path.with_suffix(".png"),dpi=150)
 status_fig, panels = plt.subplots(1,2,figsize=(10,5), sharey=True,layout="constrained")
 for ix, row in enumerate(scores):
     for panel, a, b, baseline, shifted in (
-        (panels[0], "unsettled_lo", "unsettled_hi", 0, .0916),
+        (panels[0], "unsettled_lo", "unsettled_hi", row["sim_unsettled_s"], row["sim_unsettled_s"]+.0916),
         (panels[1], "settled_lo", "settled_hi", row["sim_settled_s"], row["sim_settled_shifted_s"])):
         panel.plot([1000*row[a],1000*row[b]], [ix,ix], "|-", color="black",lw=2,label="SDK interval")
         panel.plot(1000*baseline,ix,"o",color="#28758a",label="Frozen")

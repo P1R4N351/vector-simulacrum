@@ -12,8 +12,19 @@ Unit 1 and unit 2 were unavailable from both pods. The workshop PodNet access po
 
 ### Timing of the head status bit
 
-On unit 3 the firmware cleared HEAD_IN_POS after the command and set it again near the end of every move. Each black interval below is bounded by consecutive SDK receipts carrying opposite bit values. The simulation clears the bit at command submission. On all 12 moves that prediction preceded the last still-set sample, with a median gap of 138 ms. Applying the prior +91.6 ms offset still placed all 12 clear transitions early (median gap 46 ms). For the return to settled status the same offset improved bracket coverage from 1/12 to 8/12. Of the four shifted misses, one was early and three were late. Median distance to the interval fell from 38 ms to zero.
+On unit 3 the firmware cleared HEAD_IN_POS after the command and set it again near the end of every move. Each black interval below is bounded by consecutive SDK receipts carrying opposite bit values. The previous standalone simulation cleared the bit at command submission. On all 12 moves that prediction preceded the last still-set sample, with a median gap of 138 ms. Applying the prior +91.6 ms offset still placed all 12 clear transitions early (median gap 46 ms). For the return to settled status the same offset improved bracket coverage from 1/12 to 8/12. Of the four shifted misses, one was early and three were late. Median distance to the interval fell from 38 ms to zero.
 
-The receipt clock includes action dispatch, firmware processing, and SDK state delivery. These recordings do not identify those delays separately. A single shift improves predictions for settled status and the continuous motion traces, while leaving a systematic discrepancy at command acceptance. No production timing parameter was changed.
+The receipt clock includes action dispatch, firmware processing, and SDK state delivery. These recordings do not identify those delays separately.
+
+The standalone simulator now sends the head command to the status controller through the existing actuator queue. At the default 105 ms servo delay, the first completed 5 ms tick reporting an accepted move is at 110 ms. Local cliff reactions flush this queue. The stock settling dwell remains 200 ms.
+
+| Physical recording | Moves | Median distance outside SDK onset bracket, immediate → queued |
+|---|---:|---:|
+| unit 1 archived | 5 | 105 → 2 ms |
+| unit 2 archived | 4 | 40 → 10 ms |
+| unit 3 archived | 4 | 105 → 0 ms |
+| unit 3 new | 12 | 138 → 28 ms |
+
+These are per-control-tick predictions on the unshifted host clock. Error is zero inside the physical last-set/first-clear interval. The queued prediction falls late on every unit 2 move and early on every new unit 3 move. Stacking the additional 91.6 ms receipt offset onto the queue worsens median onset error on all three archived recordings. The offset remains an explicit comparison in the figure. [Cross-recording scoring script](acceptance.py)
 
 ![Physical SDK transition brackets with both replay clocks](unit3-settling.png)

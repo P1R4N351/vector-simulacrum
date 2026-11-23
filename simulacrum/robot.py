@@ -221,6 +221,7 @@ class VectorSim:
         self._head_speed, self._lift_speed = v["head_speed_default_radps"], v["lift_speed_default_radps"]
         self._head_accel, self._lift_accel = v["head_accel_default_radps2"], v["lift_accel_default_radps2"]
         self._servo_rate = [0.0, 0.0]
+        self._pending_head_command = None
         self._head_in_pos = True
         self._head_in_tolerance_since = None
         self._lift_in_pos = True
@@ -229,7 +230,7 @@ class VectorSim:
         self._servo_delay = int(round(v["servo_command_delay_ms"] / v["control_period_ms"]))
         assert self._wheel_delay >= 0 and self._servo_delay >= 0, "command delays must not be negative"
         slots = max(self._wheel_delay, self._servo_delay) + 1
-        self._delay = [[0.0, 0.0, self._head_cmd, self._lift_cmd] for _ in range(slots)]
+        self._delay = [[0.0, 0.0, self._head_cmd, self._lift_cmd, None] for _ in range(slots)]
         self._delay_at = 0
         self._react_phase, self._react_ticks, self._react_dir = "idle", 0, -1.0
         self._react_from = (0.0, 0.0)
@@ -256,7 +257,7 @@ class VectorSim:
         assert math.isfinite(head) and math.isfinite(lift), "bad head or lift start"
         qpos = self.data.qpos
         qpos[self._q["head"]], qpos[self._q["lift"]], qpos[self._q["wrist"]] = head, lift, -lift
-        self._head_target = self._head_cmd = head
+        self._accepted_head_target = self._head_target = self._head_cmd = head
         self._lift_target = self._lift_cmd = lift
         self._servo_rate = [0.0, 0.0]
         for slot in self._delay:
@@ -506,8 +507,12 @@ class VectorSim:
         size = len(self._delay)
         slot = self._delay[self._delay_at]
         slot[0], slot[1], slot[2], slot[3] = self._wheel_cmd[0], self._wheel_cmd[1], self._head_cmd, self._lift_cmd
+        slot[4] = self._pending_head_command
+        self._pending_head_command = None
         wheels = self._delay[(self._delay_at - self._wheel_delay) % size]
         servos = self._delay[(self._delay_at - self._servo_delay) % size]
+        if servos[4] is not None:
+            self._accept_head_target(servos[4])
         self._delay_at = (self._delay_at + 1) % size
         out = [wheels[0], wheels[1], servos[2], servos[3]]
         assert len(out) == 4, "delay slot shape"
@@ -525,10 +530,13 @@ class VectorSim:
         self._react_ticks = int(round(v["cliff_reaction_pause_ms"] / v["control_period_ms"]))
         self._wheel_target, self._wheel_cmd = [0.0, 0.0], [0.0, 0.0]
         self._head_cmd = self.head_angle_rad()
-        self._set_head_target(self._head_cmd)
+        self._head_target = self._head_cmd
+        self._accept_head_target(self._head_cmd)
+        self._pending_head_command = None
         self._lift_target = self._lift_cmd = float(self.data.qpos[self._q["lift"]])
         self._servo_rate = [0.0, 0.0]
         for slot in self._delay:
+            slot[4] = None
             slot[0], slot[1], slot[2], slot[3] = 0.0, 0.0, self._head_cmd, self._lift_cmd
         assert self._react_ticks >= 0, "cliff reaction pause must not be negative"
 
@@ -608,18 +616,21 @@ class VectorSim:
             self.tread_heat[i] += (abs(duties[i]) - self.tread_heat[i]) * min(1.0, self.dt / tau)
 
     def _set_head_target(self, target: float) -> None:
-        if target != self._head_target or not self._head_in_pos or abs(target - self.head_angle_rad()) >= math.radians(self.v["head_angle_tol_deg"]):
+        self._head_target = self._pending_head_command = target
+
+    def _accept_head_target(self, target: float) -> None:
+        if target != self._accepted_head_target or not self._head_in_pos or abs(target - self.head_angle_rad()) >= math.radians(self.v["head_angle_tol_deg"]):
             self._head_in_pos = False
             self._head_in_tolerance_since = None
-        self._head_target = target
+        self._accepted_head_target = target
 
     def _update_head_status(self) -> None:
         """HeadController latches in-position after the final target stays within tolerance for >200 ms."""
         if self._head_in_pos:
             return
         angle = float(self.data.qpos[self._q["head"]])
-        final_command = self.data.ctrl[self._act["head"]] == self._head_target
-        if not final_command or abs(angle - self._head_target) >= math.radians(self.v["head_angle_tol_deg"]):
+        final_command = self.data.ctrl[self._act["head"]] == self._accepted_head_target
+        if not final_command or abs(angle - self._accepted_head_target) >= math.radians(self.v["head_angle_tol_deg"]):
             self._head_in_tolerance_since = None
         elif self._head_in_tolerance_since is None:
             self._head_in_tolerance_since = self.tick

@@ -184,6 +184,7 @@ export class VectorSim {
     );
     this._headTarget = this._headCmd = 0;
     this._liftTarget = this._liftCmd = this.d.lift_angle_min;
+    this._pendingHeadCommand = null;
     this._headInPos = true;
     this._headInToleranceSince = null;
     this._liftInPos = true;
@@ -197,7 +198,7 @@ export class VectorSim {
     this._servoDelay = pyRound(v.servo_command_delay_ms / v.control_period_ms);
     assert(this._wheelDelay >= 0 && this._servoDelay >= 0, "command delays must not be negative");
     const slots = Math.max(this._wheelDelay, this._servoDelay) + 1;
-    this._delay = Array.from({ length: slots }, () => [0, 0, this._headCmd, this._liftCmd]);
+    this._delay = Array.from({ length: slots }, () => [0, 0, this._headCmd, this._liftCmd, null]);
     this._delayAt = 0;
     this._reactPhase = "idle";
     this._reactTicks = 0;
@@ -245,7 +246,7 @@ export class VectorSim {
     qpos[this._q.head] = head;
     qpos[this._q.lift] = lift;
     qpos[this._q.wrist] = -lift;
-    this._headTarget = this._headCmd = head;
+    this._acceptedHeadTarget = this._headTarget = this._headCmd = head;
     this._liftTarget = this._liftCmd = lift;
     this._servoRate = [0, 0];
     for (const slot of this._delay) {
@@ -585,8 +586,11 @@ export class VectorSim {
     slot[1] = this._wheelCmd[1];
     slot[2] = this._headCmd;
     slot[3] = this._liftCmd;
+    slot[4] = this._pendingHeadCommand;
+    this._pendingHeadCommand = null;
     const wheels = this._delay[(this._delayAt - this._wheelDelay + size) % size];
     const servos = this._delay[(this._delayAt - this._servoDelay + size) % size];
+    if (servos[4] !== null) this._acceptHeadTarget(servos[4]);
     this._delayAt = (this._delayAt + 1) % size;
     return [wheels[0], wheels[1], servos[2], servos[3]];
   }
@@ -604,10 +608,13 @@ export class VectorSim {
     this._wheelTarget = [0, 0];
     this._wheelCmd = [0, 0];
     this._headCmd = this.headAngleRad();
-    this._setHeadTarget(this._headCmd);
+    this._headTarget = this._headCmd;
+    this._acceptHeadTarget(this._headCmd);
+    this._pendingHeadCommand = null;
     this._liftTarget = this._liftCmd = this.data.qpos[this._q.lift];
     this._servoRate = [0, 0];
     for (const slot of this._delay) {
+      slot[4] = null;
       slot[0] = 0;
       slot[1] = 0;
       slot[2] = this._headCmd;
@@ -697,17 +704,21 @@ export class VectorSim {
   }
 
   _setHeadTarget(target) {
-    if (target !== this._headTarget || !this._headInPos || Math.abs(target - this.headAngleRad()) >= this.v.head_angle_tol_deg * DEG) {
+    this._headTarget = this._pendingHeadCommand = target;
+  }
+
+  _acceptHeadTarget(target) {
+    if (target !== this._acceptedHeadTarget || !this._headInPos || Math.abs(target - this.headAngleRad()) >= this.v.head_angle_tol_deg * DEG) {
       this._headInPos = false;
       this._headInToleranceSince = null;
     }
-    this._headTarget = target;
+    this._acceptedHeadTarget = target;
   }
 
   _updateHeadStatus() {
     if (this._headInPos) return;
-    const angleError = Math.abs(this.data.qpos[this._q.head] - this._headTarget);
-    const finalCommand = this.data.ctrl[this._act.head] === this._headTarget;
+    const angleError = Math.abs(this.data.qpos[this._q.head] - this._acceptedHeadTarget);
+    const finalCommand = this.data.ctrl[this._act.head] === this._acceptedHeadTarget;
     if (!finalCommand || angleError >= this.v.head_angle_tol_deg * DEG) {
       this._headInToleranceSince = null;
     } else if (this._headInToleranceSince === null) {

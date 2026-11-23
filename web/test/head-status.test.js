@@ -9,6 +9,10 @@ test("head status clears on motion and latches through a settled repeat", async 
   try {
     assert.equal(sim.state.head_in_pos, true);
     sim.commandHeadAngle(30);
+    sim.tick(sim._servoDelay);
+    assert.equal(sim._headInPos, true);
+    sim.tick(1);
+    assert.equal(sim._headInPos, false);
     sim.tick(sim._stateTicks);
     assert.equal(sim.state.head_in_pos, false);
     sim.tick(Math.round(1.5 / sim.dt));
