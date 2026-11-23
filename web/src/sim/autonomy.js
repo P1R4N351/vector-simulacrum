@@ -840,6 +840,7 @@ export class AutonomyController {
       const twisted = ctx.backupTicks > 90 && Math.abs(wrapAngle(outYaw - yaw)) > 10 * DEG && !sim.chargerContact;
       const pastRear = ch && !sim.chargerContact && !sim._onDockPlatform() && rearFwd < -95;
       if (sim.chargerContact || ctx.backupTicks > 320 || twisted || pastRear) {
+        if (sim.chargerContact && ch) sim._localizeOnCharger(ch);
         sim._wheelTarget = [0, 0];
         sim._wheelAccel = [0, 0];
         this.restoreControlLevel(ctx);

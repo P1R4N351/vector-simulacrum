@@ -256,6 +256,8 @@ export class VectorSim {
     this.mujoco.mj_forward(this.model, this.data);
     this._yawPrev = this._yawTotal = this._yaw();
     this._dockTravelMm = [0, 0];
+    this._odomYawOffset = 0;
+    this._odomOffsetMm = [0, 0];
   }
 
   // Start with the head and lift already at a given angle and height (clamped to the limits).
@@ -545,14 +547,33 @@ export class VectorSim {
     return { wl: left, wr: right, gyro_z_dps: gyro[2] / DEG, head_deg: head / DEG, lift_mm: lift };
   }
 
+  // Engine localization changes the reported frame while MuJoCo continues in shelf coordinates.
+  _reportedPlanarPose() {
+    const [x, y] = this.poseMm();
+    const dx = x - this._dockTravelMm[0], dy = y - this._dockTravelMm[1];
+    const c = Math.cos(this._odomYawOffset), s = Math.sin(this._odomYawOffset);
+    const yaw = this._yaw() + this._odomYawOffset;
+    return [c * dx - s * dy + this._odomOffsetMm[0],
+      s * dx + c * dy + this._odomOffsetMm[1], Math.abs(yaw) <= Math.PI ? yaw : Math.atan2(Math.sin(yaw), Math.cos(yaw))];
+  }
+
+  _localizeOnCharger(charger) {
+    // Charger::GetRobotDockedPose puts the origin 30 mm inward, facing out.
+    this._odomYawOffset = Math.atan2(charger.outY, charger.outX) - this._yaw();
+    const [x, y] = this._reportedPlanarPose();
+    this._odomOffsetMm[0] += charger.lipX - 30 * charger.outX - x;
+    this._odomOffsetMm[1] += charger.lipY - 30 * charger.outY - y;
+  }
+
   _publishState() {
-    const [x, y, z] = this.poseMm();
+    const [x, y, yaw] = this._reportedPlanarPose();
+    const z = this.data.qpos[2] / MM;
     const [left, right] = this._reportedWheelSpeeds();
     const prox = this._prox();
     const [accel, gyro] = this._imu();
     const [head, lift] = this._reportedHeadAndLift();
     this.state = {
-      time_s: this.tick_ * this.dt, x_mm: x - this._dockTravelMm[0], y_mm: y - this._dockTravelMm[1], z_mm: z, pose_angle_rad: this._yaw(),
+      time_s: this.tick_ * this.dt, x_mm: x, y_mm: y, z_mm: z, pose_angle_rad: yaw,
       pose_pitch_rad: this._pitch(), left_wheel_speed_mmps: left, right_wheel_speed_mmps: right,
       head_angle_rad: head, lift_height_mm: lift, prox_distance_mm: prox.distance_mm,
       prox_found_object: prox.found_object, prox_is_lift_in_fov: prox.is_lift_in_fov,
