@@ -211,3 +211,31 @@ grid is a sensitivity check. No production contact parameter changed.
 
 [Condition counts](near-shelf.png) · [Case scores](near-shelf.csv).
 Run `python near_shelf.py` to reproduce.
+
+### Release from the measured compound tilt
+
+We inferred the gravity direction from the median of each chip axis after
+applying the frozen unit 3 gains. Two windows (4.40–5.05 and 5.15–5.23 s)
+precede the low-force pair. Each window gives two possible starting poses:
+take the direction as measured, or subtract the resting offset assuming the
+cube started upright on level ground. The four estimates give inclinations
+of 16.1–18.4°. Gravity leaves world yaw unresolved; the shelf in this replay
+is level with isotropic friction. Each pose starts from rest, with clearance
+0–3 mm, an 8 or 32 ms pad time constant and 0.125 ms physics steps.
+
+The secondary tilt breaks the symmetry of the planar simulation. Across
+these cases the absolute X channel reaches **2.35 g** somewhere in the
+release. However, among the 112 phase cases reproducing the low pair in the
+correct packet slots, the largest **signed X** in the measured peak slot
+was **+0.037 g**, against the physical **+1.838 g**. None of the 112 matched
+the peak vector magnitude within 5% at that slot. For the uncorrected resting
+reference every such X sample was negative. Comparing peak size without sign
+and time would give a misleading impression of agreement.
+
+![Signed X after the two low-force slots; bands span all matching modeled sequences](compound-slots.png)
+
+The test still assumes consecutive received packets and zero release velocity.
+A large X reading is mechanically possible with a slightly skewed cube; the
+measured tilt alone fails to reproduce this impact sequence under those
+assumptions. [Peak envelope by clearance](compound-tilt.png) · [Case scores](compound-tilt.csv).
+Reproduce with `python compound_tilt.py`.

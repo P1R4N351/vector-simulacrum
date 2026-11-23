@@ -16,11 +16,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const COPIED = ["src/sim", "src/game", "test", "public/robot/vector.xml", "public/robot/vector-contact42.xml",
+const COPIED = ["src/sim", "src/game", "src/program", "test", "public/robot/vector.xml", "public/robot/vector-contact42.xml",
   "public/robot/vector-free.xml", "public/robot/vector-contact42-free.xml", "public/robot/model.json",
   "camera_calibration.json", "package.json"];
 const SUITE = ["test/drive.test.js", "test/hazards.test.js", "test/robot.test.js", "test/tracks.test.js", "test/optics.test.js",
-  "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js"];
+  "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js",
+  "test/program.test.js"];
 const ARMS = [
   { name: "control: untouched copy", file: null, mustFail: false },
   { name: "neutral: a comment added", file: "src/sim/drive.js", old: "export class TreadEncoder {", new: "// neutral change\nexport class TreadEncoder {", mustFail: false },
@@ -76,6 +77,16 @@ const ARMS = [
   { name: "3D shell: decal normals left unnormalized", file: "src/game/shell.js", old: "  geometry.normalizeNormals();\n", new: "", mustFail: true },
   { name: "3D rig: stock fork pivoted on wrist instead of fork_pivot", file: "src/game/sdkmodel.js", old: "s.position.set(-pose.fork_pivot[0], 0, -pose.fork_pivot[1]);", new: "s.position.set(0, 0, 0);", mustFail: true },
   { name: "3D topology: cover sliver normals left unaligned", file: "src/game/topology.js", old: "    alignGeometryNormals(geo);\n", new: "", mustFail: true },
+  { name: "program: robot time runs while the program computes", file: "src/program/runner.js", old: "const ran = host.advance(ticks);", new: "const ran = host.waitingOn === null ? (sim.tick(ticks), ticks) : host.advance(ticks);", mustFail: true },
+  { name: "program: wait one tick short", file: "src/program/host.js", old: "const ticks = pyRound(seconds / h.sim.dt);", new: "const ticks = pyRound(seconds / h.sim.dt) - 1;", mustFail: true },
+  { name: "program: lift height taken as millimetres", file: "src/program/host.js", old: "return v.lift_height_min_mm + f * (v.lift_height_max_mm - v.lift_height_min_mm);", new: "return fraction;", mustFail: true },
+  { name: "program: Stop leaves the action running", file: "src/program/host.js", old: '      if (this._pending.kind === "action") this.sim.cancelAction();\n', new: "", mustFail: true },
+  { name: "program: the end leaves the treads running", file: "src/program/host.js", old: "if (!this.finished) this.sim.setWheelMotors(0, 0);", new: "if (!this.finished) this.finished = false;", mustFail: true },
+  { name: "program: a call made before the last one ended is accepted", file: "src/program/host.js", old: "if (this._pending !== null) {\n      throw new RobotCallError(", new: "if (false) {\n      throw new RobotCallError(", mustFail: true },
+  { name: "program: the spinning-loop limit never trips", file: "src/program/host.js", old: "if (this._idleCalls > IDLE_CALL_LIMIT) {", new: "if (this._idleCalls > Infinity) {", mustFail: true },
+  { name: "program: error line not corrected for the engine's header", file: "src/program/runtime.js", old: "  return line - offset;\n", new: "  return line;\n", mustFail: true },
+  { name: "program: a refused call loses the program's line", file: "src/program/runtime.js", old: "if (err instanceof Error) err.callStack = site.stack;", new: "", mustFail: true },
+  { name: "cancelAction leaves the treads driving", file: "src/sim/robot.js", old: "    const stopped = this.stopAllMotors();\n", new: "    const stopped = true;\n", mustFail: true },
   { name: "3D cube: marker UVs mirrored horizontally", file: "src/game/cube.js", old: "uv.setXY(k, face.cx + (rMm / 11.5) * face.h, face.cy - (uMm / 11.5) * face.h);", new: "uv.setXY(k, face.cx - (rMm / 11.5) * face.h, face.cy - (uMm / 11.5) * face.h);", mustFail: true },
 ];
 

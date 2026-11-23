@@ -71,3 +71,77 @@ jobs:
           print(f"scanned {sum(1 for n in names if n)} tracked file(s); {findings} finding(s).")
           sys.exit(1 if findings else 0)
           PY
+
+  # The text scan above skips binary files, so a name drawn into a plot legend or a photo caption
+  # passes it. This job OCRs only the images the push or pull request adds or modifies, with the
+  # same secret pattern list, and reports path + pattern id (never the matched text).
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: List images added or modified
+        id: changed
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          list="$RUNNER_TEMP/changed-images"
+          if [ "$EVENT" = "pull_request" ]; then
+            # The checkout is the merge commit; its first parent is the base it merges into.
+            base="$(git rev-parse HEAD^1)"
+          elif [ -n "${BEFORE:-}" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] \
+               && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            base="$BEFORE"
+          elif git rev-parse --verify --quiet origin/main >/dev/null; then
+            # New branch, or a force push whose old tip is gone: everything the branch adds over main.
+            base="$(git merge-base origin/main HEAD)"
+          else
+            base="$(git hash-object -t tree /dev/null)"
+          fi
+          git diff --name-only -z --no-renames --diff-filter=ACMT "$base" HEAD -- \
+            '*.png' '*.PNG' '*.jpg' '*.JPG' '*.jpeg' '*.JPEG' '*.gif' '*.GIF' '*.webp' '*.WEBP' \
+            > "$list"
+          count="$(tr -cd '\0' < "$list" | wc -c | tr -d ' ')"
+          echo "base $base; $count image(s) added or modified."
+          echo "list=$list" >> "$GITHUB_OUTPUT"
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+      - name: Install tesseract and Pillow
+        if: steps.changed.outputs.count != '0'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends tesseract-ocr tesseract-ocr-eng
+          tesseract --version | head -1
+          # ImageFont.load_default(size=...) used by the self-test needs Pillow >= 10.1.
+          python3 -m pip install --quiet 'pillow>=10.1,<14'
+      - name: Image scan self-test (the scan must be able to find a planted canary)
+        if: steps.changed.outputs.count != '0'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s .github/leak-check -v
+          python3 .github/leak-check/image_scan.py --patterns /dev/null --self-test
+      - name: Decode patterns and OCR the changed images
+        if: steps.changed.outputs.count != '0'
+        env:
+          LEAK_PATTERNS_JSON_B64: ${{ secrets.LEAK_PATTERNS_JSON }}
+          LIST: ${{ steps.changed.outputs.list }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${LEAK_PATTERNS_JSON_B64:-}" ]; then
+            echo "::warning::LEAK_PATTERNS_JSON secret is not set for this run (fork pull request, or secret not configured). Skipping image scan."
+            exit 0
+          fi
+          mkdir -p "$RUNNER_TEMP/lc"
+          echo "$LEAK_PATTERNS_JSON_B64" | base64 -d > "$RUNNER_TEMP/lc/patterns.json"
+          python3 .github/leak-check/image_scan.py --patterns "$RUNNER_TEMP/lc/patterns.json" \
+            --root . --list "$LIST"

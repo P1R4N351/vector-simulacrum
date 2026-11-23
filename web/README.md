@@ -93,6 +93,65 @@ The [stationary shelf comparison](../evidence/unit3-wheelstand/shelf-roll-stop/b
 shows a median of 1.0000 g in the browser and 0.9703 and 0.9704 g in two
 recordings of the same physical cube (828 slots each, same resting pose).
 
+## Programs
+
+The **Program** tab, next to Controls, holds a small editor. Write a robot
+program in it, press Run (or Ctrl+Enter, ⌘+Enter on a Mac), and it drives the
+simulated robot in the page: no Python, no server. Three examples load from
+the menu: a square, head and lift moves with an arc on the wheel motors, and a
+drive at the table edge that the cliff reaction stops.
+
+```js
+const drove = await robot.drive_straight(120, 80);   // mm, mm/s
+await robot.turn_in_place(90);                        // degrees, left is positive
+await robot.set_head_angle(30);                       // degrees
+await robot.set_lift_height(1.0);                     // 0.0 bottom to 1.0 top, as in the SDK
+await robot.set_wheel_motors(40, 80);                 // mm/s, returns at once
+await wait(2);                                        // seconds of robot time
+print(drove.result, drove.moved_mm, robot.state.x_mm);
+```
+
+The calls carry the Vector Python SDK's names and units. Each is asynchronous
+and must be awaited before the next. An action resolves to `{ result,
+moved_mm, turned_deg, time_s }`. `result` is `completed`, `cancelled_cliff`,
+`no_control`, `timeout` or `aborted_off_ground`, as from the robot; robot
+outcomes are results, not errors. `robot.state` is the state the robot last
+reported, every 60 ms. It holds `x_mm`, `y_mm`, `pose_angle_deg`,
+`head_angle_deg`, `lift_height_mm`, `prox_distance_mm`, `cliff_detected`,
+`has_control`, `now_s` and the other fields of the SDK's robot state. The
+full list is under "Robot calls" in the tab. Output from `print` and any error,
+with its line, appear under the editor.
+
+**Robot time waits for the program.** The simulation advances only while the
+program awaits an action or `wait`; reading the state or setting the wheel
+motors takes none. A program therefore gives the same run every time from the
+same start, whatever the frame rate or the speed of the machine: the tests run
+the square at 1, 7 and 24 control ticks a frame and get the same final state
+to the last bit. The real robot
+does not wait for a slow program, so a program that computes for a long time
+between calls behaves differently there. A program that stops calling the
+robot holds robot time still, and the page says so after 3 seconds.
+
+The program runs in a Web Worker, so **Stop** always ends it, a loop that
+never awaits included. Stop cancels the running action. A program that ends,
+stops or fails stops the treads, as an SDK program does when it lets go of the
+robot; a head or lift move still settling is left to finish. While a program
+runs, held keys and the action buttons do nothing; Space and the Stop button
+stop it, and Backspace stops it and resets the robot. The editor's text is kept
+in the browser between visits.
+
+Programs are JavaScript, not Python. The page loads nothing extra for them;
+the worker is 2.6 kB, and the tests run the same code under node with no new
+package. Python in the page (Pyodide) is the closer match to the SDK, at a
+cost: Pyodide 0.28.3's core files are 12.2 MB (8.6 MB of it WebAssembly, 2.7 MB
+of that over the wire compressed), to be fetched from a CDN at run time or
+shipped with the page, and the tests would need its 13.9 MB npm package.
+Interrupting Python without ending its worker needs a cross-origin-isolated
+page, which a plain static server does not give, so each Stop would also mean
+loading Python again. The robot end (`src/program/host.js`) takes calls by
+name from anything that can send it messages, so a Python worker could be
+added beside the JavaScript one.
+
 ## Wheels and tracks
 
 On the robot, each side has a motor-driven front wheel, a free-spinning rear
@@ -278,20 +337,26 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
   browser slows the frame loop and the simulation slows with it.
 - The pose shown is the simulator's true pose, as in the Python. The real
   robot reports an estimate from odometry.
+- Programs were run in Chromium only, in a built page served by
+  `python3 -m http.server`. An error's line number comes from the engine
+  naming the program in its stack trace; an engine that does not gives the
+  error without a line. A syntax error has no line in Chromium.
+- Programs are JavaScript; Python in the page is not done (see "Programs").
 
 ## Files
 
 | | |
 |---|---|
 | `src/sim/` | The port: `drive.js`, `hazards.js`, `prox.js`, `robot.js`, `util.js`; and `optics.js` (camera geometry). No browser APIs; runs under node |
-| `src/game/` | `game.js` (boot, control loop, views), `scene.js` (drawing), `sdkmodel.js` (the SDK model), `headcam.js` (the robot's camera), `tracks.js` (track path, cleats, spokes), `input.js` |
+| `src/game/` | `game.js` (boot, control loop, views), `scene.js` (drawing), `sdkmodel.js` (the SDK model), `rigmodel.js` (blended `Victor_rig_01` rig), `dock.js` (charger dock OBJ & decals), `headcam.js` (the robot's camera), `tracks.js` (track path, cleats, spokes), `input.js` |
 | `camera_calibration.json` | One real robot's camera calibration |
+| `src/program/` | Programs written in the page: `host.js` (the robot end, calls against the simulator in robot time), `runtime.js` (the robot object, running a program, line numbers), `worker.js`, `runner.js` (the page end), `examples.js`. All but `worker.js` run under node |
 | `src/ui/`, `src/store.js` | The panels and the store between them and the core |
 | `tools/export_model.py` | Model, parameter values and fixtures from the Python; `--check` for drift |
 | `tools/fetch_sdk_model.py` | The SDK's robot model, into `public/robot/sdk/` |
 | `tools/fetch_rig_model.py` | Split `Victor_rig_01.obj` hardware rig + `rig_manifest.json`, into `public/robot/sdk/rig/` |
 | `tools/fetch_dock_model.py` | The charger dock mesh (`Vic_charger_hp_geo.obj`) + `dock_manifest.json`, into `public/robot/sdk/` |
-| `test/` | Ten test files (53 tests), `mutate.mjs`, the fixtures |
+| `test/` | Eighteen test files (102 tests; four optional asset tests skip cleanly when unfetched), `mutate.mjs`, the fixtures |
 | `demo.sh`, `Dockerfile` | One command to a running page; a static container on port 8080 |
 
 To use the measured shelf cube with the free scene, open
