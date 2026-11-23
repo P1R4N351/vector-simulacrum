@@ -234,7 +234,11 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
     if (model.geom_rgba[4 * i + 3] === 0) {
       mesh.visible = false;
     } else if (model.geom_bodyid[i] === cubeId) {
-      mesh.visible = cube === null;
+      if (cube !== null) {
+        mesh.material = SHAPE_OVERLAY;
+        mesh.castShadow = false;
+        robotMeshes.push(mesh);
+      }
     } else if (model.geom_bodyid[i] === dockId) {
       if (dock !== null) {
         mesh.material = SHAPE_OVERLAY;
@@ -366,6 +370,17 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
   return {
     updateCubeLights(colors) {
       if (!cubeBody) return;
+      const rigLeds = cube?.userData?.leds;
+      if (Array.isArray(rigLeds) && rigLeds.length === 4 && rigLeds.every(Boolean)) {
+        rigLeds.forEach((led, i) => {
+          const [r, g, b] = colors.slice(i * 3, i * 3 + 3);
+          const lit = r + g + b > 0;
+          const hex = (r << 16) | (g << 8) | b;
+          led.material.color.setHex(lit ? hex : 0xd8dde4);
+          led.material.emissive.setHex(lit ? hex : 0x000000);
+        });
+        return;
+      }
       if (!cubeLeds) {
         const edge = v.cube_size_mm*.0005-.0035+.0002;
         // Attach to the physics body; the optional SDK mesh can have its own scale.

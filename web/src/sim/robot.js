@@ -107,7 +107,10 @@ export class VectorSim {
     this._place(opts.startXyMm ?? [0, 0], opts.headingDeg ?? 0);
     this._poseServos(opts.headDeg ?? 0, opts.liftMm ?? null);
     this._settle();
-    if (this.startDocked) this.chargerContact = this._padsTouchDock();
+    if (this._dockBody >= 0 && (this.startDocked || !("chargerContact" in opts))) {
+      this.chargerContact = this._padsTouchDock();
+    }
+    if (this.chargerContact) this.batteryVolts = 4.20;
     this.cubeSensor = this._cubeAdr < 0 ? null : new CubeSensor(
       this.v, this.model.opt.timestep, opts.noiseSeed ?? 0, this._cubeForce(),
     );
@@ -560,6 +563,7 @@ export class VectorSim {
       cliff_ranges_mm: this.cliffRangesMm(), tof_hits_mm: this._tofHitsMm.slice(),
       wheel_angles_rad: this.wheelAnglesRad(), wheel_spin_radps: this.wheelSpinRadps(),
       battery_volts: this.batteryVolts, tread_heat: this.treadHeat.slice(),
+      on_charger: Boolean(this.chargerContact), on_charger_platform: this._onDockPlatform(),
     };
   }
 
@@ -764,6 +768,18 @@ export class VectorSim {
     });
   }
 
+  _onDockPlatform() {
+    if (this._dockBody < 0) return false;
+    const { xpos, xmat } = this.data;
+    const c = xmat.subarray(9 * this._chassisBody, 9 * this._chassisBody + 9);
+    const d = xmat.subarray(9 * this._dockBody, 9 * this._dockBody + 9);
+    if (c[2] * d[2] + c[5] * d[5] + c[8] * d[8] <= 0.85) return false;
+    const delta = [0, 1, 2].map((i) => xpos[3 * this._chassisBody + i] - xpos[3 * this._dockBody + i]);
+    const dot = (axis) => delta[0] * d[axis] + delta[1] * d[3 + axis] + delta[2] * d[6 + axis];
+    const x = dot(0), z = dot(2);
+    return x >= -0.025 && x <= 0.075 && Math.abs(dot(1)) <= 0.036 && z >= -0.002 && z <= 0.035;
+  }
+
   // One body frame under the external WireOS motor controller.
   tickWireBody(power) {
     assert(power.length === 4 && power.every(n => Number.isFinite(n) && Math.abs(n) <= 1), "bad motor duty");
@@ -798,7 +814,8 @@ export class VectorSim {
     this._updateHeadStatus();
     this._updateLiftStatus();
 
-    if (this._dockBody >= 0 && (power || this.startDocked || this.bodyRangeClock)) this.chargerContact = this._padsTouchDock();
+    if (this._dockBody >= 0) this.chargerContact = this._padsTouchDock();
+    if (this.chargerContact) this.batteryVolts = 4.20;
     // The supervisor discards planar travel on electrical contact (VIC-1046).
     if (this.chargerContact && before) {
       const after = this.poseMm();

@@ -34,6 +34,7 @@ Its cube mark PNGs under src/game/cube-marks/wireos/ carry the GNU GPL v3.0
 notice in src/game/cube-marks/wireos/LICENSE.
 
 The optional detailed animation rig (`tools/fetch_rig_model.py`, slicing
-`Victor_rig_01.obj`) and charger dock meshes (`tools/fetch_dock_model.py`,
-fetching `Vic_charger_hp_geo.obj`) come from kercre123/vector-animations-raw and
-follow the Digital Dream Labs Software Asset License v1.0 (`DDL-ASSET-LICENSE.txt`).
+`Victor_rig_01.obj`), charger dock meshes (`tools/fetch_dock_model.py`, fetching
+`Vic_charger_hp_geo.obj`), and Light Cube rig (`tools/fetch_cube_model.py`,
+normalizing `Victor_cube_rig.obj`) come from kercre123/vector-animations-raw
+and follow the Digital Dream Labs Software Asset License v1.0 (`DDL-ASSET-LICENSE.txt`).

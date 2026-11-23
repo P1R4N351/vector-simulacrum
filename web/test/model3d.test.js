@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
-import { CUBE_FACE_ATLAS, repairCubeUVs, repairMeshNormals } from "../src/game/cube.js";
+import { CUBE_FACE_ATLAS, assembleCubeRigObj, repairCubeUVs, repairMeshNormals } from "../src/game/cube.js";
 import { printFork } from "../src/game/printparts.js";
 import { assembleRigBlend, makeRigMaterials } from "../src/game/rigmodel.js";
 import { assemble } from "../src/game/sdkmodel.js";
@@ -415,4 +415,30 @@ test("optional blended Victor_rig_01 meshes pass topology, eye symmetry, 84 clea
   rig.root.updateMatrixWorld(true);
   const forkZMinMm = new THREE.Box3().setFromObject(rig.forkLevel).min.z * 1000;
   assert.ok(forkZMinMm > 0.2 && forkZMinMm < 3.0, `unexpected blended fork low-lift Z ${forkZMinMm} mm`);
+});
+
+test("assembleCubeRigObj binds four independent LED materials and cleans normals", () => {
+  const objText = [
+    "phong1SG", "blinn2SG", "phong3SG",
+    "phong2SG", "Block1_lightA_mat1SG", "Block1_lightC_matSG", "Block1_lightD_matSG",
+  ].map((tag, i) => makeSyntheticBoxObj(tag, 0.022, 0.022, 0.022, i * 0.05, 0, 0)).join("\n");
+  const cube = assembleCubeRigObj(objText, 44, { includeMarks: false });
+  assertCleanTree(cube, "synthetic-cube-rig");
+  assert.equal(cube.userData.leds.length, 4);
+  assert.ok(cube.userData.leds.every(Boolean));
+  assert.notEqual(cube.userData.leds[0].material, cube.userData.leds[1].material);
+});
+
+const HAVE_CUBE_RIG = existsSync(join(ROOT, "public/robot/sdk/Victor_cube_rig.obj"))
+  && existsSync(join(ROOT, "public/robot/sdk/cube_rig_manifest.json"));
+
+test("optional Victor_cube_rig.obj passes topology, scale, and 4 LED diffuser checks", { skip: !HAVE_CUBE_RIG }, () => {
+  const cube = assembleCubeRigObj(readText("public/robot/sdk/Victor_cube_rig.obj"), 44, { includeMarks: false });
+  assertCleanTree(cube, "Victor_cube_rig");
+  assert.equal(cube.userData.leds.length, 4);
+  assert.ok(cube.userData.leds.every(Boolean));
+  cube.updateMatrixWorld(true);
+  const size = new THREE.Box3().setFromObject(cube).getSize(new THREE.Vector3());
+  assert.ok(Math.abs(size.x - 0.044) < 1e-4 && Math.abs(size.y - 0.044) < 1e-4 && Math.abs(size.z - 0.044) < 1e-4,
+    `unexpected Victor_cube_rig dimensions ${size.toArray().join(", ")}`);
 });

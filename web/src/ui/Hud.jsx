@@ -37,6 +37,8 @@ function StatusChips({ t, level, program }) {
       {t.picked_up ? <Chip tone="warn">PICKED UP</Chip> : null}
       {t.falling ? <Chip tone="bad">FALLING</Chip> : null}
       {t.action_running ? <Chip tone="info">ACTION RUNNING</Chip> : null}
+      {t.on_charger ? <Chip tone="ok">ON CHARGER</Chip>
+        : t.on_charger_platform ? <Chip tone="info">CHARGER RAMP</Chip> : null}
       {program === "running" ? <Chip tone="info">PROGRAM RUNNING</Chip> : null}
     </div>
   );
@@ -159,6 +161,8 @@ export default function Hud() {
   const lastAction = useGame((s) => s.lastAction);
   const padConnected = useGame((s) => s.padConnected);
   const robotLook = useGame((s) => s.robotLook);
+  const hasDock = useGame((s) => s.hasDock);
+  const startDocked = useGame((s) => s.startDocked);
   const shapes = useGame((s) => s.shapes);
   const camView = useGame((s) => s.camView);
   const programStatus = useGame((s) => s.program.status);
@@ -191,7 +195,7 @@ export default function Hud() {
           ))}
         </div>
         {tab === "program" ? <ProgramPanel /> : <Controls press={press} level={level} chase={chase} robotLook={robotLook}
-          shapes={shapes} camView={camView} paused={paused} padConnected={padConnected} />}
+          hasDock={hasDock} startDocked={startDocked} shapes={shapes} camView={camView} paused={paused} padConnected={padConnected} />}
       </section>
       {camView ? <CameraView camera={model.camera} /> : null}
       {tab === "program" ? null : <TouchPad />}
@@ -200,7 +204,7 @@ export default function Hud() {
   );
 }
 
-function Controls({ press, level, chase, robotLook, shapes, camView, paused, padConnected }) {
+function Controls({ press, level, chase, robotLook, hasDock, startDocked, shapes, camView, paused, padConnected }) {
   return (
     <>
     <div className="buttons">
@@ -228,6 +232,9 @@ function Controls({ press, level, chase, robotLook, shapes, camView, paused, pad
       ) : null}
       <button type="button" onClick={press("camera")}>{camView ? "Hide robot camera" : "Show robot camera"}</button>
       <button type="button" onClick={press("pause")}>{paused ? "Resume" : "Pause"}</button>
+      {hasDock ? (
+        <button type="button" onClick={press("toggleDockStart")}>{startDocked ? "Start off charger" : "Seat on charger"}</button>
+      ) : null}
       <button type="button" onClick={press("reset")}>Reset</button>
     </div>
     <ul className="keys">

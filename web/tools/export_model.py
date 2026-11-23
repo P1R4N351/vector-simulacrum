@@ -396,12 +396,18 @@ def main(argv: Sequence[str]) -> int:
                        else json.dumps(doc, sort_keys=True).encode())
         xml = mjcf.build_mjcf(values, SCENE_OBSTACLES)
         free = mjcf.build_mjcf(values, SCENE_OBSTACLES, cube="free")
+        dock_xml = mjcf.build_mjcf(values, (), dock="scene")
+        free_dock = mjcf.build_mjcf(values, (), cube="free", dock="scene")
         source = {"table_sha256": hashlib.sha256(table_bytes).hexdigest()}
         for name, key, scene in [
             ("vector", "xml_sha256", xml),
             ("vector-contact42", "trial_xml_sha256", contact_model(xml, values)),
             ("vector-free", "vector-free_sha256", free),
             ("vector-contact42-free", "vector-contact42-free_sha256", contact_model(free, values)),
+            ("vector-dock", "vector-dock_sha256", dock_xml),
+            ("vector-contact42-dock", "vector-contact42-dock_sha256", contact_model(dock_xml, values)),
+            ("vector-free-dock", "vector-free-dock_sha256", free_dock),
+            ("vector-contact42-free-dock", "vector-contact42-free-dock_sha256", contact_model(free_dock, values)),
         ]:
             outputs[f"{directory}/{name}.xml"] = scene
             source[key] = hashlib.sha256(scene.encode()).hexdigest()
