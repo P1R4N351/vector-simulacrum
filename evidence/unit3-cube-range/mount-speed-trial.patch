@@ -1,0 +1,22 @@
+diff --git a/web/src/sim/autonomy.js b/web/src/sim/autonomy.js
+index 83a8ca2..a4ff780 100644
+--- a/web/src/sim/autonomy.js
++++ b/web/src/sim/autonomy.js
+@@ -839,7 +839,7 @@ export class AutonomyController {
+       const rearLat = ch ? -(rearX - ch.lipX) * ch.outY + (rearY - ch.lipY) * ch.outX : 0;
+       const twisted = ctx.backupTicks > 90 && Math.abs(wrapAngle(outYaw - yaw)) > 10 * DEG && !sim.chargerContact;
+       const pastRear = ch && !sim.chargerContact && !sim._onDockPlatform() && rearFwd < -95;
+-      if (sim.chargerContact || ctx.backupTicks > 320 || twisted || pastRear) {
++      if (sim.chargerContact || ctx.backupTicks * sim.dt > 7 || twisted || pastRear) {
+         if (sim.chargerContact && ch) sim._localizeOnCharger(ch);
+         sim._wheelTarget = [0, 0];
+         sim._wheelAccel = [0, 0];
+@@ -848,7 +848,7 @@ export class AutonomyController {
+         ctx.stage = "verify";
+         return { running: true };
+       }
+-      const spd = [-102, -112, -96, -122, -106][ctx.wiggleCount % 5];
++      const spd = -30;
+       const desYawErr = rearFwd > -2 ? clamp(0.015 * rearLat, -0.20, 0.20) : 0;
+       const steer = rearFwd > -2 ? 140 * wrapAngle(outYaw + desYawErr - yaw) : 0;
+       sim._wheelTarget = [spd - steer, spd + steer];

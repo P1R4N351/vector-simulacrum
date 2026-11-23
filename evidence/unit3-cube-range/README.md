@@ -203,3 +203,23 @@ On a successful reverse mount the supervisor sends a completion message when it 
 For each return we selected the last CHARGER observation in the robot's origin before contact (7.98–8.82 s old). Composing its recorded quaternion and translation with the published transform predicted all five first on-contact SDK positions within 0.58 mm and headings within 0.53°. No trajectory offsets or headings were fitted. E observed its charger in a different map position, yet the same transform predicted its reported position to within 0.02 mm. This establishes what the recorded position step measures. It supplies no new constraint on the physical pin release position.
 
 The browser now localizes its reported planar pose on acquisition during the backing phase of the native docking action, using the charger's last mapped pose. Subsequent translations follow the corrected heading frame. The physics pose continues evolving from contacts and motor forces. The direct motor return replay above has no mount-completion event and retains its original meaning.
+
+### Why is the final reverse mount so fast in the simulator?
+
+[Wheel-speed and ramp-travel overlay](mount-speed.png) · [five physical return medians](mount-speed-scores.csv) · [all ramp contacts](ramp-backup.csv).
+
+From 1.00 to 0.15 s before the first on-contact report, the five recorded median wheel speeds (averaging left and right at each report) were −32.25, −31.00, −33.25, −32.25 and −34.50 mm/s. The native Vector 2 browser routine's successful diagonal start gave −105 mm/s. The stock supervisor starts both treads at −30 mm/s and allows 7 s to back up. Its cliff-assisted mode can slow an individual side to −10 after the robot pitches onto the charger and crosses a reflectance boundary. [Supervisor constants and command](https://github.com/os-vector/wire-os-victor/blob/3cec4844d24c4719b5b3892e4979494bcd260424/robot/supervisor/src/pickAndPlaceController.cpp#L110-L114) · [mount entry](https://github.com/os-vector/wire-os-victor/blob/3cec4844d24c4719b5b3892e4979494bcd260424/robot/supervisor/src/pickAndPlaceController.cpp#L368-L376) · [alignment logic](https://github.com/os-vector/wire-os-victor/blob/3cec4844d24c4719b5b3892e4979494bcd260424/robot/supervisor/src/pickAndPlaceController.cpp#L821-L867).
+
+**Isolated mount.** Start 78 mm forward of the dock lip facing outward, lift at 47 mm, on the canonical table and dock. At offsets of 0 and 2 mm, both −30 mm/s fixed-guard trials advanced about 43 mm and stalled with the origin 35 mm ahead of the lip. The wheels still reported −30 mm/s. Both rear tipping cylinders touched the apron. Those cylinders are attached to the chassis and carry no belt motion. Lowering their friction to 0.01 still stalled both approaches. Disabling them allowed contact at 3.47 s in both trials. Keeping their geometry and giving each a hinge driven at the rear wheel's peripheral speed also acquired contact at 3.51 s in both trials. These deterministic counterfactuals isolate a contact-model defect on the ramp. They do not validate free tipping or flat-floor skid steering with altered geometry.
+
+**Full native action.** Tested at source revision 27555cd, including find, turn, reverse, verify and retries. Direct starts undock first. Diagonal starts begin at (120, 80) mm and 45° in the table scene.
+
+| Vector 2 candidate | Direct start | Diagonal start |
+|---|---|---|
+| Canonical controller and geometry | Timeout | Docked |
+| −30 mm/s, 7 s, canonical geometry | Timeout | Timeout |
+| −30 mm/s, 7 s, driven rear tread surfaces | Docked | Timeout |
+
+The driven direct mount reached a median −30 mm/s in the same precontact window. Its trace and the canonical diagonal trace are from different successful starts. On the driven diagonal run the first backup reached roughly (−118, 8) mm with yaw 0.20 rad against a mapped outward heading of 0.02 rad. Verification and retries followed, and the routine timed out. The first straight ramp obstruction and final alignment are separable failures. The checked-in runtime retains its existing geometry and controller.
+
+To reproduce in an experimental checkout with web dependencies installed, run `node ramp_backup.mjs` here for straight contact traces. Run `node mount_speed.mjs gen2 canonical` for the original full action. Apply [the speed and timeout change](mount-speed-trial.patch) from the repo root, then repeat with `gen2 canonical` and `gen2 driven_rear_envelope`. Each run reports both outcomes on stderr and emits traces for successful runs on stdout. The [experimental geometry](rear_envelope.mjs) is composed in memory. Run `python ramp_score.py` to regenerate the figure from the committed traces.
