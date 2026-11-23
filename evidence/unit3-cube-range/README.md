@@ -99,3 +99,11 @@ chassis. The images are sparse and the available calibration assumes pinhole
 optics. No production coefficients changed.
 
 [Frame scores](edge-range.csv). Reproduce with `python edge_range.py`.
+
+## Docked range timing on the shelf
+
+The shelf scene now samples forward range on the body controller clock. The published controller checks tread power on both sides. On a stationary charger it schedules an acquisition every 200 body ticks (1.024 s). Off the charger at rest it uses 12 ticks (61.44 ms), and driven treads use 6 ticks (30.72 ms). Head and lift power alone leave the slow cadence active. [Range scheduler](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/syscon/src/opto.cpp#L78-L89) · [Tread power determination](https://github.com/kercre123/victor/blob/669ec7499a7084640b57706a7937884a6568be50/robot/syscon/src/motors.cpp#L145-L150)
+
+In seven recorded sessions, we anchored phase at the second of two docked stationary range/quality changes spaced 0.8–1.2 s apart. Over the following three changes per run, the body-clock prediction gave 19.6 ms mean absolute arrival error, compared with 48.8 ms for a rounded one-second clock. Twenty of 21 observed timing brackets included the body-clock prediction. These are SDK receipt times. Absolute acquisition latency remains unknown. The physical comparison validates the slow cadence. A separate browser regression exercises head and lift power on the simulated dock, followed by right tread power.
+
+[Timing overlay](dock-clock.png) · [All 21 forecasts](dock-clock.csv) · [Reproduce from the recordings](dock_clock.py)

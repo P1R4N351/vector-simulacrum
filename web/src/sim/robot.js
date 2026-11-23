@@ -87,7 +87,7 @@ export class VectorSim {
     this._gauss = makeGauss(opts.noiseSeed ?? 0);
     // The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
     this._proxSensor = new ProxSensor(this.v, (opts.noiseSeed ?? 0) + 1);
-    this.bodyRangeClock = opts.bodyRangeClock ?? this.bodyRangeClock ?? false;
+    this.bodyRangeClock = opts.bodyRangeClock ?? this.bodyRangeClock ?? Boolean(this.shelfOutline);
     this.chargerContact = opts.chargerContact ?? this.chargerContact ?? false;
     this._rangeBodyTicks = 0;
     this._rangeBodyPhaseUs = 0;
@@ -419,7 +419,7 @@ export class VectorSim {
     this._rangeBodyPhaseUs += Math.round(this.dt * 1e6);
     const ticks = Math.floor(this._rangeBodyPhaseUs / 5120);
     this._rangeBodyPhaseUs %= 5120;
-    const driven = power ? power.some(duty => Math.abs(duty) > 0.1)
+    const driven = power ? (Math.abs(power[0]) > 0.1 || Math.abs(power[1]) > 0.1)
       : this._controllers.some(controller => Math.abs(controller.power) > 0.1);
     const target = driven ? 6 : (this.chargerContact ? 200 : 12);
     for (let i = 0; i < ticks; i++) {
@@ -795,7 +795,7 @@ export class VectorSim {
     this._updateHeadStatus();
     this._updateLiftStatus();
 
-    if ((power || this.startDocked) && this._dockBody >= 0) this.chargerContact = this._padsTouchDock();
+    if (this._dockBody >= 0 && (power || this.startDocked || this.bodyRangeClock)) this.chargerContact = this._padsTouchDock();
     if (this.bodyRangeClock) this._advanceRangeClock(power);
     const yaw = this._yaw();
     this._yawTotal += Math.atan2(Math.sin(yaw - this._yawPrev), Math.cos(yaw - this._yawPrev));
