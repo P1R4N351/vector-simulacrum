@@ -46,6 +46,44 @@ function draw(ctx, model, t) {
       ctx.stroke();
     }
   }
+  const heading = (t.heading_deg * Math.PI) / 180;
+  const nomad = gameApi.nomad?.();
+  if (nomad) {
+    if (nomad.edges?.length) {
+      ctx.strokeStyle = "rgba(168, 85, 247, 0.5)";
+      ctx.lineWidth = 1;
+      for (const e of nomad.edges) {
+        const a = nomad.nodes[e.u], b = nomad.nodes[e.v];
+        if (!a || !b) continue;
+        ctx.beginPath();
+        ctx.moveTo(sx(a.y_mm), sy(a.x_mm));
+        ctx.lineTo(sx(b.y_mm), sy(b.x_mm));
+        ctx.stroke();
+      }
+    }
+    if (nomad.candidates?.length) {
+      const ch = Math.cos(heading), sh = Math.sin(heading);
+      for (let ci = 0; ci < nomad.candidates.length; ci++) {
+        const selected = ci === nomad.selectedIdx;
+        ctx.strokeStyle = selected ? "#c084fc" : "rgba(148, 163, 184, 0.45)";
+        ctx.lineWidth = selected ? 1.8 : 1;
+        ctx.beginPath();
+        ctx.moveTo(sx(t.y_mm), sy(t.x_mm));
+        for (const [lx, ly] of nomad.candidates[ci]) {
+          const wx = t.x_mm + ch * lx - sh * ly;
+          const wy = t.y_mm + sh * lx + ch * ly;
+          ctx.lineTo(sx(wy), sy(wx));
+        }
+        ctx.stroke();
+      }
+    }
+    for (const n of nomad.nodes ?? []) {
+      ctx.fillStyle = n.id === nomad.goalNodeId ? "#22d3ee" : (n.id === nomad.currentId ? "#f472b6" : "#a855f7");
+      ctx.beginPath();
+      ctx.arc(sx(n.y_mm), sy(n.x_mm), n.id === nomad.goalNodeId ? 3 : 2.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
   const trail = gameApi.trail?.();
   if (trail && trail.count > 1) {
     ctx.strokeStyle = "#1d7a4b";
@@ -59,7 +97,6 @@ function draw(ctx, model, t) {
     }
     ctx.stroke();
   }
-  const heading = (t.heading_deg * Math.PI) / 180;
   ctx.save();
   ctx.translate(sx(t.y_mm), sy(t.x_mm));
   ctx.rotate(-heading);

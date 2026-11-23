@@ -55,6 +55,30 @@ const CALLS = {
   drive_off_charger: { args: 0, start: (h) => h._action(() => h.sim.driveOffCharger()) },
   explore: { args: 1, start: (h, [s]) => h._action(() => h.sim.explore(number("explore", "seconds", s, { positive: true, optional: true }) ?? 12)) },
   dock_with_charger: { args: 0, start: (h) => h._action(() => h.sim.dockWithCharger()) },
+  nomad_capture_goal: {
+    args: 1,
+    start: (h, [label]) => {
+      const tag = label === undefined ? "goal" : String(label);
+      const id = h.sim.nomadCaptureGoal(tag);
+      if (id === null) throw new RobotCallError("NoMaD policy is not loaded");
+      return { now: { node_id: id, label: tag } };
+    },
+  },
+  nomad_explore: {
+    args: 1,
+    start: (h, [s]) => h._action(() => h.sim.nomadExplore(number("nomad_explore", "seconds", s, { positive: true, optional: true }) ?? 10)),
+  },
+  nomad_navigate: {
+    args: 2,
+    start: (h, [maxS, gid]) => h._action(() => {
+      const limit = number("nomad_navigate", "max_seconds", maxS, { positive: true, optional: true }) ?? 20;
+      const parsedId = number("nomad_navigate", "goal_id", gid, { optional: true });
+      if (parsedId !== null && (!Number.isInteger(parsedId) || parsedId < 0)) {
+        throw new RobotCallError("nomad_navigate: goal_id must be a non-negative integer");
+      }
+      return h.sim.nomadNavigate(limit, parsedId);
+    }),
+  },
   state: { args: 0, start: () => ({ now: null }) },
   wait: {
     args: 1, start: (h, [s]) => {
@@ -93,7 +117,7 @@ export class ProgramHost {
     assert(s && typeof s === "object", "the robot has not reported a state yet");
     return {
       ...s, pose_angle_deg: s.pose_angle_rad / DEG, head_angle_deg: s.head_angle_rad / DEG,
-      now_s: this.sim.tickCount * this.sim.dt,
+      now_s: this.sim.tickCount * this.sim.dt, nomad_nodes: this.sim.nomadSnapshot().nodes.length,
       on_charger: this.sim.chargerContact, battery_volts: this.sim.batteryVolts,
     };
   }

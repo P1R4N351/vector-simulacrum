@@ -5,13 +5,16 @@
 // delivered later, as postMessage does. A program whose loop never awaits cannot be run
 // here (it would hold this thread); in the page the worker is terminated instead.
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
+import { NomadPolicy } from "../src/sim/nomad.js";
 import { CONTROL_DEFAULT, RESULT_CANCELLED, VectorSim } from "../src/sim/robot.js";
 import { IDLE_CALL_LIMIT, ProgramHost } from "../src/program/host.js";
 import { directCall, programEndpoint, runProgram } from "../src/program/runtime.js";
 import { createProgramRunner } from "../src/program/runner.js";
 import { EXAMPLES, exampleById } from "../src/program/examples.js";
-import { mujoco, readJson, readText } from "./helpers.js";
+import { ROOT, mujoco, readJson, readText } from "./helpers.js";
 
 const model = readJson("public/robot/model.json");
 const xml = readText("public/robot/vector.xml");
@@ -19,8 +22,21 @@ const v = model.values;
 const DEG = 180 / Math.PI;
 const later = () => new Promise((resolve) => setImmediate(resolve));
 
+function attachNomadIfPresent(sim) {
+  const metaFile = join(ROOT, "public/robot/nomad/nomad.json");
+  const binFile = join(ROOT, "public/robot/nomad/nomad_weights.bin");
+  if (existsSync(metaFile) && existsSync(binFile)) {
+    const policy = NomadPolicy.fromBuffers(JSON.parse(readFileSync(metaFile, "utf8")), new Uint8Array(readFileSync(binFile)));
+    sim.attachNomad(policy, model.camera);
+  }
+}
+
 async function makeSim() {
-  return new VectorSim(await mujoco(), { xml, values: v, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1 });
+  const sim = new VectorSim(await mujoco(), {
+    xml, values: v, derived: model.derived, camera: model.camera, controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
+  });
+  attachNomadIfPresent(sim);
+  return sim;
 }
 
 // The page's worker, in this thread. Keeps every reply the page sent it.
@@ -289,6 +305,19 @@ test("drive_off_charger, explore, and dock_with_charger complete and update robo
       "exp: completed true",
       "dock: completed true 4.2",
     ]);
+  } finally {
+    sim.dispose();
+  }
+});
+
+test("nomad_capture_goal, nomad_explore, and nomad_navigate run cleanly in Program", async () => {
+  const sim = await makeSim();
+  try {
+    const run = await runInPage(sim, exampleById("nomad-nav").source);
+    assert.equal(run.status, "finished", JSON.stringify(run.log));
+    assert.match(run.prints[0], /^captured goal node 0$/);
+    assert.match(run.prints[1], /^explore nodes: [1-9]\d* edges: \d+$/);
+    assert.match(run.prints[2], /^navigate: (completed|timeout) pred_dist: /);
   } finally {
     sim.dispose();
   }

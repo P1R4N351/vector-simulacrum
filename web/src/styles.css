@@ -309,4 +309,11 @@ select {
   .program { width: 100%; }
   .editor { height: 150px; }
   .program-log { height: 80px; }
+  .right .nomad-card { display: none; }
 }
+
+.nomad-card { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.nomad-meta { font: 11px/1.3 var(--mono); color: var(--muted); margin-bottom: 5px; }
+.nomad-cams { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.nomad-thumb { display: flex; flex-direction: column; gap: 2px; font: 10px/1.2 var(--mono); color: var(--muted); }
+.nomad-thumb canvas { width: 100%; aspect-ratio: 64 / 36; image-rendering: pixelated; border: 1px solid var(--line); border-radius: 4px; background: #0b0d10; }

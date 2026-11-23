@@ -27,6 +27,9 @@ export const ROBOT_CALLS = [
   ["await robot.drive_off_charger()", "drive straight forward off the charger dock"],
   ["await robot.explore(seconds?)", "autonomously scan and map the table (obstacles, cliffs, cube, charger)"],
   ["await robot.dock_with_charger()", "find the charger marker, align in front, and back onto the pins"],
+  ["await robot.nomad_capture_goal(label?)", "record current head_cam view as a visual NoMaD navigation goal"],
+  ["await robot.nomad_explore(seconds?)", "explore with Goal-Masked NoMaD diffusion, building a topological graph"],
+  ["await robot.nomad_navigate(max_seconds?, goal_id?)", "navigate via NoMaD topological subgoals and DDIM trajectories"],
   ["robot.state", "the last reported state: x_mm, y_mm, pose_angle_deg, head_angle_deg, lift_height_mm, prox_distance_mm, cliff_detected, has_control, now_s, ..."],
   ["print(...values)", "write a line below"],
 ];
@@ -34,7 +37,8 @@ export const ROBOT_CALLS = [
 // "cancelled_cliff", "no_control", "timeout" or "aborted_off_ground".
 
 const METHODS = ["drive_straight", "turn_in_place", "set_head_angle", "set_lift_height", "set_wheel_motors",
-  "stop_all_motors", "request_control", "drive_off_charger", "explore", "dock_with_charger", "wait"];
+  "stop_all_motors", "request_control", "drive_off_charger", "explore", "dock_with_charger",
+  "nomad_capture_goal", "nomad_explore", "nomad_navigate", "wait"];
 
 // An error the robot end refused a call with.
 export function robotError(message) {
@@ -51,8 +55,9 @@ export function makeRobot(call, state) {
   for (const name of METHODS) {
     robot[name] = (...args) => {
       const site = new Error();
-      const bad = args.findIndex((a) => a !== null && a !== undefined && typeof a !== "number");
-      if (bad >= 0) return Promise.reject(new TypeError(`robot.${name}: argument ${bad + 1} must be a number`));
+      const wantType = name === "nomad_capture_goal" ? "string" : "number";
+      const bad = args.findIndex((a) => a !== null && a !== undefined && typeof a !== wantType);
+      if (bad >= 0) return Promise.reject(new TypeError(`robot.${name}: argument ${bad + 1} must be a ${wantType}`));
       return call(name, args.map((a) => (a === undefined ? null : a))).catch((err) => {
         if (err instanceof Error) err.callStack = site.stack;
         throw err;

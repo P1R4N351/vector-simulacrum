@@ -1,0 +1,1019 @@
+{
+ "act_dim": 2,
+ "alphas_cumprod": [
+  0.9980000257492065,
+  0.9868224263191223,
+  0.966691255569458,
+  0.9380771517753601,
+  0.9016797542572021,
+  0.8583991527557373,
+  0.8092986941337585,
+  0.7555612921714783,
+  0.6984408497810364,
+  0.6392130851745605,
+  0.5791270732879639,
+  0.519361138343811,
+  0.4609849452972412,
+  0.40492916107177734,
+  0.35196441411972046,
+  0.30268940329551697
+ ],
+ "betas": [
+  0.0020000000949949026,
+  0.01119999960064888,
+  0.020400000736117363,
+  0.029600000008940697,
+  0.03880000114440918,
+  0.04800000041723251,
+  0.05719999969005585,
+  0.06639999896287918,
+  0.07559999823570251,
+  0.08479999750852585,
+  0.09399999678134918,
+  0.10320000350475311,
+  0.11240000277757645,
+  0.12160000205039978,
+  0.13079999387264252,
+  0.14000000059604645
+ ],
+ "context_frames": 4,
+ "ddim_steps": 8,
+ "diffusion_steps": 16,
+ "embed_dim": 64,
+ "horizon": 8,
+ "img_h": 36,
+ "img_w": 64,
+ "meta": {
+  "episodes": 80,
+  "epochs": 45,
+  "final_diff_loss": 0.06167,
+  "final_dist_loss": 13.8571,
+  "samples": 2320,
+  "seed": 7,
+  "steps": 38,
+  "wall_s": 616.85
+ },
+ "num_heads": 4,
+ "step_period_s": 0.25,
+ "tensors": [
+  {
+   "length": 64,
+   "name": "encoder.mask_token",
+   "offset": 0,
+   "shape": [
+    1,
+    64
+   ]
+  },
+  {
+   "length": 320,
+   "name": "encoder.pos_embed",
+   "offset": 64,
+   "shape": [
+    1,
+    5,
+    64
+   ]
+  },
+  {
+   "length": 432,
+   "name": "encoder.obs_stem.conv1.weight",
+   "offset": 384,
+   "shape": [
+    16,
+    3,
+    3,
+    3
+   ]
+  },
+  {
+   "length": 16,
+   "name": "encoder.obs_stem.conv1.bias",
+   "offset": 816,
+   "shape": [
+    16
+   ]
+  },
+  {
+   "length": 4608,
+   "name": "encoder.obs_stem.conv2.weight",
+   "offset": 832,
+   "shape": [
+    32,
+    16,
+    3,
+    3
+   ]
+  },
+  {
+   "length": 32,
+   "name": "encoder.obs_stem.conv2.bias",
+   "offset": 5440,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 13824,
+   "name": "encoder.obs_stem.conv3.weight",
+   "offset": 5472,
+   "shape": [
+    48,
+    32,
+    3,
+    3
+   ]
+  },
+  {
+   "length": 48,
+   "name": "encoder.obs_stem.conv3.bias",
+   "offset": 19296,
+   "shape": [
+    48
+   ]
+  },
+  {
+   "length": 36864,
+   "name": "encoder.obs_stem.proj.weight",
+   "offset": 19344,
+   "shape": [
+    64,
+    576
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.obs_stem.proj.bias",
+   "offset": 56208,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.obs_stem.norm.weight",
+   "offset": 56272,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.obs_stem.norm.bias",
+   "offset": 56336,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 864,
+   "name": "encoder.goal_stem.conv1.weight",
+   "offset": 56400,
+   "shape": [
+    16,
+    6,
+    3,
+    3
+   ]
+  },
+  {
+   "length": 16,
+   "name": "encoder.goal_stem.conv1.bias",
+   "offset": 57264,
+   "shape": [
+    16
+   ]
+  },
+  {
+   "length": 4608,
+   "name": "encoder.goal_stem.conv2.weight",
+   "offset": 57280,
+   "shape": [
+    32,
+    16,
+    3,
+    3
+   ]
+  },
+  {
+   "length": 32,
+   "name": "encoder.goal_stem.conv2.bias",
+   "offset": 61888,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 13824,
+   "name": "encoder.goal_stem.conv3.weight",
+   "offset": 61920,
+   "shape": [
+    48,
+    32,
+    3,
+    3
+   ]
+  },
+  {
+   "length": 48,
+   "name": "encoder.goal_stem.conv3.bias",
+   "offset": 75744,
+   "shape": [
+    48
+   ]
+  },
+  {
+   "length": 36864,
+   "name": "encoder.goal_stem.proj.weight",
+   "offset": 75792,
+   "shape": [
+    64,
+    576
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.goal_stem.proj.bias",
+   "offset": 112656,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.goal_stem.norm.weight",
+   "offset": 112720,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.goal_stem.norm.bias",
+   "offset": 112784,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.0.ln1.weight",
+   "offset": 112848,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.0.ln1.bias",
+   "offset": 112912,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "encoder.blocks.0.q_proj.weight",
+   "offset": 112976,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.0.q_proj.bias",
+   "offset": 117072,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "encoder.blocks.0.k_proj.weight",
+   "offset": 117136,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.0.k_proj.bias",
+   "offset": 121232,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "encoder.blocks.0.v_proj.weight",
+   "offset": 121296,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.0.v_proj.bias",
+   "offset": 125392,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "encoder.blocks.0.out_proj.weight",
+   "offset": 125456,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.0.out_proj.bias",
+   "offset": 129552,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.0.ln2.weight",
+   "offset": 129616,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.0.ln2.bias",
+   "offset": 129680,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 8192,
+   "name": "encoder.blocks.0.ff1.weight",
+   "offset": 129744,
+   "shape": [
+    128,
+    64
+   ]
+  },
+  {
+   "length": 128,
+   "name": "encoder.blocks.0.ff1.bias",
+   "offset": 137936,
+   "shape": [
+    128
+   ]
+  },
+  {
+   "length": 8192,
+   "name": "encoder.blocks.0.ff2.weight",
+   "offset": 138064,
+   "shape": [
+    64,
+    128
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.0.ff2.bias",
+   "offset": 146256,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.1.ln1.weight",
+   "offset": 146320,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.1.ln1.bias",
+   "offset": 146384,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "encoder.blocks.1.q_proj.weight",
+   "offset": 146448,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.1.q_proj.bias",
+   "offset": 150544,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "encoder.blocks.1.k_proj.weight",
+   "offset": 150608,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.1.k_proj.bias",
+   "offset": 154704,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "encoder.blocks.1.v_proj.weight",
+   "offset": 154768,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.1.v_proj.bias",
+   "offset": 158864,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "encoder.blocks.1.out_proj.weight",
+   "offset": 158928,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.1.out_proj.bias",
+   "offset": 163024,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.1.ln2.weight",
+   "offset": 163088,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.1.ln2.bias",
+   "offset": 163152,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 8192,
+   "name": "encoder.blocks.1.ff1.weight",
+   "offset": 163216,
+   "shape": [
+    128,
+    64
+   ]
+  },
+  {
+   "length": 128,
+   "name": "encoder.blocks.1.ff1.bias",
+   "offset": 171408,
+   "shape": [
+    128
+   ]
+  },
+  {
+   "length": 8192,
+   "name": "encoder.blocks.1.ff2.weight",
+   "offset": 171536,
+   "shape": [
+    64,
+    128
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.blocks.1.ff2.bias",
+   "offset": 179728,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.final_norm.weight",
+   "offset": 179792,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.final_norm.bias",
+   "offset": 179856,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 8192,
+   "name": "encoder.ctx_proj.weight",
+   "offset": 179920,
+   "shape": [
+    64,
+    128
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.ctx_proj.bias",
+   "offset": 188112,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.ctx_norm.weight",
+   "offset": 188176,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.ctx_norm.bias",
+   "offset": 188240,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "encoder.dist_fc1.weight",
+   "offset": 188304,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.dist_fc1.bias",
+   "offset": 192400,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "encoder.dist_fc2.weight",
+   "offset": 192464,
+   "shape": [
+    1,
+    64
+   ]
+  },
+  {
+   "length": 1,
+   "name": "encoder.dist_fc2.bias",
+   "offset": 192528,
+   "shape": [
+    1
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.inv_freq",
+   "offset": 192529,
+   "shape": [
+    1,
+    32
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "denoiser.time_fc.weight",
+   "offset": 192561,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.time_fc.bias",
+   "offset": 196657,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "denoiser.ctx_fc.weight",
+   "offset": 196721,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.ctx_fc.bias",
+   "offset": 200817,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 192,
+   "name": "denoiser.down1.conv1.weight",
+   "offset": 200881,
+   "shape": [
+    32,
+    2,
+    3
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.down1.conv1.bias",
+   "offset": 201073,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.down1.norm1.weight",
+   "offset": 201105,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.down1.norm1.bias",
+   "offset": 201137,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "denoiser.down1.film.weight",
+   "offset": 201169,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.down1.film.bias",
+   "offset": 205265,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 3072,
+   "name": "denoiser.down1.conv2.weight",
+   "offset": 205329,
+   "shape": [
+    32,
+    32,
+    3
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.down1.conv2.bias",
+   "offset": 208401,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.down1.norm2.weight",
+   "offset": 208433,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.down1.norm2.bias",
+   "offset": 208465,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.down1.skip.weight",
+   "offset": 208497,
+   "shape": [
+    32,
+    2,
+    1
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.down1.skip.bias",
+   "offset": 208561,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 3072,
+   "name": "denoiser.down_pool.weight",
+   "offset": 208593,
+   "shape": [
+    32,
+    32,
+    3
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.down_pool.bias",
+   "offset": 211665,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 6144,
+   "name": "denoiser.mid.conv1.weight",
+   "offset": 211697,
+   "shape": [
+    64,
+    32,
+    3
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.mid.conv1.bias",
+   "offset": 217841,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.mid.norm1.weight",
+   "offset": 217905,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.mid.norm1.bias",
+   "offset": 217969,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 8192,
+   "name": "denoiser.mid.film.weight",
+   "offset": 218033,
+   "shape": [
+    128,
+    64
+   ]
+  },
+  {
+   "length": 128,
+   "name": "denoiser.mid.film.bias",
+   "offset": 226225,
+   "shape": [
+    128
+   ]
+  },
+  {
+   "length": 12288,
+   "name": "denoiser.mid.conv2.weight",
+   "offset": 226353,
+   "shape": [
+    64,
+    64,
+    3
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.mid.conv2.bias",
+   "offset": 238641,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.mid.norm2.weight",
+   "offset": 238705,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.mid.norm2.bias",
+   "offset": 238769,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 2048,
+   "name": "denoiser.mid.skip.weight",
+   "offset": 238833,
+   "shape": [
+    64,
+    32,
+    1
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.mid.skip.bias",
+   "offset": 240881,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 6144,
+   "name": "denoiser.up_conv.weight",
+   "offset": 240945,
+   "shape": [
+    32,
+    64,
+    3
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.up_conv.bias",
+   "offset": 247089,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 6144,
+   "name": "denoiser.up1.conv1.weight",
+   "offset": 247121,
+   "shape": [
+    32,
+    64,
+    3
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.up1.conv1.bias",
+   "offset": 253265,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.up1.norm1.weight",
+   "offset": 253297,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.up1.norm1.bias",
+   "offset": 253329,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 4096,
+   "name": "denoiser.up1.film.weight",
+   "offset": 253361,
+   "shape": [
+    64,
+    64
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.up1.film.bias",
+   "offset": 257457,
+   "shape": [
+    64
+   ]
+  },
+  {
+   "length": 3072,
+   "name": "denoiser.up1.conv2.weight",
+   "offset": 257521,
+   "shape": [
+    32,
+    32,
+    3
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.up1.conv2.bias",
+   "offset": 260593,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.up1.norm2.weight",
+   "offset": 260625,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.up1.norm2.bias",
+   "offset": 260657,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 2048,
+   "name": "denoiser.up1.skip.weight",
+   "offset": 260689,
+   "shape": [
+    32,
+    64,
+    1
+   ]
+  },
+  {
+   "length": 32,
+   "name": "denoiser.up1.skip.bias",
+   "offset": 262737,
+   "shape": [
+    32
+   ]
+  },
+  {
+   "length": 64,
+   "name": "denoiser.out_conv.weight",
+   "offset": 262769,
+   "shape": [
+    2,
+    32,
+    1
+   ]
+  },
+  {
+   "length": 2,
+   "name": "denoiser.out_conv.bias",
+   "offset": 262833,
+   "shape": [
+    2
+   ]
+  }
+ ],
+ "waypoint_scale_mm": 120.0,
+ "weights_floats": 262835,
+ "weights_sha256": "3221d98a20e33d6290fd62cf561afd088f1f74e211115d1b6e888134fc87fb90"
+}

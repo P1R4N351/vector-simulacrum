@@ -1,5 +1,5 @@
 // Status, readouts and controls over the 3D view..
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gameApi, useGame } from "../store.js";
 import MiniMap from "./MiniMap.jsx";
 import ProgramPanel from "./ProgramPanel.jsx";
@@ -40,6 +40,7 @@ function StatusChips({ t, level, program }) {
       {t.on_charger ? <Chip tone="ok">ON CHARGER</Chip>
         : t.on_charger_platform ? <Chip tone="info">CHARGER RAMP</Chip> : null}
       {t.firmware_active ? <Chip tone="ok">FIRMWARE ARMv6-M</Chip> : null}
+      {t.nomad_ready ? <Chip tone="ok">NOMAD DIFFUSION</Chip> : null}
       {t.autonomy_phase ? <Chip tone="warn">{t.autonomy_phase}</Chip> : null}
       {program === "running" ? <Chip tone="info">PROGRAM RUNNING</Chip> : null}
     </div>
@@ -154,6 +155,48 @@ function About({ model, robotLook }) {
   );
 }
 
+function drawRgbThumb(canvas, rgbU8) {
+  if (!canvas || !rgbU8 || rgbU8.length !== 64 * 36 * 3) return;
+  const ctx = canvas.getContext("2d");
+  const img = ctx.createImageData(64, 36);
+  for (let p = 0; p < 64 * 36; p++) {
+    img.data[4 * p] = rgbU8[3 * p];
+    img.data[4 * p + 1] = rgbU8[3 * p + 1];
+    img.data[4 * p + 2] = rgbU8[3 * p + 2];
+    img.data[4 * p + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+function NomadCard({ telemetry }) {
+  const obsRef = useRef(null);
+  const goalRef = useRef(null);
+  const snap = gameApi.nomad?.();
+  useEffect(() => {
+    if (!snap) return;
+    drawRgbThumb(obsRef.current, snap.obsU8);
+    drawRgbThumb(goalRef.current, snap.goalU8);
+  }, [telemetry, snap?.nodes.length, snap?.hasGoal]);
+  if (!snap?.ready) return null;
+  return (
+    <div className="nomad-card" aria-label="NoMaD Visual Navigation">
+      <div className="nomad-meta">
+        NoMaD {snap.nodes.length} nodes {"·"} {snap.edges.length} edges {"·"} dist {fmt(snap.predDist, 1)}
+      </div>
+      <div className="nomad-cams">
+        <div className="nomad-thumb">
+          <span>obs 64{"×"}36</span>
+          <canvas ref={obsRef} width={64} height={36} aria-label="NoMaD observation frame" />
+        </div>
+        <div className="nomad-thumb">
+          <span>{snap.hasGoal ? `goal #${snap.goalNodeId ?? 0}` : "goal none"}</span>
+          <canvas ref={goalRef} width={64} height={36} aria-label="NoMaD goal frame" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Hud() {
   const t = useGame((s) => s.telemetry);
   const level = useGame((s) => s.level);
@@ -180,6 +223,7 @@ export default function Hud() {
       </header>
       <section className="panel right">
         <MiniMap />
+        <NomadCard telemetry={t} />
         <CliffPads cliff={t.cliff} />
         <Readouts t={t} />
         {lastAction ? (
@@ -197,7 +241,8 @@ export default function Hud() {
           ))}
         </div>
         {tab === "program" ? <ProgramPanel /> : <Controls press={press} level={level} chase={chase} robotLook={robotLook}
-          hasDock={hasDock} startDocked={startDocked} shapes={shapes} camView={camView} paused={paused} padConnected={padConnected} />}
+          hasDock={hasDock} startDocked={startDocked} shapes={shapes} camView={camView} paused={paused} padConnected={padConnected}
+          nomadReady={t.nomad_ready} />}
       </section>
       {camView ? <CameraView camera={model.camera} /> : null}
       {tab === "program" ? null : <TouchPad />}
@@ -206,7 +251,7 @@ export default function Hud() {
   );
 }
 
-function Controls({ press, level, chase, robotLook, hasDock, startDocked, shapes, camView, paused, padConnected }) {
+function Controls({ press, level, chase, robotLook, hasDock, startDocked, shapes, camView, paused, padConnected, nomadReady }) {
   return (
     <>
     <div className="buttons">
@@ -221,6 +266,13 @@ function Controls({ press, level, chase, robotLook, hasDock, startDocked, shapes
       <button type="button" onClick={press("dock")}>Dock</button>
       {hasDock ? <button type="button" onClick={press("undock")}>Undock</button> : null}
     </div>
+    {nomadReady ? (
+      <div className="buttons">
+        <button type="button" onClick={press("nomadGoal")}>Capture goal</button>
+        <button type="button" onClick={press("nomadExplore")}>NoMaD explore</button>
+        <button type="button" onClick={press("nomadNavigate")}>NoMaD navigate</button>
+      </div>
+    ) : null}
     <div className="buttons">
       <button type="button" onClick={press("headUp")}>Head up</button>
       <button type="button" onClick={press("headLevel")}>Head level</button>

@@ -19,6 +19,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import mujocoWasmUrl from "@mujoco/mujoco/mujoco.wasm?url";
 import { CONTROL_DEFAULT, CONTROL_OVERRIDE, VectorSim } from "../sim/robot.js";
+import { NomadPolicy } from "../sim/nomad.js";
 import { bootHalt, bootLine, gameApi, useGame } from "../store.js";
 import { HIDDEN_FROM_ROBOT } from "./headcam.js";
 import { createInput } from "./input.js";
@@ -47,6 +48,8 @@ const ACTIONS = {
   explore: (sim) => sim.explore(15),
   dock: (sim) => sim.dockWithCharger(),
   undock: (sim) => sim.driveOffCharger(),
+  nomadExplore: (sim) => sim.nomadExplore(12),
+  nomadNavigate: (sim) => sim.nomadNavigate(20),
 };
 const RPM = 60 / (2 * Math.PI);
 
@@ -153,6 +156,17 @@ async function loadEverything() {
       doneFw("OPTIONAL");
     }
   }
+  const doneNomad = bootLine("NOMAD POLICY");
+  const [nomadMeta, nomadBytes] = await Promise.all([
+    fetchOptionalJson("./robot/nomad/nomad.json"),
+    fetchOptionalBytes("./robot/nomad/nomad_weights.bin"),
+  ]);
+  if (nomadMeta && nomadBytes) {
+    sim.attachNomad(NomadPolicy.fromBuffers(nomadMeta, nomadBytes), model.camera);
+    doneNomad("OK");
+  } else {
+    doneNomad("OPTIONAL");
+  }
   return { mujoco, model, sim, free, navMap };
 }
 
@@ -246,7 +260,8 @@ function telemetryOf(sim, extra) {
     falling: s.falling, has_control: sim.hasControl, reacting: t.reacting, reactions: sim.reactions,
     fallen: t.fallen, edge_margin_mm: t.edge_margin_mm, action_running: sim.actionRunning,
     on_charger: t.on_charger, on_charger_platform: t.on_charger_platform,
-    firmware_active: t.firmware_active, autonomy_phase: t.autonomy_phase, firmware: sim.firmwareStatus(),
+    firmware_active: t.firmware_active, autonomy_phase: t.autonomy_phase,
+    nomad_ready: t.nomad_ready, firmware: sim.firmwareStatus(),
   };
 }
 
@@ -293,11 +308,24 @@ function installApi(ctx) {
       useGame.setState({ level: sim.controlLevel });
     },
     control: () => note(sim.requestControl() ? "Control returned" : "Refused: the robot is still reacting"),
+    nomadGoal: () => {
+      if (programs.running) {
+        note("A program is running: stop it first");
+        return;
+      }
+      const id = sim.nomadCaptureGoal("goal");
+      note(id === null ? "NoMaD policy not loaded" : `NoMaD goal captured (node #${id})`);
+    },
   };
   for (const [name, start] of Object.entries(ACTIONS)) {
     press[name] = () => {
       if (programs.running) note("A program is running: stop it first");
-      else if (!start(sim)) note(sim.hasControl ? "Refused: an action is already running" : "Refused: no control (press X)");
+      else if (!start(sim)) {
+        const msg = name === "nomadNavigate" && sim.hasControl && sim.actionRunning === false && !sim._nomad?.goalImgU8
+          ? "Capture a NoMaD goal first"
+          : (sim.hasControl ? "Refused: an action is already running" : "Refused: no control (press X)");
+        note(msg);
+      }
     };
   }
   // In WireOS mode the firmware drives the body on its own timer and the frame loop does not step it,
@@ -305,7 +333,7 @@ function installApi(ctx) {
   const wireos = new URLSearchParams(location.search).get("wireos") === "1";
   if (wireos) {
     const externalControl = () => note("WireOS controls the motors. Pause to freeze the simulated body.");
-    for (const name of [...Object.keys(ACTIONS), "level", "control"]) press[name] = externalControl;
+    for (const name of [...Object.keys(ACTIONS), "level", "control", "nomadGoal"]) press[name] = externalControl;
     for (const intent of ["explore", "dock", "undock"]) {
       press[intent] = () => {
         import.meta.hot?.send("wire:intent", intent);
@@ -318,6 +346,7 @@ function installApi(ctx) {
   Object.assign(gameApi, {
     press: (name) => press[name]?.(), setPad: (fwd, turn) => ctx.input.setPad(fwd, turn), trail: () => visuals.trailPoints(),
     navMap: () => sim.navMapSnapshot(),
+    nomad: () => sim.nomadSnapshot(),
     runProgram: (source) => {
       programs.stop(); // a run in progress is replaced
       if (wireos) note("WireOS controls the motors: programs run only without WireOS");

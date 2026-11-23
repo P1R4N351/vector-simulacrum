@@ -332,9 +332,7 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 
 ## Not done
 
-- No trained policy runs in the page yet. The simulacrum exports policies as
-  ONNX (`../simulacrum/onnx_policy.py`); the observation and action layout of
-  `../simulacrum/task.py` is not ported.
+- The `rsl_rl` state-space locomotion PPO policy (`../simulacrum/task.py`, `../simulacrum/onnx_policy.py`) is not ported to the browser; instead the browser runs Goal-Masked NoMaD visual diffusion (`src/sim/nomad.js`, `src/sim/nomad_cam.js`).
 - The `Dockerfile` has not been built: the machine this was written on had no
   container engine running.
 - Checked in one browser engine (Chromium), at a desktop size and at 375 x 812.
@@ -354,7 +352,8 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 
 | | |
 |---|---|
-| `src/sim/` | The port: `drive.js`, `hazards.js`, `prox.js`, `robot.js`, `util.js`; `optics.js` (camera geometry); `thumb.js`, `cube_firmware.js`, `syscon_firmware.js` (real firmware execution); and `autonomy.js` (optical marker localization, `NavMapGrid`, explore & self-dock) |
+| `src/sim/` | The port: `drive.js`, `hazards.js`, `prox.js`, `robot.js`, `util.js`; `optics.js` (camera geometry); `thumb.js`, `cube_firmware.js`, `syscon_firmware.js` (real firmware execution); `autonomy.js` (optical marker localization, `NavMapGrid`, explore & self-dock); and `nomad.js`, `nomad_cam.js` (pure Float32 Goal-Masked NoMaD Transformer + FiLM 1D U-Net + DDIM sampler, `TopologicalGraph`) |
+| `public/robot/nomad/` | Pretrained Float32 weights (`nomad_weights.bin`, `nomad.json`) and ONNX graphs (`nomad_encoder.onnx`, `nomad_denoiser.onnx`) exported by `train_nomad.py` |
 | `src/game/` | `game.js` (boot, control loop, views), `scene.js` (drawing), `sdkmodel.js` (the SDK model), `rigmodel.js` (blended `Victor_rig_01` rig), `dock.js` (charger dock OBJ & decals), `cube.js` (blended `Victor_cube_rig` & fiducials), `headcam.js` (the robot's camera), `tracks.js` (track path, cleats, spokes), `input.js` |
 | `camera_calibration.json` | One real robot's camera calibration |
 | `src/program/` | Programs written in the page: `host.js` (the robot end, calls against the simulator in robot time), `runtime.js` (the robot object, running a program, line numbers), `worker.js`, `runner.js` (the page end), `examples.js`. All but `worker.js` run under node |
@@ -373,6 +372,12 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 Run `python3 tools/fetch_firmware.py --download` to fetch unmodified Dialog DA14580 Light Cube firmware (`cube.dfu` decrypted in memory -> `cube.plain.bin`) and STM32F030 body syscon flash (`sysboot.bin` + `syscon.dfu` -> `syscon-flash.bin`) into `public/robot/firmware/` (gitignored; `?firmware=off` skips loading). In-browser execution runs unmodified `cube.plain.bin` inside an ARMv6-M Thumb VM (`src/sim/thumb.js` + `src/sim/cube_firmware.js`) and packs/verifies CRC-32 `BodyToHead` spine frames (`src/sim/syscon_firmware.js`).
 
 Use the **Explore**, **Dock**, and **Undock** HUD buttons — or `await robot.explore(seconds)`, `await robot.dock_with_charger()`, and `await robot.drive_off_charger()` in the **Program** tab (see the `"Explore and self-dock"` example) — to build a 20 mm `NavMapGrid` (rendered live on the MiniMap), detect charger and cube optical markers through the calibrated pinhole camera, and self-dock onto the charger pins (`4.20 V`). When connected to a live WireOS simulator via `?wireos=1` and `WIREOS_BODY=1`, `wire_relay.js` forwards **Explore / Dock / Undock** intents to `vic-webserver` (`run-wire-stack.sh` also launches `vic-webserver` when present).
+
+### NoMaD visual exploration & navigation
+
+Goal-Masked Diffusion Policies (Sridhar et al., ICRA 2024) run natively in the browser in Float32 JavaScript (`src/sim/nomad.js`, `src/sim/nomad_cam.js`) without PyTorch or external ML runtime dependencies, matching the PyTorch/ONNX training export (`public/robot/nomad/nomad_weights.bin`) to `< 1e-4`. At boot the page loads `./robot/nomad/nomad.json` and `nomad_weights.bin`, renders `64x36` live and goal thumbnails in the right panel, and overlays the `TopologicalGraph` nodes/edges and `4` DDIM candidate waypoint trajectories on the MiniMap.
+
+Use **Capture goal**, **NoMaD explore**, and **NoMaD navigate** in Controls — or `await robot.nomad_capture_goal(label?)`, `await robot.nomad_explore(seconds?)`, and `await robot.nomad_navigate(max_seconds?, goal_id?)` in **Program** (see `"NoMaD visual explore & navigate"`). With `goal_mask = 1`, the Transformer encoder ignores `goal_img` (`< 1e-6` invariance) and expands the topological memory graph safely within cliff and forward-ToF bounds; with `goal_mask = 0`, Dijkstra selects the intermediate topological subgoal and DDIM steers toward the goal view.
 
 To use the measured shelf cube with the free scene, open
 `?cube=free&cubeSensor=unit3`. This selects its chip scale, noise and word format
