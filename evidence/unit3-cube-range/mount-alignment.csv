@@ -1,0 +1,41 @@
+session,variant,initial_alignment,first_contact_s,lat_at_35_mm,yaw_at_35_deg
+A,canonical,Recorded,,,
+A,driven_rear_envelope,Recorded,,1.5453608160931875,-0.4721790629320428
+A,canonical,Yaw zero,,,
+A,driven_rear_envelope,Yaw zero,,2.2082701859358895,-0.7166273365691505
+A,canonical,Offset zero,,,
+A,driven_rear_envelope,Offset zero,,-0.9693044025952644,-0.6113607528370392
+A,canonical,Both zero,,,
+A,driven_rear_envelope,Both zero,,-0.3132991303619048,-0.5827231970224845
+B,canonical,Recorded,,,
+B,driven_rear_envelope,Recorded,-0.09655999999999842,-6.433050961240248,-4.981860043439357
+B,canonical,Yaw zero,,,
+B,driven_rear_envelope,Yaw zero,,-11.65425558401107,0.07075967122932732
+B,canonical,Offset zero,,7.102242765210587,0.009071995783481007
+B,driven_rear_envelope,Offset zero,,5.154058593656444,-4.8775355188472265
+B,canonical,Both zero,,-0.24965471082478513,0.017443227048691896
+B,driven_rear_envelope,Both zero,,0.036979106161175765,0.06762002562633175
+C,canonical,Recorded,,,
+C,driven_rear_envelope,Recorded,-0.044340000000000046,-4.3286534013254885,-2.2490647106082897
+C,canonical,Yaw zero,,-8.975376695688514,0.0016887027310037892
+C,driven_rear_envelope,Yaw zero,,-8.460067174211032,0.4044409759262199
+C,canonical,Offset zero,,,
+C,driven_rear_envelope,Offset zero,,4.261937337568427,-2.184114763375639
+C,canonical,Both zero,,,
+C,driven_rear_envelope,Both zero,,0.18347385674492697,0.47566578389338976
+D,canonical,Recorded,,0.6866409491832928,0.039583276744358534
+D,driven_rear_envelope,Recorded,,-0.2347574739513706,-2.4606422408933843
+D,canonical,Yaw zero,,-1.8310308139690736,0.026944453200287065
+D,driven_rear_envelope,Yaw zero,,-2.0185813558262495,-0.6140324045816687
+D,canonical,Offset zero,,,
+D,driven_rear_envelope,Offset zero,,1.7095460102445343,-2.6696491130752604
+D,canonical,Both zero,,,
+D,driven_rear_envelope,Both zero,,-0.05613350770174253,-0.7553968088748719
+E,canonical,Recorded,,-2.4975962587541094,0.046646978591153375
+E,driven_rear_envelope,Recorded,-0.149810000000008,-2.452098746454471,-0.7483267281602883
+E,canonical,Yaw zero,,,
+E,driven_rear_envelope,Yaw zero,,-3.4613501690518222,0.09502992494413397
+E,canonical,Offset zero,,,
+E,driven_rear_envelope,Offset zero,,0.9445903815872211,-0.6344731843833319
+E,canonical,Both zero,,,
+E,driven_rear_envelope,Both zero,,-0.052439940011522516,0.10064724096623784

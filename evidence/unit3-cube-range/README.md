@@ -314,3 +314,11 @@ Sending the interpolated measured height as a target every 5 ms still left 10–
 With this same assisted stroke the fixed-support bodies peaked at 34.5–36.9°, while four driven supports tipped them onto their backs at 121.2–121.4°. The recorded peaks were 72.25° and 72.50°, followed by a sustained pitch near 70°. The similar lift trajectories and divergent body trajectories isolate a large contact-dependent residual. Which physical contacts arrest the body at 70° remains open. Matching the recorded stroke alone does not identify the real lift motor torque.
 
 Reproduce with `python loaded_stroke.py /path/to/fixture.xml` using MuJoCo 4.0.1 and the [published fork fixture recipe](../unit3-wheelstand/reproduction/README.md).
+
+### Does centering the recorded backup improve acquisition?
+
+[Approach paths](mount-alignment.png) · [Contact outcomes and entry poses](mount-alignment.csv) · [Reproduction](mount_alignment.py)
+
+Each of the five recorded wheel profiles was replayed from four poses. We kept the recorded longitudinal start, lift, head and wheel inputs and independently set initial lateral offset, yaw, or both to zero. The canonical model missed all 20 returns. With the experimental driven rear support, B, C and E acquired from the recorded poses. All 15 modified starts missed. At the first crossing 35 mm ahead of the lip, the two misses from recorded poses were only 1.55 and 0.24 mm off center, whereas successful B and C were 6.43 and 4.30 mm off center. See the CSV for signed offsets and headings. The paths stop at first electrical acquisition or 0.5 s after the recorded on-report.
+
+These are open-loop counterfactuals. The physical wheel profiles include steering responses to the original poses. Reusing them after centering can introduce a steering error. The result rules out simply centering these replay starts as a remedy. It does not estimate the success rate of a robot steering with live feedback. Run `python mount_alignment.py` from this directory with the canonical web dependencies installed.
