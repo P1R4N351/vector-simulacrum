@@ -62,7 +62,8 @@ def main():
             scores.append([name,variant,crossing(t,pitch),crossing(even,uniform),crossing(t,angle),
                            pitch[j],angle[j],np.median(pitch[rest]) if np.any(rest) else np.nan,
                            grav_delta, travel[-1],pos[0]-pos[-1], np.interp(crossing(t,pitch),real[0],real[1]),
-                           np.interp(crossing(t,angle),st,run["out_mm"])])
+                           np.interp(crossing(t,angle),st,run["out_mm"]),
+                           np.interp(crossing(t,pitch),st,run["out_mm"])])
         a.axhline(-3,color="gray",ls=":",lw=.7)
         a.set_title(f"Return {name}")
         for ax in (a,b):
@@ -74,7 +75,7 @@ def main():
     fig.savefig(ROOT/"mount-pitch.png",dpi=160)
     with (ROOT/"mount-pitch.csv").open("w") as stream:
         writer=csv.writer(stream,lineterminator="\n")
-        writer.writerow("session model gyro_cross_s even_cross_s sim_cross_s gyro_last_off_deg sim_last_off_deg gyro_rest_deg gravity_rest_deg camera_travel_mm sim_travel_mm sdk_out_at_cross_mm sim_out_at_cross_mm".split())
+        writer.writerow("session model gyro_cross_s even_cross_s sim_cross_s gyro_last_off_deg sim_last_off_deg gyro_rest_deg gravity_rest_deg camera_travel_mm sim_travel_mm sdk_out_at_cross_mm sim_out_at_cross_mm sim_out_at_physical_cross_mm".split())
         writer.writerows(scores)
 
 

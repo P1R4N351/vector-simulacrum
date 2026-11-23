@@ -404,3 +404,5 @@ All five physical crossings occurred 2.83–3.07 s before the first on-report. T
 For the independent travel check, compare the chassis origin with displacement inferred from the raised fork tips between the first and last usable precontact camera frames in each return. Physical inward travel was 6.27 mm on D, versus 1.14 mm canonical and 3.58 mm driven. On A it was 9.49 mm versus −0.01 and 4.20 mm. Fork projection depends on pitch and feature height, so these measurements corroborate the direction and scale of the travel deficit rather than fixing its exact value.
 
 Run `python mount_pitch.py` from this folder with the canonical web dependencies installed.
+
+At the physical 3° crossing time, both simulated configurations were still 9.4–13.1 mm farther out than the SDK estimated across the five returns. On D they were at 55.37 mm versus 42.25 mm reported. The two model poses at that instant agree within 0.001 mm in every return. The early travel discrepancy is thus common to the fixed and driven rear-support versions; a change that acts only when those versions diverge would leave it in place.
