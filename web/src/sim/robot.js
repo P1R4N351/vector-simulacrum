@@ -653,6 +653,17 @@ export class VectorSim {
     return [wheels[0], wheels[1], servos[2], servos[3]];
   }
 
+  // A local supervisor stop supersedes tread commands still in the transport queue.
+  _stopTreadsAtContact() {
+    this._wheelTarget = [0, 0];
+    this._wheelAccel = [0, 0];
+    this._wheelCmd = [0, 0];
+    for (const slot of this._delay) {
+      slot[0] = 0;
+      slot[1] = 0;
+    }
+  }
+
   // The robot's own response to a cliff: stop now, lose SDK control, back off after a pause.
   _startReaction() {
     const v = this.v;
