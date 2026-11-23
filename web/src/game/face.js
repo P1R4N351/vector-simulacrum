@@ -199,6 +199,11 @@ export function addFaceCarrier(head, values, axleX) {
   const height = width * values.display_resolution_px[1] / values.display_resolution_px[0];
   pad(carrier, 0, 0.36, 0.060, width + 0.14, height + 0.15, 0.065, 0.03, bezel);
   pad(carrier, 0, 0.36, 0.103, width, height, 0.026, 0.01, finish(0x0c1013, 0.21));
+  const display = new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshBasicMaterial({toneMapped:false}));
+  display.name = "wireos_lcd";
+  display.position.set(0,.36,.118);
+  display.visible = false;
+  carrier.add(display);
   for (const u of [-1.34, 1.34]) {
     pad(carrier, u, 0.78, 0.077, 0.10, 0.23, 0.045, 0.014, hardware);
     pad(carrier, u, -0.05, 0.077, 0.11, 0.20, 0.045, 0.014, bezel);

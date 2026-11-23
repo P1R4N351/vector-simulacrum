@@ -77,6 +77,7 @@ class RobotState:
     prox_signal_quality: float = 0.0
     prox_unobstructed: bool = True
     lift_in_pos: bool = True
+    head_in_pos: bool = True
 
 
 @dataclass(frozen=True)
@@ -116,7 +117,8 @@ class VectorSim:
                  start_xy_mm: Tuple[float, float] = (0.0, 0.0), heading_deg: float = 0.0,
                  obstacles: Sequence[Sequence[float]] = (), head_deg: float = 0.0,
                  lift_mm: Optional[float] = None, noise_seed: int = 0, cube: Optional[str] = None,
-                 cube_app: str = "last", body: Optional[Dict[str, Any]] = None) -> None:
+                 cube_app: str = "last", body: Optional[Dict[str, Any]] = None, *, body_range_clock: bool = False, charger_contact: bool = False,
+                 environment: str = "table") -> None:
         assert control_level in (CONTROL_DEFAULT, CONTROL_OVERRIDE), "unknown control level"
         assert isinstance(noise_seed, int), "noise seed must be an int"
         assert cube in mjcf.CUBE_MOUNTS, "unknown cube placement"
@@ -126,13 +128,21 @@ class VectorSim:
             lift_mm = self.v["lift_height_max_mm"]  # FW:79 LIFT_HEIGHT_CARRY, the cube carrying height
         # The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
         self._prox_sensor = ProxSensor(self.v, noise_seed + 1)
+        self.body_range_clock = body_range_clock
+        self.charger_contact = charger_contact
+        self._range_body_phase_us = 0
+        self._range_body_ticks = 0
+        self._range_sample: Optional[Tuple[float, float]] = None
         self._tof_hits_mm: List[float] = []
         self.d = mjcf.derive(self.v)
         self.control_level = control_level
         self.dt = self.v["control_period_ms"] * 0.001
         # Existing replay builders accept the original two-argument scene interface.
-        # body: a built body from simulacrum.body_mesh.load, for the robot's real outer shape.
-        if body is not None:
+        self._shelf_outline = None
+        if environment != "table":
+            xml = mjcf.build_mjcf(self.v, obstacles, cube, body, environment=environment)
+            self._shelf_outline = mjcf.shelf_survey()["outline_mm"]
+        elif body is not None:
             xml = mjcf.build_mjcf(self.v, obstacles, cube, body)
         else:
             xml = mjcf.build_mjcf(self.v, obstacles) if cube is None else mjcf.build_mjcf(self.v, obstacles, cube)
@@ -216,13 +226,16 @@ class VectorSim:
         self._head_speed, self._lift_speed = v["head_speed_default_radps"], v["lift_speed_default_radps"]
         self._head_accel, self._lift_accel = v["head_accel_default_radps2"], v["lift_accel_default_radps2"]
         self._servo_rate = [0.0, 0.0]
+        self._pending_head_command = None
+        self._head_in_pos = True
+        self._head_in_tolerance_since = None
         self._lift_in_pos = True
         self._lift_in_tolerance_since = None
         self._wheel_delay = int(round(v["command_delay_ms"] / v["control_period_ms"]))
         self._servo_delay = int(round(v["servo_command_delay_ms"] / v["control_period_ms"]))
         assert self._wheel_delay >= 0 and self._servo_delay >= 0, "command delays must not be negative"
         slots = max(self._wheel_delay, self._servo_delay) + 1
-        self._delay = [[0.0, 0.0, self._head_cmd, self._lift_cmd] for _ in range(slots)]
+        self._delay = [[0.0, 0.0, self._head_cmd, self._lift_cmd, None] for _ in range(slots)]
         self._delay_at = 0
         self._react_phase, self._react_ticks, self._react_dir = "idle", 0, -1.0
         self._react_from = (0.0, 0.0)
@@ -253,7 +266,7 @@ class VectorSim:
         qpos[self._q["head"]], qpos[self._q["lift"]], qpos[self._q["wrist"]] = head, lift, -lift
         if self._lower_q >= 0:
             qpos[self._lower_q] = lift
-        self._head_target = self._head_cmd = head
+        self._accepted_head_target = self._head_target = self._head_cmd = head
         self._lift_target = self._lift_cmd = lift
         self._servo_rate = [0.0, 0.0]
         for slot in self._delay:
@@ -347,7 +360,22 @@ class VectorSim:
     def _prox(self) -> ProxReading:
         """What the time-of-flight sensor reports now (simulacrum/prox.py), from the lift height the robot reports."""
         lift_mm = self._reported_head_and_lift()[1]
-        return self._prox_sensor.read(self._cast_tof(), lift_mm, self._pitch())
+        if not self.body_range_clock:
+            return self._prox_sensor.read(self._cast_tof(), lift_mm, self._pitch())
+        if self._range_sample is None:
+            self._range_sample = self._prox_sensor.acquire(self._cast_tof(), lift_mm)
+        return self._prox_sensor.report(self._range_sample, lift_mm, self._pitch())
+
+    def _advance_range_clock(self) -> None:
+        """Syscon keeps the elapsed body ticks when tread drive or charger contact changes."""
+        ticks, self._range_body_phase_us = divmod(self._range_body_phase_us + round(self.dt * 1e6), 5120)
+        driven = any(abs(controller.power) > 0.1 for controller in self._controllers)
+        target = 6 if driven else (200 if self.charger_contact else 12)
+        for _ in range(ticks):
+            self._range_body_ticks += 1
+            if self._range_body_ticks >= target:
+                self._range_body_ticks = 0
+                self._range_sample = self._prox_sensor.acquire(self._cast_tof(), self._reported_head_and_lift()[1])
 
     def _reset_imu_filter(self) -> None:
         """Start the IMU filter at the present reading: the robot has been still long enough."""
@@ -378,8 +406,15 @@ class VectorSim:
         g_max = math.radians(v["gyro_range_dps"])
         accel = tuple(_clamp(float(out[i]) / mjcf.MM * v["accel_scale"][i] + mg * v["accel_bias_mg"][i]
                              + gauss(0.0, mg * v["accel_noise_rms_mg"]), -a_max, a_max) for i in range(3))
-        gyro = tuple(_clamp(float(out[3 + i]) + math.radians(v["gyro_bias_dps"][i])
-                            + gauss(0.0, math.radians(v["gyro_noise_rms_dps"])), -g_max, g_max) for i in range(3))
+        # Stock corrects the Z chip sensitivity by 0.989; true simulated rates
+        # are already in corrected units. Only the reported count spacing changes.
+        gyro_axes = []
+        for i, sensitivity in enumerate((1.0, 1.0, 0.989)):
+            step = g_max * sensitivity / 32768
+            rate = float(out[3 + i]) + gauss(0.0, math.radians(v["gyro_noise_rms_dps"]))
+            count = _clamp(math.floor(rate / step + 0.5), -32768, 32767)
+            gyro_axes.append(_clamp(count * step + math.radians(v["gyro_bias_dps"][i]), -g_max, g_max))
+        gyro = tuple(gyro_axes)
         assert len(accel) == 3 and len(gyro) == 3, "IMU vectors have three axes"
         self._imu_sample = (accel, gyro)
 
@@ -432,7 +467,7 @@ class VectorSim:
             prox_signal_quality=prox.signal_quality, prox_unobstructed=prox.unobstructed,
             accel_mmps2=accel, gyro_radps=gyro, cliff_detected=self.hazards.cliff_any,
             picked_up=self.hazards.picked_up, falling=self.hazards.falling, wheels_moving=moving,
-            has_control=self.has_control, lift_in_pos=self._lift_in_pos)
+            has_control=self.has_control, lift_in_pos=self._lift_in_pos, head_in_pos=self._head_in_pos)
         self.states.append(self.state)
 
     def sim_truth(self) -> Dict[str, Any]:
@@ -440,6 +475,18 @@ class VectorSim:
         v = self.v
         x, y, z = self.pose_mm()
         margin = min(0.5 * v["table_length_mm"] - abs(x), 0.5 * v["table_width_mm"] - abs(y))
+        if self._shelf_outline:
+            outline = self._shelf_outline
+            inside = False
+            margin = float("inf")
+            for (ax, ay), (bx, by) in zip(outline, outline[1:] + outline[:1]):
+                dx, dy = bx - ax, by - ay
+                t = max(0., min(1., ((x-ax)*dx + (y-ay)*dy)/(dx*dx + dy*dy)))
+                margin = min(margin, math.hypot(x-ax-t*dx, y-ay-t*dy))
+                if (ay > y) != (by > y) and x < ax + (y-ay)*dx/dy:
+                    inside = not inside
+            if not inside:
+                margin = -margin
         assert v["table_thickness_mm"] > 0.0, "table thickness must be positive"
         return {"fallen": z < -v["table_thickness_mm"], "edge_margin_mm": margin, "z_mm": z,
                 "cliff_flags": list(self.hazards.cliff), "wheel_speeds_mmps": self._wheel_speeds(),
@@ -469,8 +516,12 @@ class VectorSim:
         size = len(self._delay)
         slot = self._delay[self._delay_at]
         slot[0], slot[1], slot[2], slot[3] = self._wheel_cmd[0], self._wheel_cmd[1], self._head_cmd, self._lift_cmd
+        slot[4] = self._pending_head_command
+        self._pending_head_command = None
         wheels = self._delay[(self._delay_at - self._wheel_delay) % size]
         servos = self._delay[(self._delay_at - self._servo_delay) % size]
+        if servos[4] is not None:
+            self._accept_head_target(servos[4])
         self._delay_at = (self._delay_at + 1) % size
         out = [wheels[0], wheels[1], servos[2], servos[3]]
         assert len(out) == 4, "delay slot shape"
@@ -487,10 +538,14 @@ class VectorSim:
         self._react_phase = "pause"
         self._react_ticks = int(round(v["cliff_reaction_pause_ms"] / v["control_period_ms"]))
         self._wheel_target, self._wheel_cmd = [0.0, 0.0], [0.0, 0.0]
-        self._head_target = self._head_cmd = self.head_angle_rad()
+        self._head_cmd = self.head_angle_rad()
+        self._head_target = self._head_cmd
+        self._accept_head_target(self._head_cmd)
+        self._pending_head_command = None
         self._lift_target = self._lift_cmd = float(self.data.qpos[self._q["lift"]])
         self._servo_rate = [0.0, 0.0]
         for slot in self._delay:
+            slot[4] = None
             slot[0], slot[1], slot[2], slot[3] = 0.0, 0.0, self._head_cmd, self._lift_cmd
         assert self._react_ticks >= 0, "cliff reaction pause must not be negative"
 
@@ -569,6 +624,28 @@ class VectorSim:
         for i in range(2):
             self.tread_heat[i] += (abs(duties[i]) - self.tread_heat[i]) * min(1.0, self.dt / tau)
 
+    def _set_head_target(self, target: float) -> None:
+        self._head_target = self._pending_head_command = target
+
+    def _accept_head_target(self, target: float) -> None:
+        if target != self._accepted_head_target or not self._head_in_pos or abs(target - self.head_angle_rad()) >= math.radians(self.v["head_angle_tol_deg"]):
+            self._head_in_pos = False
+            self._head_in_tolerance_since = None
+        self._accepted_head_target = target
+
+    def _update_head_status(self) -> None:
+        """HeadController latches in-position after the final target stays within tolerance for >200 ms."""
+        if self._head_in_pos:
+            return
+        angle = float(self.data.qpos[self._q["head"]])
+        final_command = self.data.ctrl[self._act["head"]] == self._accepted_head_target
+        if not final_command or abs(angle - self._accepted_head_target) >= math.radians(self.v["head_angle_tol_deg"]):
+            self._head_in_tolerance_since = None
+        elif self._head_in_tolerance_since is None:
+            self._head_in_tolerance_since = self.tick
+        elif (self.tick - self._head_in_tolerance_since) * self.dt > 0.200:
+            self._head_in_pos = True
+
     def _update_lift_status(self) -> None:
         """LiftController latches in-position after the final target stays within tolerance for >100 ms."""
         if self._lift_in_pos:
@@ -594,7 +671,10 @@ class VectorSim:
         self._write_controls()
         self._physics_step()
         self.tick += 1
+        self._update_head_status()
         self._update_lift_status()
+        if self.body_range_clock:
+            self._advance_range_clock()
         yaw = self._yaw()
         self._yaw_total += math.atan2(math.sin(yaw - self._yaw_prev), math.cos(yaw - self._yaw_prev))
         self._yaw_prev = yaw
@@ -640,7 +720,8 @@ class VectorSim:
         if not self.has_control:
             return False
         self._wheel_target, self._wheel_accel = [0.0, 0.0], [0.0, 0.0]
-        self._head_target = self._head_cmd = self.head_angle_rad()
+        self._head_cmd = self.head_angle_rad()
+        self._set_head_target(self._head_cmd)
         self._lift_target = self._lift_cmd = float(self.data.qpos[self._q["lift"]])
         self._lift_in_pos = False
         self._lift_in_tolerance_since = None
@@ -675,7 +756,7 @@ class VectorSim:
             return False
         v = self.v
         self._head_speed, self._servo_rate[0] = v["head_speed_default_radps"], 0.0
-        self._head_target = math.radians(_clamp(angle_deg, v["head_angle_min_deg"], v["head_angle_max_deg"]))
+        self._set_head_target(math.radians(_clamp(angle_deg, v["head_angle_min_deg"], v["head_angle_max_deg"])))
         return True
 
     def _start_lift(self, height_mm: float, speed_radps: Optional[float], duration_s: float) -> None:
@@ -808,7 +889,7 @@ class VectorSim:
         self._servo_rate[0] = 0.0
         target = math.radians(_clamp(angle_deg, v["head_angle_min_deg"], v["head_angle_max_deg"]))
         span = abs(target - self.head_angle_rad())
-        self._head_target = target
+        self._set_head_target(target)
         return self._servo_action(self.head_angle_rad, target, math.radians(v["head_angle_tol_deg"]),
                                   span, self._head_speed)
 

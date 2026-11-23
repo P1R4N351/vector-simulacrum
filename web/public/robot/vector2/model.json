@@ -34,6 +34,8 @@
    0.0,
    -7.96
   ],
+  "rgb_pitch_source": "Effective RGB pitch relative to the SDK camera. Fitted on the unit 3 shelf retreat and checked on five approaches at the same head setting. See evidence/unit3-cube-camera-scale/mount_transfer.py.",
+  "rgb_pitch_up_deg": 4.15,
   "width_px": 800
  },
  "cliff_names": [
@@ -85,12 +87,48 @@
   "sdk": 97
  },
  "robot_model": "vector_2",
+ "shelf_outline_mm": [
+  [
+   -213.2,
+   -229.9
+  ],
+  [
+   -182.2,
+   212.7
+  ],
+  [
+   90.3,
+   184.4
+  ],
+  [
+   144.0,
+   137.4
+  ],
+  [
+   145.9,
+   84.7
+  ],
+  [
+   162.6,
+   -100.2
+  ],
+  [
+   169.3,
+   -186.6
+  ],
+  [
+   139.6,
+   -223.1
+  ]
+ ],
  "source": {
   "table_sha256": "b215e5051b5e897f550bd6de54d265fdd3754a842e6d53584ee06bc87a44bf1e",
-  "trial_xml_sha256": "0b0f9d0c08aa60e7b9821ad103b5b6d9105cb876319a1522056e5bc9d7e7cff3",
-  "vector-contact42-free_sha256": "3479e4c5c7c202bf326f070a1879a7cf4580e24d4a66c23363cff2df00a22938",
-  "vector-free_sha256": "00be00097855007f4d78295ea1eafd99961bb32ddf28d6e0fdc154aafb4129fc",
-  "xml_sha256": "923b943e62032e83d22bf842745a369f816d8f58786aec0c0ade49306aafdd1d"
+  "trial_xml_sha256": "af2cf527ab8d08307841565760d6e02b96077a5e3c3fb66a45e4e36529330366",
+  "vector-contact42-free-shelf_sha256": "8c979cd19606e6438b11de5e3d2115681988ba2f99c5e246f6fd4a43b8a68b48",
+  "vector-contact42-free_sha256": "524b6f69e8843da636ff1d8282c53cd15c3b227d5e2ef5ef83c4897cefc8bee8",
+  "vector-free-shelf_sha256": "ad2d415aa53188b3538b1859548960ef42034e05226692c0fb6687d9409dc2f6",
+  "vector-free_sha256": "fda91d03f49422c7ca9353177a4088439d2ed507ecf1102c91d535a6c3e621b7",
+  "xml_sha256": "1ac0c8401bccfd7b51110e855701c868bb526f1b0a1886e3669aaddc51963d4e"
  },
  "values": {
   "accel_bias_mg": [

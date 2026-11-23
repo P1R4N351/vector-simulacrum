@@ -10,6 +10,8 @@
 // time has passed, up to MAX_TICKS_PER_FRAME; past that the simulation runs
 // slower than real time (and says so in the readout) rather than stall the page.
 
+import { attachWireCamera } from "./wire_camera.js";
+import { WireBody } from "../sim/wire_body.js";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
@@ -18,6 +20,7 @@ import { CONTROL_DEFAULT, CONTROL_OVERRIDE, VectorSim } from "../sim/robot.js";
 import { bootHalt, bootLine, gameApi, useGame } from "../store.js";
 import { HIDDEN_FROM_ROBOT } from "./headcam.js";
 import { createInput } from "./input.js";
+import { mappedCubeXY } from "../sim/shelf_cube_pose.js";
 import shelfCube from "../sim/shelf_cube.json";
 import { loadCubeLook } from "./cube.js";
 import { buildVisuals } from "./scene.js";
@@ -74,10 +77,14 @@ async function checkModel(xml, expectedHash) {
 async function loadEverything() {
   const options = new URLSearchParams(location.search);
   const trial = options.get("contact") === "42";
-  const free = options.get("cube") === "free";
-  const vector2 = options.get("robot") === "2";
-  const directory = vector2 ? "./robot/vector2" : "./robot";
-  const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "");
+  const shelf = options.get("env") === "shelf" ||
+    (!options.has("env") && options.get("cubeSensor") === "unit3");
+  const free = shelf || options.get("cube") === "free";
+  const vector2 = shelf || options.get("robot") === "2";
+  const printedFork = options.get("fork") === "printed";
+  if (printedFork && !vector2) throw new Error("Printed fork calibration requires robot=2");
+  const directory = vector2 ? "./robot/vector2" + (printedFork ? "/printed" : "") : "./robot";
+  const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "") + (shelf ? "-shelf" : "");
   const [{ default: loadMujoco }, xml, modelText] = await Promise.all([
     traced("PHYSICS RUNTIME", import("@mujoco/mujoco")),
     traced(trial ? "ROBOT MODEL · 42 MM CONTACT" : "ROBOT MODEL",
@@ -91,9 +98,15 @@ async function loadEverything() {
   doneCheck(await checkModel(xml, free ? model.source[sceneName + "_sha256"] : (trial ? model.source.trial_xml_sha256 : model.source.xml_sha256)));
   const mujoco = await traced("WEBASSEMBLY", loadMujoco({ locateFile: (p) => (p.endsWith(".wasm") ? mujocoWasmUrl : p) }));
   const doneCompile = bootLine("COMPILE AND SETTLE");
-  const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1 });
+  const mapFile = options.get("map") === "live" ? "shelf-navmap-live.json" : "shelf-navmap.json";
+  const navMap = shelf ? JSON.parse(await fetchText("./robot/vector2/" + mapFile)) : null;
+  const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
+    cubeStartXY: shelf ? mappedCubeXY(navMap, model.values.cube_size_mm, -66, 30) : null,
+    startDocked: shelf && options.get("start") === "docked",
+    shelfOutline: shelf ? model.shelf_outline_mm : null,
+    bodyRangeClock: options.get("rangeClock") === "body", chargerContact: options.get("chargerContact") === "1" });
   doneCompile("OK");
-  return { mujoco, model, sim, free };
+  return { mujoco, model, sim, free, navMap };
 }
 
 function makeRenderer(canvas) {
@@ -223,6 +236,12 @@ function installApi(ctx) {
       if (!start(sim)) note(sim.hasControl ? "Refused: an action is already running" : "Refused: no control (press X)");
     };
   }
+  if (new URLSearchParams(location.search).get("wireos") === "1") {
+    const externalControl = () => note("WireOS controls the motors. Pause to freeze the simulated body.");
+    for (const name of [...Object.keys(ACTIONS), "level", "control"]) press[name] = externalControl;
+    press.stop = () => useGame.setState({ paused: true });
+    press.reset = () => window.location.reload();
+  }
   Object.assign(gameApi, { press: (name) => press[name]?.(), setPad: (fwd, turn) => ctx.input.setPad(fwd, turn), trail: () => visuals.trailPoints() });
   return press;
 }
@@ -256,6 +275,34 @@ function startLoop(ctx) {
   let ticksInWindow = 0;
   let blinkAt = last + 3000;
 
+  const wireMode = new URLSearchParams(location.search).get("wireos") === "1";
+  if (wireMode) {
+    if (!__WIREOS_BODY__ || !import.meta.hot) throw new Error("Start the dev server with WIREOS_BODY=1 to connect WireOS");
+    const body = new WireBody(sim);
+    const hot = import.meta.hot;
+    let power = [0,0,0,0], receivedAt = -Infinity, timer;
+    attachWireCamera(hot, ctx);
+    hot.on("wire:cube-lights", colors => visuals.updateCubeLights(colors));
+    hot.on("wire:face", frame => visuals.updateFirmwareFace(frame));
+    hot.on("wire:power", values => { power = values; receivedAt = performance.now(); });
+    hot.on("wire:error", bootHalt);
+    hot.on("wire:ready", () => {
+      bootLine("WIREOS BODY RELAY")("READY");
+      clearInterval(timer);
+      timer = setInterval(() => {
+        if (useGame.getState().paused) return;
+        const bytes = body.frame(performance.now()-receivedAt < 250 ? power : [0,0,0,0]);
+        hot.send("wire:frame",btoa(String.fromCharCode(...bytes)));
+        for (const cube of body.cubeFrames()) {
+          hot.send("wire:cube", btoa(String.fromCharCode(...cube)));
+        }
+        ticksInWindow++;
+      }, sim.dt*1000);
+    });
+    hot.dispose(() => clearInterval(timer));
+    hot.send("wire:attach",{});
+  }
+
   function advance(now, dtS) {
     const intent = ctx.input.read();
     if (intent.padConnected !== useGame.getState().padConnected) useGame.setState({ padConnected: intent.padConnected });
@@ -279,7 +326,7 @@ function startLoop(ctx) {
     last = now;
     const ui = useGame.getState();
     try {
-      if (!ui.paused) advance(now, dtS);
+      if (!ui.paused && !wireMode) advance(now, dtS);
     } catch (err) {
       cancelAnimationFrame(ctx.raf);
       bootHalt(`simulation stopped: ${err?.message ?? err}`);
@@ -338,11 +385,11 @@ export async function bootGame(canvas) {
   booted = true;
   try {
     const view = makeRenderer(canvas);
-    const { mujoco, model, sim, free } = await loadEverything();
+    const { mujoco, model, sim, free, navMap } = await loadEverything();
     const sdk = await loadRobotLook(model);
     const doneScene = bootLine("SCENE");
     const cube = free && sdk ? await loadCubeLook(model.values.cube_size_mm) : null;
-    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube);
+    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube, navMap);
     const ctx = { ...view, sim, visuals, driver: makeDriver(sim), input: null, raf: 0 };
     const press = installApi(ctx);
     ctx.input = createInput((name) => press[name]?.());

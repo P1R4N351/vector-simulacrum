@@ -10,5 +10,7 @@
  "reported_fov_x_deg": 89.102623,
  "reported_fov_y_deg": 73.0123444,
  "distortion": null,
- "limits": "One unit and stream mode. GetCameraConfig does not report distortion coefficients. This describes the active pinhole calibration."
+ "limits": "One unit and stream mode. GetCameraConfig does not report distortion coefficients. This describes the active pinhole calibration.",
+ "rgb_pitch_up_deg": 4.15,
+ "rgb_pitch_source": "Effective RGB pitch relative to the SDK camera. Fitted on the unit 3 shelf retreat and checked on five approaches at the same head setting. See evidence/unit3-cube-camera-scale/mount_transfer.py."
 }

@@ -5,6 +5,8 @@ description: A MuJoCo model of the Anki/DDL Vector robot for training policies t
 
 # vector-simulacrum
 
+GitHub `main` is the canonical simulator source. The [public browser simulator](https://p1r4n351-vector-simulacrum.static.hf.space/index.html) serves a build of `web/`. Changes to the browser, firmware bridge and physical model belong in this repository.
+
 [Physics overlay gallery](evidence/physics-plots/README.md) · [Held-out encoder/gyro timing test](evidence/hw-rec-20261119/unit2-ccw100.md#encoder-to-gyro-timing-test)
 
 This is the physics model that `skills/vector-sim` (the Go gRPC simulator,

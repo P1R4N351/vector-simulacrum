@@ -155,3 +155,19 @@ test("accel_scale multiplies the specific force before accel_bias_mg", async () 
   sim1.dispose();
   sim2.dispose();
 });
+
+test("reported gyro retains the hardware count spacing before residual bias", async () => {
+  const sim = new VectorSim(await mujoco(), { xml, values: { ...TABLE, ...QUIET }, derived: model.derived });
+  for (const target of [-180.013, 0.037, 180.013]) {
+    const rate = target * Math.PI / 180;
+    sim._imuFilter.reset([0, 0, 0, rate, rate, rate]);
+    sim._sampleImu();
+    sim._imu()[1].forEach((reported, axis) => {
+      const step = TABLE.gyro_range_dps / 32768 * (axis === 2 ? 0.989 : 1);
+      const corrected = reported * 180 / Math.PI - TABLE.gyro_bias_dps[axis];
+      assert.ok(Math.abs(corrected / step - Math.round(corrected / step)) < 1e-8);
+      assert.ok(Math.abs(corrected - target) <= step / 2);
+    });
+  }
+  sim.dispose();
+});

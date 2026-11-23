@@ -10,6 +10,12 @@ The structure follows the
 (pollen-robotics, Apache-2.0): a Vite and React shell around an imperative
 core, a small store between them. No code or assets were copied from it.
 
+## Published simulator
+
+The [shelf and dock scene](https://p1r4n351-vector-simulacrum.static.hf.space/index.html?env=shelf&cube=free&start=docked) and the default table scene use the same application. Publish the production build from GitHub `main` to the existing Space and record its source commit in the Space card. Optional SDK meshes are for local use.
+
+Local WireOS experiments connect this application to the firmware relay. A full-stack shelf run reported 1.560937 V in WebViz 4.124 seconds after the cube connection event. This checks delivery of the simulated battery reading through the firmware.
+
 ## Run it
 
 ```bash
