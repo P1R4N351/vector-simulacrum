@@ -4,7 +4,9 @@ import { VectorSim } from "../../web/src/sim/robot.js";
 const mj = await mujoco();
 const { values, derived, shelf_outline_mm } = readJson("public/robot/vector2/model.json");
 console.log("speed,phase,t_s,x_mm,sdk_x_mm,on,pitch_rad,z_mm,dock_depth_mm");
-for (const speed of [25,35,45]) {
+const speeds = process.argv.length > 2 ? process.argv.slice(2).map(Number) : [25,35,45];
+if (speeds.some(speed => !Number.isFinite(speed) || speed <= 0)) throw Error("Expected positive speeds in mm/s");
+for (const speed of speeds) {
   const sim = new VectorSim(mj,{values,derived,shelfOutline:shelf_outline_mm,startDocked:true,
     headDeg:0,liftMm:47.15,xml:readText("public/robot/vector2/vector-free-shelf.xml")});
   try {
