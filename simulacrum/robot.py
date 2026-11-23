@@ -117,7 +117,7 @@ class VectorSim:
                  start_xy_mm: Tuple[float, float] = (0.0, 0.0), heading_deg: float = 0.0,
                  obstacles: Sequence[Sequence[float]] = (), head_deg: float = 0.0,
                  lift_mm: Optional[float] = None, noise_seed: int = 0, cube: Optional[str] = None,
-                 cube_app: str = "last", body: Optional[Dict[str, Any]] = None, *, body_range_clock: bool = False, charger_contact: bool = False,
+                 cube_app: str = "last", body: Optional[Dict[str, Any]] = None, *, body_range_clock: Optional[bool] = None, charger_contact: bool = False,
                  environment: str = "table") -> None:
         assert control_level in (CONTROL_DEFAULT, CONTROL_OVERRIDE), "unknown control level"
         assert isinstance(noise_seed, int), "noise seed must be an int"
@@ -128,7 +128,7 @@ class VectorSim:
             lift_mm = self.v["lift_height_max_mm"]  # FW:79 LIFT_HEIGHT_CARRY, the cube carrying height
         # The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
         self._prox_sensor = ProxSensor(self.v, noise_seed + 1)
-        self.body_range_clock = body_range_clock
+        self.body_range_clock = environment == "p2_shelf" if body_range_clock is None else body_range_clock
         self.charger_contact = charger_contact
         self._range_body_phase_us = 0
         self._range_body_ticks = 0

@@ -44,3 +44,25 @@ test("docked range holds the acquisition while SDK lift flags continue, then res
     sim.dispose();
   }
 });
+
+test("shelf range acquisition stays slow under WireOS head and lift power until a tread is driven", async () => {
+  const { values, derived, shelf_outline_mm } = readJson("public/robot/vector2/model.json");
+  const sim = new VectorSim(await mujoco(), {
+    values, derived, shelfOutline: shelf_outline_mm, startDocked: true,
+    xml: readText("public/robot/vector2/vector-free-shelf.xml"),
+  });
+  try {
+    assert.ok(sim.chargerContact);
+    const start = sim.rawRangeSample().count;
+    for (let i = 0; i < 204; i++) sim.tickWireBody([0, 0, 0.2, 0.2]);
+    assert.equal(sim.rawRangeSample().count, start);
+    sim.tickWireBody([0, 0, 0.2, 0.2]);
+    assert.equal(sim.rawRangeSample().count, start + 1);
+    for (let i = 0; i < 7; i++) sim.tickWireBody([0, 0.2, 0, 0]);
+    assert.equal(sim.rawRangeSample().count, start + 2);
+    sim.reset({ bodyRangeClock: false });
+    assert.equal(sim.bodyRangeClock, false);
+  } finally {
+    sim.dispose();
+  }
+});

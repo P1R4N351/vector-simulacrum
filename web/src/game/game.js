@@ -104,7 +104,7 @@ async function loadEverything() {
     cubeStartXY: shelf ? mappedCubeXY(navMap, model.values.cube_size_mm, -66, 30) : null,
     startDocked: shelf && options.get("start") === "docked",
     shelfOutline: shelf ? model.shelf_outline_mm : null,
-    bodyRangeClock: options.get("rangeClock") === "body", chargerContact: options.get("chargerContact") === "1" });
+    bodyRangeClock: options.has("rangeClock") ? options.get("rangeClock") === "body" : undefined, chargerContact: options.get("chargerContact") === "1" });
   doneCompile("OK");
   return { mujoco, model, sim, free, navMap };
 }
