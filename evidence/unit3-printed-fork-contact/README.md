@@ -1,5 +1,7 @@
 # What the printed fork changes in unit 3's five cube trials
 
+Hardware update, November 22: the operator reports a missing tooth on unit 3’s installed printed fork. Its side, fracture dimensions and break date are unknown. The intact STL comparison below cannot establish grip on an undamaged production fork. [Docked physical contact trial](../unit3-docked-grip/README.md)
+
 Replacing the three collision boxes with 58 convex parts from Dauler's forks7.stl roughly halved the mean endpoint vector error on trials 2–5, from 2.51 to 1.26 mm. Both runs used the same starting cube center from unit 3's calibrated camera, starting heading from the overhead marker, recorded odometry and lift, and moving wrist driven by a stiff weld. No contact parameter was fitted. With onboard heading alone, the mean improved from 2.70 to 2.39 mm and two of those four individual trials worsened. The particular STL installed on unit 3 has not been independently identified.
 
 | Trial | Three boxes, error (mm) | Printed fork, error (mm) |
@@ -186,3 +188,89 @@ Placing the cube at its independently reconstructed trial 1 pose reveals a diffe
 In the free reconstruction, the forward tip of the lower right rail lies at the right rubber corner while raised and at the shell during lowering. The modeled head, chassis and treads are each at least 10 mm clear in both exposures and both pose fits. The earlier same-exposure second-face check favors the free pose but does not establish absolute height precisely. The lower link is a candidate for supporting an already tilted cube. The observed-pose check imposes that tilt, and the free replay still misses its onset.
 
 [Observed-pose gaps](body-clearance.png) · [All distances and closest pieces](body-clearance.csv) · [Simulated and recorded endpoints](link-contact.png) · [All five paired runs](link-contact.csv). After installing the web SDK assets and Node dependencies, run body_clearance.py and link_contact.py with the same arguments as evaluate.py.
+
+### Does the simulated lowering match the next image?
+
+Start the cube at rest in each raised pose at 5.498 s and replay the measured lift and chassis motion for 0.5 s. Project the simulated side-face glyph into the archived See3CAM crop. Across 58 columns of its upper border, median distance to the prediction is 44.8 pixels from the free start and 35.2 pixels from the shelf-constrained start. For comparison, fitting the top marker in the lowering exposure itself predicts that side border to 4.3 and 15.4 pixels, respectively. The side border is reserved in both fits. This single event establishes an image-space discrepancy independently of choosing a reconstructed endpoint height. The two starts inherit initial intersections with the collision model, and neither measures the instantaneous velocity.
+
+[Lowering overlay](restart-pixels.png) · [Scores](restart-pixels.csv). Reproduce with `python restart_pixels.py ../.. /tmp/unit3-fork.xml` using the same fixture as evaluate.py.
+
+The two collision-cleared, zero-speed restarts lose tilt while the recorded lift is still high. The final samples above 5° occur at 136 and 152 ms, with encoder heights of 63.0 and 62.5 mm (65.5 mm initially). Summing world-vertical contact forces on the cube each millisecond gives zero upward support from either the printed fork or the links in both runs. The free optical start briefly receives downward fork force peaking at 0.395 N. The shelf supplies the upward load. These are simulated forces conditional on the reconstructed poses, grid clearance shifts and zero initial velocity. The encoder measures lift height only. [Load histories](support-load.png) · [1 ms samples](support-load.csv) · [Replay](support_load.py).
+
+### Can a stationary raised fork support the observed attitude?
+
+Freeze the wrist and link targets at the raised exposure, keep the free optical rotation, and release the cube from rest at 405 translations. The horizontal offsets are −8 to +8 mm and the upward offsets are 4 to 12 mm, all at 2 mm spacing. Of these, 129 pass the initial nonpenetration check. Every one settles to within 0.006° of flat by 250 ms, with zero mean vertical robot load over the last 50 ms. Commanded lowering is therefore unnecessary to reproduce the loss in this fixture. This grid samples one attitude at zero initial velocity.
+
+The placement closest to the reserved side stripe misses it by just 0.65 pixel, yet its top-marker corners miss by 14.12 pixels RMS. The smallest top-marker error on the grid is 5.44 pixels and that placement misses the side stripe by 10.47 pixels. A single edge gives weak position constraints here. [Grid results](support-neighborhood.csv) · [Optical and tilt comparison](support-neighborhood.png) · [Reproduction](support_neighborhood.py).
+
+### Do the photographed side openings explain the lost grip?
+
+We registered the supplied cube photograph on the outer white glyph, using the replay's 23 mm glyph width and fitting the straight portions before intersecting the four lines. Four hand-picked inner aperture corners lie 13.59–14.43 mm from the center horizontally. Their heights span about 18.0 mm on each side, close to the 17.63 mm center band in the collision fixture. These are face-plane estimates conditional on marker scale. The single view cannot measure interior pocket depth.
+
+As a sensitivity test, widen the central web at midheight by mapping ±12.47 mm to ±14 mm along both horizontal axes while preserving the ±22 mm outer faces. This symmetric extrapolation to other faces is an assumption. The same printed fork, pose, drive and link replay yields 1.95° peak tilt instead of 2.29° on trial 1. Endpoint error increases from 26.43 to 26.76 mm. The remaining four paired endpoints agree to better than 0.001 mm. The revised silhouette alone does not explain the missed engagement.
+
+[Registered photo](cube-face-photo.png) · [Corner coordinates](cube-face-photo.csv) · [Paired trials](aperture-replay.csv). Run cube_face_check.py with the original 1920×1440 photo and aperture_replay.py with the same two fixture arguments as evaluate.py.
+
+### Which cube face actually met the fork?
+
+We rectified the upper glyph at four exposures during trial 1 and compared the center emblem with the six corrected SDK renders at all four quarter-turns. All four images select +Z up at zero image quarter-turn. Correlations for the three clearest frames are 0.89–0.91, versus 0.62–0.63 for the runner-up. In the +Z template the camera has +Y up, so image-right is original +X and image-down is original −Y. The corresponding corner ordering in optical_clearance.py puts image-down along the replay's forward axis. This selects original −Y forward and +Z up for the cube at the registered pose.
+
+We rotated the box collision surfaces exactly through the 24 proper axis permutations in each of five pushes, keeping the isotropic inertia, center, shelf-relative marker heading, printed fork, and input trajectories fixed. With the image-selected orientation trial 1 gives 2.29° peak tilt and 0.40 mm rightward travel, compared with about 35° from the calibrated overhead fit and 26.72 mm rightward travel on hardware. Even the most tilted of all 24 runs only reaches 3.49°. Resolving the face ambiguity therefore leaves the anomalous engagement unexplained. The face ID applies to trial 1. The other four trial sweeps measure sensitivity only.
+
+[Physical glyphs and best template](upper-face-match.png) · [Template scores](upper-face-match.csv) · [All orientation replays](face-orientation.png) · [120 results](face-orientation.csv). Run identify_upper_face.py and then face_orientation.py with the same two arguments as evaluate.py.
+
+### Did the chassis pitch into the cube?
+
+The paired log contains head angle and planar odometry. To estimate camera pitch independently, track distant room features in the onboard images against the 3.311 s reference. Match 25-pixel patches in two fixed upper/left reference regions, require normalized correlation above 0.80, reject displacements more than four pixels from the median, then fit a rotation to calibrated camera rays. Fits require four retained features spanning at least 170 horizontal pixels. Known ±2° synthetic rotations of the reference recover within 0.15°. Robot translation, residual lens error and head flex can also contribute to the apparent rotation.
+
+During the lift the recorded head angle stays constant. The 5.430 s image gives −0.20° apparent camera pitch relative to the reference (34 features, 2.23 px reprojection RMS). At 6.160 s it is −0.19° (16 features, 0.96 px RMS). At the intervening 5.848 s exposure the cube occludes the room and no patches pass. Times here are host receipt times; encoder interpolation uses the existing 232 ms offset. This makes a sustained multi-degree chassis pitch unlikely across the two visible samples. A short excursion during the missing exposure remains unresolved.
+
+[Measured pitch and missing exposure](background-pitch.png) · [Per-image quality and encoder values](background-pitch.csv). Run background_pitch.py with the repository root and the paired capture's onboard JPEG directory.
+
+### Could an off-center battery explain the missed tilt?
+
+Neither the household cube's mass nor its mass distribution was measured in this session. We tested the existing 50 g assumption and the 85 g vendor Webots reference. At each mass we compared a uniform 44 mm cube with nine idealized insert cases: 80% uniform and 20% concentrated at the center or at each combination of ±14 mm on three axes. The extreme cases shift the total center of mass 2.8 mm per axis (4.85 mm diagonally). The tensor about the new center includes the parallel-axis terms for both components. The point insert is a sensitivity model, not a measured battery assembly.
+
+Across five replays per case, trial 1 peak tilt ranged from 1.89° to 2.55°, and its endpoint missed by 26.39–27.12 mm. In separate uniform-mass controls changing the solver step from 1 ms to 0.25 ms gave peak tilts of 2.21° (50 g) and 2.27° (85 g), scored on a common 20 ms grid. Within these tests neither mass distribution nor finer time integration explains the physical lift. The contact model still misses the onset of asymmetric engagement.
+
+[Five-trial comparison](cube-mass-distribution.png) · [Mass and inertia cases](cube-mass-distribution.csv) · [Step-size controls](mass-step-check.csv). Run cube_mass_distribution.py and mass_step_check.py with the same arguments as evaluate.py.
+
+### Does encoder-based forward travel misplace the fork?
+
+Track two overlapping head-crown patches and the fixed dock in the overhead frames. The head encoder stays at −0.2124 rad throughout the raise. Match over template scales 0.68–1.06 and fit a linear forward-distance conversion on the approach (−0.5 to 3 s, nine frames scoring above 0.75 on both patches). This is a relative optical check of the later motion conditional on the approach odometry. Perspective, changing patch scale, chassis pitch and the small yaw change can all affect the estimate. The two patches share image content.
+
+At the 5.498 s raised exposure the two estimates exceed the SDK forward position by 6.74 and 3.73 mm. Replay each longitudinal residual, zeroed at the stationary start, with the original lateral position, yaw, lift, printed fork and rails. Simulated peak tilt falls from 2.29° to 1.06° (vents) or 1.53° (seam). Predicted rightward sweep remains below 0.41 mm against 26.72 mm measured. The forward corrections inferred from this view do not recover engagement. A calibrated lateral trajectory remains open.
+
+[Camera and odometry](chassis-track.png) · [Tracks and match scores](chassis-track.csv) · [Three replay outcomes](chassis-replay.csv). Run chassis_track.py with the repo root and the paired overhead frame directory, then chassis_replay.py with the repo root and printed-fork XML.
+
+### Does lateral chassis travel explain the sweep?
+
+Back-project each tracked crown patch through the calibrated See3CAM division model. The stationary 23 mm cube glyph registers the camera. Intersect rays at 60, 70 and 80 mm above the shelf, align heading to the SDK during the initial three seconds, and keep the resulting metric scale. At 5.498 s all six estimates put the landmark 0.34–0.54 mm farther left than the SDK trajectory. The independent 8–10 s retreat window has 0.48–0.80 mm lateral RMS disagreement. This small residual cannot resolve actual tread slip. Changes of chassis yaw also move a crown landmark relative to the odometry origin.
+
+Forward displacement at the raised frame ranges from −11.63 to +11.69 mm relative to SDK, depending on the patch and assumed height. This wider sensitivity revises the preceding linear-calibration result: even the sign of the inferred extra forward travel lacks independent confirmation. Across the six lateral-only and six two-axis replays, maximum simulated tilt is 2.30° and maximum rightward travel is 0.49 mm. The 26.72 mm physical sweep remains unexplained.
+
+[Plane-height and landmark sensitivity](chassis-plane.png) · [Checks and replay scores](chassis-plane.csv). Run chassis_plane.py with the same repository and printed-fork fixture arguments as evaluate.py after producing chassis-track.csv.
+
+### Battery location from the opened cube
+
+The open-cube photo and the exploded drawing show the cylindrical cell entering perpendicular to the removable glyph face, positive terminal toward the cover. Rectifying each access face to the nominal 44 mm square and fitting the visible bore arc gives a center roughly 0.7 mm from the square center in each view. The short arcs, hand-selected face corners and drawing proportions limit precision. Neither view locates the seated cell's ends along its axis, the electronics' mass center, or the accelerometer chip.
+
+We used the [Energizer E90 reference](https://energizer.com/wp-content/uploads/2025/02/e90.pdf) for a 9 g cylinder 12 mm across and 30.2 mm long. These are surrogate properties for the pictured Kendal cell. The other 41 g are centered with uniform 44 mm cube inertia. With the cell centered laterally, we tested seated midpoint offsets of −6, 0 and +6 mm along each possible replay axis, a 1.08 mm maximum shift of the overall center. All 45 five-trial cases retain the original fork, cube collision surfaces and motion. Trial 1 reaches 2.16–2.35° and moves at most 0.43 mm right. This photo-informed battery model does not recover the physical lift.
+
+[Rectified bore outlines](battery-well.png) · [Reference measurements](battery-well.csv) · [Paired replays](battery-axis-replay.csv). Run battery_well.py with the same arguments as evaluate.py.
+
+### Did one bottom corner stay planted during the raise?
+
+Across the two exposures at 4.985 and 5.498 s, even the least-moving point in the reconstructed 44.3 mm bottom square moved 16.1–29.9 mm. The maximum corresponding apparent movement between pre-drive exposures was 1.8–3.1 mm across the same four reconstructions. The least-moving point anywhere in the bounding cube was on the upper face in all four fits, with displacement 1.46–4.21 mm. For this interval the bottom swept farther than the center in every fit. A single stationary bottom corner throughout the raise is inconsistent with these poses.
+
+We minimize the Euclidean endpoint displacement of the same material point over each face, allowing even the empty space between rubber pads. The bounds come from the two lens models with free or shelf-constrained height. Stationary-frame repeatability excludes systematic pose error during tilt. The half-second exposure gap permits a sequence of contacts or a changing pivot. These measurements do not locate first fork contact or prove the upper face was held.
+
+[Frame-pair overlay](bottom-pivot.png) · [All displacement bounds](bottom-pivot.csv). Run bottom_pivot.py ../.. using the optical reconstruction dependencies.
+
+### Could a single fork contact have stuck throughout the rise?
+
+At 4.985, 5.264 and 5.498 s we expressed the optically reconstructed cube in the wrist frame driven by measured odometry and lift. The middle exposure uses the recovered, control-adjusted glyph corners and has motion blur. For each reconstruction a bounded least-squares solve finds the same material point anywhere inside the cube's bounding box whose wrist-relative coordinates change least from the first exposure. Allowing interior points and arbitrary positions on the wrist makes this an optimistic lower bound for any physical contact point.
+
+The minimum RMS displacement across the two later views ranges from 8.49 to 16.56 mm at the recorded alignment. Shifting the wrist trajectory in 10 ms steps from −200 to +200 ms gave a best value of 6.25 mm. That fit missed the middle exposure by 8.52 mm and the final exposure by 2.38 mm. Within the tested registration and timing models, keeping the same cube point fixed to the fork over the full interval fails. Shorter periods of sticking, sliding or changing contacts remain possible. The sweep is a sensitivity analysis rather than an error bar.
+
+[Timing sweep](wrist-pivot.png) · [Displacements and best point for each reconstruction](wrist-pivot.csv). Run wrist_pivot.py ../.. from this directory.

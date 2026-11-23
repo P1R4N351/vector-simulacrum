@@ -4,6 +4,10 @@ const f32 = Math.fround;
 export class CubeListeners {
   constructor() {
     this.previousTapCount = null;
+    this.tapEvents = 0;
+    this.motionTransitions = 0;
+    this.lastTapTime = null;
+    this.lastMotionTime = null;
     this.axis = 0;
     this.moving = false;
     this.score = 0;
@@ -37,6 +41,8 @@ export class CubeListeners {
   receive(packet) {
     const events = [];
     if (this.previousTapCount !== null && packet.taps !== this.previousTapCount) {
+      this.tapEvents++;
+      this.lastTapTime = packet.time_s;
       events.push({ tap_count: packet.taps, time_s: packet.time_s });
     }
     this.previousTapCount = packet.taps;
@@ -44,7 +50,11 @@ export class CubeListeners {
       const axis = this.axis, moving = this.moving;
       this.sample(slot);
       if (axis && this.axis !== axis) events.push({ axis: this.axis, time_s: packet.time_s });
-      if (moving !== this.moving) events.push({ moving: this.moving, time_s: packet.time_s });
+      if (moving !== this.moving) {
+        this.motionTransitions++;
+        this.lastMotionTime = packet.time_s;
+        events.push({ moving: this.moving, time_s: packet.time_s });
+      }
     }
     return events;
   }

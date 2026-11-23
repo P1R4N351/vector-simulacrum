@@ -62,6 +62,12 @@ export class VectorSim {
     const level = opts.controlLevel ?? this.controlLevel ?? CONTROL_DEFAULT;
     assert(level === CONTROL_DEFAULT || level === CONTROL_OVERRIDE, "unknown control level");
     this.controlLevel = level;
+    this.calmMode = opts.calmMode ?? this.calmMode ?? false;
+    this._bodyLoopUs = Math.round(1000 * (this.v.supervisor_loop_ms ?? this.v.control_period_ms));
+    assert(this._bodyLoopUs > 0, "supervisor loop must advance");
+    this._nextBodyLoopUs = this._bodyLoopUs;
+    this._bodyStateTicks = 0;
+    this._bodyStateStampMs = 0;
     this._gauss = makeGauss(opts.noiseSeed ?? 0);
     // The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
     this._proxSensor = new ProxSensor(this.v, (opts.noiseSeed ?? 0) + 1);
@@ -75,6 +81,7 @@ export class VectorSim {
     this.cubeSensor = this._cubeAdr < 0 ? null : new CubeSensor(
       this.v, this.model.opt.timestep, opts.noiseSeed ?? 0, this._cubeForce(),
     );
+    if (this.cubeSensor) this.cubeSensor.handlingCube = this._cubeMountedOnFork;
   }
 
   dispose() {
@@ -99,6 +106,8 @@ export class VectorSim {
     this._sceneOnly = [1, 0, 0, 0, 0, 0]; // geom group 0 is the scene; the robot's own geoms are in group 1
     const cubeId = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR.value, "cube_accel");
     this._cubeAdr = cubeId < 0 ? -1 : model.sensor_adr[cubeId];
+    this._cubeMountedOnFork = cubeId >= 0 &&
+      model.body_parentid[id("mjOBJ_BODY", "cube")] === id("mjOBJ_BODY", "lift_fork");
     this._gyroAdr = sensor("gyro");
     this._accelAdr = sensor("accel");
     this._imuAdr = [0, 1, 2].map((i) => this._accelAdr + i).concat([0, 1, 2].map((i) => this._gyroAdr + i));
@@ -143,6 +152,8 @@ export class VectorSim {
     );
     this._headTarget = this._headCmd = 0;
     this._liftTarget = this._liftCmd = this.d.lift_angle_min;
+    this._liftInPos = true;
+    this._liftInToleranceSince = null;
     this._headSpeed = v.head_speed_default_radps;
     this._liftSpeed = v.lift_speed_default_radps;
     this._headAccel = v.head_accel_default_radps2;
@@ -226,6 +237,16 @@ export class VectorSim {
     this._imuFilter.reset(this._imuAdr.map((adr) => sd[adr]));
   }
 
+  _advanceBodyClock(endUs) {
+    while (this._nextBodyLoopUs <= endUs) {
+      if (++this._bodyStateTicks >= (this.calmMode ? 50 : 6)) {
+        this._bodyStateStampMs = Math.round(this._nextBodyLoopUs / 1000);
+        this._bodyStateTicks = 0;
+      }
+      this._nextBodyLoopUs += this._bodyLoopUs;
+    }
+  }
+
   _cubeForce() {
     const gravity = this.v.gravity_mmps2 * MM;
     return [0, 1, 2].map(axis => this.data.sensordata[this._cubeAdr + axis] / gravity);
@@ -238,7 +259,13 @@ export class VectorSim {
       const sd = this.data.sensordata;
       for (let ch = 0; ch < CHANNELS; ch++) raw[ch] = sd[this._imuAdr[ch]];
       this._imuFilter.update(raw);
-      if (this.cubeSensor) this.cubeSensor.step(this.data.time, this._cubeForce());
+      if (this.cubeSensor) {
+        const endUs = Math.round(this.data.time * 1e6);
+        // Packets at this step boundary precede a simultaneous body publication.
+        this._advanceBodyClock(endUs - 1);
+        this.cubeSensor.step(this.data.time, this._cubeForce(), this._bodyStateStampMs);
+        this._advanceBodyClock(endUs);
+      }
     }
   }
 
@@ -435,6 +462,7 @@ export class VectorSim {
       picked_up: this.hazards.pickedUp, falling: this.hazards.falling,
       wheels_moving: Math.abs(left) + Math.abs(right) > this.v.wheel_stopped_threshold_mmps,
       has_control: this.hasControl,
+      lift_in_pos: this._liftInPos,
     };
   }
 
@@ -585,6 +613,19 @@ export class VectorSim {
     for (let i = 0; i < 2; i++) this.treadHeat[i] += (Math.abs(duties[i]) - this.treadHeat[i]) * Math.min(1, this.dt / tau);
   }
 
+  _updateLiftStatus() {
+    if (this._liftInPos) return;
+    const angleError = Math.abs(this.data.qpos[this._q.lift] - this._liftTarget);
+    const finalCommand = this.data.ctrl[this._act.lift] === this._liftTarget;
+    if (!finalCommand || angleError >= this.v.lift_angle_tol_deg * DEG) {
+      this._liftInToleranceSince = null;
+    } else if (this._liftInToleranceSince === null) {
+      this._liftInToleranceSince = this.tick_;
+    } else if ((this.tick_ - this._liftInToleranceSince) * this.dt > 0.100) {
+      this._liftInPos = true;
+    }
+  }
+
   _tickOnce() {
     const travel = this._treadTravelMm();
     this._encoders[0].update(travel[0]);
@@ -598,6 +639,7 @@ export class VectorSim {
     this._writeControls();
     this._physicsStep();
     this.tick_ += 1;
+    this._updateLiftStatus();
     const yaw = this._yaw();
     this._yawTotal += Math.atan2(Math.sin(yaw - this._yawPrev), Math.cos(yaw - this._yawPrev));
     this._yawPrev = yaw;
@@ -654,6 +696,8 @@ export class VectorSim {
     this._wheelAccel = [0, 0];
     this._headTarget = this._headCmd = this.headAngleRad();
     this._liftTarget = this._liftCmd = this.data.qpos[this._q.lift];
+    this._liftInPos = false;
+    this._liftInToleranceSince = null;
     this._servoRate = [0, 0];
     return true;
   }
@@ -672,7 +716,12 @@ export class VectorSim {
   // Set the lift target and return at once.
   _startLift(heightMm, speedRadps, durationS) {
     assert(Number.isFinite(durationS) && durationS >= 0, "bad lift duration");
-    this._liftTarget = liftAngleOfHeight(this.v, heightMm);
+    const target = liftAngleOfHeight(this.v, heightMm);
+    if (target !== this._liftTarget || Math.abs(target - this.data.qpos[this._q.lift]) >= this.v.lift_angle_tol_deg * DEG) {
+      this._liftInPos = false;
+    }
+    this._liftInToleranceSince = null;
+    this._liftTarget = target;
     this._liftSpeed = speedRadps ? Math.abs(speedRadps) : this.v.lift_speed_default_radps;
     this._liftAccel = this.v.lift_accel_default_radps2;
     this._servoRate[1] = 0;

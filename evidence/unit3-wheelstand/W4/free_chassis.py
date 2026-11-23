@@ -49,6 +49,7 @@ if held_out:
 shift=late_onset-4.015283
 target=json.loads((here/'initial-cube.json').read_text())
 w,x,y,z=[target['q'+str(i)] for i in range(4)]
+angle=np.arctan2(2*(w*z+x*y),1-2*(y*y+z*z))
 camera_xy='--camera-xy' in sys.argv[2:]
 if camera_xy:
     if not held_out:
@@ -61,7 +62,6 @@ if camera_xy:
     forward,left=float(ref['forward_mm']),float(ref['left_mm'])
     target['x']=x+forward*np.cos(yaw)-left*np.sin(yaw)
     target['y']=y+forward*np.sin(yaw)+left*np.cos(yaw)
-angle=np.arctan2(2*(w*z+x*y),1-2*(y*y+z*z))
 cube_id=m.body('cube').id
 cube=m.joint('cube_root').qposadr[0]
 def obs(t,k):
@@ -79,7 +79,7 @@ def lowering_goal(elapsed, start_angle):
     if elapsed<ramp+cruise:return start_angle-.5*vmax*ramp-vmax*(elapsed-ramp)
     return goal+100.*max(0.,end-elapsed)**2
 
-def run(start,limit,onset=None,clear_cube=False):
+def run(start,limit,onset=None,clear_cube=False,drive_during_descent=True):
     d=mj.MjData(m)
     m.actuator('lift').forcerange[:]=[-limit*.001,limit*.001]
     yaw=obs(start,'yaw')
@@ -115,6 +115,11 @@ def run(start,limit,onset=None,clear_cube=False):
     trace=[];peak_load=0
     drive_ended=False
     lowering_start=mjcf.lift_angle_of_height(v,obs(onset,"lift_mm")) if onset is not None else lift
+    support_test='--rear-support' in sys.argv
+    if support_test:
+        table=m.geom('table').id
+        rear_support={m.geom('tip_rear_'+side).id for side in ('l','r')}
+        rear_wheels={m.geom('wheel_r'+side+'_geom').id for side in ('l','r')}
     for i,t in enumerate(np.arange(start,5.8+shift,dt)):
         if i%round(.001*v['control_period_ms']/dt)==0:
             lowering=onset is not None and t>=onset
@@ -125,7 +130,7 @@ def run(start,limit,onset=None,clear_cube=False):
             for controller,side in zip(controllers,['left','right']):
                 measured=d.joint('wheel_f'+side[0]+'_joint').qvel[0]*v['wheel_front_radius_mm']
                 requested=obs(t,side) if t<4.84+shift else 0
-                if lowering:requested=0 if drive_ended else 150
+                if lowering:requested=0 if drive_ended or not drive_during_descent else 150
                 duty=controller.update(requested,measured)
                 d.actuator(side+'_wheel').ctrl[0]=duty*3.92/v['motor_reference_voltage_v']
             d.actuator('lift').ctrl[0]=(lowering_goal(t-onset,lowering_start) if lowering
@@ -133,8 +138,16 @@ def run(start,limit,onset=None,clear_cube=False):
             d.actuator('head').ctrl[0]=obs(t,'head')
         mj.mj_step(m,d)
         downward=0.
+        support_loads=np.zeros(3) if support_test else None
         for j,c in enumerate(d.contact):
             a,b=m.geom_bodyid[c.geom]
+            if support_test and table in c.geom and cube_id not in (a,b):
+                other=c.geom[1] if c.geom[0]==table else c.geom[0]
+                index=0 if other in rear_support else 1 if other in rear_wheels else 2
+                wrench=np.zeros(6)
+                mj.mj_contactForce(m,d,j,wrench)
+                world_force=c.frame.reshape(3,3).T@wrench[:3]
+                support_loads[index]+=world_force[2]*(1 if c.geom[0]==table else -1)
             if cube_id in (a,b) and m.body('lift_fork').id in (a,b):
                 wrench=np.zeros(6);mj.mj_contactForce(m,d,j,wrench)
                 force=c.frame.reshape(3,3).T@wrench[:3]
@@ -147,12 +160,141 @@ def run(start,limit,onset=None,clear_cube=False):
         pitch=np.rad2deg(np.arcsin(np.clip(d.xmat[m.jnt_bodyid[m.joint('root').id]].reshape(3,3)[2,0],-1,1)))
         trace.append([t,pitch,np.linalg.norm(top-center)*1000,np.rad2deg(np.arctan2(rot[1,0],rot[0,0])-angle),
                       mjcf.lift_height_of_angle(v,float(d.joint("lift_joint").qpos[0])),
-                      1000*d.actuator("lift").force[0],downward])
-    packets=np.array([[start+t,np.linalg.norm(a)/8192] for t,p in sensor.messages for a in np.frombuffer(p[2:],'<i2').reshape(3,3)])
+                      1000*d.actuator("lift").force[0],downward,float(d.sensor("gyro").data[1]),
+                      *[float(d.joint('wheel_f'+side+'_joint').qvel[0])*v['wheel_front_radius_mm']
+                        for side in ('l','r')]])
+        if support_test:trace[-1].extend(support_loads)
+    packets=np.array([[start+t,np.linalg.norm(a)/8192,p[1]] for t,p in sensor.messages for a in np.frombuffer(p[2:],'<i2').reshape(3,3)])
     return np.array(trace),packets,len(sensor.taps.events),peak_load
 
 initial_checks=[]
 firmware='--firmware' in sys.argv[2:]
+if '--tap-phase' in sys.argv:
+    raw=np.genfromtxt(here/'cube.csv.gz',delimiter=',',names=True)
+    assert np.all(raw['slot'].reshape(-1,3)==[0,1,2])
+    native_packets=raw[::3]
+    def receipts(t,counter):
+        idx=np.flatnonzero(np.diff(counter)!=0)+1
+        assert np.all((counter[idx]-counter[idx-1])%256==1)
+        return t[idx]
+    recorded=receipts(native_packets['sec']-zero,native_packets['tap'])
+    fig,ax=plt.subplots(figsize=(8,3.7),layout='constrained')
+    labels=[]
+    with (here/'tap-phase.csv').open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['release_s','onset_s','shared_end_s','stream','event_times_s_from_command'])
+        for start in (3.5+shift,3.8+shift):
+            for onset in (early_onset,late_onset):
+                _,pk,count,_=run(start,30,onset)
+                packets=pk[::3]
+                taps=receipts(packets[:,0],packets[:,2])
+                assert len(taps)==count
+                lo=max(packets[0,0],native_packets['sec'][0]-zero)
+                hi=min(packets[-1,0],native_packets['sec'][-1]-zero)
+                label=f'Release {start:.2f}, onset {onset:.2f}'
+                row=len(labels)
+                labels.append(label)
+                for offset,events,name,color in ((.12,recorded,'Recorded','black'),(-.12,taps,'Replay','tab:blue')):
+                    within=events[(events>=lo)&(events<=hi)]
+                    writer.writerow([start,onset,hi,name,' '.join(f'{t:.6f}' for t in within)])
+                    ax.scatter(within-late_onset,np.full(len(within),row+offset),color=color,
+                               marker='|',s=160,label=name if row==0 else None)
+    ax.axvline(0,color='0.6',lw=.8)
+    ax.set(yticks=range(len(labels)),yticklabels=labels,xlabel='Seconds from last raised-lift sample')
+    ax.legend()
+    fig.savefig(here/'tap-phase.png',dpi=150)
+    sys.exit(0)
+if '--rear-support' in sys.argv:
+    fig,axes=plt.subplots(2,1,figsize=(8,6),sharex=True,layout='constrained')
+    axes[0].plot(state['sec']-zero-late_onset,np.degrees(state['pitch']),'.-',color='black',label='Recorded')
+    with (here/'rear-support.csv').open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['cap_mNm','rear_support_mu','fraction_robot_table_impulse_on_support_300ms',
+                         'fraction_robot_table_impulse_on_rear_wheels_300ms','peak_pitch_300ms_deg',
+                         'peak_pitch_deg'])
+        for cap in (30,80):
+            for mu in (v['tread_friction'],.001):
+                for side in ('l','r'):
+                    m.geom('tip_rear_'+side).friction[0]=mu
+                tr,*_=run(3.5+shift,cap,late_onset)
+                t=tr[:,0]-late_onset
+                use=(t>=0)&(t<=.30)
+                impulse=np.trapezoid(tr[use,10:13],t[use],axis=0)
+                writer.writerow([cap,mu,*(impulse[:2]/sum(impulse)),max(tr[use,1]),max(tr[:,1])])
+                label=f'{cap} mN m, rear support μ={mu:g}'
+                axes[0].plot(t,tr[:,1],label=label)
+                axes[1].plot(t,tr[:,10])
+    axes[0].set_ylabel('Chassis pitch (°)')
+    axes[0].legend(fontsize=8,ncol=2)
+    axes[1].set(ylabel='Rear support load (N)',xlabel='Seconds from last raised lift',xlim=(-.1,.6))
+    fig.savefig(here/'rear-support.png',dpi=150)
+    sys.exit(0)
+if '--descent-drive' in sys.argv:
+    fig,axes=plt.subplots(3,1,sharex=True,figsize=(9,7),layout='constrained')
+    def score(label,t,left,right,pitch):
+        style='.-' if label=='Recorded' else '-'
+        for ax,series in zip(axes,(left,right,pitch)):
+            ax.plot(t,series,style,label=label)
+        # Compare simulated shaft travel and reported encoder travel on the same time window.
+        times=np.r_[0.,t[(t>0)&(t<.3)],.3]
+        paths=[np.trapezoid(np.interp(times,t,speed),times) for speed in (left,right)]
+        sdk_time=state['sec']-zero-late_onset
+        use=(sdk_time>=0)&(sdk_time<=.3)
+        rms=[np.sqrt(np.mean((np.interp(sdk_time[use],t,speed)-state[key][use])**2))
+             for speed,key in ((left,'left'),(right,'right'))]
+        writer.writerow([label,*paths,max(np.interp(times,t,pitch)),max(pitch[t>=0]),sum(use),*rms])
+    with (here/'descent-drive.csv').open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['case','left_mm_300ms','right_mm_300ms','peak_pitch_300ms_deg','peak_pitch_deg',
+                         'sdk_samples_300ms','left_rmse_mm_s','right_rmse_mm_s'])
+        score('Recorded',state['sec']-zero-late_onset,state['left'],state['right'],np.degrees(state['pitch']))
+        for cap in (30,80):
+            for powered in (True,False):
+                tr,*_=run(3.5+shift,cap,late_onset,drive_during_descent=powered)
+                label=f'{cap} mN m, '+('drive' if powered else 'coast')
+                score(label,tr[:,0]-late_onset,tr[:,8],tr[:,9],tr[:,1])
+    for ax,label in zip(axes,('Left wheel (mm/s)','Right wheel (mm/s)','Pitch (°)')):
+        ax.set(ylabel=label,xlim=(-.15,.6))
+        ax.axvline(0,color='0.7',lw=.8)
+        ax.relim(visible_only=True)
+    axes[0].legend(ncol=2,fontsize=8)
+    axes[-1].set_xlabel('Seconds from last raised-lift sample')
+    fig.savefig(here/'descent-drive.png',dpi=150)
+    sys.exit(0)
+if '--tip-rate' in sys.argv:
+    fig,axes=plt.subplots(2,1,sharex=True,figsize=(8,5),layout='constrained')
+    def compare_rate(label,t,height,pitch,rate):
+        hits=np.flatnonzero((height[:-1]>35)&(height[1:]<=35))
+        if not len(hits):
+            writer.writerow([label,'','','','',''])
+            return
+        i=hits[0]
+        alpha=(height[i]-35)/(height[i]-height[i+1])
+        crossing=t[i]+alpha*(t[i+1]-t[i])
+        angle_at_crossing=pitch[i]+alpha*(pitch[i+1]-pitch[i])
+        following=pitch[(t>=crossing)&(t<=crossing+.30)]
+        writer.writerow([label,t[i+1]-t[i],rate[i],rate[i+1],angle_at_crossing,
+                         max(following)-angle_at_crossing])
+        style='.-' if label=='unit 3' else '-'
+        axes[0].plot(t-crossing,rate,style,label=label)
+        axes[1].plot(t-crossing,pitch,style)
+    with (here/'tip-rate.csv').open('w') as f:
+        writer=csv.writer(f,lineterminator='\n')
+        writer.writerow(['case','crossing_bracket_s','gyro_before_deg_s','gyro_after_deg_s',
+                         'pitch_at_35mm_deg','additional_peak_pitch_in_300ms_deg'])
+        take=(state['sec']-zero>=late_onset-.1)
+        compare_rate('unit 3',state['sec'][take]-zero,state['lift'][take],
+                     np.degrees(state['pitch'][take]),-np.degrees(state['gy'][take]))
+        for cap in (30,80):
+            tr,*_=run(3.5+shift,cap,late_onset)
+            compare_rate(f'{cap} mN m',tr[:,0],tr[:,4],tr[:,1],-np.degrees(tr[:,7]))
+    axes[0].set(ylabel='Head gyro, nose-up (°/s)')
+    axes[1].set(ylabel='Chassis pitch (°)',xlabel='Seconds from descending through 35 mm',
+                xlim=(-.15,.30))
+    for ax in axes:ax.axvline(0,color='0.6',lw=.8)
+    axes[0].legend()
+    fig.savefig(here/'tip-rate.png',dpi=155)
+    sys.exit(0)
 if '--effort' in sys.argv:
     fig,axes=plt.subplots(2,1,figsize=(8,5),sharex=True,layout='constrained')
     with (here/'lift-effort.csv').open('w') as f:

@@ -1,0 +1,31 @@
+event_zero_based,action,clock,samples,measured_clear,clear_hits,false_clear,missed_clear,lift_span_mm
+0,stop,dispatch,9,2,2,2,0,0.0
+0,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+1,stop,dispatch,10,2,2,2,0,0.0
+1,stop,direct hold + first-session phase,10,2,1,0,1,0.0
+2,sham,control,9,0,0,0,0,0.0
+3,stop,dispatch,9,2,2,1,0,0.0
+3,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+4,sham,control,9,0,0,0,0,0.0
+5,stop,dispatch,9,2,2,2,0,0.0
+5,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+6,stop,dispatch,9,2,2,1,0,0.0
+6,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+7,stop,dispatch,9,2,2,2,0,0.0
+7,stop,direct hold + first-session phase,9,2,2,1,0,0.0
+8,sham,control,9,0,0,0,0,0.0
+9,stop,dispatch,9,2,2,1,0,0.0
+9,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+10,stop,dispatch,9,2,2,1,0,0.0
+10,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+11,sham,control,9,0,0,0,0,0.0
+12,sham,control,9,0,0,0,0,0.0
+13,stop,dispatch,9,2,2,1,0,0.0
+13,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+14,stop,dispatch,9,2,2,1,0,0.0
+14,stop,direct hold + first-session phase,9,2,2,0,0,0.0
+15,stop,dispatch,9,2,2,2,0,0.0
+15,stop,direct hold + first-session phase,9,2,1,1,1,0.0
+16,sham,control,9,0,0,0,0,0.0
+17,stop,dispatch,9,2,2,2,0,0.0
+17,stop,direct hold + first-session phase,9,2,2,0,0,0.0

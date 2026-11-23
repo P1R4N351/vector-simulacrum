@@ -1,4 +1,5 @@
 """Release the free cube at R5's settled tilt on the stationary printed fork."""
+import argparse
 import csv
 import itertools
 import sys
@@ -15,9 +16,23 @@ sys.path[:0] = [str(repo), str(repo/"evidence/unit3-printed-fork-contact")]
 from replay_links import add_links, rail_paths, require_printed_fork
 from simulacrum import params
 
-tree = ElementTree.parse(sys.argv[1])
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("fixture")
+mode = parser.add_mutually_exclusive_group()
+mode.add_argument("--shell-entry", action="store_true", help="Find rigid-shell contact with corners omitted")
+mode.add_argument("--entry-scan", action="store_true", help="Locate first contact approaching horizontally")
+mode.add_argument("--depth-sweep", action="store_true",
+                    help="Test deeper, centered seats at several heights, omitting initially overlapping poses")
+args = parser.parse_args()
+tree = ElementTree.parse(args.fixture)
 require_printed_fork(tree)
 add_links(tree, repo)
+if args.shell_entry:
+    cube_body = tree.find(".//body[@name='cube']")
+    pads = [geom for geom in cube_body.findall("geom") if geom.get("name", "").startswith("cube_rubber_")]
+    assert len(pads) > 0
+    for pad in pads:
+        cube_body.remove(pad)
 model = mj.MjModel.from_xml_string(ElementTree.tostring(tree.getroot(), encoding="unicode"))
 v = params.values(params.load(model="vector_2"))
 robot = np.genfromtxt(here/"state.csv.gz", delimiter=",", names=True)
@@ -32,20 +47,37 @@ up = np.array([float(row[f"mean_{axis}_g"]) for axis in "xyz"])
 up /= np.linalg.norm(up)
 z = np.array([0., 0., 1.])
 attitude = Rotation.from_quat(np.r_[np.cross(up, z), 1 + up@z])
+if args.entry_scan or args.shell_entry:
+    from entry_scan import scan
+    scan(here, model, wrist, rails, rq, attitude, v["cube_carry_offset_mm"], shell_only=args.shell_entry)
+    sys.exit(0)
 floor = model.geom("table").id
-with (here/"static-support.csv").open("w") as f:
+filename = "static-depth.csv" if args.depth_sweep else "static-support.csv"
+with (here/filename).open("w") as f:
     out = csv.writer(f, lineterminator="\n")
-    out.writerow(["yaw_deg","forward_mm","left_mm","clearance_raise_mm","first_floor_s","final_tilt_deg","final_direction_error_deg"])
-    for yaw, dx, dy in itertools.product(range(0,360,45), [-3,0,3], [-3,0,3]):
+    if args.depth_sweep:
+        out.writerow(["yaw_deg","forward_mm","vertical_mm","initial_overlap_mm","deepest_geom_a","deepest_geom_b","first_floor_s","final_tilt_deg","final_direction_error_deg"])
+        poses = itertools.product(range(0,360,45), range(-18,1,3), [0], range(-12,13,3))
+    else:
+        poses = itertools.product(range(0,360,45), [-3,0,3], [-3,0,3], [0])
+        out.writerow(["yaw_deg","forward_mm","left_mm","clearance_raise_mm","first_floor_s","final_tilt_deg","final_direction_error_deg"])
+    for yaw, dx, dy, dz in poses:
         d = mj.MjData(model)
         d.mocap_pos[model.body("fork").mocapid[0]] = wrist
         for i in range(2):
             idx = model.body(f"rail{i}").mocapid[0]
             d.mocap_pos[idx], d.mocap_quat[idx] = rails[0,i], rq[0]
         q = d.joint("cube_root").qpos
-        q[:3] = wrist + .001*(np.array(v["cube_carry_offset_mm"]) + [dx,dy,0])
+        q[:3] = wrist + .001*(np.array(v["cube_carry_offset_mm"]) + [dx,dy,dz])
         q[3:] = (Rotation.from_euler("z",yaw,degrees=True)*attitude).as_quat(scalar_first=True)
         initial_z = q[2]
+        mj.mj_forward(model,d)
+        overlap = max([0.] + [-1000 * c.dist for c in d.contact])
+        if args.depth_sweep and overlap > 0:
+            deepest = min(d.contact, key=lambda c: c.dist)
+            pair = [model.geom(int(g)).name for g in deepest.geom]
+            out.writerow([yaw, dx, dz, overlap, *pair, "", "", ""])
+            continue
         for tick in range(401):
             q[2] = initial_z + tick*.0002
             mj.mj_forward(model,d)
@@ -59,4 +91,5 @@ with (here/"static-support.csv").open("w") as f:
             if first is None and any(floor in c.geom for c in d.contact):
                 first = round(d.time,4)
         final = Rotation.from_quat(q[3:],scalar_first=True).inv().apply(z)
-        out.writerow([yaw,dx,dy,round(.2*tick,1),first,np.degrees(np.arccos(np.clip(final[2],-1,1))),np.degrees(np.arccos(np.clip(up@final,-1,1)))])
+        prefix = [yaw,dx,dz,overlap,"",""] if args.depth_sweep else [yaw,dx,dy,round(.2*tick,1)]
+        out.writerow([*prefix,first,np.degrees(np.arccos(np.clip(final[2],-1,1))),np.degrees(np.arccos(np.clip(up@final,-1,1)))])

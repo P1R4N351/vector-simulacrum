@@ -75,7 +75,8 @@ async function loadEverything() {
   const options = new URLSearchParams(location.search);
   const trial = options.get("contact") === "42";
   const free = options.get("cube") === "free";
-  const directory = options.get("robot") === "2" ? "./robot/vector2" : "./robot";
+  const vector2 = options.get("robot") === "2";
+  const directory = vector2 ? "./robot/vector2" : "./robot";
   const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "");
   const [{ default: loadMujoco }, xml, modelText] = await Promise.all([
     traced("PHYSICS RUNTIME", import("@mujoco/mujoco")),
@@ -85,6 +86,7 @@ async function loadEverything() {
   ]);
   const model = JSON.parse(modelText);
   if (free && options.get("cubeSensor") === "unit3") Object.assign(model.values, shelfCube);
+  if (free && vector2 && options.get("cubeSensor") === "unit3") model.values.supervisor_loop_ms = 5.083;
   const doneCheck = bootLine("MODEL CHECKSUM");
   doneCheck(await checkModel(xml, free ? model.source[sceneName + "_sha256"] : (trial ? model.source.trial_xml_sha256 : model.source.xml_sha256)));
   const mujoco = await traced("WEBASSEMBLY", loadMujoco({ locateFile: (p) => (p.endsWith(".wasm") ? mujocoWasmUrl : p) }));
@@ -170,6 +172,11 @@ function telemetryOf(sim, extra) {
     front_rpm: [t.wheel_spin_radps[0] * RPM, t.wheel_spin_radps[1] * RPM],
     rear_rpm: [t.wheel_spin_radps[2] * RPM, t.wheel_spin_radps[3] * RPM],
     cube_axis: sim.cubeSensor?.listeners.axis, cube_moving: sim.cubeSensor?.listeners.moving,
+    cube_tap_events: sim.cubeSensor?.listeners.tapEvents,
+    cube_last_tap_s: sim.cubeSensor?.listeners.lastTapTime,
+    cube_movement_broadcasts: sim.cubeSensor?.movementBroadcastCount,
+    cube_motion_transitions: sim.cubeSensor?.listeners.motionTransitions,
+    cube_last_motion_s: sim.cubeSensor?.listeners.lastMotionTime,
     cube_slot_g: sim.cubeSensor?.packet?.slots.map(slot =>
       Math.hypot(...slot) / sim.v.cube_accel_counts_per_g),
     battery_v: t.battery_volts, tread_heat: t.tread_heat,

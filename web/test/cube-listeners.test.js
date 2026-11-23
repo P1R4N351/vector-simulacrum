@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { CubeListeners } from "../src/sim/cube_listeners.js";
 import { replayCsv } from "../tools/replay-cube-listeners.mjs";
@@ -30,4 +31,41 @@ test("a changed wrapping tap counter emits one candidate per packet", () => {
   assert.deepEqual(send(.06, 0), [{time_s: .06, tap_count: 0}]);
   assert.deepEqual(send(.09, 0), []);
   assert.deepEqual(send(.12, 3), [{time_s: .12, tap_count: 3}]);
+});
+
+test("docked grip retains three taps and both motion transitions after the cube settles", () => {
+  const readRows = file => readFileSync(new URL(
+    "../../evidence/unit3-docked-grip/" + file, import.meta.url), "utf8"
+  ).trim().split(/\r?\n/).slice(1).map(line => line.split(","));
+  const samples = readRows("cube.csv");
+  const events = readRows("release-events.csv");
+  const listener = new CubeListeners();
+  const observed = [];
+  let offset = 0;
+  for (const [kind, receipt, uptime, taps] of events) {
+    if (kind !== "packet") continue;
+    const slots = samples.slice(offset, offset + 3).map(([stamp, index, ...xyz], i) => {
+      assert.equal(stamp, receipt);
+      assert.equal(Number(index), i);
+      return xyz.map(Number);
+    });
+    offset += 3;
+    observed.push(...listener.receive({time_s: Number(uptime), taps: Number(taps), slots}));
+  }
+  assert.equal(offset, 95 * 3);
+  assert.equal(samples.length, offset);
+  const candidates = observed.filter(event => "moving" in event || "tap_count" in event);
+  const sdk = events.filter(([kind]) => kind !== "packet");
+  assert.equal(candidates.length, sdk.length);
+  candidates.forEach((event, i) => {
+    const kind = "tap_count" in event ? "object_tapped" :
+      event.moving ? "object_moved" : "object_stopped_moving";
+    assert.equal(kind, sdk[i][0]);
+    assert.ok(Math.abs(Math.round(event.time_s * 1000) - Math.round(Number(sdk[i][2]) * 1000)) <= 36);
+  });
+  assert.equal(listener.tapEvents, 3);
+  assert.equal(listener.motionTransitions, 2);
+  assert.equal(listener.lastTapTime, candidates[2].time_s);
+  assert.equal(listener.lastMotionTime, candidates[4].time_s);
+  assert.equal(listener.moving, false);
 });
