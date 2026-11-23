@@ -28,12 +28,14 @@ def input_rows(path):
 
 
 def run(rows, time, wheels, span, *, dense=False, include_pose=False, configure=None, observe=None,
-        step_ms=None):
+        step_ms=None, model_xml=None):
     values = dict(params.values(params.load(model="vector_2")), **replay.OPEN_TABLE)
     builder = mjcf.build_mjcf
 
     def build(v, obstacles=()):
-        root = ET.fromstring(contact_model(builder(v, obstacles), v))
+        if model_xml is not None and span is not None:
+            raise ValueError("Specify an exported model or an experimental span")
+        root = ET.fromstring(model_xml if model_xml is not None else contact_model(builder(v, obstacles), v))
         if configure is not None:
             configure(root)
         # At 48 mm use precisely the same contact solver and follower joints.

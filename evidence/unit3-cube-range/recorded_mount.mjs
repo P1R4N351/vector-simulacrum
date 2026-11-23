@@ -9,9 +9,10 @@ const mj = await mujoco();
 const model = readJson("public/robot/vector2/model.json");
 const dock = readText("public/robot/vector2/vector-free-dock.xml");
 console.log("session,variant,t_s,out_mm,lat_mm,yaw_deg,left_mmps,right_mmps,on");
+const extraModel = process.argv[2] ? readFileSync(process.argv[2], "utf8") : null;
 for (const trial of trials) {
-  for (const variant of ["canonical", "driven_rear_envelope", "driven_mean_only"]) {
-    const sim = new VectorSim(mj, {xml: rearEnvelope(dock, variant === "canonical" ? variant : "driven_rear_envelope"), values: model.values,
+  for (const variant of extraModel ? ["supplied"] : ["canonical", "driven_rear_envelope", "driven_mean_only"]) {
+    const sim = new VectorSim(mj, {xml: extraModel ?? rearEnvelope(dock, variant === "canonical" ? variant : "driven_rear_envelope"), values: model.values,
       derived: model.derived, startXyMm: [trial.out - 120, trial.lat], headingDeg: trial.yaw,
       headDeg: trial.head, liftMm: trial.lift, noiseSeed: 1});
     try {
