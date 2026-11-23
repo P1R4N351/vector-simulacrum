@@ -8,6 +8,8 @@ name: leak-check
 # skipped there with a visible note; a maintainer re-runs the check from a trusted
 # branch before merge. Every other run does receive them, so an empty secret there
 # means the secret is missing and the scan fails rather than passing unscanned.
+# Dependabot runs receive Dependabot secrets, not Actions secrets: if Dependabot is
+# enabled, add LEAK_PATTERNS_JSON as a Dependabot secret too, or its runs fail here.
 
 on:
   push:

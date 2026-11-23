@@ -132,6 +132,8 @@ class Repository(unittest.TestCase):
             "an entry that is a string": {"patterns": ["x"]},
             "a regex that is not a string": {"patterns": [{"id": "tok", "regex": 7}]},
             "a regex that does not compile": {"patterns": [{"id": "tok", "regex": "(ZQ4X"}]},
+            "a repeat count re cannot hold": {"patterns": [{"id": "tok", "regex": "ZQ4X{4294967296}"}]},
+            "groups nested past the recursion limit": {"patterns": [{"id": "tok", "regex": "(" * 2000 + "ZQ4X" + ")" * 2000}]},
         }
         for name, document in documents.items():
             with self.subTest(document=name):
