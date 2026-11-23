@@ -93,7 +93,7 @@ class Randomisation(unittest.TestCase):
     def test_every_assumed_parameter_but_the_timestep_is_varied(self) -> None:
         assumed = {n for n, e in self.doc["parameters"].items() if e["provenance"] in ("assumed", "chosen")}
         varied = set(task.varied_parameters(self.doc))
-        self.assertEqual(assumed - varied, {"sim_timestep_ms"})
+        self.assertEqual(assumed - varied, {"sim_timestep_ms", "tip_supports_driven"})
         identified = {n for n, e in self.doc["parameters"].items()
                       if e["provenance"] in ("measured", "fitted") and "low" in e}
         self.assertEqual(identified - varied, set(), "measured and fitted values are varied inside their ranges too")

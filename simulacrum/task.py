@@ -37,7 +37,7 @@ OBS_DIM = len(OBS_NAMES)
 ACT_DIM = 2
 RANDOMISED_KINDS = ("robot", "scene", "numeric")
 # The integrator step is not drawn: it must divide the control period, and halving it doubles the cost.
-NOT_RANDOMISED = ("sim_timestep_ms",)
+NOT_RANDOMISED = ("sim_timestep_ms", "tip_supports_driven")  # the flag is model structure, 0 or 1
 END_TIME = "time_limit"
 END_REACTION = "cliff_reaction"
 END_FALL = "fell"
