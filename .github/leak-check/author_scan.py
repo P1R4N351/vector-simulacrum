@@ -85,7 +85,9 @@ def load_patterns(path):
         flags = re.IGNORECASE if "i" in entry.get("flags", "") else 0
         try:
             out.append((entry["id"], re.compile(entry["regex"], flags)))
-        except re.error:
+        except (re.error, OverflowError, RecursionError):
+            # re raises OverflowError for a repeat count it cannot hold and RecursionError for
+            # deeply nested groups; neither is an re.error, and both mean the pattern does not compile.
             raise Fault("pattern %d (%s) does not compile" % (index, entry["id"]))
     return out
 
