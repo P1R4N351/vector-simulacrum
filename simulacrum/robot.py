@@ -77,6 +77,7 @@ class RobotState:
     prox_signal_quality: float = 0.0
     prox_unobstructed: bool = True
     lift_in_pos: bool = True
+    head_in_pos: bool = True
 
 
 @dataclass(frozen=True)
@@ -220,6 +221,8 @@ class VectorSim:
         self._head_speed, self._lift_speed = v["head_speed_default_radps"], v["lift_speed_default_radps"]
         self._head_accel, self._lift_accel = v["head_accel_default_radps2"], v["lift_accel_default_radps2"]
         self._servo_rate = [0.0, 0.0]
+        self._head_in_pos = True
+        self._head_in_tolerance_since = None
         self._lift_in_pos = True
         self._lift_in_tolerance_since = None
         self._wheel_delay = int(round(v["command_delay_ms"] / v["control_period_ms"]))
@@ -454,7 +457,7 @@ class VectorSim:
             prox_signal_quality=prox.signal_quality, prox_unobstructed=prox.unobstructed,
             accel_mmps2=accel, gyro_radps=gyro, cliff_detected=self.hazards.cliff_any,
             picked_up=self.hazards.picked_up, falling=self.hazards.falling, wheels_moving=moving,
-            has_control=self.has_control, lift_in_pos=self._lift_in_pos)
+            has_control=self.has_control, lift_in_pos=self._lift_in_pos, head_in_pos=self._head_in_pos)
         self.states.append(self.state)
 
     def sim_truth(self) -> Dict[str, Any]:
@@ -521,7 +524,8 @@ class VectorSim:
         self._react_phase = "pause"
         self._react_ticks = int(round(v["cliff_reaction_pause_ms"] / v["control_period_ms"]))
         self._wheel_target, self._wheel_cmd = [0.0, 0.0], [0.0, 0.0]
-        self._head_target = self._head_cmd = self.head_angle_rad()
+        self._head_cmd = self.head_angle_rad()
+        self._set_head_target(self._head_cmd)
         self._lift_target = self._lift_cmd = float(self.data.qpos[self._q["lift"]])
         self._servo_rate = [0.0, 0.0]
         for slot in self._delay:
@@ -603,6 +607,25 @@ class VectorSim:
         for i in range(2):
             self.tread_heat[i] += (abs(duties[i]) - self.tread_heat[i]) * min(1.0, self.dt / tau)
 
+    def _set_head_target(self, target: float) -> None:
+        if target != self._head_target or not self._head_in_pos or abs(target - self.head_angle_rad()) >= math.radians(self.v["head_angle_tol_deg"]):
+            self._head_in_pos = False
+            self._head_in_tolerance_since = None
+        self._head_target = target
+
+    def _update_head_status(self) -> None:
+        """HeadController latches in-position after the final target stays within tolerance for >200 ms."""
+        if self._head_in_pos:
+            return
+        angle = float(self.data.qpos[self._q["head"]])
+        final_command = self.data.ctrl[self._act["head"]] == self._head_target
+        if not final_command or abs(angle - self._head_target) >= math.radians(self.v["head_angle_tol_deg"]):
+            self._head_in_tolerance_since = None
+        elif self._head_in_tolerance_since is None:
+            self._head_in_tolerance_since = self.tick
+        elif (self.tick - self._head_in_tolerance_since) * self.dt > 0.200:
+            self._head_in_pos = True
+
     def _update_lift_status(self) -> None:
         """LiftController latches in-position after the final target stays within tolerance for >100 ms."""
         if self._lift_in_pos:
@@ -628,6 +651,7 @@ class VectorSim:
         self._write_controls()
         self._physics_step()
         self.tick += 1
+        self._update_head_status()
         self._update_lift_status()
         if self.body_range_clock:
             self._advance_range_clock()
@@ -676,7 +700,8 @@ class VectorSim:
         if not self.has_control:
             return False
         self._wheel_target, self._wheel_accel = [0.0, 0.0], [0.0, 0.0]
-        self._head_target = self._head_cmd = self.head_angle_rad()
+        self._head_cmd = self.head_angle_rad()
+        self._set_head_target(self._head_cmd)
         self._lift_target = self._lift_cmd = float(self.data.qpos[self._q["lift"]])
         self._lift_in_pos = False
         self._lift_in_tolerance_since = None
@@ -711,7 +736,7 @@ class VectorSim:
             return False
         v = self.v
         self._head_speed, self._servo_rate[0] = v["head_speed_default_radps"], 0.0
-        self._head_target = math.radians(_clamp(angle_deg, v["head_angle_min_deg"], v["head_angle_max_deg"]))
+        self._set_head_target(math.radians(_clamp(angle_deg, v["head_angle_min_deg"], v["head_angle_max_deg"])))
         return True
 
     def _start_lift(self, height_mm: float, speed_radps: Optional[float], duration_s: float) -> None:
@@ -844,7 +869,7 @@ class VectorSim:
         self._servo_rate[0] = 0.0
         target = math.radians(_clamp(angle_deg, v["head_angle_min_deg"], v["head_angle_max_deg"]))
         span = abs(target - self.head_angle_rad())
-        self._head_target = target
+        self._set_head_target(target)
         return self._servo_action(self.head_angle_rad, target, math.radians(v["head_angle_tol_deg"]),
                                   span, self._head_speed)
 

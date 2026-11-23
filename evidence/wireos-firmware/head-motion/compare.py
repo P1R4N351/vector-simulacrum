@@ -17,6 +17,11 @@ sources = {"Unit 1": timing/"repeat/unit1.jsonl", "Unit 2": timing/"unit2.jsonl"
 with (timing/"repeat/moves.csv").open() as stream:
     moves = [r for r in csv.DictReader(stream) if r["joint"] == "head" and r["source"] == r["bot"]]
 
+class StatusReplay(GyroReplay):
+    def reported_now(self):
+        return dict(super().reported_now(), head_in_pos=self._head_in_pos)
+
+
 def edges(t, mask):
     active = np.flatnonzero((t >= 0) & mask)
     if not len(active) or active[0] == 0 or active[-1]+1 == len(t):
@@ -35,7 +40,7 @@ for j, (bot, source) in enumerate(sources.items()):
         t = np.array([s["t"]-command for s in near])
         target = 45 if move["direction"] == "up" else -22
         initial = replay._state_at(near, command)
-        sim = GyroReplay(values=dict(v, **replay.OPEN_TABLE), head_deg=np.degrees(initial["head"]),
+        sim = StatusReplay(values=dict(v, **replay.OPEN_TABLE), head_deg=np.degrees(initial["head"]),
                          lift_mm=initial["lift"], noise_seed=0)
         seg = recording.Segment("head","head",0,1.55,target=target)
         tr = replay._run(sim, seg, .32)
@@ -49,22 +54,26 @@ for j, (bot, source) in enumerate(sources.items()):
         release = np.flatnonzero((t > onset) & ~moving & (np.arange(len(t)) > 0) & np.r_[False, moving[:-1]])
         last_moving = t[release[0]-1] if len(release) else np.nan
         release = t[release[0]] if len(release) else np.nan
+        settled = np.array([r["head_in_pos"] for r in tr])
+        sim_release = ts[1:][settled[1:] & ~settled[:-1]].item()
         rows.append(dict(bot=bot, direction=move["direction"], command_s=command,
                          physical_start_ms=1000*onset, physical_clear_ms=1000*clear,
                          sim_start_ms=1000*m_onset, sim_clear_ms=1000*m_clear,
                          status_last_moving_sample_ms=1000*last_moving, status_first_clear_sample_ms=1000*release,
+                         sim_status_release_ms=1000*sim_release,
                          wheels_moving_samples=sum(bool(s["status"] & 0x8000) for s in near), sample_spacing_ms=1000*np.median(np.diff(t))))
         ax = axes[j, int(target < 0)]
         ax.plot(t, measured, ".-", color="#176870", alpha=.62)
         ax.plot(t, predicted, "--", color="#a85d22", alpha=.65)
         if np.isfinite(release): ax.plot(release, 10, "v", color="#54237d")
+        ax.plot(sim_release, 18, "^", color="#a85d22")
         ax.set_title(f"{bot} · {move['direction']}")
 for ax in axes.flat:
     ax.axhline(10,color=".4",lw=.8)
     ax.set_xlim(0,1.25)
 for ax in axes[-1]: ax.set_xlabel("Seconds after host command")
 for ax in axes[:,0]: ax.set_ylabel("Pitch gyro magnitude (°/s)")
-fig.suptitle("Docked full head strokes · measured (teal), replay (orange)\nTriangles mark the first SDK camera-moving flag release")
+fig.suptitle("Docked full head strokes · measured (teal), replay (orange)\nStatus release: measured ▼ and simulated ▲")
 fig.savefig(here/"profiles.png", dpi=145)
 with (here/"moves.csv").open("w") as f:
     writer = csv.DictWriter(f, fieldnames=rows[0], lineterminator="\n")

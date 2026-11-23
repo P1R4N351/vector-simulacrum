@@ -184,6 +184,8 @@ export class VectorSim {
     );
     this._headTarget = this._headCmd = 0;
     this._liftTarget = this._liftCmd = this.d.lift_angle_min;
+    this._headInPos = true;
+    this._headInToleranceSince = null;
     this._liftInPos = true;
     this._liftInToleranceSince = null;
     this._headSpeed = v.head_speed_default_radps;
@@ -536,6 +538,7 @@ export class VectorSim {
       picked_up: this.hazards.pickedUp, falling: this.hazards.falling,
       wheels_moving: Math.abs(left) + Math.abs(right) > this.v.wheel_stopped_threshold_mmps,
       has_control: this.hasControl,
+      head_in_pos: this._headInPos,
       lift_in_pos: this._liftInPos,
     };
   }
@@ -600,7 +603,8 @@ export class VectorSim {
     this._reactTicks = pyRound(v.cliff_reaction_pause_ms / v.control_period_ms);
     this._wheelTarget = [0, 0];
     this._wheelCmd = [0, 0];
-    this._headTarget = this._headCmd = this.headAngleRad();
+    this._headCmd = this.headAngleRad();
+    this._setHeadTarget(this._headCmd);
     this._liftTarget = this._liftCmd = this.data.qpos[this._q.lift];
     this._servoRate = [0, 0];
     for (const slot of this._delay) {
@@ -692,6 +696,27 @@ export class VectorSim {
     for (let i = 0; i < 2; i++) this.treadHeat[i] += (Math.abs(duties[i]) - this.treadHeat[i]) * Math.min(1, this.dt / tau);
   }
 
+  _setHeadTarget(target) {
+    if (target !== this._headTarget || !this._headInPos || Math.abs(target - this.headAngleRad()) >= this.v.head_angle_tol_deg * DEG) {
+      this._headInPos = false;
+      this._headInToleranceSince = null;
+    }
+    this._headTarget = target;
+  }
+
+  _updateHeadStatus() {
+    if (this._headInPos) return;
+    const angleError = Math.abs(this.data.qpos[this._q.head] - this._headTarget);
+    const finalCommand = this.data.ctrl[this._act.head] === this._headTarget;
+    if (!finalCommand || angleError >= this.v.head_angle_tol_deg * DEG) {
+      this._headInToleranceSince = null;
+    } else if (this._headInToleranceSince === null) {
+      this._headInToleranceSince = this.tick_;
+    } else if ((this.tick_ - this._headInToleranceSince) * this.dt > 0.200) {
+      this._headInPos = true;
+    }
+  }
+
   _updateLiftStatus() {
     if (this._liftInPos) return;
     const angleError = Math.abs(this.data.qpos[this._q.lift] - this._liftTarget);
@@ -756,6 +781,7 @@ export class VectorSim {
     }
     this._physicsStep();
     this.tick_ += 1;
+    this._updateHeadStatus();
     this._updateLiftStatus();
 
     if ((power || this.startDocked) && this._dockBody >= 0) this.chargerContact = this._padsTouchDock();
@@ -814,7 +840,8 @@ export class VectorSim {
     if (!this.hasControl || this._action !== null) return false;
     this._wheelTarget = [0, 0];
     this._wheelAccel = [0, 0];
-    this._headTarget = this._headCmd = this.headAngleRad();
+    this._headCmd = this.headAngleRad();
+    this._setHeadTarget(this._headCmd);
     this._liftTarget = this._liftCmd = this.data.qpos[this._q.lift];
     this._liftInPos = false;
     this._liftInToleranceSince = null;
@@ -829,7 +856,7 @@ export class VectorSim {
     const v = this.v;
     this._headSpeed = v.head_speed_default_radps;
     this._servoRate[0] = 0;
-    this._headTarget = clamp(angleDeg, v.head_angle_min_deg, v.head_angle_max_deg) * DEG;
+    this._setHeadTarget(clamp(angleDeg, v.head_angle_min_deg, v.head_angle_max_deg) * DEG);
     return true;
   }
 
@@ -924,7 +951,7 @@ export class VectorSim {
     const target = clamp(angleDeg, v.head_angle_min_deg, v.head_angle_max_deg) * DEG;
     const span = Math.abs(target - this.headAngleRad());
     const made = this._newServoAction("head", target, v.head_angle_tol_deg * DEG, span, this._headSpeed);
-    this._headTarget = target;
+    this._setHeadTarget(target);
     return made;
   }
 
