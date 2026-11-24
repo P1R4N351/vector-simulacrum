@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Refuse commits whose author or committer identity matches a leak pattern.
+"""Refuse commits whose author or committer identity, or message, matches a leak pattern.
 
-    author_scan.py --patterns FILE --head REV [--base REV] [--repo DIR]
+    author_scan.py --patterns FILE --head REV [--base REV] [--repo DIR] [--message-category CAT ...]
     author_scan.py --self-test
 
 The text scan in leak-check.yml reads tracked files only, so a commit's author and committer are
@@ -13,9 +13,13 @@ against the author name, author email, committer name and committer email of eac
 finding is reported as commit, field and pattern id only; the matched text is never printed, so the
 log does not republish what it caught.
 
-Commit messages are not read here. The co-author lines GitHub adds to a squash name the account's
-noreply address, and one current pattern also matches the words of such a line, so a message scan
-would add a false positive and no finding.
+Commit messages are read only against the patterns whose category is named with
+--message-category (the workflow names "robot"), and reported as commit, "message" and pattern id.
+They are not read against every pattern: the co-author lines GitHub adds to a squash name the
+account's noreply address, and one current pattern also matches the words of such a line, so a
+message scan with every pattern would add a false positive and no finding. Like the identity
+fields, messages are read for BASE..HEAD only, so commits published before the base stay as they
+are and do not turn every later run red.
 
 It runs after the fact on a push: a merge GitHub made is already on the branch when this job turns
 red. It cannot predict the identity GitHub will give a merge it has not made yet.
@@ -24,13 +28,15 @@ red. It cannot predict the identity GitHub will give a merge it has not made yet
 pattern file and exit code included. It plants a canary in each of the four fields: in the middle
 of a name, in lower case where the pattern is upper case with the i flag, and on a side branch
 reachable only through a merge's second parent. It requires exactly those four findings, a clean
-result on a clean range, and every commit read when no base is given. It is the instrument proving
-it can fail before its silence is trusted.
+result on a clean range, and every commit read when no base is given. It then reads messages for
+one category: a canary in a message of that category must be found, and a canary of another
+category in a message must not. It is the instrument proving it can fail before its silence is
+trusted.
 
 Exit 0 clean, 1 findings, 2 usage, 3 instrument fault (a pattern file that is unreadable,
-malformed or does not compile; git missing or failed; a revision that does not resolve; more than
-MAX_COMMITS commits; or a self-test that did not behave). A fault is never reported as clean or as
-a finding.
+malformed or does not compile; a message category with no pattern in it; git missing or failed; a
+revision that does not resolve; more than MAX_COMMITS commits; or a self-test that did not behave).
+A fault is never reported as clean or as a finding.
 """
 
 import argparse
@@ -49,9 +55,13 @@ MAX_PATTERNS = 10_000
 GIT_TIMEOUT_S = 120
 FIELDS = ("author name", "author email", "committer name", "committer email")
 FORMAT = "%H%x00%an%x00%ae%x00%cn%x00%ce"
+# One record per commit: id, unit separator, the raw message, record separator. A message holding
+# either separator splits wrongly, fails the record check below and is a fault, never skipped.
+MESSAGE_FORMAT = "%H%x1f%B%x1e"
 SHA = re.compile(r"[0-9a-f]{40}")
 FINDING = re.compile(r"[0-9a-f]{12}: .+: .+")
-CANARY_DOC = {"patterns": [{"id": "canary", "category": "self-test", "regex": r"\bQK8V\b", "flags": "i"}]}
+CANARY_DOC = {"patterns": [{"id": "canary", "category": "self-test", "regex": r"\bQK8V\b", "flags": "i"},
+                           {"id": "elsewhere", "category": "other", "regex": r"\bZX9W\b", "flags": "i"}]}
 CANARY_EMAIL = "qk8v@example.invalid"
 
 EXIT_CLEAN, EXIT_FINDINGS, EXIT_USAGE, EXIT_FAULT = 0, 1, 2, 3
@@ -62,7 +72,20 @@ class Fault(Exception):
 
 
 def load_patterns(path):
-    """[(id, compiled regex)] from a {"patterns": [{"id", "regex", "flags"}...]} document.
+    """[(id, compiled regex)] for every pattern in the document; see load_entries."""
+    return [(pid, rx) for pid, _, rx in load_entries(path)]
+
+
+def select_categories(entries, categories):
+    """[(id, compiled regex)] for the entries in the given categories; none at all is a Fault."""
+    chosen = [(pid, rx) for pid, category, rx in entries if category in categories]
+    if not chosen:
+        raise Fault("no pattern in the message categories %s" % ", ".join(sorted(categories)))
+    return chosen
+
+
+def load_entries(path):
+    """[(id, category, compiled regex)] from a {"patterns": [{"id", "category", "regex", "flags"}...]}.
 
     Every way the document can be wrong is a Fault. A message names the pattern by position and
     id, never by its regex, since the regexes are the values the project keeps out of the log.
@@ -80,11 +103,12 @@ def load_patterns(path):
     out = []
     for index, entry in enumerate(entries):
         if not (isinstance(entry, dict) and isinstance(entry.get("id"), str) and entry["id"]
-                and isinstance(entry.get("regex"), str) and isinstance(entry.get("flags", ""), str)):
-            raise Fault("pattern %d is not an object with a string id, regex and flags" % index)
+                and isinstance(entry.get("regex"), str) and isinstance(entry.get("flags", ""), str)
+                and isinstance(entry.get("category", ""), str)):
+            raise Fault("pattern %d is not an object with a string id, category, regex and flags" % index)
         flags = re.IGNORECASE if "i" in entry.get("flags", "") else 0
         try:
-            out.append((entry["id"], re.compile(entry["regex"], flags)))
+            out.append((entry["id"], entry.get("category", ""), re.compile(entry["regex"], flags)))
         except (re.error, OverflowError, RecursionError):
             # re raises OverflowError for a repeat count it cannot hold and RecursionError for
             # deeply nested groups; neither is an re.error, and both mean the pattern does not compile.
@@ -112,12 +136,35 @@ def resolve(repo, rev):
     return out
 
 
-def commits(repo, base, head):
-    """(sha, {field: text}) for every commit in base..head, or reachable from head without base."""
+def commit_span(repo, base, head):
+    """The rev-list arguments for base..head (every commit reachable from head without base)."""
     span = [resolve(repo, head)] if base is None else ["%s..%s" % (resolve(repo, base), resolve(repo, head))]
     count = int(git(repo, ["rev-list", "--count"] + span).strip())
     if count > MAX_COMMITS:
         raise Fault("%d commits in range, over the %d limit" % (count, MAX_COMMITS))
+    return span, count
+
+
+def messages(repo, base, head):
+    """{sha: raw message} for every commit in base..head, or reachable from head without base."""
+    span, count = commit_span(repo, base, head)
+    out = {}
+    for record in git(repo, ["log", "--no-color", "--format=" + MESSAGE_FORMAT] + span).split("\x1e"):
+        record = record.lstrip("\n")
+        if not record:
+            continue
+        sha, sep, body = record.partition("\x1f")
+        if not sep or not SHA.fullmatch(sha) or sha in out:
+            raise Fault("unexpected git log message record")
+        out[sha] = body
+    if len(out) != count:
+        raise Fault("read %d commit messages, git counted %d" % (len(out), count))
+    return out
+
+
+def commits(repo, base, head):
+    """(sha, {field: text}) for every commit in base..head, or reachable from head without base."""
+    span, count = commit_span(repo, base, head)
     out = []
     for line in git(repo, ["log", "--no-color", "--format=" + FORMAT] + span).splitlines():
         if not line:
@@ -136,27 +183,42 @@ def match_fields(fields, patterns):
     return [(field, pid) for field in FIELDS for pid, rx in patterns if rx.search(fields[field])]
 
 
-def scan(repo, base, head, patterns):
+def match_message(body, patterns):
+    """[pattern id] for every pattern the message matches."""
+    return [pid for pid, rx in patterns if rx.search(body)]
+
+
+def scan(repo, base, head, patterns, message_patterns=None):
     found = commits(repo, base, head)
+    bodies = messages(repo, base, head) if message_patterns else {}
+    if message_patterns and set(bodies) != {sha for sha, _ in found}:
+        raise Fault("the messages read are not those of the commits read")
     findings = 0
     for sha, fields in found:
         for field, pid in match_fields(fields, patterns):
             print("%s: %s: %s" % (sha[:12], field, pid))
             findings += 1
+        for pid in match_message(bodies[sha], message_patterns) if message_patterns else ():
+            print("%s: message: %s" % (sha[:12], pid))
+            findings += 1
+    if message_patterns:
+        print("commit messages read against %d pattern(s)." % len(message_patterns))
     print("scanned %d commit(s); %d finding(s)." % (len(found), findings))
     return found, findings
 
 
-def run_scan(patterns_path, repo, base, head):
+def run_scan(patterns_path, repo, base, head, message_categories=None):
     """The whole of a real run after argument parsing: load, scan, choose the exit code."""
-    _, findings = scan(repo, base, head, load_patterns(patterns_path))
+    entries = load_entries(patterns_path)
+    chosen = select_categories(entries, set(message_categories)) if message_categories else None
+    _, findings = scan(repo, base, head, [(pid, rx) for pid, _, rx in entries], chosen)
     return EXIT_FINDINGS if findings else EXIT_CLEAN
 
 
-def captured_scan(patterns_path, repo, base, head):
+def captured_scan(patterns_path, repo, base, head, message_categories=None):
     out = io.StringIO()
     with redirect_stdout(out):
-        code = run_scan(patterns_path, repo, base, head)
+        code = run_scan(patterns_path, repo, base, head, message_categories)
     return code, out.getvalue()
 
 
@@ -179,11 +241,14 @@ def build_canary_repo(repo):
     git(repo, ["merge", "-q", "--no-ff", "-m", "Merge side", "side"],
         env=dict(env, GIT_COMMITTER_NAME="Merge QK8V Bot"))
     merge = resolve(repo, "HEAD")
-    committer_email = commit(repo, env, "Fix", GIT_COMMITTER_EMAIL=CANARY_EMAIL)
-    commit(repo, env, "Tidy")
+    # The message canary sits on the body's last line, past the subject; "Tidy" carries a canary of
+    # the other category, which a message scan of the self-test category must not report.
+    committer_email = commit(repo, env, "Fix\n\nRead back from the qk8v unit.", GIT_COMMITTER_EMAIL=CANARY_EMAIL)
+    commit(repo, env, "Tidy after ZX9W")
     want = {"%s: author name: canary" % side[:12], "%s: author email: canary" % author_email[:12],
             "%s: committer name: canary" % merge[:12], "%s: committer email: canary" % committer_email[:12]}
-    return base, committer_email, want
+    want_message = "%s: message: canary" % committer_email[:12]
+    return base, committer_email, want, want_message
 
 
 def self_test():
@@ -194,7 +259,7 @@ def self_test():
         patterns_path = os.path.join(work, "patterns.json")
         with open(patterns_path, "w", encoding="utf-8") as fh:
             json.dump(CANARY_DOC, fh)
-        base, last_canary, want = build_canary_repo(repo)
+        base, last_canary, want, want_message = build_canary_repo(repo)
         code, out = captured_scan(patterns_path, repo, base, "HEAD")
         got = {line for line in out.splitlines() if FINDING.fullmatch(line)}
         if code != EXIT_FINDINGS or got != want or "scanned 5 commit(s); 4 finding(s)." not in out:
@@ -207,10 +272,21 @@ def self_test():
         code, out = captured_scan(patterns_path, repo, None, "HEAD")
         if code != EXIT_FINDINGS or "scanned 6 commit(s); 4 finding(s)." not in out:
             raise Fault("self-test: a scan without --base did not read every commit")
+        code, out = captured_scan(patterns_path, repo, base, "HEAD", ["self-test"])
+        got = {line for line in out.splitlines() if FINDING.fullmatch(line)}
+        if code != EXIT_FINDINGS or got != want | {want_message} or "scanned 5 commit(s); 5 finding(s)." not in out:
+            raise Fault("self-test: the message canary was not found exactly as planted")
+        if "qk8v" in out.lower() or "zx9w" in out.lower():
+            raise Fault("self-test: the message scan printed the text it matched")
+        code, out = captured_scan(patterns_path, repo, last_canary, "HEAD", ["self-test"])
+        if code != EXIT_CLEAN or "scanned 1 commit(s); 0 finding(s)." not in out:
+            raise Fault("self-test: a message matching another category was reported")
     finally:
         shutil.rmtree(work, ignore_errors=True)
     print("self-test passed: a canary in each of the four fields was found, through the pattern file, "
-          "in the middle of a name, in lower case and behind a merge; the clean commits were not.")
+          "in the middle of a name, in lower case and behind a merge; the clean commits were not. "
+          "A canary in a message body was found for its category and only when messages were read; "
+          "a canary of another category in a message was not.")
     return EXIT_CLEAN
 
 
@@ -220,10 +296,14 @@ def parse(argv):
     parser.add_argument("--head")
     parser.add_argument("--base")
     parser.add_argument("--repo", default=".")
+    parser.add_argument("--message-category", action="append", default=[], metavar="CAT",
+                        help="also read commit messages against this category's patterns (repeatable)")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args(argv)
     if not args.self_test and (not args.patterns or not args.head):
         parser.error("--patterns and --head are required unless --self-test")
+    if any(not category for category in args.message_category):
+        parser.error("--message-category needs a category name")
     return args
 
 
@@ -235,7 +315,7 @@ def main(argv):
     try:
         if args.self_test:
             return self_test()
-        return run_scan(args.patterns, args.repo, args.base, args.head)
+        return run_scan(args.patterns, args.repo, args.base, args.head, args.message_category)
     except Fault as exc:
         print("INSTRUMENT FAULT (not a finding): %s" % exc)
         return EXIT_FAULT

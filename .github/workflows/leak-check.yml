@@ -85,7 +85,8 @@ jobs:
   # seeing it. This job reads the commits the push or pull request adds, with the same secret pattern
   # list, and reports commit + field + pattern id (never the matched text). On a push it runs after
   # the fact: a merge GitHub made is already on the branch when this turns red. Commit messages are
-  # not read (see author_scan.py for why).
+  # read against the robot category only (see author_scan.py for why not every pattern), so a push
+  # that skipped the local pre-push hook is still refused for a robot name in a message.
   authors:
     runs-on: ubuntu-latest
     steps:
@@ -129,7 +130,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/lc"
           echo "$LEAK_PATTERNS_JSON_B64" | base64 -d > "$RUNNER_TEMP/lc/patterns.json"
           python3 .github/leak-check/author_scan.py --patterns "$RUNNER_TEMP/lc/patterns.json" \
-            --head "$HEAD_SHA" ${BASE:+--base "$BASE"}
+            --head "$HEAD_SHA" ${BASE:+--base "$BASE"} --message-category robot
 
   # The text scan above skips binary files, so a name drawn into a plot legend or a photo caption
   # passes it. This job OCRs only the images the push or pull request adds or modifies, with the

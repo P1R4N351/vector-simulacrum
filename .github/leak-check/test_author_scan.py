@@ -48,7 +48,9 @@ class Matching(unittest.TestCase):
         self.assertNotIn("message", author_scan.FIELDS)
 
 
-class Repository(unittest.TestCase):
+class RepoCase(unittest.TestCase):
+    """A throwaway repository with one clean commit and a pattern file; no tests of its own."""
+
     def setUp(self):
         self.work = tempfile.mkdtemp(prefix="author-scan-test-")
         self.repo = os.path.join(self.work, "repo")
@@ -75,6 +77,8 @@ class Repository(unittest.TestCase):
         return subprocess.run(["git", "-C", self.repo, "rev-parse", "HEAD"], check=True, capture_output=True,
                               text=True).stdout.strip()
 
+
+class Repository(RepoCase):
     def test_clean_range_exits_zero(self):
         self.commit("Tidy")
         code, out = run_main(["--patterns", self.patterns, "--repo", self.repo, "--base", self.base, "--head", "HEAD"])
@@ -155,6 +159,91 @@ class Repository(unittest.TestCase):
         self.assertEqual(code, author_scan.EXIT_USAGE)
 
 
+class Messages(RepoCase):
+    """Commit messages, read only against the categories named with --message-category."""
+
+    def setUp(self):
+        super().setUp()
+        with open(self.patterns, "w", encoding="utf-8") as fh:
+            json.dump({"patterns": [
+                {"id": "unit-name", "category": "robot", "regex": r"\bZQ4X\b", "flags": "i"},
+                {"id": "account", "category": "identity", "regex": r"\bnoreply\b", "flags": "i"},
+            ]}, fh)
+
+    def scan(self, *extra, base=None):
+        return run_main(["--patterns", self.patterns, "--repo", self.repo, "--base", base or self.base,
+                         "--head", "HEAD"] + list(extra))
+
+    def test_a_name_in_the_message_body_is_found_without_printing_it(self):
+        self.commit("Measure the shelf\n\nRecorded on the zq4x unit.\n")
+        sha = self.head()
+        code, out = self.scan("--message-category", "robot")
+        self.assertEqual(code, author_scan.EXIT_FINDINGS, out)
+        self.assertIn("%s: message: unit-name" % sha[:12], out)
+        self.assertIn("scanned 1 commit(s); 1 finding(s).", out)
+        self.assertNotIn("zq4x", out.lower())
+
+    def test_messages_are_not_read_without_a_category(self):
+        self.commit("Recorded on the zq4x unit")
+        code, out = self.scan()
+        self.assertEqual(code, author_scan.EXIT_CLEAN, out)
+
+    def test_a_noreply_address_in_a_message_is_not_a_finding_for_the_robot_category(self):
+        # The shape GitHub gives a squash: the account's noreply address in the message body.
+        self.commit("Squash (#128)\n\nWith Someone <1+someone@users.noreply.github.com>\n")
+        code, out = self.scan("--message-category", "robot")
+        self.assertEqual(code, author_scan.EXIT_CLEAN, out)
+        code, out = self.scan("--message-category", "identity")
+        self.assertEqual(code, author_scan.EXIT_FINDINGS, out)
+        self.assertIn("message: account", out)
+
+    def test_messages_before_the_base_are_not_read(self):
+        self.commit("Old note about zq4x")
+        old = self.head()
+        self.commit("New note")
+        code, out = self.scan("--message-category", "robot", base=old)
+        self.assertEqual(code, author_scan.EXIT_CLEAN, out)
+        self.assertIn("scanned 1 commit(s); 0 finding(s).", out)
+
+    def test_every_commit_in_the_range_is_read_including_a_merge_side(self):
+        self.git("checkout", "-q", "-b", "side")
+        self.commit("Side work on zq4x")
+        side = self.head()
+        self.git("checkout", "-q", "-")
+        self.commit("Main work")
+        self.git("merge", "-q", "--no-ff", "-m", "Merge side", "side")
+        code, out = self.scan("--message-category", "robot")
+        self.assertEqual(code, author_scan.EXIT_FINDINGS, out)
+        self.assertIn("%s: message: unit-name" % side[:12], out)
+        self.assertIn("scanned 3 commit(s); 1 finding(s).", out)
+
+    def test_a_category_with_no_pattern_is_a_fault_not_clean(self):
+        self.commit("Tidy")
+        code, out = self.scan("--message-category", "no-such-category")
+        self.assertEqual(code, author_scan.EXIT_FAULT, out)
+        self.assertIn("INSTRUMENT FAULT", out)
+
+    def test_an_empty_category_name_is_usage(self):
+        code, _ = self.scan("--message-category", "")
+        self.assertEqual(code, author_scan.EXIT_USAGE)
+
+    def test_a_pattern_whose_category_is_not_a_string_is_a_fault(self):
+        with open(self.patterns, "w", encoding="utf-8") as fh:
+            json.dump({"patterns": [{"id": "tok", "category": 7, "regex": "ZQ4X"}]}, fh)
+        code, out = self.scan("--message-category", "robot")
+        self.assertEqual(code, author_scan.EXIT_FAULT, out)
+
+
+class Workflow(unittest.TestCase):
+    def test_the_workflow_reads_messages_for_the_robot_category(self):
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "workflows", "leak-check.yml")
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+        call = text[text.index("author_scan.py --patterns"):]
+        call = call[:call.index("\n\n")]
+        self.assertIn("--message-category robot", call)
+
+
 class SelfTest(unittest.TestCase):
     def test_self_test_passes(self):
         code, out = run_main(["--self-test"])
@@ -167,6 +256,24 @@ class SelfTest(unittest.TestCase):
             code, out = run_main(["--self-test"])
         finally:
             author_scan.FIELDS = original
+        self.assertEqual(code, author_scan.EXIT_FAULT, out)
+
+    def test_self_test_fails_when_messages_are_not_read(self):
+        original = author_scan.messages
+        author_scan.messages = lambda repo, base, head: {sha: "" for sha in original(repo, base, head)}
+        try:
+            code, out = run_main(["--self-test"])
+        finally:
+            author_scan.messages = original
+        self.assertEqual(code, author_scan.EXIT_FAULT, out)
+
+    def test_self_test_fails_when_the_category_is_ignored(self):
+        original = author_scan.select_categories
+        author_scan.select_categories = lambda entries, categories: [(pid, rx) for pid, _, rx in entries]
+        try:
+            code, out = run_main(["--self-test"])
+        finally:
+            author_scan.select_categories = original
         self.assertEqual(code, author_scan.EXIT_FAULT, out)
 
 
