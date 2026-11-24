@@ -42,9 +42,11 @@ const CLIFF_RAY_MAX_M = 0.06; // drawn length of a cliff beam that sees nothing
 function styleFor(name) {
   // Stock shell contrast against the printed glyph in unit 3’s shelf images.
   if (name.startsWith("cube_shell_")) return { color: 0x3f3f3f, roughness: 0.6 };
-  if (name.startsWith("wheel_")) return PALETTE.wheel;
-  if (name.startsWith("obstacle_")) return PALETTE.obstacle;
-  return PALETTE[name] ?? null;
+  if (name === "patient_chassis_geom") return { color: 0x4e6c7a, roughness: 0.42, metalness: 0.18 };
+  const baseName = name.startsWith("patient_") ? name.slice(8) : name;
+  if (baseName.startsWith("wheel_")) return PALETTE.wheel;
+  if (baseName.startsWith("obstacle_")) return PALETTE.obstacle;
+  return PALETTE[baseName] ?? null;
 }
 
 function geomMesh(mujoco, model, index, name) {
@@ -193,7 +195,7 @@ function hideFromRobot(object) {
 
 // sdk: the loaded SDK robot model, or null to draw the robot as its physics shapes.
 // cameraSpec: the camera block of model.json.
-export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, navMap = null, dock = null) {
+export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, navMap = null, dock = null, patientSdk = null) {
   const { model } = sim;
   const v = sim.v;
   const nameOf = (kind, index) => mujoco.mj_id2name(model, mujoco.mjtObj[kind].value, index);
@@ -229,8 +231,11 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
   const robotMeshes = [];
   const dockId = idOf("mjOBJ_BODY", "dock");
   const cubeId = idOf("mjOBJ_BODY", "cube");
+  const patientChassisId = idOf("mjOBJ_BODY", "patient_chassis");
   for (let i = 0; i < model.ngeom; i++) {
-    const mesh = geomMesh(mujoco, model, i, nameOf("mjOBJ_GEOM", i));
+    const geomName = nameOf("mjOBJ_GEOM", i);
+    const mesh = geomMesh(mujoco, model, i, geomName);
+    const isPatientGeom = geomName.startsWith("patient_");
     if (model.geom_rgba[4 * i + 3] === 0) {
       mesh.visible = false;
     } else if (model.geom_bodyid[i] === cubeId) {
@@ -241,6 +246,12 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
       }
     } else if (model.geom_bodyid[i] === dockId) {
       if (dock !== null) {
+        mesh.material = SHAPE_OVERLAY;
+        mesh.castShadow = false;
+        robotMeshes.push(mesh);
+      }
+    } else if (isPatientGeom) {
+      if (patientSdk !== null) {
         mesh.material = SHAPE_OVERLAY;
         mesh.castShadow = false;
         robotMeshes.push(mesh);
@@ -257,6 +268,8 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
   if (dockId >= 0) bodies.push(["dock", dock ?? makeDockDecals({ includePins: true })]);
   let face = null;
   let shapeCleats = null;
+  let patientFace = null;
+  let patientCleats = null;
   if (sdk !== null) bodies.push(["chassis", sdk.root]); // the model's frame is the robot's: origin under the front axle
   else {
     const treads = makeTreads(v);
@@ -274,6 +287,33 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
     headGroup.add(face.mesh);
     bodies.push(["head", headGroup]);
   }
+  if (patientChassisId >= 0) {
+    if (patientSdk !== null) {
+      bodies.push(["patient_chassis", patientSdk.root]);
+    } else {
+      const pTreads = makeTreads(v);
+      patientCleats = makeShapeCleats(v);
+      pTreads.add(patientCleats.mesh);
+      bodies.push(["patient_chassis", pTreads]);
+      for (const mesh of meshes) {
+        if (!mesh.name.startsWith("patient_wheel_")) continue;
+        const { radiusTop: radius, height } = mesh.geometry.parameters;
+        for (const side of [1, -1]) mesh.add(makeSpokes(0.9 * radius, side * (0.5 * height + 0.0002), "z", 0.0003));
+      }
+      patientFace = makeFace(v.head_box_mm.map((s) => 0.0005 * s));
+      const pHeadGroup = new THREE.Group();
+      pHeadGroup.add(patientFace.mesh);
+      bodies.push(["patient_head", pHeadGroup]);
+    }
+  }
+  const contactDot = new THREE.Mesh(
+    new THREE.SphereGeometry(0.003),
+    new THREE.MeshBasicMaterial({ color: 0xff6425, depthTest: false }),
+  );
+  contactDot.renderOrder = 50;
+  contactDot.visible = false;
+  hideFromRobot(contactDot);
+  root.add(contactDot);
   const bodyGroups = bodies.map(([name, group]) => {
     root.add(group);
     return { id: idOf("mjOBJ_BODY", name), group };
@@ -431,6 +471,19 @@ export function buildVisuals(mujoco, sim, scene, sdk, cameraSpec, cube = null, n
         face.draw(mood, open);
         const frontR = 0.001 * v.wheel_front_radius_mm;
         shapeCleats.update(truth.wheel_angles_rad[0] * frontR, truth.wheel_angles_rad[1] * frontR);
+      }
+      if (patientChassisId >= 0) {
+        const patMood = truth.patient_tilt_deg > 30 ? "alarm" : "calm";
+        if (patientSdk !== null) {
+          patientSdk.setPose(sim.patientHeadAngleRad(), sim.patientLiftAngleRad(), patMood, truth.patient_wheel_angles_rad, open);
+        } else {
+          patientFace.draw(patMood, open);
+          const frontR = 0.001 * v.wheel_front_radius_mm;
+          patientCleats.update(truth.patient_wheel_angles_rad[0] * frontR, truth.patient_wheel_angles_rad[1] * frontR);
+        }
+        const pt = sim.rescueSnapshot()?.contactPoint;
+        contactDot.visible = Array.isArray(pt);
+        if (contactDot.visible) contactDot.position.fromArray(pt);
       }
     },
     clearTrail() {

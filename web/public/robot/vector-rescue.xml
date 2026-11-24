@@ -1,0 +1,176 @@
+<mujoco model="vector_simulacrum">
+  <compiler angle="radian" autolimits="true" />
+  <option timestep="0.001" gravity="0 0 -9.81" integrator="implicitfast" cone="elliptic">
+    <flag multiccd="enable" />
+  </option>
+  <worldbody>
+    <geom name="floor" type="plane" pos="0 0 -0.3" size="0 0 1" contype="0" conaffinity="3" rgba="0.5 0.5 0.5 1" />
+    <geom name="table" type="box" pos="0 0 -0.01" size="0.3 0.3 0.01" contype="0" conaffinity="3" rgba="0.8 0.7 0.55 1" />
+    <body name="chassis" pos="0 0 0">
+      <freejoint name="root" />
+      <inertial pos="-0.0303530274 0 0.0155125" mass="0.12" diaginertia="1.71284e-05 4.397e-05 4.75784e-05" />
+      <geom name="chassis_geom" type="box" pos="-0.0175 0 0.0142" size="0.0305 0.0161 0.013" rgba="0.35 0.35 0.4 1" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+      <geom name="tip_front_l" type="cylinder" fromto="0 0.0182 0.0145 0 0.0297 0.0145" size="0.0142" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      <geom name="tip_front_r" type="cylinder" fromto="0 -0.0297 0.0145 0 -0.0182 0.0145" size="0.0142" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      <geom name="tip_rear_l" type="cylinder" fromto="-0.048 0.0182 0.01075 -0.048 0.0297 0.01075" size="0.01045" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      <geom name="tip_rear_r" type="cylinder" fromto="-0.048 -0.0297 0.01075 -0.048 -0.0182 0.01075" size="0.01045" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      <site name="cliff_front_left" pos="0.002 0.014 0.008" zaxis="0 0 -1" size="0.001" />
+      <site name="cliff_front_right" pos="0.002 -0.014 0.008" zaxis="0 0 -1" size="0.001" />
+      <site name="cliff_back_left" pos="-0.05 0.014 0.008" zaxis="0 0 -1" size="0.001" />
+      <site name="cliff_back_right" pos="-0.05 -0.014 0.008" zaxis="0 0 -1" size="0.001" />
+      <site name="tof" pos="0.01 0 0.016" zaxis="0.993571856 0 0.113203214" size="0.001" />
+      <body name="wheel_fl" pos="-0.00341 0.02395 0.0145">
+        <joint name="wheel_fl_joint" type="hinge" axis="0 1 0" armature="0.000238" frictionloss="0.024578125" />
+        <geom name="wheel_fl_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0145" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="wheel_fr" pos="-0.00341 -0.02395 0.0145">
+        <joint name="wheel_fr_joint" type="hinge" axis="0 1 0" armature="0.000238" frictionloss="0.024578125" />
+        <geom name="wheel_fr_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0145" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="wheel_rl" pos="-0.04459 0.02395 0.01075">
+        <joint name="wheel_rl_joint" type="hinge" axis="0 1 0" armature="0.000238" />
+        <geom name="wheel_rl_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01075" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="wheel_rr" pos="-0.04459 -0.02395 0.01075">
+        <joint name="wheel_rr_joint" type="hinge" axis="0 1 0" armature="0.000238" />
+        <geom name="wheel_rr_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01075" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="head" pos="-0.013 0 0.049">
+        <joint name="head_joint" type="hinge" axis="0 -1 0" range="-0.383972435 0.785398163" armature="5e-06" />
+        <geom name="head_geom" type="box" pos="0.0015 0 0.001" size="0.01985 0.0232 0.0194" mass="0.03" rgba="0.25 0.25 0.3 1" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+        <camera name="head_cam" pos="0.01884 0 -0.00796" xyaxes="0 -1 0 0.0697564737 0 0.99756405" fovy="50" resolution="640 360" />
+        <site name="imu" pos="0.0058 0 -0.0135" quat="0.999983414 0 0.00575955469 0" size="0.001" />
+      </body>
+      <body name="lift_arm" pos="-0.041 0 0.045">
+        <joint name="lift_joint" type="hinge" axis="0 -1 0" range="-0.198266101 0.792515024" armature="5e-06" />
+        <geom name="lift_arm_geom" type="box" pos="0.033 0 0" size="0.033 0.015 0.002" mass="0.006" contype="0" conaffinity="0" rgba="0.3 0.3 0.3 1" group="1" />
+        <body name="lift_fork" pos="0.066 0 0">
+          <joint name="wrist_joint" type="hinge" axis="0 -1 0" />
+          <geom name="lift_fork_geom" type="box" pos="0.0015 0 -0.02425" size="0.0025 0.015 0.00425" mass="0.006" rgba="0.3 0.3 0.3 1" group="1" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_side_left" type="box" pos="0.002 0.022 -0.01" size="0.0015 0.0015 0.0105" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_side_right" type="box" pos="0.002 -0.022 -0.01" size="0.0015 0.0015 0.0105" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_upright_left" type="box" pos="0.00275 0.0174 -0.011" size="0.00175 0.0018 0.009" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_upright_right" type="box" pos="0.00275 -0.0174 -0.011" size="0.00175 0.0018 0.009" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_0_left" type="box" pos="0.00475 0.0174 -0.01125" size="0.00025 0.0018 0.00505" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_0_right" type="box" pos="0.00475 -0.0174 -0.01125" size="0.00025 0.0018 0.00505" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_1_left" type="box" pos="0.00525 0.0174 -0.01055" size="0.00025 0.0018 0.00435" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_1_right" type="box" pos="0.00525 -0.0174 -0.01055" size="0.00025 0.0018 0.00435" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_2_left" type="box" pos="0.00575 0.0174 -0.00985" size="0.00025 0.0018 0.00365" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_2_right" type="box" pos="0.00575 -0.0174 -0.00985" size="0.00025 0.0018 0.00365" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_3_left" type="box" pos="0.00625 0.0174 -0.00925" size="0.00025 0.0018 0.00305" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_3_right" type="box" pos="0.00625 -0.0174 -0.00925" size="0.00025 0.0018 0.00305" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_4_left" type="box" pos="0.00675 0.0174 -0.0083" size="0.00025 0.0018 0.0027" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_4_right" type="box" pos="0.00675 -0.0174 -0.0083" size="0.00025 0.0018 0.0027" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_5_left" type="box" pos="0.00725 0.0174 -0.0073" size="0.00025 0.0018 0.0024" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_5_right" type="box" pos="0.00725 -0.0174 -0.0073" size="0.00025 0.0018 0.0024" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_6_left" type="box" pos="0.00775 0.0174 -0.00635" size="0.00025 0.0018 0.00205" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_6_right" type="box" pos="0.00775 -0.0174 -0.00635" size="0.00025 0.0018 0.00205" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_7_left" type="box" pos="0.00825 0.0174 -0.00545" size="0.00025 0.0018 0.00175" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_7_right" type="box" pos="0.00825 -0.0174 -0.00545" size="0.00025 0.0018 0.00175" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_8_left" type="box" pos="0.00875 0.0174 -0.0045" size="0.00025 0.0018 0.0014" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_8_right" type="box" pos="0.00875 -0.0174 -0.0045" size="0.00025 0.0018 0.0014" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_9_left" type="box" pos="0.00925 0.0174 -0.0037" size="0.00025 0.0018 0.001" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_9_right" type="box" pos="0.00925 -0.0174 -0.0037" size="0.00025 0.0018 0.001" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_10_left" type="box" pos="0.00975 0.0174 -0.003" size="0.00025 0.0018 0.0004" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="fork_hook_10_right" type="box" pos="0.00975 -0.0174 -0.003" size="0.00025 0.0018 0.0004" mass="0" contype="1" conaffinity="2" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+        </body>
+      </body>
+    </body>
+    <body name="patient_chassis" pos="0 0 0">
+      <freejoint name="patient_root" />
+      <inertial pos="-0.0303530274 0 0.0155125" mass="0.12" diaginertia="1.71284e-05 4.397e-05 4.75784e-05" />
+      <geom name="patient_chassis_geom" type="box" pos="-0.0175 0 0.0142" size="0.0305 0.0161 0.013" rgba="0.35 0.35 0.4 1" group="1" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+      <geom name="patient_tip_front_l" type="cylinder" fromto="0 0.0182 0.0145 0 0.0297 0.0145" size="0.0142" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="1" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      <geom name="patient_tip_front_r" type="cylinder" fromto="0 -0.0297 0.0145 0 -0.0182 0.0145" size="0.0142" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="1" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      <geom name="patient_tip_rear_l" type="cylinder" fromto="-0.048 0.0182 0.01075 -0.048 0.0297 0.01075" size="0.01045" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="1" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      <geom name="patient_tip_rear_r" type="cylinder" fromto="-0.048 -0.0297 0.01075 -0.048 -0.0182 0.01075" size="0.01045" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="1" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      <site name="patient_cliff_front_left" pos="0.002 0.014 0.008" zaxis="0 0 -1" size="0.001" />
+      <site name="patient_cliff_front_right" pos="0.002 -0.014 0.008" zaxis="0 0 -1" size="0.001" />
+      <site name="patient_cliff_back_left" pos="-0.05 0.014 0.008" zaxis="0 0 -1" size="0.001" />
+      <site name="patient_cliff_back_right" pos="-0.05 -0.014 0.008" zaxis="0 0 -1" size="0.001" />
+      <site name="patient_tof" pos="0.01 0 0.016" zaxis="0.993571856 0 0.113203214" size="0.001" />
+      <body name="patient_wheel_fl" pos="-0.00341 0.02395 0.0145">
+        <joint name="patient_wheel_fl_joint" type="hinge" axis="0 1 0" armature="0.000238" frictionloss="0.024578125" />
+        <geom name="patient_wheel_fl_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0145" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="2" conaffinity="1" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="patient_wheel_fr" pos="-0.00341 -0.02395 0.0145">
+        <joint name="patient_wheel_fr_joint" type="hinge" axis="0 1 0" armature="0.000238" frictionloss="0.024578125" />
+        <geom name="patient_wheel_fr_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0145" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="2" conaffinity="1" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="patient_wheel_rl" pos="-0.04459 0.02395 0.01075">
+        <joint name="patient_wheel_rl_joint" type="hinge" axis="0 1 0" armature="0.000238" />
+        <geom name="patient_wheel_rl_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01075" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="2" conaffinity="1" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="patient_wheel_rr" pos="-0.04459 -0.02395 0.01075">
+        <joint name="patient_wheel_rr_joint" type="hinge" axis="0 1 0" armature="0.000238" />
+        <geom name="patient_wheel_rr_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01075" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="2" conaffinity="1" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="patient_head" pos="-0.013 0 0.049">
+        <joint name="patient_head_joint" type="hinge" axis="0 -1 0" range="-0.383972435 0.785398163" armature="5e-06" />
+        <geom name="patient_head_geom" type="box" pos="0.0015 0 0.001" size="0.01985 0.0232 0.0194" mass="0.03" rgba="0.25 0.25 0.3 1" group="1" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+        <camera name="patient_head_cam" pos="0.01884 0 -0.00796" xyaxes="0 -1 0 0.0697564737 0 0.99756405" fovy="50" resolution="640 360" />
+        <site name="patient_imu" pos="0.0058 0 -0.0135" quat="0.999983414 0 0.00575955469 0" size="0.001" />
+      </body>
+      <body name="patient_lift_arm" pos="-0.041 0 0.045">
+        <joint name="patient_lift_joint" type="hinge" axis="0 -1 0" range="-0.198266101 0.792515024" armature="5e-06" />
+        <geom name="patient_lift_arm_geom" type="box" pos="0.033 0 0" size="0.033 0.015 0.002" mass="0.006" contype="0" conaffinity="0" rgba="0.3 0.3 0.3 1" group="1" />
+        <body name="patient_lift_fork" pos="0.066 0 0">
+          <joint name="patient_wrist_joint" type="hinge" axis="0 -1 0" />
+          <geom name="patient_lift_fork_geom" type="box" pos="0.0015 0 -0.02425" size="0.0025 0.015 0.00425" mass="0.006" rgba="0.3 0.3 0.3 1" group="1" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_side_left" type="box" pos="0.002 0.022 -0.01" size="0.0015 0.0015 0.0105" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_side_right" type="box" pos="0.002 -0.022 -0.01" size="0.0015 0.0015 0.0105" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_upright_left" type="box" pos="0.00275 0.0174 -0.011" size="0.00175 0.0018 0.009" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_upright_right" type="box" pos="0.00275 -0.0174 -0.011" size="0.00175 0.0018 0.009" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_0_left" type="box" pos="0.00475 0.0174 -0.01125" size="0.00025 0.0018 0.00505" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_0_right" type="box" pos="0.00475 -0.0174 -0.01125" size="0.00025 0.0018 0.00505" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_1_left" type="box" pos="0.00525 0.0174 -0.01055" size="0.00025 0.0018 0.00435" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_1_right" type="box" pos="0.00525 -0.0174 -0.01055" size="0.00025 0.0018 0.00435" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_2_left" type="box" pos="0.00575 0.0174 -0.00985" size="0.00025 0.0018 0.00365" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_2_right" type="box" pos="0.00575 -0.0174 -0.00985" size="0.00025 0.0018 0.00365" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_3_left" type="box" pos="0.00625 0.0174 -0.00925" size="0.00025 0.0018 0.00305" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_3_right" type="box" pos="0.00625 -0.0174 -0.00925" size="0.00025 0.0018 0.00305" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_4_left" type="box" pos="0.00675 0.0174 -0.0083" size="0.00025 0.0018 0.0027" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_4_right" type="box" pos="0.00675 -0.0174 -0.0083" size="0.00025 0.0018 0.0027" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_5_left" type="box" pos="0.00725 0.0174 -0.0073" size="0.00025 0.0018 0.0024" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_5_right" type="box" pos="0.00725 -0.0174 -0.0073" size="0.00025 0.0018 0.0024" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_6_left" type="box" pos="0.00775 0.0174 -0.00635" size="0.00025 0.0018 0.00205" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_6_right" type="box" pos="0.00775 -0.0174 -0.00635" size="0.00025 0.0018 0.00205" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_7_left" type="box" pos="0.00825 0.0174 -0.00545" size="0.00025 0.0018 0.00175" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_7_right" type="box" pos="0.00825 -0.0174 -0.00545" size="0.00025 0.0018 0.00175" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_8_left" type="box" pos="0.00875 0.0174 -0.0045" size="0.00025 0.0018 0.0014" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_8_right" type="box" pos="0.00875 -0.0174 -0.0045" size="0.00025 0.0018 0.0014" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_9_left" type="box" pos="0.00925 0.0174 -0.0037" size="0.00025 0.0018 0.001" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_9_right" type="box" pos="0.00925 -0.0174 -0.0037" size="0.00025 0.0018 0.001" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_10_left" type="box" pos="0.00975 0.0174 -0.003" size="0.00025 0.0018 0.0004" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+          <geom name="patient_fork_hook_10_right" type="box" pos="0.00975 -0.0174 -0.003" size="0.00025 0.0018 0.0004" mass="0" contype="2" conaffinity="1" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <equality>
+    <joint name="left_tread" joint1="wheel_rl_joint" joint2="wheel_fl_joint" polycoef="0 1.34883721 0 0 0" solref="0.002 1" />
+    <joint name="right_tread" joint1="wheel_rr_joint" joint2="wheel_fr_joint" polycoef="0 1.34883721 0 0 0" solref="0.002 1" />
+    <joint name="lift_level" joint1="wrist_joint" joint2="lift_joint" polycoef="0 -1 0 0 0" solref="0.002 1" />
+    <joint name="patient_left_tread" joint1="patient_wheel_rl_joint" joint2="patient_wheel_fl_joint" polycoef="0 1.34883721 0 0 0" solref="0.002 1" />
+    <joint name="patient_right_tread" joint1="patient_wheel_rr_joint" joint2="patient_wheel_fr_joint" polycoef="0 1.34883721 0 0 0" solref="0.002 1" />
+    <joint name="patient_lift_level" joint1="patient_wrist_joint" joint2="patient_lift_joint" polycoef="0 -1 0 0 0" solref="0.002 1" />
+  </equality>
+  <actuator>
+    <general name="left_wheel" joint="wheel_fl_joint" gainprm="0.15625" biastype="affine" biasprm="0 0 -0.00742827869" ctrlrange="-1 1" />
+    <general name="right_wheel" joint="wheel_fr_joint" gainprm="0.15625" biastype="affine" biasprm="0 0 -0.00742827869" ctrlrange="-1 1" />
+    <position name="head" joint="head_joint" kp="0.3" kv="0.004" ctrlrange="-0.383972435 0.785398163" forcerange="-0.03 0.03" />
+    <position name="lift" joint="lift_joint" kp="0.6" kv="0.012" ctrlrange="-0.364932768 0.959181691" forcerange="-0.06 0.06" />
+    <general name="patient_left_wheel" joint="patient_wheel_fl_joint" gainprm="0.15625" biastype="affine" biasprm="0 0 -0.00742827869" ctrlrange="-1 1" />
+    <general name="patient_right_wheel" joint="patient_wheel_fr_joint" gainprm="0.15625" biastype="affine" biasprm="0 0 -0.00742827869" ctrlrange="-1 1" />
+    <position name="patient_head" joint="patient_head_joint" kp="0.3" kv="0.004" ctrlrange="-0.383972435 0.785398163" forcerange="-0.03 0.03" />
+    <position name="patient_lift" joint="patient_lift_joint" kp="0.6" kv="0.012" ctrlrange="-0.364932768 0.959181691" forcerange="-0.06 0.06" />
+  </actuator>
+  <sensor>
+    <rangefinder name="cliff_front_left" site="cliff_front_left" />
+    <rangefinder name="cliff_front_right" site="cliff_front_right" />
+    <rangefinder name="cliff_back_left" site="cliff_back_left" />
+    <rangefinder name="cliff_back_right" site="cliff_back_right" />
+    <gyro name="gyro" site="imu" />
+    <accelerometer name="accel" site="imu" />
+  </sensor>
+</mujoco>

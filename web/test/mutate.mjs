@@ -21,11 +21,13 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const COPIED = ["src/sim", "src/game", "src/program", "test", "public/robot/vector.xml", "public/robot/vector-contact42.xml",
   "public/robot/vector-free.xml", "public/robot/vector-contact42-free.xml", "public/robot/vector-dock.xml",
   "public/robot/vector-contact42-dock.xml", "public/robot/vector-free-dock.xml",
-  "public/robot/vector-contact42-free-dock.xml", "public/robot/model.json",
+  "public/robot/vector-contact42-free-dock.xml", "public/robot/vector-rescue.xml", "public/robot/vector-rescue-free.xml",
+  "public/robot/model.json",
   "public/robot/vector2", "public/robot/nomad", "camera_calibration.json", "camera_calibration_vector2.json", "package.json"];
 const SUITE = ["test/drive.test.js", "test/hazards.test.js", "test/robot.test.js", "test/tracks.test.js", "test/optics.test.js",
   "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js",
-  "test/program.test.js", "test/firmware.test.js", "test/autonomy.test.js", "test/nomad.test.js", "test/lift-integral.test.js"];
+  "test/program.test.js", "test/firmware.test.js", "test/autonomy.test.js", "test/nomad.test.js", "test/lift-integral.test.js",
+  "test/rescue.test.js"];
 const ARMS = [
   { name: "control: untouched copy", file: null, mustFail: false },
   { name: "neutral: a comment added", file: "src/sim/drive.js", old: "export class TreadEncoder {", new: "// neutral change\nexport class TreadEncoder {", mustFail: false },
@@ -110,6 +112,10 @@ const ARMS = [
   { name: "nomad: DDIM denoising step flips noise sign", file: "src/sim/nomad.js", old: "const x0 = clamp((x[i] - sOneT * eps[i]) / sAbT, -1.8, 1.8);", new: "const x0 = clamp((x[i] + sOneT * eps[i]) / sAbT, -1.8, 1.8);", mustFail: true },
   { name: "nomad: topological Dijkstra ignores edge weights", file: "src/sim/nomad.js", old: "const alt = dist[u] + w;", new: "const alt = dist[u] + 1;", mustFail: true },
   { name: "nomad: trajectory selector rewards driving off cliff", file: "src/sim/nomad.js", old: "if (state.cliff_detected && traj[1][0] > 0) score -= 250;", new: "if (state.cliff_detected && traj[1][0] > 0) score += 250;", mustFail: true },
+  { name: "rescue: sidewaysQuat leaves patient upright", file: "src/sim/rescue.js", old: "return mulQuat(axisQuat(0, 0, 1, side * HALF_PI), axisQuat(1, 0, 0, side * HALF_PI));", new: "return [1, 0, 0, 0];", mustFail: true },
+  { name: "rescue: stage C approach yaw faces +X instead of patient", file: "src/sim/rescue.js", old: "const yaw = 168.7 * DEG * side;", new: "const yaw = 0;", mustFail: true },
+  { name: "rescue: stage A never releases cube carry weld", file: "src/sim/rescue.js", old: "data.eq_active[this._carryWeld] = 0;\n        ctx.releasedAtS = data.time;", new: "data.eq_active[this._carryWeld] = 1;\n        ctx.releasedAtS = data.time;", mustFail: true },
+  { name: "rescue: stage C lever never raises fork", file: "src/sim/rescue.js", old: "const rise = clamp((elapsed - 0.09) / 0.23, 0, 1);", new: "const rise = 0;", mustFail: true },
 ];
 
 function makeCopy() {

@@ -81,6 +81,25 @@ const nav = await robot.nomad_navigate(4, goal.node_id);
 print("navigate:", nav.result, "pred_dist:", nav.pred_dist, "nodes:", robot.state.nomad_nodes);
 `,
   },
+  {
+    id: "rescue",
+    title: "Rescue fallen Vector",
+    source: `// Two-robot continuous righting macro (?env=rescue): direct and cube-assisted.
+if (!robot.state.has_patient) {
+  print("Single-robot table scene: open ?env=rescue to stage a sideways patient Vector.");
+  await robot.set_lift_height(0.25);
+  await robot.drive_straight(40, 60);
+  await robot.set_lift_height(1.0);
+  await robot.set_lift_height(0.0);
+} else {
+  for (const side of ["right", "left"]) {
+    await robot.reset_rescue(side, "auto");
+    const r = await robot.rescue_patient("auto");
+    print(side, r.mode, r.result, "tilt:", r.final_tilt_deg.toFixed(1) + "°", "clear:", r.rescuer_clear);
+  }
+}
+`,
+  },
 ];
 
 export function exampleById(id) {

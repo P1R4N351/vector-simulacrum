@@ -106,21 +106,27 @@ async function checkModel(xml, expectedHash) {
 
 async function loadEverything() {
   const options = new URLSearchParams(location.search);
-  const trial = options.get("contact") === "42";
-  const shelf = options.get("env") === "shelf" ||
-    (!options.has("env") && options.get("cubeSensor") === "unit3");
-  const free = shelf || !["none", "0"].includes(options.get("cube"));
-  const hasTableDock = !shelf && !["none", "0"].includes(options.get("dock"));
-  const startDocked = options.get("start") === "docked" || options.get("dock") === "docked";
+  const rescue = options.get("env") === "rescue";
+  const trial = !rescue && options.get("contact") === "42";
+  const shelf = !rescue && (options.get("env") === "shelf" ||
+    (!options.has("env") && options.get("cubeSensor") === "unit3"));
+  const free = rescue
+    ? !["none", "0"].includes(options.get("cube"))
+    : (shelf || !["none", "0"].includes(options.get("cube")));
+  const hasTableDock = !rescue && !shelf && !["none", "0"].includes(options.get("dock"));
+  const startDocked = !rescue && (options.get("start") === "docked" || options.get("dock") === "docked");
   const vector2 = shelf || options.get("robot") === "2";
   const printedFork = options.get("fork") === "printed";
   if (printedFork && !vector2) throw new Error("Printed fork calibration requires robot=2");
+  if (printedFork && rescue) throw new Error("Printed fork calibration is not exported for env=rescue");
   const directory = vector2 ? "./robot/vector2" + (printedFork ? "/printed" : "") : "./robot";
-  const sceneName = (trial ? "vector-contact42" : "vector") + (free ? "-free" : "")
-    + (shelf ? "-shelf" : hasTableDock ? "-dock" : "");
+  const sceneName = rescue
+    ? (free ? "vector-rescue-free" : "vector-rescue")
+    : (trial ? "vector-contact42" : "vector") + (free ? "-free" : "")
+      + (shelf ? "-shelf" : hasTableDock ? "-dock" : "");
   const [{ default: loadMujoco }, xml, modelText] = await Promise.all([
     traced("PHYSICS RUNTIME", import("@mujoco/mujoco")),
-    traced(trial ? "ROBOT MODEL · 42 MM CONTACT" : "ROBOT MODEL",
+    traced(rescue ? "RESCUE SCENE" : (trial ? "ROBOT MODEL · 42 MM CONTACT" : "ROBOT MODEL"),
       fetchText(`${directory}/${sceneName}.xml`)),
     traced("PARAMETER TABLE", fetchText(`${directory}/model.json`)),
   ]);
@@ -135,10 +141,12 @@ async function loadEverything() {
   const doneCompile = bootLine("COMPILE AND SETTLE");
   const mapFile = options.get("map") === "live" ? "shelf-navmap-live.json" : "shelf-navmap.json";
   const navMap = shelf ? JSON.parse(await fetchText("./robot/vector2/" + mapFile)) : null;
+  const rescueSide = options.get("side") === "left" ? -1 : 1;
+  const rescueMode = options.get("rescueMode") ?? "auto";
   const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, camera: model.camera,
     controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
     cubeStartXY: shelf ? mappedCubeXY(navMap, model.values.cube_size_mm, -66, 30) : null,
-    startDocked,
+    startDocked, rescueSide, rescueMode,
     shelfOutline: shelf ? model.shelf_outline_mm : null,
     bodyRangeClock: options.has("rangeClock") ? options.get("rangeClock") === "body" : undefined, chargerContact: options.get("chargerContact") === "1" });
   doneCompile("OK");
@@ -262,6 +270,8 @@ function telemetryOf(sim, extra) {
     on_charger: t.on_charger, on_charger_platform: t.on_charger_platform,
     firmware_active: t.firmware_active, autonomy_phase: t.autonomy_phase,
     nomad_ready: t.nomad_ready, firmware: sim.firmwareStatus(),
+    has_patient: t.has_patient, patient_tilt_deg: t.patient_tilt_deg, patient_upright: t.patient_upright,
+    patient_side: t.patient_side, rescue_stage: t.rescue_stage, rescuer_clear: t.rescuer_clear,
   };
 }
 
@@ -284,6 +294,62 @@ function installApi(ctx) {
       visuals.clearTrail();
       useGame.setState({ lastAction: null });
       note(null);
+    },
+    rescueRun: () => {
+      if (programs.running) {
+        note("A program is running: stop it first");
+        return;
+      }
+      if (!sim.hasPatient) {
+        note("Load ?env=rescue (or click Rescue scene) to run the two-robot rescue macro");
+        return;
+      }
+      if (!sim.rescuePatient("auto")) {
+        note(sim.hasControl ? "Refused: an action is already running" : "Refused: no control (press X)");
+      }
+    },
+    rescueDirect: () => {
+      if (programs.running) {
+        note("A program is running: stop it first");
+        return;
+      }
+      if (!sim.hasPatient) return;
+      if (!sim.resetRescue(useGame.getState().rescueSide, "direct")) {
+        note("Refused: an action is already running");
+        return;
+      }
+      driver.reset();
+      visuals.clearTrail();
+      sim.rescuePatient("direct");
+    },
+    toggleRescueSide: () => {
+      if (programs.running) {
+        note("A program is running: stop it first");
+        return;
+      }
+      if (!sim.hasPatient) return;
+      const next = useGame.getState().rescueSide === "right" ? "left" : "right";
+      if (!sim.resetRescue(next, "auto")) {
+        note("Refused: an action is already running");
+        return;
+      }
+      driver.reset();
+      visuals.clearTrail();
+      useGame.setState({ rescueSide: next, lastAction: null });
+      note(`Patient placed on ${next} side`);
+    },
+    openRescueScene: () => {
+      const q = new URLSearchParams(location.search);
+      const next = new URLSearchParams();
+      if (q.get("robot") === "2") next.set("robot", "2");
+      next.set("env", "rescue");
+      location.search = next.toString();
+    },
+    openTableScene: () => {
+      const q = new URLSearchParams(location.search);
+      const next = new URLSearchParams();
+      if (q.get("robot") === "2") next.set("robot", "2");
+      location.search = next.toString();
     },
     toggleDockStart: () => {
       if (programs.running) {
@@ -347,6 +413,7 @@ function installApi(ctx) {
     press: (name) => press[name]?.(), setPad: (fwd, turn) => ctx.input.setPad(fwd, turn), trail: () => visuals.trailPoints(),
     navMap: () => sim.navMapSnapshot(),
     nomad: () => sim.nomadSnapshot(),
+    rescue: () => sim.rescueSnapshot(),
     runProgram: (source) => {
       programs.stop(); // a run in progress is replaced
       if (wireos) note("WireOS controls the motors: programs run only without WireOS");
@@ -531,7 +598,13 @@ export async function bootGame(canvas) {
   try {
     const view = makeRenderer(canvas);
     const { mujoco, model, sim, free, navMap } = await loadEverything();
+    if (sim.hasPatient) {
+      view.camera.position.set(0.32, 0.24, 0.36);
+      view.controls.target.set(-0.02, 0.02, 0);
+      view.controls.update();
+    }
     const sdk = await loadRobotLook(model);
+    const patientSdk = sim.hasPatient && sdk !== null ? await loadRobotLook(model) : null;
     const doneScene = bootLine("SCENE");
     const options = new URLSearchParams(window.location.search);
     const cube = free && options.get("look") !== "shapes"
@@ -539,7 +612,7 @@ export async function bootGame(canvas) {
       : null;
     const dockId = mujoco.mj_name2id(sim.model, mujoco.mjtObj.mjOBJ_BODY.value, "dock");
     const dock = dockId >= 0 && options.get("look") !== "shapes" ? await loadDockLook() : null;
-    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube, navMap, dock);
+    const visuals = buildVisuals(mujoco, sim, view.scene, sdk, model.camera, cube, navMap, dock, patientSdk);
     // The worker is named here, in this form, so that the bundler finds it and builds it.
     const programs = createProgramRunner(sim, () => new Worker(new URL("../program/worker.js", import.meta.url), { type: "module" }));
     const ctx = { ...view, sim, visuals, driver: makeDriver(sim), programs, input: null, raf: 0 };
@@ -551,6 +624,9 @@ export async function bootGame(canvas) {
       robotLook: sdk === null ? "shapes" : "sdk",
       hasDock: dockId >= 0,
       startDocked: Boolean(sim.startDocked),
+      hasPatient: sim.hasPatient,
+      hasCube: free,
+      rescueSide: sim.rescueSnapshot()?.side ?? "right",
     });
     if (typeof window !== "undefined") {
       window.__sim = sim; // debug handles, as window.__store

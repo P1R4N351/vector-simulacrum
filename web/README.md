@@ -88,8 +88,10 @@ shows the shell and rubber contact boxes.
 | Query parameter | Values | Effect |
 |---|---|---|
 | `robot` | `2` | Select Vector 2.0 table parameters and scenes (`vector2/`; default Vector 1.0) |
-| `env` | `shelf` | Load Vector 2.0 shelf scene (`vector-free-shelf.xml`), dock, cube, navmap, and body-clock ToF |
-| `cube` | `none`, `0`, `free` | Omit or enable the free Light Cube on table scenes (on by default) |
+| `env` | `shelf`, `rescue` | Load Vector 2.0 shelf scene (`vector-free-shelf.xml`), dock, cube, navmap, and body-clock ToF; or two-robot righting rescue scene (`vector-rescue-free.xml` / `vector-rescue.xml`) |
+| `side` | `right`, `left` | Initial sideways patient orientation in `env=rescue` (default `right`) |
+| `rescueMode` | `auto`, `cube`, `direct` | Righting strategy in `env=rescue` (`auto` selects cube-assisted when a free cube is present) |
+| `cube` | `none`, `0`, `free` | Omit or enable the free Light Cube on table and `env=rescue` scenes (on by default; `cube=none` selects `vector-rescue.xml` for direct rescue) |
 | `dock` | `none`, `0`, `docked` | Omit the charger dock (`none`/`0`) or start seated on the pins (`docked`) |
 | `start` | `docked` | Start seated on the charger dock |
 | `contact` | `42` | Use the 42 mm tread contact-span scenes (`vector-contact42*`) |
@@ -118,7 +120,7 @@ recordings of the same physical cube (828 slots each, same resting pose).
 
 The **Program** tab, next to Controls, holds a small editor. Write a robot
 program in it, press Run (or Ctrl+Enter, ⌘+Enter on a Mac), and it drives the
-simulated robot in the page: no Python, no server. Five examples load from
+simulated robot in the page: no Python, no server. Six examples load from
 the menu:
 
 1. **Drive a square** (`square`)
@@ -126,12 +128,13 @@ the menu:
 3. **Drive at the edge** (`edge`)
 4. **Explore and self-dock** (`explore-dock`)
 5. **NoMaD visual explore & navigate** (`nomad-nav`)
+6. **Rescue fallen Vector** (`rescue`)
 
 In addition to `drive_straight`, `turn_in_place`, `set_head_angle`,
 `set_lift_height`, `set_wheel_motors`, `stop_all_motors`, `request_control`,
 and `wait`, `robot` exposes `drive_off_charger`, `explore`,
-`dock_with_charger`, `nomad_capture_goal`, `nomad_explore`, and
-`nomad_navigate` (listed under "Robot calls" in the tab).
+`dock_with_charger`, `nomad_capture_goal`, `nomad_explore`,
+`nomad_navigate`, `rescue_patient`, and `reset_rescue` (listed under "Robot calls" in the tab).
 
 ```js
 const drove = await robot.drive_straight(120, 80);   // mm, mm/s
@@ -390,15 +393,15 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 
 | | |
 |---|---|
-| `src/sim/` | The port: `drive.js`, `hazards.js`, `prox.js`, `imu_filter.js`, `robot.js`, `util.js`; `optics.js` (camera geometry); `thumb.js`, `cube_firmware.js`, `syscon_firmware.js`, `wire_body.js` (real firmware execution & body relay); `cube_sensor.js`, `cube_listeners.js`, `shelf_cube_pose.js`, `shelf_cube.json` (Light Cube BMA253 + tap/movement listeners); `autonomy.js` (optical marker localization, `NavMapGrid`, explore & self-dock); and `nomad.js`, `nomad_cam.js` (pure Float32 Goal-Masked NoMaD Transformer + FiLM 1D U-Net + DDIM sampler, `TopologicalGraph`) |
-| `public/robot/` | Exported Vector 1.0 (`vector*.xml`, `model.json`) and Vector 2.0 (`vector2/vector*.xml`, `vector2/model.json`, `vector2/shelf-navmap.json`) MuJoCo scenes |
+| `src/sim/` | The port: `drive.js`, `hazards.js`, `prox.js`, `imu_filter.js`, `robot.js`, `util.js`; `optics.js` (camera geometry); `thumb.js`, `cube_firmware.js`, `syscon_firmware.js`, `wire_body.js` (real firmware execution & body relay); `cube_sensor.js`, `cube_listeners.js`, `shelf_cube_pose.js`, `shelf_cube.json` (Light Cube BMA253 + tap/movement listeners); `autonomy.js` (optical marker localization, `NavMapGrid`, explore & self-dock); `nomad.js`, `nomad_cam.js` (pure Float32 Goal-Masked NoMaD Transformer + FiLM 1D U-Net + DDIM sampler, `TopologicalGraph`); and `rescue.js` (continuous two-robot direct and cube-assisted righting macro, MuJoCo contact inspection) |
+| `public/robot/` | Exported Vector 1.0 (`vector*.xml`, `model.json`) and Vector 2.0 (`vector2/vector*.xml`, `vector2/model.json`, `vector2/shelf-navmap.json`) MuJoCo scenes, including two-robot `vector-rescue*.xml` righting scenes |
 | `public/robot/nomad/` | Pretrained Float32 weights (`nomad_weights.bin`, `nomad.json`) and ONNX graphs (`nomad_encoder.onnx`, `nomad_denoiser.onnx`) exported by `train_nomad.py` |
 | `src/game/` | `game.js` (boot, control loop, views), `scene.js` (drawing), `sdkmodel.js` (SDK model), `rigmodel.js` (blended `Victor_rig_01` rig), `dock.js` (charger dock OBJ & decals), `cube.js`, `cube-marks/` (blended `Victor_cube_rig` & fiducials), `face.js`, `wire_face.js`, `headcam.js`, `wire_camera.js` (robot camera & WireOS bridge), `tracks.js` (track path, cleats, spokes), `liftlinks.js`, `printparts.js`, `shell.js`, `topology.js`, `underbody.js`, `input.js` |
 | `camera_calibration*.json` | Measured factory camera calibrations (`camera_calibration.json` for Vector 1.0, `camera_calibration_vector2.json` for Vector 2.0) |
 | `src/program/` | Programs written in the page: `host.js` (the robot end, calls against the simulator in robot time), `runtime.js` (the robot object, running a program, line numbers), `worker.js`, `runner.js` (the page end), `examples.js`. All but `worker.js` run under node |
 | `src/ui/`, `src/store.js` | The panels (`Hud.jsx`, `BootOverlay.jsx`, `MiniMap.jsx`, `ProgramPanel.jsx`) and the store between them and the core |
 | `tools/` | Exporters, fetchers & relays: `export_model.py` (`--check` for drift), `export_printed_fork.py`, `cube-landing-fixture.py`; `fetch_sdk_model.py`, `fetch_rig_model.py`, `fetch_dock_model.py`, `fetch_cube_model.py`, `fetch_firmware.py`, `fetch_print_parts.py`; JS replay tools `cube-rest.mjs`, `cube-range-replay.mjs`, `replay-cube-listeners.mjs`; WireOS relay `wire_relay.js`, `wire_camera.js`, `run-wire-robot.sh`, `run-wire-stack.sh` |
-| `test/` | Node tests (`29` `*.test.js` files, `127` tests), `mutate.mjs` (`83` arms), and Python parity fixtures |
+| `test/` | Node tests (`30` `*.test.js` files, `133` tests), `mutate.mjs` (`87` arms), and Python parity fixtures |
 | `demo.sh`, `Dockerfile` | One command to a running page; a static container on port 8080 (`WITH_FIRMWARE=1` bundles real firmware) |
 
 ### Standalone real firmware & autonomous explore / self-docking
@@ -412,6 +415,14 @@ Use the **Explore**, **Dock**, and **Undock** HUD buttons — or `await robot.ex
 Goal-Masked Diffusion Policies (Sridhar et al., ICRA 2024) run natively in the browser in Float32 JavaScript (`src/sim/nomad.js`, `src/sim/nomad_cam.js`) without PyTorch or external ML runtime dependencies, matching the PyTorch/ONNX training export (`public/robot/nomad/nomad_weights.bin`) to `< 1e-4`. At boot the page loads `./robot/nomad/nomad.json` and `nomad_weights.bin`, renders `64x36` live and goal thumbnails in the right panel, and overlays the `TopologicalGraph` nodes/edges and `4` DDIM candidate waypoint trajectories on the MiniMap.
 
 Use **Capture goal**, **NoMaD explore**, and **NoMaD navigate** in Controls — or `await robot.nomad_capture_goal(label?)`, `await robot.nomad_explore(seconds?)`, and `await robot.nomad_navigate(max_seconds?, goal_id?)` in **Program** (see `"NoMaD visual explore & navigate"`). With `goal_mask = 1`, the Transformer encoder ignores `goal_img` (`< 1e-6` invariance) and expands the topological memory graph safely within cliff and forward-ToF bounds; with `goal_mask = 0`, Dijkstra selects the intermediate topological subgoal and DDIM steers toward the goal view.
+
+### Two-robot righting rescue macro
+
+Open `?env=rescue` (or click **Rescue scene** in **Controls**) to load the canonical two-robot MuJoCo 4.0.1 scene (`vector-rescue-free.xml` by default, or `vector-rescue.xml` with `?cube=none`; also works with `?robot=2`, `?side=left|right`, and `?rescueMode=auto|cube|direct`). An upright rescuer Vector faces a fallen `patient_` Vector lying sideways at `90°` tilt, using the ported continuous righting controller (`src/sim/rescue.js` from [rescue_pipeline.py](../experiments/righting/rescue_pipeline.py)): cube-assisted carry/lower/release + waypoint lever stroke (`stage_a` → `stage_b` → `stage_c_nav` → `stage_c_settle` → `stage_c_lever`) or direct waypoint lever stroke (`direct`).
+
+- **Controls & HUD:** **Run rescue macro**, **Direct rescue** (when a free cube is present), **Patient: right|left**, and **Table scene** switch and run scenarios directly; status chips and readouts display `PATIENT SIDEWAYS` / `PATIENT UPRIGHT`, patient tilt & side, active rescue stage, and rescuer contact clearance.
+- **3D & MiniMap overlays:** Active rescuer-fork contact renders as an orange marker in the scene (excluded from the robot camera's layer), and the MiniMap overlays the free cube plus the patient pose (amber while sideways, cyan once upright).
+- **Program API & tests:** `await robot.rescue_patient(mode?)` and `await robot.reset_rescue(side?, mode?)` drive the macro inside **Program** (see example **Rescue fallen Vector**), verified in [rescue.test.js](test/rescue.test.js) and [mutate.mjs](test/mutate.mjs).
 
 To use the measured shelf cube with the free scene, open
 `?cube=free&cubeSensor=unit3`. This selects its chip scale, noise and word format

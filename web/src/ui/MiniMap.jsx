@@ -97,6 +97,26 @@ function draw(ctx, model, t) {
     }
     ctx.stroke();
   }
+  const rescue = gameApi.rescue?.();
+  if (rescue?.hasPatient) {
+    if (rescue.cubePosMm) {
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillRect(sx(rescue.cubePosMm[1]) - 3, sy(rescue.cubePosMm[0]) - 3, 6, 6);
+    }
+    if (rescue.patientPosMm) {
+      ctx.save();
+      ctx.translate(sx(rescue.patientPosMm[1]), sy(rescue.patientPosMm[0]));
+      ctx.rotate(-((rescue.patientYawDeg ?? 0) * Math.PI) / 180);
+      ctx.fillStyle = rescue.patientUpright ? "#38bdf8" : "#ffb547";
+      ctx.beginPath();
+      ctx.moveTo(0, -6);
+      ctx.lineTo(4.5, 4.5);
+      ctx.lineTo(-4.5, 4.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  }
   ctx.save();
   ctx.translate(sx(t.y_mm), sy(t.x_mm));
   ctx.rotate(-heading);

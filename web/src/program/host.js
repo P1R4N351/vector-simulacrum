@@ -33,6 +33,12 @@ function number(name, label, value, { positive = false, optional = false } = {})
   return value;
 }
 
+function stringOpt(name, label, value) {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string") throw new RobotCallError(`${name}: ${label} must be a string`);
+  return value;
+}
+
 // name -> { args: how many the call takes at most, start(host, args) }.
 // start returns { now: value } for a call that takes no time, or { timed } for one that does.
 const CALLS = {
@@ -79,6 +85,30 @@ const CALLS = {
       return h.sim.nomadNavigate(limit, parsedId);
     }),
   },
+  rescue_patient: {
+    args: 1,
+    start: (h, [mode]) => h._action(() => {
+      const m = stringOpt("rescue_patient", "mode", mode) ?? "auto";
+      if (!["auto", "cube", "direct"].includes(m)) {
+        throw new RobotCallError('rescue_patient: mode must be "auto", "cube", or "direct"');
+      }
+      if (!h.sim.hasPatient) throw new RobotCallError("rescue_patient requires ?env=rescue");
+      return h.sim.rescuePatient(m);
+    }),
+  },
+  reset_rescue: {
+    args: 2,
+    start: (h, [side, mode]) => {
+      const s = stringOpt("reset_rescue", "side", side) ?? "right";
+      const m = stringOpt("reset_rescue", "mode", mode) ?? "auto";
+      if (!["right", "left"].includes(s)) throw new RobotCallError('reset_rescue: side must be "right" or "left"');
+      if (!["auto", "cube", "direct"].includes(m)) {
+        throw new RobotCallError('reset_rescue: mode must be "auto", "cube", or "direct"');
+      }
+      if (!h.sim.hasPatient) throw new RobotCallError("reset_rescue requires ?env=rescue");
+      return { now: h.sim.resetRescue(s, m) };
+    },
+  },
   state: { args: 0, start: () => ({ now: null }) },
   wait: {
     args: 1, start: (h, [s]) => {
@@ -115,10 +145,17 @@ export class ProgramHost {
   snapshot() {
     const s = this.sim.state;
     assert(s && typeof s === "object", "the robot has not reported a state yet");
+    const r = this.sim.rescueSnapshot();
     return {
       ...s, pose_angle_deg: s.pose_angle_rad / DEG, head_angle_deg: s.head_angle_rad / DEG,
       now_s: this.sim.tickCount * this.sim.dt, nomad_nodes: this.sim.nomadSnapshot().nodes.length,
       on_charger: this.sim.chargerContact, battery_volts: this.sim.batteryVolts,
+      has_patient: Boolean(r),
+      patient_tilt_deg: r ? r.patientTiltDeg : null,
+      patient_upright: r ? r.patientUpright : false,
+      patient_side: r ? r.side : null,
+      rescue_stage: r ? r.stage : null,
+      rescuer_clear: r ? r.rescuerClear : true,
     };
   }
 
