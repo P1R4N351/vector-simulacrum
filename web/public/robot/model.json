@@ -94,6 +94,8 @@
   "vector-dock_sha256": "aafe71071ccb8bff904280a15f2ddb6084135cf29765ce5101e520b3f317b115",
   "vector-free-dock_sha256": "9460c588ab01dd329e012793c917988d59fba9481b6bed4dd7ed1b0e69864c32",
   "vector-free_sha256": "2b1166b00915c72c8b60b0bf00717572f2b4e81e42152c51180348ab5dcc9c90",
+  "vector-rescue-free_sha256": "6659f69694efcdd43d7c167f633c5251911e0b196bd43ede76ac94efa890827a",
+  "vector-rescue_sha256": "0c9879c5038f4ebae0a2821ce15f5e8c6a87b14a93333f2ffd74653ce75adb21",
   "xml_sha256": "0a74cfff7a62c755a4fb3b0d65eb5193b6672f1b4d7cde686645e3cdc6a48414"
  },
  "values": {

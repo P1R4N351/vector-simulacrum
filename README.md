@@ -65,7 +65,7 @@ values, ranked" below).
 | `simulacrum/nomad_cam.py`, `nomad_model.py`, `nomad_onnx.py`, `nomad.py` | Goal-Masked NoMaD visual diffusion policy (`64x36` calibrated `head_cam` renderer, Transformer + FiLM 1D U-Net + DDIM sampler, `TopologicalGraph`, closed-loop explorer/navigator) |
 | `cube_firmware/` | Cortex-M0 Thumb mean-per-tick cube app (`tick_avg.s`, `tick_avg.c`), XXTEA DFU tool (`dfu.py`), ARMv6-M interpreter (`thumb.py`), and `mutate_tick.py` |
 | `hardware/` | Host-side recording and capture tools (`record_barriered.py`, `record_listen.py`, `hold_cube.py`, `cube_accel.py`, `capture_peers.py`, `save_capture.py`, `board_echo.py`, `play_board_probe.py`). **Nothing here connects to or runs against a robot automatically** |
-| `web/` | Browser MuJoCo 4.0.1 WebAssembly + Three.js simulator, Program tab, WireOS relay, NoMaD visual navigation, Node tests, and mutation suite (`web/README.md`) |
+| `web/` | Browser MuJoCo 4.0.1 WebAssembly + Three.js simulator, Program tab, WireOS relay, NoMaD visual navigation, two-robot righting rescue macro, Node tests, and mutation suite (`web/README.md`) |
 | `contrib/` | Contributor recording kit (`contrib/kit/`), privacy scrub, schema validator (`contrib/validator.py`), and `contrib/UNITS.md` |
 | `replay_recording.py`, `fit_recording.py`, `fit_spins.py` | Replay scoring, coordinate parameter fit, and spin-inset fit (print values, change no file) |
 | `train.py`, `train_nomad.py`, `run_policy.py`, `run_nomad.py`, `evaluate.py`, `smoke.py` | Train and export PPO / NoMaD policies; run without torch; compare baselines |
@@ -74,7 +74,7 @@ values, ranked" below).
 | `demo.py`, `measure.py` | A short run; the model figures quoted below |
 | `evidence/hw-rec-20261115/` | The initial recording, the script that made it, SHA-256 in the table's `REC` source |
 | `evidence/` | Smoke run learning curves and outputs; fit, replay, measurement, ranking, cube pickup, wheelstand, dock, and fault-check evidence |
-| `tests/` | `run_all.py` (36 test modules, 484 declared tests), `test_cube_pickup.py` (10 standalone pickup tests; 37 `test_*.py` files total), `mutate.py` (273 fault arms + 1 neutral control) |
+| `tests/` | `run_all.py` (36 test modules, 485 declared tests), `test_cube_pickup.py` (10 standalone pickup tests; 37 `test_*.py` files total), `mutate.py` (273 fault arms + 1 neutral control) |
 | `run_in_ct.sh` | Copies this directory into a container host and runs a file there, on MuJoCo 4.0.1 |
 | `env/`, `pinned_run.py`, `simulacrum/mujoco_pin.py` | The pinned MuJoCo 4.0.1 environment (hashed wheels, setup script) and the check that a run used it |
 | `mcp_server.py`, `simulacrum/mcp_service.py` | An MCP server over stdio: the table, the recordings and the recorder's command line as tools. Read-only; no robot, no MuJoCo |
@@ -1736,20 +1736,20 @@ matters for deployment: same observation, same action.
 
 ### Current suite
 
-- **`tests/run_all.py`**: **36** test modules (**484** declared tests), plus
+- **`tests/run_all.py`**: **36** test modules (**485** declared tests), plus
   standalone `tests/test_cube_pickup.py` (**10** tests; **37** `test_*.py`
   files total). On pinned MuJoCo 4.0.1 without Anki's optional proprietary
-  `cube.dfu` / `key.h` or optional fetched meshes: `declared 484, ran 484,
-  passed 441, failed 0, errored 0, skipped 43 (16 optional)`, and
+  `cube.dfu` / `key.h` or optional fetched meshes: `declared 485, ran 485,
+  passed 442, failed 0, errored 0, skipped 43 (16 optional)`, and
   `test_cube_pickup.py`: `10/10` passed.
 - **`tests/mutate.py`**: **273** fault arms (**93** requiring MuJoCo, **180**
   without MuJoCo) plus **1** neutral control arm (`NEUTRAL`).
-- **Browser suite (`web/`)**: `npm test` runs **127** tests (**122** passed,
-  **0** failed, **5** skipped without optional fetched SDK/firmware files);
-  `npm run mutate` runs **83** arms (**81** faults + **2** clean/neutral
-  controls, **83/83** as required); `npm run check` (`export_model.py --check`)
-  verifies **24/24** exported files against `parameters.json` and
-  `parameters-vector2.json`.
+- **Browser suite (`web/`)**: `npm test` runs **133** tests across **30**
+  `*.test.js` files (**128** passed, **0** failed, **5** skipped without optional
+  fetched SDK/firmware files); `npm run mutate` runs **87** arms (**85** faults +
+  **2** clean/neutral controls, **87/87** as required); `npm run check`
+  (`export_model.py --check`) verifies **28/28** exported files against
+  `parameters.json` and `parameters-vector2.json`.
 
 ### Historical test runs
 

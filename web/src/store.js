@@ -18,6 +18,9 @@ export const useGame = create(() => ({
   robotLook: "shapes", // "sdk" when the SDK's robot model is drawn
   hasDock: false,
   startDocked: false,
+  hasPatient: false,
+  hasCube: false,
+  rescueSide: "right",
   padConnected: false,
   telemetry: null,
   lastAction: null,

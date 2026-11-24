@@ -11,11 +11,13 @@ x forward, y left, z up. The table top is the plane z = 0.
 
 from __future__ import annotations
 
+import copy
 import csv
 import json
 import math
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
+import xml.etree.ElementTree as ET
 
 from . import dock as dock_model
 
@@ -686,6 +688,64 @@ def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cub
         '  <sensor>\n' + _sensors_xml(v, cube) + '  </sensor>\n'
         '</mujoco>\n'
     )
+
+
+def _prefix_element(element: ET.Element, prefix: str) -> ET.Element:
+    """Deep-copy an MJCF element and prefix all body, joint, and actuator identifiers."""
+    assert prefix and isinstance(element, ET.Element), "prefix and Element required"
+    cloned = copy.deepcopy(element)
+    for node in cloned.iter():
+        for key in ("name", "joint", "joint1", "joint2"):
+            val = node.get(key)
+            if val is not None:
+                node.set(key, prefix + val)
+    return cloned
+
+
+def _set_group_masks(body: ET.Element, contype: str, conaffinity: str) -> None:
+    """Assign contact group masks to all collidable geoms under a body element."""
+    for geom in body.iter("geom"):
+        if geom.get("contype", "1") != "0":
+            geom.set("contype", contype)
+            geom.set("conaffinity", conaffinity)
+
+
+def build_rescue_mjcf(v: Dict[str, Any], with_cube: bool = True, exclude_robot_contacts: bool = False) -> str:
+    """Build a canonical two-robot (rescuer + patient_) MJCF scene on the open table."""
+    root = ET.fromstring(build_mjcf(v, (), cube="free" if with_cube else None))
+    world = root.find("worldbody")
+    assert world is not None, "missing worldbody in base MJCF"
+    rescuer = world.find("body[@name='chassis']")
+    assert rescuer is not None, "missing rescuer chassis in base MJCF"
+    patient = _prefix_element(rescuer, "patient_")
+    world.append(patient)
+    for geom in world.findall("geom"):
+        geom.set("conaffinity", "7" if with_cube else "3")
+    cube_body = world.find("body[@name='cube']")
+    if cube_body is not None:
+        _set_group_masks(cube_body, "4", "3")
+    _set_group_masks(rescuer, "1", "6" if with_cube else "2")
+    _set_group_masks(patient, "2", "5" if with_cube else "1")
+    for section in ("equality", "actuator"):
+        parent = root.find(section)
+        assert parent is not None, f"missing {section} in base MJCF"
+        parent.extend([_prefix_element(entry, "patient_") for entry in list(parent)])
+    if with_cube:
+        equality = root.find("equality")
+        assert equality is not None, "missing equality section for carry_weld"
+        ET.SubElement(equality, "weld", name="carry_weld", body1="lift_fork",
+                      body2="cube", relpose="0.0335 0 -0.0125 1 0 0 0", active="false")
+    if exclude_robot_contacts:
+        contact = root.find("contact")
+        if contact is None:
+            contact = ET.SubElement(root, "contact")
+        r_names = sorted(b.get("name") for b in rescuer.iter("body") if b.get("name"))
+        p_names = sorted(b.get("name") for b in patient.iter("body") if b.get("name"))
+        for r_name in r_names:
+            for p_name in p_names:
+                ET.SubElement(contact, "exclude", body1=r_name, body2=p_name)
+    ET.indent(root, space="  ")
+    return ET.tostring(root, encoding="unicode") + "\n"
 
 
 # ---- the real outer shape (simulacrum/body_mesh.py) -------------------------------------------

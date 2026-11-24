@@ -398,6 +398,8 @@ def main(argv: Sequence[str]) -> int:
         free = mjcf.build_mjcf(values, SCENE_OBSTACLES, cube="free")
         dock_xml = mjcf.build_mjcf(values, (), dock="scene")
         free_dock = mjcf.build_mjcf(values, (), cube="free", dock="scene")
+        rescue_xml = mjcf.build_rescue_mjcf(values, with_cube=False)
+        rescue_free = mjcf.build_rescue_mjcf(values, with_cube=True)
         source = {"table_sha256": hashlib.sha256(table_bytes).hexdigest()}
         for name, key, scene in [
             ("vector", "xml_sha256", xml),
@@ -408,6 +410,8 @@ def main(argv: Sequence[str]) -> int:
             ("vector-contact42-dock", "vector-contact42-dock_sha256", contact_model(dock_xml, values)),
             ("vector-free-dock", "vector-free-dock_sha256", free_dock),
             ("vector-contact42-free-dock", "vector-contact42-free-dock_sha256", contact_model(free_dock, values)),
+            ("vector-rescue", "vector-rescue_sha256", rescue_xml),
+            ("vector-rescue-free", "vector-rescue-free_sha256", rescue_free),
         ]:
             outputs[f"{directory}/{name}.xml"] = scene
             source[key] = hashlib.sha256(scene.encode()).hexdigest()

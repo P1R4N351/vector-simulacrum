@@ -42,6 +42,9 @@ function StatusChips({ t, level, program }) {
       {t.firmware_active ? <Chip tone="ok">FIRMWARE ARMv6-M</Chip> : null}
       {t.nomad_ready ? <Chip tone="ok">NOMAD DIFFUSION</Chip> : null}
       {t.autonomy_phase ? <Chip tone="warn">{t.autonomy_phase}</Chip> : null}
+      {t.has_patient ? (
+        <Chip tone={t.patient_upright ? "ok" : "warn"}>{t.patient_upright ? "PATIENT UPRIGHT" : "PATIENT SIDEWAYS"}</Chip>
+      ) : null}
       {program === "running" ? <Chip tone="info">PROGRAM RUNNING</Chip> : null}
     </div>
   );
@@ -75,6 +78,11 @@ function Readouts({ t }) {
       ["cube motion transitions", countWithTime(t.cube_motion_transitions, t.cube_last_motion_s)],
       ["cube acceleration", t.cube_slot_g.map(g => fmt(g, 2)).join(" / ") + " g"],
       ["cube sensor", axes[t.cube_axis] + " up · " + (t.cube_moving ? "motion detected" : "no motion detected")]);
+  }
+  if (t.has_patient) {
+    rows.push(["patient tilt", `${fmt(t.patient_tilt_deg, 1)}° · ${t.patient_side ?? ""}`],
+      ["rescue stage", t.rescue_stage || "idle"],
+      ["rescuer clear", t.rescuer_clear ? "yes" : "in contact"]);
   }
   return (
     <dl className="readouts">
@@ -208,6 +216,9 @@ export default function Hud() {
   const robotLook = useGame((s) => s.robotLook);
   const hasDock = useGame((s) => s.hasDock);
   const startDocked = useGame((s) => s.startDocked);
+  const hasPatient = useGame((s) => s.hasPatient);
+  const hasCube = useGame((s) => s.hasCube);
+  const rescueSide = useGame((s) => s.rescueSide);
   const shapes = useGame((s) => s.shapes);
   const camView = useGame((s) => s.camView);
   const programStatus = useGame((s) => s.program.status);
@@ -241,8 +252,8 @@ export default function Hud() {
           ))}
         </div>
         {tab === "program" ? <ProgramPanel /> : <Controls press={press} level={level} chase={chase} robotLook={robotLook}
-          hasDock={hasDock} startDocked={startDocked} shapes={shapes} camView={camView} paused={paused} padConnected={padConnected}
-          nomadReady={t.nomad_ready} />}
+          hasDock={hasDock} startDocked={startDocked} hasPatient={hasPatient} hasCube={hasCube} rescueSide={rescueSide}
+          shapes={shapes} camView={camView} paused={paused} padConnected={padConnected} nomadReady={t.nomad_ready} />}
       </section>
       {camView ? <CameraView camera={model.camera} /> : null}
       {tab === "program" ? null : <TouchPad />}
@@ -251,7 +262,25 @@ export default function Hud() {
   );
 }
 
-function Controls({ press, level, chase, robotLook, hasDock, startDocked, shapes, camView, paused, padConnected, nomadReady }) {
+function RescueControls({ hasPatient, hasCube, rescueSide, press }) {
+  if (!hasPatient) {
+    return (
+      <div className="buttons">
+        <button type="button" onClick={press("openRescueScene")}>Rescue scene</button>
+      </div>
+    );
+  }
+  return (
+    <div className="buttons">
+      <button type="button" onClick={press("rescueRun")}>Run rescue macro</button>
+      {hasCube ? <button type="button" onClick={press("rescueDirect")}>Direct rescue</button> : null}
+      <button type="button" onClick={press("toggleRescueSide")}>Patient: {rescueSide}</button>
+      <button type="button" onClick={press("openTableScene")}>Table scene</button>
+    </div>
+  );
+}
+
+function Controls({ press, level, chase, robotLook, hasDock, startDocked, hasPatient, hasCube, rescueSide, shapes, camView, paused, padConnected, nomadReady }) {
   return (
     <>
     <div className="buttons">
@@ -296,6 +325,7 @@ function Controls({ press, level, chase, robotLook, hasDock, startDocked, shapes
       ) : null}
       <button type="button" onClick={press("reset")}>Reset</button>
     </div>
+    <RescueControls hasPatient={hasPatient} hasCube={hasCube} rescueSide={rescueSide} press={press} />
     <ul className="keys">
       {KEYS.map(([key, what]) => <li key={key}><kbd>{key}</kbd><span>{what}</span></li>)}
       {padConnected ? <li><kbd>Gamepad</kbd><span>left stick drives, right stick tilts the head</span></li> : null}

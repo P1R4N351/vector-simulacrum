@@ -19,6 +19,7 @@ import { CubeSensor } from "./cube_sensor.js";
 import { Hazards } from "./hazards.js";
 import { CHANNELS, ImuFilter } from "./imu_filter.js";
 import { ProxSensor } from "./prox.js";
+import { RescueController } from "./rescue.js";
 import { SysconFirmware } from "./syscon_firmware.js";
 import { assert, clamp, makeGauss, profileStep, pyRound, toward } from "./util.js";
 
@@ -105,9 +106,58 @@ export class VectorSim {
     this.model = mujoco.MjModel.from_xml_string(opts.xml);
     this.data = new mujoco.MjData(this.model);
     this._indexModel();
+    this._rescue = this._patientBody >= 0 ? new RescueController(this) : null;
+    this._rescueCtrl = null;
     this._autonomy = new AutonomyController(this, this.cameraSpec);
     this._nomad = new NomadAutonomy(this, this.cameraSpec);
     this.reset(opts);
+  }
+
+  _initSingleReset(opts) {
+    if (this.cubeStartXY) {
+      const joint = this.mujoco.mj_name2id(this.model, this.mujoco.mjtObj.mjOBJ_JOINT.value, "cube_root");
+      assert(joint >= 0, "mapped cube placement requires a free cube");
+      this.data.qpos.set(this.cubeStartXY.map(mm => mm * MM), this.model.jnt_qposadr[joint]);
+    }
+    this.startDocked = opts.startDocked ?? this.startDocked ?? false;
+    this._place(opts.startXyMm ?? [0, 0], opts.headingDeg ?? 0);
+    this._poseServos(opts.headDeg ?? 0, opts.liftMm ?? null);
+    this._settle();
+    if (this._dockBody >= 0 && (this.startDocked || !("chargerContact" in opts))) {
+      this.chargerContact = this._padsTouchDock();
+    }
+  }
+
+  _initRescueReset(opts) {
+    this._rescueSide = opts.rescueSide ?? this._rescueSide ?? 1;
+    this._rescueMode = opts.rescueMode ?? this._rescueMode ?? "auto";
+    this._rescue.resetScene({ side: this._rescueSide, mode: this._rescueMode });
+    this._rescueSide = this._rescue.side;
+    this._rescueMode = this._rescue.mode;
+    this.startDocked = false;
+    assert(this.data.time === 0, "rescue reset time must be 0");
+    this._resetImuFilter();
+    this._yawPrev = this._yawTotal = this._yaw();
+    this._dockTravelMm = [0, 0];
+    this._odomYawOffset = 0;
+    this._odomOffsetMm = [0, 0];
+    const lift0 = this.data.qpos[this._q.lift];
+    this._acceptedHeadTarget = this._headTarget = this._headCmd = 0;
+    this._liftTarget = this._liftCmd = this._liftServoCmd = lift0;
+    this._liftErrorSum = 0;
+    this._servoRate = [0, 0];
+    for (const slot of this._delay) {
+      slot[2] = 0;
+      slot[3] = lift0;
+      slot[4] = null;
+    }
+    const travel = this._treadTravelMm();
+    for (let i = 0; i < 2; i++) {
+      this._encoders[i].update(travel[i]);
+      this._encoders[i].counts = 0;
+      this._encoders[i].speedMmps = 0;
+    }
+    this._publishState();
   }
 
   // Put the robot back at a start pose with every controller and flag cleared.
@@ -131,21 +181,12 @@ export class VectorSim {
     this._rangeSample = null;
     this._rangeSampleCount = 0;
     this._tofHitsMm = [];
+    this._rescueCtrl = null;
     this.mujoco.mj_resetData(this.model, this.data);
     this._initCommands();
     this.hazards = new Hazards(this.v);
-    if (this.cubeStartXY) {
-      const joint = this.mujoco.mj_name2id(this.model, this.mujoco.mjtObj.mjOBJ_JOINT.value, "cube_root");
-      assert(joint >= 0, "mapped cube placement requires a free cube");
-      this.data.qpos.set(this.cubeStartXY.map(mm => mm * MM), this.model.jnt_qposadr[joint]);
-    }
-    this.startDocked = opts.startDocked ?? this.startDocked ?? false;
-    this._place(opts.startXyMm ?? [0, 0], opts.headingDeg ?? 0);
-    this._poseServos(opts.headDeg ?? 0, opts.liftMm ?? null);
-    this._settle();
-    if (this._dockBody >= 0 && (this.startDocked || !("chargerContact" in opts))) {
-      this.chargerContact = this._padsTouchDock();
-    }
+    if (this._rescue) this._initRescueReset(opts);
+    else this._initSingleReset(opts);
     if (this.chargerContact) this.batteryVolts = 4.20;
     this.cubeSensor = this._cubeAdr < 0 ? null : new CubeSensor(
       this.v, this.model.opt.timestep, opts.noiseSeed ?? 0, this._cubeForce(),
@@ -181,6 +222,7 @@ export class VectorSim {
     const dof = (name) => model.jnt_dofadr[id("mjOBJ_JOINT", `${name}_joint`)];
     this._cliffAdr = CLIFF_NAMES.map((name) => sensor(`cliff_${name}`));
     this._dockBody = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY.value, "dock");
+    this._patientBody = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY.value, "patient_chassis");
     this._chassisBody = id("mjOBJ_BODY", "chassis");
     if (this._dockBody >= 0) this._dockPins = ["dock_pin_l", "dock_pin_r"].map(name => id("mjOBJ_SITE", name));
     this._tofSite = id("mjOBJ_SITE", "tof");
@@ -203,7 +245,7 @@ export class VectorSim {
       left: id("mjOBJ_ACTUATOR", "left_wheel"), right: id("mjOBJ_ACTUATOR", "right_wheel"),
       head: id("mjOBJ_ACTUATOR", "head"), lift: id("mjOBJ_ACTUATOR", "lift"),
     };
-    assert(model.nu === 4 && this._cliffAdr.length === 4, "model shape differs from the layer's");
+    assert(model.nu === (this._patientBody >= 0 ? 8 : 4) && this._cliffAdr.length === 4, "model shape differs from the layer's");
   }
 
   _initCommands() {
@@ -647,9 +689,17 @@ export class VectorSim {
       wheel_angles_rad: this.wheelAnglesRad(), wheel_spin_radps: this.wheelSpinRadps(),
       battery_volts: this.batteryVolts, tread_heat: this.treadHeat.slice(),
       on_charger: Boolean(this.chargerContact), on_charger_platform: this._onDockPlatform(),
-      autonomy_phase: this._nomad?.phase ?? this._autonomy?.phase ?? null,
+      autonomy_phase: this._rescue && this._action?.autonomy?.mode === "rescue" ? `RESCUE · ${this._rescue.stage}`
+        : (this._nomad?.phase ?? this._autonomy?.phase ?? null),
       nomad_ready: Boolean(this._nomad?.policy),
       firmware_active: Boolean(this.sysconFirmware || this.cubeSensor?.firmware),
+      has_patient: Boolean(this._rescue),
+      patient_tilt_deg: this._rescue ? this._rescue.patientTiltDeg() : null,
+      patient_upright: this._rescue ? this._rescue.patientTiltDeg() < 10 : null,
+      patient_side: this._rescue ? (this._rescue.side === 1 ? "right" : "left") : null,
+      rescue_stage: this._rescue ? this._rescue.stage : null,
+      rescuer_clear: this._rescue ? this._rescue.isRescuerClear() : null,
+      patient_wheel_angles_rad: this._rescue ? this._rescue.patientWheelAnglesRad() : null,
     };
   }
 
@@ -906,7 +956,19 @@ export class VectorSim {
     this._sampleImu();
     const accel = this._imu()[0];
     this.hazards.update(this.cliffRangesMm(), Math.hypot(accel[0], accel[1], accel[2]));
-    if (power === null) {
+    if (power === null && this._rescueCtrl !== null) {
+      const rc = this._rescueCtrl;
+      const act = this.data.ctrl;
+      act[this._act.left] = rc.left;
+      act[this._act.right] = rc.right;
+      act[this._act.head] = 0;
+      act[this._act.lift] = rc.lift;
+      act[this._rescue._act.patLeft] = 0;
+      act[this._rescue._act.patRight] = 0;
+      act[this._rescue._act.patHead] = 0;
+      act[this._rescue._act.patLift] = rc.patientLift;
+      this._applied = [rc.left * this.v.tread_noload_speed_mmps, rc.right * this.v.tread_noload_speed_mmps];
+    } else if (power === null) {
       this._maybeReact();
       this._rampCommands();
       this._writeControls();
@@ -928,6 +990,7 @@ export class VectorSim {
     }
     const before = (this._dockBody >= 0 || this.chargerContact) ? this.poseMm() : null;
     this._physicsStep();
+    if (this._rescue) this._rescue.sampleContacts();
     this.tick_ += 1;
     this._updateHeadStatus();
     this._updateLiftStatus();
@@ -1202,6 +1265,39 @@ export class VectorSim {
 
   dockWithCharger() {
     return this._startAutonomy(this._autonomy.startDock());
+  }
+
+  get hasPatient() {
+    return this._rescue !== null;
+  }
+
+  patientHeadAngleRad() {
+    return this._rescue ? this._rescue.patientHeadAngleRad() : 0;
+  }
+
+  patientLiftAngleRad() {
+    return this._rescue ? this._rescue.patientLiftAngleRad() : 0;
+  }
+
+  patientWheelAnglesRad() {
+    return this._rescue ? this._rescue.patientWheelAnglesRad() : [0, 0, 0, 0];
+  }
+
+  rescueSnapshot() {
+    return this._rescue ? this._rescue.snapshot() : null;
+  }
+
+  resetRescue(side = "right", mode = "auto") {
+    if (!this._rescue || this._action !== null) return false;
+    this.reset({ rescueSide: side, rescueMode: mode, noiseSeed: 1 });
+    return true;
+  }
+
+  rescuePatient(mode = "auto") {
+    if (!this._rescue || !this.hasControl || this._action !== null) return this._refuse();
+    const ctx = this._rescue.startRescue({ mode });
+    if (ctx === null) return this._refuse();
+    return this._startAutonomy(ctx);
   }
 
   nomadExplore(durationS = 10) {

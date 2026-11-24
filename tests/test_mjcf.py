@@ -201,6 +201,26 @@ class GeneratedModel(unittest.TestCase):
         shell0 = [g for g in changed.iter("geom") if g.get("name", "").startswith("cube_shell_")][0]
         self.assertEqual(_floats(shell0.get("solref")), [0.006, 1.0])
 
+    @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
+    def test_build_rescue_mjcf_has_two_robots_and_optional_cube_and_exclusions(self) -> None:
+        import mujoco
+
+        v = params.values(self.doc)
+        direct_xml = mjcf.build_rescue_mjcf(v, with_cube=False)
+        direct_model = mujoco.MjModel.from_xml_string(direct_xml)
+        self.assertEqual(direct_model.nu, 8)
+        self.assertGreaterEqual(mujoco.mj_name2id(direct_model, mujoco.mjtObj.mjOBJ_BODY, "patient_chassis"), 0)
+        self.assertEqual(mujoco.mj_name2id(direct_model, mujoco.mjtObj.mjOBJ_BODY, "cube"), -1)
+
+        cube_xml = mjcf.build_rescue_mjcf(v, with_cube=True)
+        cube_model = mujoco.MjModel.from_xml_string(cube_xml)
+        self.assertEqual(cube_model.nu, 8)
+        self.assertGreaterEqual(mujoco.mj_name2id(cube_model, mujoco.mjtObj.mjOBJ_EQUALITY, "carry_weld"), 0)
+        self.assertNotIn('body1="chassis" body2="patient_chassis"', cube_xml)
+
+        excl_xml = mjcf.build_rescue_mjcf(v, with_cube=False, exclude_robot_contacts=True)
+        self.assertIn('body1="chassis" body2="patient_chassis"', excl_xml)
+
 
 if __name__ == "__main__":
     unittest.main()
