@@ -168,6 +168,32 @@ class Pickup(unittest.TestCase):
             self.assertGreater(row["rise_after_backing_mm"], trial.PICKUP_RISE_MM, row)
             self.assertLess(row["tilt_after_backing_deg"], 10.0, row)
 
+    def test_free_cube_shell_contacts_use_shell_time_constant_in_mujoco(self) -> None:
+        import mujoco
+
+        v = params.values(params.load())
+        tc = v["contact_time_constant_ms"] * 0.001
+        model = mujoco.MjModel.from_xml_string(mjcf.build_mjcf(v, (), "free"))
+        data = mujoco.MjData(model)
+        cq = int(model.joint("cube_root").qposadr[0])
+        data.qpos[cq : cq + 3] = [0.042, 0.0, 0.0220]
+        mujoco.mj_forward(model, data)
+        seen = {}
+        for i in range(data.ncon):
+            con = data.contact[i]
+            pair = tuple(sorted((model.geom(con.geom[0]).name, model.geom(con.geom[1]).name)))
+            seen[pair] = float(con.solref[0])
+        table_shell = [sr for (a, b), sr in seen.items() if ("table" in (a, b)) and any(n.startswith("cube_shell_") for n in (a, b))]
+        table_rubber = [sr for (a, b), sr in seen.items() if ("table" in (a, b)) and any(n.startswith("cube_rubber_") for n in (a, b))]
+        fork_shell = [sr for (a, b), sr in seen.items() if any("fork" in n for n in (a, b)) and any(n.startswith("cube_shell_") for n in (a, b))]
+        self.assertGreater(len(table_shell), 0)
+        self.assertGreater(len(table_rubber), 0)
+        self.assertGreater(len(fork_shell), 0)
+        for sr in table_shell + fork_shell:
+            self.assertAlmostEqual(sr, tc, places=9)
+        for sr in table_rubber:
+            self.assertAlmostEqual(sr, 0.008, places=9)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -372,14 +372,17 @@ def _free_cube_xml(v: Dict[str, Any]) -> str:
     (cube_boxes), centered 100 mm ahead of world zero."""
     side = v["cube_outer_mm"] * MM
     mass = v["cube_mass_g"] * GRAM
+    tc = v["contact_time_constant_ms"] * 0.001
     assert side > 0 and mass > 0
+    assert tc >= 2.0 * v["sim_timestep_ms"] * 0.001, "contact time constant below two timesteps"
     inertia = mass * side**2 / 6
     parts = [f'<body name="cube" pos="0.1 0 {num(side/2)}"><freejoint name="cube_root"/>',
              f'<inertial pos="0 0 0" mass="{num(mass)}" diaginertia="{vec((inertia,)*3)}"/>']
     for i, (material, centre, half) in enumerate(cube_boxes(v)):
         scaled = [float(n) * side / 44 for n in (*centre, *half)]
         attrs = ('priority="2" friction=".9 .005 .0001" solref=".008 1" rgba=".035 .035 .035 1"'
-                 if material == "rubber" else 'priority="1" friction=".5 .005 .0001" rgba=".2 .2 .2 1"')
+                 if material == "rubber"
+                 else f'priority="1" friction=".5 .005 .0001" solref="{num(tc)} 1" rgba=".2 .2 .2 1"')
         parts.append(f'<geom name="cube_{material}_{i}" type="box" pos="{vec(scaled[:3])}" '
                      f'size="{vec(scaled[3:])}" contype="1" conaffinity="1" {attrs}/>')
     return "\n".join([*parts, _cube_chip_xml(v), "</body>"])

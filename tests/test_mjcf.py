@@ -184,6 +184,23 @@ class GeneratedModel(unittest.TestCase):
         self.assertEqual([round(c, 9) for c in _floats(box.get("pos"))], [0.15, 0.0, 0.05])
         self.assertEqual([round(c, 9) for c in _floats(box.get("size"))], [0.005, 0.1, 0.05])
 
+    def test_free_cube_shell_uses_contact_time_constant_and_is_stiffer_than_rubber(self) -> None:
+        root = ET.fromstring(mjcf.build_mjcf(self.v, (), "free"))
+        tc = self.v["contact_time_constant_ms"] * 0.001
+        shells = [g for g in root.iter("geom") if g.get("name", "").startswith("cube_shell_")]
+        rubbers = [g for g in root.iter("geom") if g.get("name", "").startswith("cube_rubber_")]
+        self.assertGreater(len(shells), 0)
+        self.assertEqual(len(rubbers), 8)
+        for geom in shells:
+            self.assertIsNotNone(geom.get("solref"), geom.get("name"))
+            solref = _floats(geom.get("solref"))
+            self.assertEqual(solref, [tc, 1.0], geom.get("name"))
+        for geom in rubbers:
+            self.assertLess(tc, _floats(geom.get("solref"))[0], geom.get("name"))
+        changed = ET.fromstring(mjcf.build_mjcf(params.values(self.doc, {"contact_time_constant_ms": 6.0}), (), "free"))
+        shell0 = [g for g in changed.iter("geom") if g.get("name", "").startswith("cube_shell_")][0]
+        self.assertEqual(_floats(shell0.get("solref")), [0.006, 1.0])
+
 
 if __name__ == "__main__":
     unittest.main()

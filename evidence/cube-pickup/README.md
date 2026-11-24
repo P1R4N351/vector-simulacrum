@@ -48,7 +48,8 @@ All four are worst at 47 mm. The old 30 mN·m limit holds up only the lightest c
 | Flat-topped hook (3 or 6 steps), solid ledges | 30 to 80 mN·m | 0 of 5 | 0.0 mm held, in all but one run (6.3 mm at 50 mN·m, 19.6° tilt) | traced at 80 mN·m, the cube rises 21 mm mid-lift, tilts 16° and slides off as the fork swings back |
 | Barbed hook and pocket | 30 mN·m | 0 of 5 | 0.0 to 1.5 mm | the lift stalls under the cube |
 | Barbed hook and pocket | 52, 60 or 100 mN·m | 4 of 5 | 50.7 mm | carried at 3.0° tilt at offsets −1, 0 and +1 mm and 6.7° (52.0 mm rise) at +2 mm; at −2 mm the hook misses the notch |
-| The same, with the lift's integral term | 60 mN·m | 5 of 5 | 51.7 mm | the lift completes at 90.9 mm at offsets −1, 0 and +1 mm, carried at 3.0 to 3.1° tilt; 51.9 mm rise at 4.8° at ±2 mm, lift at 91.1 and 90.8 mm |
+| The same, with the lift's integral term (`cube_shell` implicit `solref=0.02 1`) | 60 mN·m | 5 of 5 | 51.7 mm | the lift completes at 90.9 mm at offsets −1, 0 and +1 mm, carried at 3.0 to 3.1° tilt; 51.9 mm rise at 4.8° at ±2 mm, lift at 91.1 and 90.8 mm |
+| The same, with `cube_shell_* solref="0.004 1"` | 60 mN·m | 3 of 5 | 51.8 mm held / 52.2 mm backed | offsets −1, 0 and +1 mm complete at 91.1 mm and 2.6° tilt (`tests/test_cube_pickup.py`); at ±2.0 mm the rigid hook strips exceed the 1.28 mm inner notch wall clearance (`hook y = [15.60, 19.20] mm` vs `pocket y >= 14.32 mm` at 45 mm scale) once the shell no longer compresses under `solref=0.02 1` |
 
 The flat-topped and stalled rows are diagnostic runs on intermediate models; the first row and the last two are `trial.py` on the model before the hook and pocket, after them, and after the lift's integral term.
 
