@@ -13,36 +13,49 @@ This is the physics model that `skills/vector-sim` (the Go gRPC simulator,
 branch `cpcs/vector-cliff-guard`) says it is not. It does not replace that
 simulator and is not connected to it.
 
-**It has been compared with one recording of one real Vector, and tuned to
-part of it.** One robot, one run of 162 s, one surface, one battery charge
-(4.10 V falling to 3.96 V), wheel speeds up to 100 mm/s. Nothing here says
-anything about another robot, another surface, or faster driving.
+**The initial fit compared one recording of one real Vector, tuned to part of it**
+(one Vector 1.0, 162 s run on one surface, one battery charge from 4.10 V to
+3.96 V, wheel speeds up to 100 mm/s). Subsequent recordings and fixtures under
+`evidence/` extend verification across both Vector 1.0 (unit 1) and Vector 2.0
+(unit 3): endurance, spins, camera tracking, head/lift moves, wheelstands,
+dock seating/returns, and free/carried light-cube pickup and mount impacts.
 
-Of 163 parameters: 10 are measured on the recordings, 18 are fitted to them, 17
-come from the manual, 86 from vendor or household software, 25 are still
-assumed about the robot, and 7 are settings of the scene and the solver that
-have no real value to find. On the segments the fit never saw, the model's
-wheel speed and gyro error fell from 0.33 of each segment's scale (the
-version pushed before the recording existed) to 0.14. Mass, tread friction
-and centre of mass are still assumed: the recording could not tell their
-values apart. The fore-aft centre of mass is the assumed value the model is
-most sensitive to, by a wide margin ("The assumed values, ranked" below).
+In `parameters.json` (Vector 1.0), of **198** parameters: **10** are measured on
+recordings, **19** are fitted to them, **17** come from the manual, **104** from
+vendor or household software, **39** are assumed about the robot or cube, and
+**9** are settings of the scene, solver, and tip supports that have no real
+value to find (plus **18** open measurements in `missing`).
+`parameters-vector2.json` overrides **15** entries and inherits **27**
+measured/fitted entries for Vector 2.0 (**11** `measured`, **23** `fitted`,
+**14** `manual`, **105** `sdk`, **36** `assumed`, **9** `chosen`). On the
+Nov 15 segments the fit never saw, wheel-speed and gyro error fell from 0.33 of
+each segment's scale (the version pushed before any recording existed) to 0.14.
+Mass, tread friction and centre of mass are still assumed: the first recording
+could not tell their values apart. The fore-aft centre of mass is the assumed
+value the policy task is most sensitive to, by a wide margin ("The assumed
+values, ranked" below).
 
 ## What is here
 
 | File | What it is |
 |---|---|
-| `parameters.json` | The single source of every physical number, with provenance |
-| `simulacrum/params.py` | Loads and checks the table; draws randomised robots from a seed |
-| `simulacrum/mjcf.py` | Generates the MJCF (robot and table scene) from the table |
+| `parameters.json` | The single source of every physical number for Vector 1.0, with provenance |
+| `parameters-vector2.json` | Vector 2.0 parameter overrides (15 overrides, 27 inherited measured/fitted entries over `parameters.json`) |
+| `simulacrum/params.py` | Loads and checks the tables (`vector_1` / `vector_2`); draws randomised robots from a seed |
+| `simulacrum/mjcf.py` | Generates the MJCF (robot, table/shelf scene, free/carried cube, charger dock) from the table |
 | `simulacrum/body_mesh.py` | The robot's real outer shape from Anki's animation rig, fetched at a pinned hash and cut into convex collision pieces and visual meshes; `VectorSim(body=...)` uses it. See [evidence/body-shape](evidence/body-shape/README.md) |
 | `simulacrum/drive.py` | The firmware's tread encoder arithmetic and speed control law |
-| `simulacrum/robot.py` | `VectorSim`: SDK-shaped commands and state, sensor noise, cliff reaction |
+| `simulacrum/imu_filter.py` | BMI160 two-stage digital low-pass filter stepped at the 1 ms physics step |
+| `simulacrum/robot.py` | `VectorSim`: SDK-shaped commands and state, sensor noise, cliff reaction, lift integral term, and body-clock range option |
 | `simulacrum/hazards.py` | Cliff, falling and picked-up flags |
 | `simulacrum/prox.py` | The forward time-of-flight sensor: its cone, signal quality, and the robot's reporting rules. No MuJoCo |
 | `simulacrum/prox_fit.py` | Recomputes that sensor's fitted values from the recordings. No MuJoCo |
+| `simulacrum/cube.py` | Light Cube BMA253 accelerometer, FIFO, tap detector, and shipped/mean firmware apps (`cube="free"` / `"lift"`) |
+| `simulacrum/dock.py`, `simulacrum/autonomy.py` | Charger dock geometry/seating and optical-marker `NavMapGrid` explore and self-docking |
+| `simulacrum/printed_parts.py` | Printable replacement fork, rims and treads loaded by mesh hash (`evidence/printed-parts/`) |
 | `simulacrum/recording.py` | Reads the recording of the real robot and measures it. No MuJoCo |
-| `simulacrum/imu_fit.py` | Fits the accelerometer's steady offsets and the pitch of its frame from the recording. No MuJoCo |
+| `simulacrum/imu_fit.py` | Fits the accelerometer's steady offsets, x scale and the pitch of its frame from recordings. No MuJoCo |
+| `simulacrum/motor_heat_fit.py`, `simulacrum/spin_fit.py`, `simulacrum/camera_spins.py` | Tread heating fit, contact inset fit against held spins, and camera spin-centre circle fit |
 | `simulacrum/wheelstand.py`, `wheelstand_check.py` | The centre of mass from balance angles on the rear wheels and on one tread edge, read by the robot's own accelerometer; the check that the model tips where the formula says (MuJoCo) |
 | `simulacrum/replay.py` | Replays the recording's commands through the model and scores the difference |
 | `simulacrum/task.py` | The training task: observation, action, reward, episode ends, randomisation |
@@ -50,16 +63,19 @@ most sensitive to, by a wide margin ("The assumed values, ranked" below).
 | `simulacrum/training.py` | PPO with `rsl_rl`, ONNX export, the parity recording |
 | `simulacrum/onnx_policy.py` | Runs an exported policy with `onnxruntime` only |
 | `simulacrum/nomad_cam.py`, `nomad_model.py`, `nomad_onnx.py`, `nomad.py` | Goal-Masked NoMaD visual diffusion policy (`64x36` calibrated `head_cam` renderer, Transformer + FiLM 1D U-Net + DDIM sampler, `TopologicalGraph`, closed-loop explorer/navigator) |
-| `replay_recording.py`, `fit_recording.py` | The comparison tables below; the fit (prints values, changes no file) |
+| `cube_firmware/` | Cortex-M0 Thumb mean-per-tick cube app (`tick_avg.s`, `tick_avg.c`), XXTEA DFU tool (`dfu.py`), ARMv6-M interpreter (`thumb.py`), and `mutate_tick.py` |
+| `hardware/` | Host-side recording and capture tools (`record_barriered.py`, `record_listen.py`, `hold_cube.py`, `cube_accel.py`, `capture_peers.py`, `save_capture.py`, `board_echo.py`, `play_board_probe.py`). **Nothing here connects to or runs against a robot automatically** |
+| `web/` | Browser MuJoCo 4.0.1 WebAssembly + Three.js simulator, Program tab, WireOS relay, NoMaD visual navigation, Node tests, and mutation suite (`web/README.md`) |
+| `contrib/` | Contributor recording kit (`contrib/kit/`), privacy scrub, schema validator (`contrib/validator.py`), and `contrib/UNITS.md` |
+| `replay_recording.py`, `fit_recording.py`, `fit_spins.py` | Replay scoring, coordinate parameter fit, and spin-inset fit (print values, change no file) |
 | `train.py`, `train_nomad.py`, `run_policy.py`, `run_nomad.py`, `evaluate.py`, `smoke.py` | Train and export PPO / NoMaD policies; run without torch; compare baselines |
 | `rank_assumed.py` | Moves each assumed or chosen value to its bounds and measures what that does to the training task |
 | `build_mjcf.py` | Writes the generated MJCF to a file |
 | `demo.py`, `measure.py` | A short run; the model figures quoted below |
-| `evidence/hw-rec-20261115/` | The recording, the script that made it, SHA-256 in the table's `REC` source |
-| `evidence/` | Smoke run learning curves and outputs; the fit, replay, measurement, ranking and fault-check outputs; the hardware findings the third version started from; the conferral with an external review lane |
-| `hardware/record_barriered.py` | The recorder for the next recording. **Not run yet.** Written by a lane, who holds the robot; nothing here runs it against one |
-| `tests/` | `run_all.py`, 29 test files, `mutate.py` |
-| `run_in_ct.sh` | Copies this directory into a GPU host and runs a file there, on MuJoCo 4.0.1 |
+| `evidence/hw-rec-20261115/` | The initial recording, the script that made it, SHA-256 in the table's `REC` source |
+| `evidence/` | Smoke run learning curves and outputs; fit, replay, measurement, ranking, cube pickup, wheelstand, dock, and fault-check evidence |
+| `tests/` | `run_all.py` (36 test modules, 484 declared tests), `test_cube_pickup.py` (10 standalone pickup tests; 37 `test_*.py` files total), `mutate.py` (273 fault arms + 1 neutral control) |
+| `run_in_ct.sh` | Copies this directory into a container host and runs a file there, on MuJoCo 4.0.1 |
 | `env/`, `pinned_run.py`, `simulacrum/mujoco_pin.py` | The pinned MuJoCo 4.0.1 environment (hashed wheels, setup script) and the check that a run used it |
 | `mcp_server.py`, `simulacrum/mcp_service.py` | An MCP server over stdio: the table, the recordings and the recorder's command line as tools. Read-only; no robot, no MuJoCo |
 
@@ -291,18 +307,22 @@ those rules.
   The validator refuses a `measured` or `fitted` entry that does not cite the
   recording, and a fitted one without a range.
 - `manual` (17): the Vector Technical Reference Manual, by section and line.
-- `sdk` (85): published in software. `source_kind` says which:
-  `vendor_firmware` (71, the robot's released source), `vendor_webots_model`
-  (8, Anki's own Webots model), `vendor_sdk` (2, the SDK's own code) or
-  `household_code` (4, the limits in `vector-slam-maze`). Cited by URL, line
-  and SHA-256.
-- `assumed` (27): properties of the robot that no source states. Each is a
-  measurement still to be taken.
-- `chosen` (8): 4 table sizes, 3 solver settings and 1 modelling setting
-  (`tip_support_clearance_mm`). They were filed as assumed before, which made them look like
-  unknowns about the robot. They are not: there is no real value to find.
-  The validator refuses a robot parameter filed as chosen and a scene or
-  solver setting filed as assumed.
+- `sdk` (104): published in software. `source_kind` says which:
+  `vendor_firmware` (81, the robot's released source), `vendor_animation_rig`
+  (12, Anki's animation rig), `vendor_webots_model` (5, Anki's Webots model),
+  `household_code` (4, the limits in `vector-slam-maze`) or `vendor_sdk` (2,
+  the SDK's own code). Cited by URL, line and SHA-256.
+- `assumed` (39): properties of the robot or light cube that no source
+  states. Each is a measurement still to be taken.
+- `chosen` (9): 4 table sizes, 3 solver/sim settings (`sim_timestep_ms`,
+  `contact_time_constant_ms`, `settle_time_ms`) and 2 tip-support modelling
+  settings (`tip_support_clearance_mm`, `tip_supports_driven`). They have no
+  real physical value to find. The validator refuses a robot parameter filed as
+  chosen and a scene or solver setting filed as assumed.
+
+For Vector 2.0, `parameters-vector2.json` overrides 15 entries on top of
+`parameters.json` and marks 27 inherited measured/fitted entries as `inherited`
+(see "Vector 2.0: a separate set (2026-11-18)" below).
 
 Part datasheets (BMI160, VL53L0X) are a part maker's figures under stated
 conditions, not statements about this robot. Nothing from them is filed as
@@ -416,15 +436,15 @@ pointing to the end of the assumed range, is not enough to change a value:
 predicts a balance at 64.9 degrees, -29 at 59.4.
 
 **Where the robot turns about rules out -29 (2026-11-20).** Another lane pointed out (the lab's coordination room turn 166) that the centre of mass also
-moves the point the robot spins about. a lane's camera followed
+moves the point the robot spins about. A camera followed
 the forward end of unit 3's backpack lens through four 150 mm/s spins
-(`evidence/camera-spins` in that lane's tree, commit 33ff9ea). The lens
+(`evidence/camera-spins` in that session's tree, commit 33ff9ea). The lens
 sits about 36.3 mm behind the front axle. Within a spin it moves on a
 circle about the turn centre. A circle fitted to it per spin, with that
-lane's calibration and no heading or SDK data, puts the centre 7.4, 10.2,
+session's calibration and no heading or SDK data, puts the centre 7.4, 10.2,
 7.6 and 10.9 mm ahead of the lens and within 2 mm of the centreline: x =
 -28.9, -26.1, -28.7, -25.4 mm. A focal prior from 450 to 720 px, or the
-lens height 5 mm either way, moves that by at most 0.9 mm. The another substrate
+lens height 5 mm either way, moves that by at most 0.9 mm. Another substrate
 found that dropping the shelf constraint moves the mean from -27.3 to
 between -24.9 and -26.3 mm (turn 216). Followed the same way in the model
 (2.0 table, a GPU host), with the head and lift where unit 3's were (22.5 degrees,
@@ -449,12 +469,12 @@ instant. Filtered the same way, the model rocks about as much as the
 robot. See "What the rocking was".) Unit 3 turned 312 to 320 degrees per 1.5 s spin by its own
 IMU, at 3.24 and 3.23 rad/s. The head-at-0 run's 5 % difference between the
 model's two directions was chatter, not a lasting asymmetry: in unit 3's pose
-the two directions agree (2.55, 2.54 rad/s), and the another substrate found the
+the two directions agree (2.55, 2.54 rad/s), and another substrate found the
 true yaw rates differ by 1.5 % with a sign that a solver tolerance flips.
 Caveats: one robot, with a printed
-lift and no faceplate; the lens's x comes from that lane's geometric model;
+lift and no faceplate; the lens's x comes from a geometric model;
 the circle fits include the rests, and unit 3 drifted 4 to 9 mm per spin.
-The analysis scripts are not in this skill yet.
+(Since ported into `simulacrum/camera_spins.py` and `evidence/camera-spins/`.)
 
 ### Where the treads meet the table (2026-11-20)
 
@@ -511,10 +531,9 @@ That passed at 3.1047 mm (-24.1 to -25.1) and would have failed at 3.10 or
 5 mm. A centre of mass moved back to -29 mm (above) put it 10 mm behind.
 
 The camera's turn centres come from `simulacrum/camera_spins.py` (needs
-scipy). It is a port of the circle fit above, with a lane's
-calibration unchanged.
+scipy). It is a port of the circle fit above, with the camera calibration unchanged.
 
-a lane fitted the other way round (the lab's coordination room turn 221). It
+A contact-roller fit ran the other way round (the lab's coordination room turn 221). It
 used its own contact rollers with the axles kept, fitted on unit 3 and held
 out unit 1, and found 3.75 mm. Its held-out run E improves on all four spins.
 The two directions agree within a millimetre.
@@ -708,6 +727,13 @@ sustained-load run on unit 3 is the first measurement the
 of `/dev/mmcblk0p29`, 0x20 or above for 2.0. On the body, 1.0 prints "S/N"
 near the top of the track, 2.0 an "ESN" underneath.
 
+*(Current state: `parameters-vector2.json` now carries **15 overrides** — adding
+`camera_resolution_px`, `accel_scale`, `accel_bias_mg`, `imu_pitch_offset_deg`,
+and four unit 3 cube-accelerometer overrides: `cube_accel_word_format`,
+`cube_accel_scale`, `cube_accel_noise_axis_scale`,
+`cube_accel_noise_density_ug` — alongside **27** inherited measured/fitted
+entries.)*
+
 ### The first run on a Vector 2.0 (2026-11-19)
 
 Unit 3 is not a stock 2.0 body. The operator (via a lane, the lab's coordination room
@@ -764,7 +790,7 @@ direction not confirmed. The model spins at 175 deg/s here, 0.85 of unit 3's
 rate, as on unit 1. Before the run unit 3 sat on its charger ramp without
 contact; the `nudge` phase seated it on its first 16 mm move back (run I).
 
-Drift, from a lane's calibrated camera over the same run
+Drift, from a calibrated camera over the same run
 (P1R4N351/vector-simulacrum PR #1, comment 7025928568; their measurement):
 leftward movement per ccw+cw pair, lift down / up / down again:
 
@@ -784,18 +810,18 @@ camera endpoints within 8.3 and 2.9 mm, a drift fixed to the robot's heading
 missed by 44.8 and 46.6 mm, and all eight turns went shelf-left; net leftward
 movement per pair at spot A facing 0 and 180 deg and spot B likewise: 22.7,
 14.4, 22.3 and 19.5 mm (PR #1, comment 7026442869, with footage and inputs). So the
-sideways drift is fixed to the shelf, not to the robot's heading; an operator also saw
-the robot creep back toward its charger. It is not a slope: an operator measured the
-shelf level at every position. a lane's opposite-heading
+sideways drift is fixed to the shelf, not to the robot's heading; the operator also saw
+the robot creep back toward its charger. It is not a slope: the operator measured the
+shelf level at every position. Opposite-heading
 accelerometer rests read 0.98 and 0.91 deg (turn 137), so that reading has
 some other cause and is not a tilt measurement. Part of the head
-accelerometer's behaviour is the sensor itself (the another substrate, turns 158 and
+accelerometer's behaviour is the sensor itself (another substrate, turns 158 and
 166): the total gravity it reads changes with head angle (979 to 1001 mg),
 which no tilt can do, and a bias plus an x-axis scale of about 1.014 explains
 that head-angle excursion (reproduced here; see "The accelerometer's x
 scale" below). That does not explain the opposite-heading difference: with no tilt, about 16 mg stays
 unexplained at both spots. The chassis itself does not lean (optically -0.07
-deg at spot A, a lane turn 163, PR #1 comment 7027738144). So the
+deg at spot A, turn 163, PR #1 comment 7027738144). So the
 opposite-heading signal, like the drift, is still open. The simulacrum models
 a per-axis bias and, since 2026-11-20, a per-axis scale. What on the shelf pushes the
 robot one way is open: a surface that grips differently in different
@@ -803,9 +829,9 @@ directions (tape strips, grain), local unevenness, or something at the dock.
 
 ### How far spins move the robot: a camera measurement (2026-11-19)
 
-a lane measured unit 3 (Vector 2.0) with a fixed camera calibrated on a
+A camera measured unit 3 (Vector 2.0) with a fixed camera calibrated on a
 printed glyph, over four commanded ±150 mm/s turns (P1R4N351/vector-simulacrum
-PR #1, comment 7025537786; their measurement, not repeated here):
+PR #1, comment 7025537786; external measurement, not repeated here):
 
 | Source | Net movement over the four turns |
 |---|---|
@@ -925,8 +951,8 @@ so an x scale shows as a slope. The z axis's share changes by only a quarter of
 g, too little to tell its scale from its offset. Nothing recorded rolls the
 robot onto its side, so y's scale is not visible either. y and z stay at 1.
 
-Unit 3 (the 2.0) carries the evidence: unit 3's stationary head sweeps from
-a lane, analysed by the another substrate (the lab's coordination room turn 166),
+Unit 3 (the 2.0) carries the evidence: unit 3's stationary head sweeps,
+analysed in parallel (the lab's coordination room turn 166),
 copied to `evidence/head-sweep-unit3-20261120`. `python3 -m simulacrum.imu_fit
 --head-sweep evidence/head-sweep-unit3-20261120` fits spot B and scores spot A.
 The fit never sees spot A. Heading is the robot's odometry.
@@ -939,7 +965,7 @@ The fit never sees spot A. Heading is the robot's odometry.
 Vector error per settled window, root mean square. A 200-draw bootstrap over
 B's windows puts the scale between 1.0085 and 1.0207. With the scale fitted,
 the offsets are 13.2, 4.0, -18.1 mg and the frame's pitch is -0.05 degrees
-(-0.22 with the scale fixed). The another substrate's own fit, at gravity 9810
+(-0.22 with the scale fixed). Another substrate's own fit, at gravity 9810
 rather than 9806.65, gave 1.0138, 13.2, 3.9 and -18.5. These three values
 replace unit 1's in `parameters-vector2.json`, marked fitted. Before this, the
 2.0 table had inherited them from a 1.0.
@@ -952,7 +978,7 @@ What it is not:
 - About 15 mg of the opposite-heading difference is still unexplained.
 - Unit 1's x scale is not settled. Over table-run1's 26 stretches,
   `imu_fit.fit(..., free_scale=True)` gives 1.0118, standard error 0.0044.
-  The another substrate's fit over table-run1 and run A gave 0.999 and no gain on
+  Another substrate's fit over table-run1 and run A gave 0.999 and no gain on
   held-out windows. That fit gave the two runs' different surfaces one shared
   tilt, which pulls the scale toward 1 (its author, the lab's coordination room turn
   195). Run A cannot be fitted on its own: it has one heading,
@@ -993,23 +1019,27 @@ Two limits of the model's shape, visible in the data:
   counter-clockwise in all three pairs of spins (for example 130 against
   109 deg/s at 100 mm/s). The model is symmetric.
 
-### Still assumed about the robot (27)
+### Still assumed about the robot (39)
 
 | Group | Parameters |
 |---|---|
 | Mass | `total_mass_g` 170 (150 to 185), `head_mass_g`, `lift_mass_g`, `wheel_mass_g`, `lift_arm_mass_fraction`, `com_x_mm` -24, `com_z_mm` 22 |
-| Body | `chassis_ground_clearance_mm` 3, `head_box_mm` |
 | Contact | `tread_friction` 0.9 (0.5 to 1.3), `chassis_friction` 0.3 |
-| Head and lift drive | `head_servo_kp/kv`, `lift_servo_kp/kv`, `servo_torque_max_mNm`, `servo_armature_gcm2` |
+| Head and lift drive | `head_servo_kp/kv`, `lift_servo_kp/kv`, `servo_torque_max_mNm` 30, `lift_servo_torque_max_mNm` 60 (52 to 250), `servo_armature_gcm2` |
+| Lift fork geometry | `lift_fork_side_center_mm`, `lift_fork_side_size_mm` |
 | Cliff | `cliff_sensor_height_mm` 8, `cliff_detect_range_mm` 25 |
 | Control | `heading_hold_gain_mmps_per_rad`, `drive_done_mm` |
 | Battery | `battery_rest_voltage_v`, `battery_sag_v_per_power` |
-| Accelerometer | `accel_scale` 1, 1, 1 (the part's 0.960 to 1.040; unit 1's x is not settled) |
+| Accelerometer | `accel_scale` 1, 1, 1 (the part's 0.960 to 1.040; unit 1's x is not settled, Vector 2.0 fitted) |
 | IMU filter | `accel_filter_cutoff_hz` 40 (36 to 44), `gyro_filter_cutoff_hz` 18.65 (16.8 to 20.5), `imu_filter_second_pole` 1 (0 to 1) |
+| Light cube | `cube_outer_mm` 45, `cube_mass_g` 50 (30 to 70), `cube_chip_position_mm`, `cube_chip_yaw_deg`, `cube_accel_bandwidth_hz` 250, `cube_accel_frame_period_ms` 2, `cube_accel_filter_second_pole` 1, `cube_accel_noise_axis_scale`, `cube_accel_noise_density_ug` 220, `cube_accel_bias_mg`, `cube_accel_scale` (four accelerometer entries overridden on Vector 2.0 from unit 3 recordings) |
 
-Chosen, not assumed (8): `tip_support_clearance_mm`, `table_length_mm`, `table_width_mm`,
-`table_height_mm`, `table_thickness_mm`, `sim_timestep_ms`,
-`contact_time_constant_ms`, `settle_time_ms`.
+Chosen, not assumed (9): `tip_support_clearance_mm`, `tip_supports_driven`,
+`table_length_mm`, `table_width_mm`, `table_height_mm`, `table_thickness_mm`,
+`sim_timestep_ms`, `contact_time_constant_ms`, `settle_time_ms`.
+
+(`chassis_ground_clearance_mm` 1.2 and `head_box_mm` are now sourced as `sdk`
+from `vendor_animation_rig`; earlier table versions listed them as assumed.)
 
 Resolved in this version, out of the 30 the last version called assumed:
 `gyro_bias_dps` (measured), `accel_bias_mg` (fitted), and the seven above
@@ -1299,8 +1329,11 @@ the firmware disagreements.
     linear and that it drags at zero power.
 - **Head and lift.** Hinges with position actuators and the robot's limits
   (head -22 to 45 degrees, lift 32 to 92 mm), a target that ramps at the
-  fitted rate, and their own command delay. Reported in whole encoder counts
-  (0.123 and 0.301 degrees). The servo gains are still assumed.
+  SDK's trapezoidal acceleration profile (`10.0 rad/s^2`), command delay, and
+  the firmware's lift integral term (`Ki / Kp` error sum in
+  `simulacrum/robot.py`, tested by `tests/test_lift_integral.py`). Reported in
+  whole encoder counts (0.123 and 0.301 degrees). The servo gains are still
+  assumed.
 - **Sensors.** Four downward range sensors at the cliff sensor positions,
   in the manual's order. One forward time-of-flight sensor, tilted up 6.5
   degrees, with its 25 degree cone and the robot's own reporting rules (see
@@ -1312,22 +1345,38 @@ the firmware disagreements.
   once per 5 ms tick (`simulacrum/imu_filter.py`). A turn
   therefore shows on gyro z by the cosine of the head's pitch and on gyro x
   by its sine, as on the robot.
-  A camera on the head, 50 degrees vertical field of view. The noise comes
-  from a seeded generator: one seed, one run.
+  A camera on the head, 50 degrees vertical field of view (and calibrated
+  800×600 optics on Vector 2.0). The noise comes from a seeded generator: one
+  seed, one run.
 - **A free light cube** on the table at world coordinates (100, 0) mm with
   `VectorSim(cube="free")`. Its 62 shell and rubber contact boxes come from the
-  [shelf replay fixture](evidence/unit3-cube-contact-replay/fixture.xml).
+  [shelf replay fixture](evidence/unit3-cube-contact-replay/fixture.xml) with
+  carved notch pockets (`evidence/cube-pickup/README.md`), and all
+  `cube_shell_*` geoms use `contact_time_constant_ms` (`solref="0.004 1"`).
   The robot range sensor sees it and the cube sends accelerometer packets as it moves.
   Mass distribution, friction and corner stiffness are estimates. Pass
   `cube_app="mean"` to simulate the modified firmware. Decode its messages with
   `samples_g(rows(sim.cube.messages), counts_per_g, app="mean")` to preserve
   the mean firmware's fractional counts. The default selects shipped firmware.
+  See [evidence/cube-pickup](evidence/cube-pickup/README.md) for pickup trials and
+  [evidence/unit3-spin-cube](evidence/unit3-spin-cube/README.md) for wheelstand
+  mount-impact replay.
 - **A carried light cube**, on request (`VectorSim(cube="lift")`). It sits
   in the lift where the engine puts a carried cube. Its accelerometer
   sends the app's messages from the force at its chip
   (`simulacrum/cube.py`): the chip's filter, 12-bit frames every 2 ms, the
-  FIFO, the last frame per 10 ms tick, and the tap counter as shipped. A
-  cube on the floor, and the cube's lights and radio, are not modelled.
+  FIFO, the last frame per 10 ms tick, and the tap counter as shipped. The
+  cube's lights and radio are not modelled in Python physics.
+- **Charger dock & shelf environment**, on request
+  (`simulacrum/dock.py`, `simulacrum/autonomy.py`,
+  `VectorSim(environment="p2_shelf", body_range_clock=..., charger_contact=...)`).
+  Includes the charger mesh, electrical dock contact state, body-clock ToF
+  acquisition scheduling, and optical-marker `NavMapGrid` explore and
+  self-docking routines.
+- **Goal-Masked NoMaD visual navigation** (`simulacrum/nomad_cam.py`,
+  `nomad_model.py`, `nomad_onnx.py`, `nomad.py`). Calibrated `64x36` head-camera
+  rendering, Transformer + FiLM 1D U-Net + DDIM sampler, ONNX export, and
+  topological graph exploration/navigation.
 - **Printed replacement parts**, on request
   (`printed_parts.vector_sim(parts=("fork:dauler", "treads:dauler-obar"))`,
   a `VectorSim`, or `printed_parts.build_mjcf` for the model alone). A shared
@@ -1370,7 +1419,8 @@ the firmware disagreements.
   after backing away, the reaction's animation, the stuck-on-edge recovery
   and the white-line stop.
 - The robot's left-right difference in a spin.
-- A head and lift motion profile that speeds up on larger moves.
+- Session-to-session variation in head and lift motion onset and raise profile
+  (see [evidence/stock-shell-physics-20261118.md](evidence/stock-shell-physics-20261118.md)).
 - A task built on `mjlab`'s own task classes (see Training below for why).
 - Any connection to the Go gRPC simulator.
 - Odometry error. The reported pose is the true pose.
@@ -1382,8 +1432,8 @@ the firmware disagreements.
 - The firmware's pick-up detection from gyro and accelerometer motion. Here
   picked up means three or more cliff sensors see a drop for 40 ticks.
 - The battery's sag under load (modelled, but its size is assumed: the SDK's
-  reading does not move), charger, cubes, touch,
-  the stall protection, the lift's four-bar linkage.
+  reading does not move), capacitive touch, motor stall protection, the lift's
+  four-bar linkage physics, and the light cube's LEDs and radio.
 - Tread compliance. The wheels are rigid cylinders, so the robot stands on
   four contacts. That is the likely reason the turn rate depends so sharply
   on the fore-aft centre of mass ("The turn in place"); a belt that carries
@@ -1392,7 +1442,8 @@ the firmware disagreements.
   its own: the part masses independently of the total and of the centre of
   mass, and the accelerometer's x offset independently of its frame's pitch,
   although the fit fixes their sum far better than either.
-- A roll of the IMU's frame, and scale errors of the accelerometer.
+- A roll of the IMU's frame (per-axis accelerometer scale is modelled via
+  `accel_scale`, fitted on Vector 2.0 and nominal assumed on Vector 1.0).
 - Noise on the cliff sensors, and any noise that changes with temperature
   or with motion. The model's gyro and accelerometer do shake while the
   robot moves, but from its rigid contacts, not from anything measured; the
@@ -1568,7 +1619,7 @@ robot's one run. They are not a spread measured across robots.
 
 ### Why not mjlab's task classes
 
-`mjlab` steps many robots as one MuJoCo Warp batch on a GPU. a GPU host has no
+`mjlab` steps many robots as one MuJoCo Warp batch on a GPU. The container host has no
 GPU, and what a policy has to be trained against here is the SDK layer:
 the command delay, the 60 ms state rate, one cliff bit for four sensors,
 wheel speed without a sign, and the robot's own cliff reaction taking
@@ -1578,8 +1629,7 @@ over `VectorSim` (`simulacrum/vec_env.py`), with up to 4 worker processes.
 
 A move to `mjlab` on the GPU node would need:
 
-1. a GPU host on the GPU host (it needs disk space first; see
-   `skills/a GPU host`), and `the GPU host gpu-setup`.
+1. A dedicated GPU container/environment with GPU passthrough and sufficient disk space.
 2. The robot as an `mjlab` entity, built from `mjcf.build_mjcf`, with the
    same actuators.
 3. The SDK layer rewritten as batched terms: command delay, state rate,
@@ -1684,6 +1734,25 @@ matters for deployment: same observation, same action.
 
 ## Tests
 
+### Current suite
+
+- **`tests/run_all.py`**: **36** test modules (**484** declared tests), plus
+  standalone `tests/test_cube_pickup.py` (**10** tests; **37** `test_*.py`
+  files total). On pinned MuJoCo 4.0.1 without Anki's optional proprietary
+  `cube.dfu` / `key.h` or optional fetched meshes: `declared 484, ran 484,
+  passed 441, failed 0, errored 0, skipped 43 (16 optional)`, and
+  `test_cube_pickup.py`: `10/10` passed.
+- **`tests/mutate.py`**: **273** fault arms (**93** requiring MuJoCo, **180**
+  without MuJoCo) plus **1** neutral control arm (`NEUTRAL`).
+- **Browser suite (`web/`)**: `npm test` runs **127** tests (**122** passed,
+  **0** failed, **5** skipped without optional fetched SDK/firmware files);
+  `npm run mutate` runs **83** arms (**81** faults + **2** clean/neutral
+  controls, **83/83** as required); `npm run check` (`export_model.py --check`)
+  verifies **24/24** exported files against `parameters.json` and
+  `parameters-vector2.json`.
+
+### Historical test runs
+
 `tests/run_all.py`, 348 tests in twenty-five files. Results after the
 peer-capture tool, 2026-11-21 (`evidence/peer-capture-20261121/`):
 
@@ -1699,7 +1768,7 @@ Results after the cube app, 2026-11-21, when the suite was 332 tests in
 twenty-four files:
 
 - In a GPU host: declared 332, ran 332, passed 324, failed 0, skipped 8
-  (`evidence/cube-firmware-20261121/the GPU host-run_all.txt`).
+  (logs in `evidence/cube-firmware-20261121/`).
 - On the Mac, with unit 3's `cube.dfu` and `key.h` given: declared 332, ran
   332, passed 226, failed 0, skipped 106, because MuJoCo is absent.
 - On the Mac without them: passed 219, skipped 113.
@@ -1807,9 +1876,6 @@ While the arms were being written, three more ended as set-up errors for a
 different reason (the fit ran in the tests' set-up, so a broken fit stopped
 the tests from running at all) and one because its text occurred twice. All
 five were faults in the check, not in what it checks, and were fixed there.
-
-`python3 skills/a code scanner.py --fail-on warn --fail-on-unscannable
-skills/vector-simulacrum`: errors 0, warns 0 (40 files).
 
 ## The next recording
 
