@@ -89,11 +89,11 @@
   "table_sha256": "601396c38affa24bf10410128f6cb5aac173d3d769507be841203d7b9bc7384d",
   "trial_xml_sha256": "c8ccbd3eed75bdef0d46cb8722d88e7abe008d9905965d13eb50c9ddf2daa1c9",
   "vector-contact42-dock_sha256": "db6d35dd2790c9dfdcc1934e786811799d5c16175db98803166ea4c3c64c4f4c",
-  "vector-contact42-free-dock_sha256": "34a47795c1fc2c68c12c49b9a656a1a0d5b3977f1ae663314244016ae22f29e0",
-  "vector-contact42-free_sha256": "dd7fc0cb7774cbd081828977e3af9a95eb35d5328a03980278669d2c5b0dc01b",
+  "vector-contact42-free-dock_sha256": "10c52f3ff9ff39bf594ca1a37e8bcac1e55865318f42f0b6b368ed4d14e83197",
+  "vector-contact42-free_sha256": "109e5406f67cc2e9e7f44f6e66e3a7e370f33bfff422b6bdacddf44cf87edc73",
   "vector-dock_sha256": "aafe71071ccb8bff904280a15f2ddb6084135cf29765ce5101e520b3f317b115",
-  "vector-free-dock_sha256": "161142a7c039eb58729bc1d921e9fbbf47d86255b5903675cc14a881fcb34464",
-  "vector-free_sha256": "3658488b1d7ff6a6a6cb579a275b6569c200f46e17ac77e0b8675fba6e70228e",
+  "vector-free-dock_sha256": "9460c588ab01dd329e012793c917988d59fba9481b6bed4dd7ed1b0e69864c32",
+  "vector-free_sha256": "2b1166b00915c72c8b60b0bf00717572f2b4e81e42152c51180348ab5dcc9c90",
   "xml_sha256": "0a74cfff7a62c755a4fb3b0d65eb5193b6672f1b4d7cde686645e3cdc6a48414"
  },
  "values": {
