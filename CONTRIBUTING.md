@@ -112,10 +112,11 @@ network connection.
 
 ## How a contribution lands in the model
 
-A contribution does not change the generated MJCF directly. It is a new
-unit under `contrib/units/`. The next refit (see `fit_recording.py`) picks
-up every unit it finds there and reports per-unit spread. `contrib/UNITS.md`
-holds the tracking.
+A contribution does not change the generated MJCF directly. It lands as a
+validated unit folder under `contrib/units/` and is recorded in
+[`contrib/UNITS.md`](contrib/UNITS.md). Today `fit_recording.py` does not scan
+`contrib/units/` automatically; accepted recordings are incorporated into
+per-unit refits and spread analyses once merged.
 
 ## Issues, questions and small corrections
 

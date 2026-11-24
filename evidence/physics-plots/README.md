@@ -107,3 +107,8 @@ The [unit 3 three-camera survey](../three-camera-survey/README.md) includes the 
 ### Longitudinal contact inset at the recorded posture
 
 The unit 3 yaw fit selected 3.75 mm per end and reduced yaw error on all four held-out unit 1 spins. The camera pivot and roll/pitch measurements still disagree with the model. [Overlays, selection sweep and replay data](../recorded-pose-inset/README.md)
+
+## Cube pickup and mount-impact contact
+
+- [Free-cube pickup checks](../cube-pickup/README.md) documents the barbed fork hook geometry, notched Light Cube pocket clearance, lift integral term, and pickup trials under `cube_shell_* solref="0.004 1"`.
+- [Unit 3 wheelstand mount-impact replay](../unit3-spin-cube/README.md#fork-contact-during-the-wheelstand-mount) compares physical W33–W35 cube accelerations against Stage 1 (`freejoint`, 5-phase `CubeSensor` sweep) and Stage 2 (`cube_shell_* solref="0.004 1"`) replays ([Mount-impact figure](../unit3-spin-cube/mount-replay.png)).

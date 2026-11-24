@@ -13,21 +13,23 @@ above the previous one. The empty row stays at the bottom.
 
 ## How a unit feeds the fits
 
-`fit_recording.py` reads every `contrib/units/<handle>/evidence/*.jsonl` as
-if it were a recording under `evidence/`. Values that are per-unit in the
-parameter table (see the README) widen or narrow their reported spread as
-units accumulate. Values that are shared across the fleet (cube mass,
-table dimensions) do not depend on which unit recorded; a contribution
-still exercises the model against another real surface and another robot.
+Validated recordings under `contrib/units/<handle>/evidence/*.jsonl` are
+formatted identically to recordings under `evidence/`. Today `fit_recording.py`
+does not scan `contrib/units/` automatically; accepted unit folders are
+incorporated into per-unit refits and spread analyses once validated. Values
+that are per-unit in the parameter table (`parameters.json` and
+`parameters-vector2.json`) widen or narrow their reported spread as units
+accumulate. Values that are shared across the fleet (cube dimensions, table
+dimensions) do not depend on which unit recorded; a contribution still exercises
+the model against another real surface and another robot.
 
-Per-unit values the current table lists:
+Per-unit values in the current parameter tables:
 
-- `com_x_mm`, `com_z_mm`, `com_y_mm`: centre of mass along the three axes.
-- `wheel_bias_pct`: wheel-speed asymmetry.
-- `backpack_lens_mm`: camera position on the backpack.
-- `weight_g`: whole-robot mass with the lift empty.
-- `accel_x_scale`: accelerometer x-axis scale.
-- `lift_motor_torque_nm` and `lift_max_g`: lift strength.
+- `com_x_mm`, `com_z_mm`: centre of mass fore-aft and vertical.
+- `total_mass_g`: whole-robot mass with the lift empty.
+- `accel_scale`, `accel_bias_mg`, `imu_pitch_offset_deg`, `gyro_bias_dps`: per-unit head IMU calibration.
+- `lift_servo_torque_max_mNm`: lift motor strength.
+- `tread_heat_loss_rate_per_s`, `tread_heat_tau_s`: per-tread sustained-load thermal derating.
 
-Anything measured in the kit's standard phases lands on one of these; the
-fit's existing scripts handle the rest.
+Anything measured in the kit's standard phases lands on one of these or extends
+held-out replay coverage across units.

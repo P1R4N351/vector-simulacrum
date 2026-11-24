@@ -32,8 +32,10 @@ For development: `npm install`, then `npm run dev`.
 
 ## What you see
 
-- The robot on the simulacrum's 600 mm table, with one block on it. The table
-  has real edges and a floor 300 mm below.
+- By default (`vector-free-dock.xml`), the Vector 1.0 robot starts on the
+  simulacrum's 600 mm table with a movable Light Cube 100 mm ahead and the
+  charger dock behind (`?cube=none` and `?dock=none` omit them). The table has
+  real edges and a floor 300 mm below.
 - **Cliff reaction on** (the default control level): drive at an edge and the
   robot stops, takes control away, and backs off. Press X to take control back.
 - **Cliff reaction off** (the override level): the robot keeps driving and
@@ -66,22 +68,41 @@ bumpers move the lift, A stops, B takes control, X resets, Y switches the
 cliff reaction. On a touch screen a four-way pad appears. Every action also
 has a button, including head up, level and down and lift up and down.
 
-Add `?look=shapes` to the address to draw the robot as its physics shapes even
-when the SDK model has been fetched.
+Open `?robot=2` for Vector 2.0 on the table, or `?env=shelf` for the Vector 2.0
+measured shelf configuration (`vector2/vector-free-shelf.xml`, with charger dock,
+free cube, shelf navmap, and body-clock ToF enabled by default; adding
+`&cubeSensor=unit3` selects unit 3's measured shelf cube profile and `5.083 ms`
+supervisor loop). This loads the unit 3 head-camera calibration (800 × 600),
+head IMU mounting and accelerometer calibration, display aspect, battery
+capacity and shelf scene. Add `&contact=42` to try the 42 mm tread contacts.
+The default robot is Vector 1.0. Either generation accepts an explicit shell
+override (`?shell=1` or `?shell=2`) for visual comparisons.
 
-Open `?robot=2&cube=free` for the Vector 2.0 shelf configuration. This loads
-the unit 3 head-camera calibration (800 × 600), head IMU mounting and
-accelerometer calibration, display aspect, battery capacity and shelf cube
-sensor profile. Add `&contact=42` to try the experimental tread contacts. The
-default robot is Vector 1.0. Either generation accepts an explicit shell
-override for visual comparisons.
-
-Open `?cube=free` to put a movable light cube 100 mm ahead of the front axle.
-Drive forward to push it, use Q for the robot camera, and use Backspace to reset.
+By default a movable Light Cube starts 100 mm ahead of the front axle
+(`?cube=none` or `?cube=0` omits it; `?cube=free` keeps it explicit). Drive
+forward to push it, use Q for the robot camera, and use Backspace to reset.
 The range sensor sees the cube in both visual modes. Running `npm run sdk-model`
-with a full SDK asset folder installs the textured cube locally. The fallback
-shows the shell and rubber contact boxes. Add `&contact=42` for the experimental
-42 mm contact span.
+with a full SDK asset folder installs the textured cube locally; the fallback
+shows the shell and rubber contact boxes.
+
+| Query parameter | Values | Effect |
+|---|---|---|
+| `robot` | `2` | Select Vector 2.0 table parameters and scenes (`vector2/`; default Vector 1.0) |
+| `env` | `shelf` | Load Vector 2.0 shelf scene (`vector-free-shelf.xml`), dock, cube, navmap, and body-clock ToF |
+| `cube` | `none`, `0`, `free` | Omit or enable the free Light Cube on table scenes (on by default) |
+| `dock` | `none`, `0`, `docked` | Omit the charger dock (`none`/`0`) or start seated on the pins (`docked`) |
+| `start` | `docked` | Start seated on the charger dock |
+| `contact` | `42` | Use the 42 mm tread contact-span scenes (`vector-contact42*`) |
+| `cubeSensor` | `unit3` | Apply unit 3's shelf cube profile + `5.083 ms` supervisor loop (implies `env=shelf` if `env` unset) |
+| `map` | `live` | Load `shelf-navmap-live.json` instead of `shelf-navmap.json` in `env=shelf` |
+| `rangeClock` | `body`, other | Force body-clock ToF acquisition on/off explicitly (shelf turns it on by default) |
+| `chargerContact` | `1` | Assert charger electrical contact at boot |
+| `firmware` | `off` | Skip loading optional `cube.plain.bin` / `syscon-flash.bin` firmware binaries |
+| `wireos` | `1` | Connect live WireOS firmware relay (`WIREOS_BODY=1` dev server) |
+| `look` | `shapes`, `sdk-only` | Show physics collision shapes only, or standalone `vector.obj`/`cube.obj` instead of the blended rig |
+| `shell` | `1`, `2` | Override visual shell generation independently of `robot=` |
+| `faceplate` | `off` | Hide the head faceplate to inspect the internal LCD carrier and camera mount |
+| `fork`, `wheels`, `print` | `printed`, `1` | Overlay fetched/exported printable Vector 2 STLs (`fork=printed` requires `robot=2`) |
 
 In the free-cube scene, the cube acceleration readout shows the magnitude of
 each of the three ordered slots in the latest simulated stock Bluetooth packet.
@@ -97,9 +118,20 @@ recordings of the same physical cube (828 slots each, same resting pose).
 
 The **Program** tab, next to Controls, holds a small editor. Write a robot
 program in it, press Run (or Ctrl+Enter, ⌘+Enter on a Mac), and it drives the
-simulated robot in the page: no Python, no server. Three examples load from
-the menu: a square, head and lift moves with an arc on the wheel motors, and a
-drive at the table edge that the cliff reaction stops.
+simulated robot in the page: no Python, no server. Five examples load from
+the menu:
+
+1. **Drive a square** (`square`)
+2. **Head, lift and wheels** (`look`)
+3. **Drive at the edge** (`edge`)
+4. **Explore and self-dock** (`explore-dock`)
+5. **NoMaD visual explore & navigate** (`nomad-nav`)
+
+In addition to `drive_straight`, `turn_in_place`, `set_head_angle`,
+`set_lift_height`, `set_wheel_motors`, `stop_all_motors`, `request_control`,
+and `wait`, `robot` exposes `drive_off_charger`, `explore`,
+`dock_with_charger`, `nomad_capture_goal`, `nomad_explore`, and
+`nomad_navigate` (listed under "Robot calls" in the tab).
 
 ```js
 const drove = await robot.drive_straight(120, 80);   // mm, mm/s
@@ -172,16 +204,19 @@ drawing only; contact with the table is the wheels', as in the Python.
 ## How it stays the same robot as the Python
 
 `tools/export_model.py` writes the MJCF and the parameter values from
-`../simulacrum` into `public/robot/`, and records runs of the Python into
-`test/fixtures/`. `src/sim/` is a port of `drive.py`, `hazards.py` and
-`robot.py`. `npm test` replays the fixtures through the port.
+`../simulacrum` into `public/robot/` (and `public/robot/vector2/`), and
+records runs of the Python into `test/fixtures/`. `src/sim/` ports
+`drive.py`, `hazards.py`, `prox.py`, `imu_filter.py`, `cube.py`, `autonomy.py`,
+`nomad*.py`, and `robot.py` (including the firmware lift integral term).
+`npm test` (**127** tests: **122** passing, **5** skipped without optional
+fetched SDK/firmware binaries) replays those fixtures through the port.
 
-Ported from the simulacrum beside it (as of the range sensor change that
-followed `96c3bfd`), using its base parameter set (the one
-it calls `vector_1`; the recorded robot is a Vector 1.0, on its
-word), which
-includes head and lift acceleration, battery voltage and tread heating in the
-drive, and direct drive above the path-following speed limit.
+Initially ported from the simulacrum beside it (as of `96c3bfd`), the port
+now also tracks subsequent canonical model additions: the BMI160 digital
+filter, free Light Cube shell `solref="0.004 1"` contacts and `CubeSensor` /
+listener replay, the firmware lift integral term, charger dock and Vector 2.0
+shelf scenes, body-clock ToF acquisition, WireOS firmware execution,
+occupancy-grid explore/docking, and Goal-Masked NoMaD navigation.
 
 Measured on 2026-11-18, MuJoCo 4.0.1 on both sides (native for the Python,
 WebAssembly here), sensor noise set to zero on both:
@@ -206,11 +241,14 @@ holds the port to the Python as closely as the port holds to itself under a
 nudge of one or two nanometres: exactly where the sequence is insensitive,
 loosely only where it is not.
 
-`npm run mutate` breaks each tested property once (41 faults) and confirms the
-tests fail; the last run caught 41 of 41, and both clean copies passed.
+`npm run mutate` tests **83** mutation arms (**81** injected faults and **2**
+clean/neutral controls) and confirms every fault fails its target tests while
+both neutral controls stay green (**83/83** as required, **0** survived, **0**
+setup errors).
 
-`npm run check` fails when `../parameters.json` has changed and the export has
-not been re-run. `./demo.sh` runs it first.
+`npm run check` (`python3 tools/export_model.py --check`) verifies all **24**
+exported XML, JSON, and fixture files against `../parameters.json` and
+`../parameters-vector2.json`. `./demo.sh` runs it first.
 
 Differences from the Python, on purpose:
 
@@ -352,19 +390,15 @@ that licence with it. Read `public/robot/sdk/LICENSE.txt` before publishing one.
 
 | | |
 |---|---|
-| `src/sim/` | The port: `drive.js`, `hazards.js`, `prox.js`, `robot.js`, `util.js`; `optics.js` (camera geometry); `thumb.js`, `cube_firmware.js`, `syscon_firmware.js` (real firmware execution); `autonomy.js` (optical marker localization, `NavMapGrid`, explore & self-dock); and `nomad.js`, `nomad_cam.js` (pure Float32 Goal-Masked NoMaD Transformer + FiLM 1D U-Net + DDIM sampler, `TopologicalGraph`) |
+| `src/sim/` | The port: `drive.js`, `hazards.js`, `prox.js`, `imu_filter.js`, `robot.js`, `util.js`; `optics.js` (camera geometry); `thumb.js`, `cube_firmware.js`, `syscon_firmware.js`, `wire_body.js` (real firmware execution & body relay); `cube_sensor.js`, `cube_listeners.js`, `shelf_cube_pose.js`, `shelf_cube.json` (Light Cube BMA253 + tap/movement listeners); `autonomy.js` (optical marker localization, `NavMapGrid`, explore & self-dock); and `nomad.js`, `nomad_cam.js` (pure Float32 Goal-Masked NoMaD Transformer + FiLM 1D U-Net + DDIM sampler, `TopologicalGraph`) |
+| `public/robot/` | Exported Vector 1.0 (`vector*.xml`, `model.json`) and Vector 2.0 (`vector2/vector*.xml`, `vector2/model.json`, `vector2/shelf-navmap.json`) MuJoCo scenes |
 | `public/robot/nomad/` | Pretrained Float32 weights (`nomad_weights.bin`, `nomad.json`) and ONNX graphs (`nomad_encoder.onnx`, `nomad_denoiser.onnx`) exported by `train_nomad.py` |
-| `src/game/` | `game.js` (boot, control loop, views), `scene.js` (drawing), `sdkmodel.js` (the SDK model), `rigmodel.js` (blended `Victor_rig_01` rig), `dock.js` (charger dock OBJ & decals), `cube.js` (blended `Victor_cube_rig` & fiducials), `headcam.js` (the robot's camera), `tracks.js` (track path, cleats, spokes), `input.js` |
-| `camera_calibration.json` | One real robot's camera calibration |
+| `src/game/` | `game.js` (boot, control loop, views), `scene.js` (drawing), `sdkmodel.js` (SDK model), `rigmodel.js` (blended `Victor_rig_01` rig), `dock.js` (charger dock OBJ & decals), `cube.js`, `cube-marks/` (blended `Victor_cube_rig` & fiducials), `face.js`, `wire_face.js`, `headcam.js`, `wire_camera.js` (robot camera & WireOS bridge), `tracks.js` (track path, cleats, spokes), `liftlinks.js`, `printparts.js`, `shell.js`, `topology.js`, `underbody.js`, `input.js` |
+| `camera_calibration*.json` | Measured factory camera calibrations (`camera_calibration.json` for Vector 1.0, `camera_calibration_vector2.json` for Vector 2.0) |
 | `src/program/` | Programs written in the page: `host.js` (the robot end, calls against the simulator in robot time), `runtime.js` (the robot object, running a program, line numbers), `worker.js`, `runner.js` (the page end), `examples.js`. All but `worker.js` run under node |
-| `src/ui/`, `src/store.js` | The panels and the store between them and the core |
-| `tools/export_model.py` | Model, parameter values and fixtures from the Python; `--check` for drift |
-| `tools/fetch_sdk_model.py` | The SDK's robot model, into `public/robot/sdk/` |
-| `tools/fetch_rig_model.py` | Split `Victor_rig_01.obj` hardware rig + `rig_manifest.json`, into `public/robot/sdk/rig/` |
-| `tools/fetch_dock_model.py` | The charger dock mesh (`Vic_charger_hp_geo.obj`) + `dock_manifest.json`, into `public/robot/sdk/` |
-| `tools/fetch_cube_model.py` | Normalize `Victor_cube_rig.obj` Light Cube + `cube_rig_manifest.json`, into `public/robot/sdk/` |
-| `tools/fetch_firmware.py` | Fetch & verify `cube.dfu` (decrypted in memory to `cube.plain.bin`) + `syscon-flash.bin` from `wire-os-victor`, into `public/robot/firmware/` |
-| `test/` | Tests, `mutate.mjs`, and fixtures |
+| `src/ui/`, `src/store.js` | The panels (`Hud.jsx`, `BootOverlay.jsx`, `MiniMap.jsx`, `ProgramPanel.jsx`) and the store between them and the core |
+| `tools/` | Exporters, fetchers & relays: `export_model.py` (`--check` for drift), `export_printed_fork.py`, `cube-landing-fixture.py`; `fetch_sdk_model.py`, `fetch_rig_model.py`, `fetch_dock_model.py`, `fetch_cube_model.py`, `fetch_firmware.py`, `fetch_print_parts.py`; JS replay tools `cube-rest.mjs`, `cube-range-replay.mjs`, `replay-cube-listeners.mjs`; WireOS relay `wire_relay.js`, `wire_camera.js`, `run-wire-robot.sh`, `run-wire-stack.sh` |
+| `test/` | Node tests (`29` `*.test.js` files, `127` tests), `mutate.mjs` (`83` arms), and Python parity fixtures |
 | `demo.sh`, `Dockerfile` | One command to a running page; a static container on port 8080 (`WITH_FIRMWARE=1` bundles real firmware) |
 
 ### Standalone real firmware & autonomous explore / self-docking
