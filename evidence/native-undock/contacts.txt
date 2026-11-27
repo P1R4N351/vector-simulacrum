@@ -1,0 +1,3 @@
+open chassis_geom/shelf_0 cube_rubber_0/shelf_4 cube_rubber_49/shelf_4 cube_rubber_79/shelf_4 cube_rubber_93/shelf_4 tip_rear_l/dock_apron tip_rear_r/dock_apron
+ramped chassis_geom/shelf_0 cube_rubber_0/shelf_4 cube_rubber_49/shelf_4 cube_rubber_79/shelf_4 cube_rubber_93/shelf_4 tip_rear_l/dock_apron tip_rear_r/dock_apron
+feedback chassis_geom/shelf_0 cube_rubber_0/shelf_4 cube_rubber_49/shelf_4 cube_rubber_79/shelf_4 cube_rubber_93/shelf_4 tip_rear_l/dock_apron tip_rear_r/dock_apron
