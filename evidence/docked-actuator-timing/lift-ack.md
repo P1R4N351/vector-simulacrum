@@ -22,3 +22,11 @@ Seven additional commands started within 2 mm of the requested endpoint. Their h
 The remaining timing error includes simulated mechanism and settling errors as well as unmodeled response latency. This check does not measure lift force or reproduce dock ramp contacts.
 
 [Per-command measurements](lift-ack.csv) · [Replay and plotting script](lift_ack.py)
+
+## Prospective check on a workshop Vector
+
+After freezing the change, a generation-one Vector performed three unloaded raise/lower cycles between a nominal 32 and 65 mm on its dock. The revised simulator finished early on all six moves, by 74–144 ms. Median absolute error fell from 318 to 133 ms. The physical SDK response followed the fresh in-position packet by 49–64 ms. Every one of the 160 SDK state packets indicated dock contact. The status check after releasing control reported the unit full and on its platform, with charging inactive.
+
+![Six prospective physical lift moves compared with the frozen simulator](workshop-validation.png)
+
+[Recorded packets and acknowledgments](workshop-validation.jsonl) · [Trial values](workshop-validation.csv) · [Reproduce the comparison](workshop_validation.py)
