@@ -1,0 +1,5 @@
+trial,eye,pause_frames,range_during_pause_px,descent_to_minimum_px,min_correlation
+4,left,3,0.7128183,nan,0.8409137725830078
+4,right,3,0.9237209,18.794603,0.9252436757087708
+7,left,2,0.28360465,nan,0.8131082653999329
+7,right,2,0.35359618,21.636684,0.9497894644737244
