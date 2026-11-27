@@ -30,7 +30,7 @@ def shift(ref,frame,x,y,half=12):
     if v in (0,48) or u in (0,14): return np.nan,score
     a,b,c=scores[v-1:v+2,u]
     return v-24+float(.5*(a-c)/(a-2*b+c)) if a-2*b+c else v-24,score
-fig,axes=plt.subplots(2,3,figsize=(12,6),layout="constrained")
+fig,axes=plt.subplots(2,(len(starts)+1)//2,figsize=(2*len(starts),6),layout="constrained")
 with open("motion.csv","w") as f, open("summary.csv","w") as s:
     w=csv.writer(f,lineterminator="\n");q=csv.writer(s,lineterminator="\n")
     w.writerow(["lower","time_s","left_down_px","right_down_px","left_corr","right_corr"])
