@@ -51,6 +51,7 @@ def replay(
     trajectories=None,
     path_override=None,
     trials=TRIALS,
+    packet_observer=None,
 ):
     v, d, s = m._load_model_config()
     model = build(v, d, s)
@@ -140,6 +141,8 @@ def replay(
                         )
                     )
                 )
+                if packet_observer is not None:
+                    packet_observer(name, phase, arr)
                 est = events(arr[:, 0], arr[:, 4])
                 w.writerow(
                     [
