@@ -23,3 +23,5 @@ The two clean lowers crossed the threshold one physical sample later than the si
 ![Two clean lowers, before and after shifting the model](lower-transfer.png)
 
 Reproduce with Node from the repository after installing web dependencies, then run Python with NumPy and Matplotlib. Execute replay.mjs followed by score_replay.py. The frozen input revision is 41dab7d.
+
+[Docked head transit at two lift heights and a second workshop unit at rest](lift-posture/README.md)
