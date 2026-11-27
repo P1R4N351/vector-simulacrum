@@ -24,3 +24,5 @@ Scores use the native sample times, from the first packet through +400 ms relati
 [Steady head inclination and transverse gyro variation](spin-axes.md)
 
 [Native-cadence frequency analysis of the missing roll variation](native-axes.md)
+
+[Wheel fluctuations and held-out roll prediction](wheel-roll.md)
