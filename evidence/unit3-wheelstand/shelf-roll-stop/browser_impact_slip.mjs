@@ -23,6 +23,13 @@ const {values,derived} = readJson("public/robot/vector2/model.json");
 const sim = new VectorSim(mj,{values,derived,xml:readText("public/robot/vector2/vector-free.xml")});
 // Optional paired sensor experiment. Both paths get the same settling interval.
 const packetOutput = process.env.VECTOR_PACKET_CSV;
+const rotationSweep = process.argv.includes("--rotation-sweep");
+if (rotationSweep && !packetOutput) throw new Error("rotation sweep requires VECTOR_PACKET_CSV");
+let angularStarts = [[0,0]];
+if (rotationSweep) {
+  const sweep = [-4,-2,2,4].flatMap(rate => [[rate,0],[0,rate]]);
+  angularStarts = process.argv.includes("--camera-midpoint") ? [[-3,0]] : [[0,0], ...sweep];
+}
 const firmwarePath = process.env.VECTOR_CUBE_FIRMWARE;
 if (firmwarePath) {
   if (!packetOutput) throw new Error("set VECTOR_PACKET_CSV for firmware comparisons");
@@ -39,6 +46,10 @@ const q = sim.model.jnt_qposadr[joint], dof = sim.model.jnt_dofadr[joint];
 const rows = [["velocity_mmps","gap_mm","phase_ms","low_pairs","nearest_peak_x_g","xyz_rmse_g"]];
 const travel = [["velocity_mmps","gap_mm","phase_ms","matches_low_pair","x_mm","y_mm","horizontal_mm"]];
 const cornerRows = [["velocity_mmps","gap_mm","phase_ms","matches_low_pair","corner","dx_mm","dy_mm","initial_z_mm"]];
+if (rotationSweep) {
+  packets[0].push("omega_x_radps", "omega_y_radps");
+  travel[0].push("omega_x_radps", "omega_y_radps");
+}
 function bottomCorners() {
   const rotation = sim.data.xmat, body = sim._cubeBody, pos = sim.data.xpos;
   return [[-1,-1],[1,-1],[1,1],[-1,1]].map(([x,y]) =>
@@ -48,7 +59,9 @@ function bottomCorners() {
     }));
 }
 try {
-  for (const velocity of [-150,-75,0,75,150]) for (const gap of [1,2,3]) for (let phase=0;phase<30;phase+=5) {
+  for (const [wx,wy] of angularStarts)
+  for (const velocity of rotationSweep ? [-150] : [-150,-75,0,75,150])
+  for (const gap of rotationSweep ? [3] : [1,2,3]) for (let phase=0;phase<30;phase+=5) {
     sim.reset();
     sim.tick((packetOutput ? 210 : 30)+phase/5);
     if (packetOutput && !sim.cubeSensor.packet) throw new Error("cube sensor has not started");
@@ -64,6 +77,8 @@ try {
     sim.data.qpos[q+2]+=gap/1000-low;
     sim.data.qvel.fill(0,dof,dof+6);
     sim.data.qvel[dof]=velocity/1000;
+    sim.data.qvel[dof+3]=wx;
+    sim.data.qvel[dof+4]=wy;
     mj.mj_forward(sim.model,sim.data);
     const initialXY = sim.data.qpos.slice(q,q+2);
     const initialCorners=bottomCorners();
@@ -75,7 +90,7 @@ try {
       if(p && p!==previous) {
         if (packetOutput) {
           p.slots.forEach((axes, index) => packets.push([velocity,gap,phase,i+1,
-            Math.round(p.time_s*1000),p.taps,index,...axes]));
+            Math.round(p.time_s*1000),p.taps,index,...axes,...(rotationSweep ? [wx,wy] : [])]));
         }
         slots.push(...p.slots.map(slot=>slot.map(x=>x/values.cube_accel_counts_per_g)));
         previous=p;
@@ -94,12 +109,14 @@ try {
       bottomCorners().forEach((p,i)=>cornerRows.push([velocity,gap,phase,Number(candidates.length>0),i,
         p[0]-initialCorners[i][0],p[1]-initialCorners[i][1],initialCorners[i][2]]));
     }
-    travel.push([velocity,gap,phase,Number(candidates.length>0),dx,dy,Math.hypot(dx,dy)]);
+    travel.push([velocity,gap,phase,Number(candidates.length>0),dx,dy,Math.hypot(dx,dy),...(rotationSweep ? [wx,wy] : [])]);
     rows.push([velocity,gap,phase,candidates.length,candidates[0]?.[1]??"",candidates[0]?.[0]??""]);
   }
 } finally { sim.dispose(); }
 if (packetOutput) writeFileSync(packetOutput, packets.map(row=>row.join(",")).join("\n")+"\n");
 else writeFileSync(file(pickup ? "browser-impact-slip-pickup.csv" : "browser-impact-slip.csv"),rows.map(r=>r.join(",")).join("\n")+"\n");
+
+if (rotationSweep) writeFileSync(packetOutput+".travel.csv",travel.map(r=>r.join(",")).join("\n")+"\n");
 
 if (process.argv.includes("--travel")) writeFileSync(file("browser-release-travel.csv"),travel.map(r=>r.join(",")).join("\n")+"\n");
 
