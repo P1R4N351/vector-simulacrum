@@ -3,7 +3,7 @@ import { CONTROL_OVERRIDE, VectorSim } from "../../web/src/sim/robot.js";
 import { mujoco, readJson, readText } from "../../web/test/helpers.js";
 
 const { values, derived } = readJson("public/robot/model.json");
-for (const prefix of ["", "repeat-"]) {
+for (const prefix of ["", "repeat-", "third-"]) {
   const csv = readFileSync(new URL(prefix + "joints.csv", import.meta.url), "utf8");
   const rows = csv.trim().split(/\r?\n/).slice(1).map(line => line.split(","));
   const first = rows.find(row => row[1] === "state");

@@ -1,4 +1,5 @@
 """Compare docked command replays at the physical SDK receipt times."""
+import argparse
 import csv
 from pathlib import Path
 
@@ -17,11 +18,12 @@ def bracket(t, x, threshold):
     return t[i], estimate, t[i+1]
 
 
-def main():
+def main(include_third=False):
+    prefixes = ("", "repeat-", "third-") if include_third else ("", "repeat-")
     fig, axes = plt.subplots(2, 2, figsize=(10, 6), layout="constrained", sharex=True)
-    hold_fig, hold_axes = plt.subplots(2, 2, figsize=(10, 6), layout="constrained", sharex=True, sharey="row")
+    hold_fig, hold_axes = plt.subplots(2, len(prefixes), figsize=(4.5*len(prefixes), 6), layout="constrained", sharex=True, sharey="row")
     results = []
-    for prefix in ("", "repeat-"):
+    for col, prefix in enumerate(prefixes):
         with (here/(prefix+"joints.csv")).open() as file:
             rows = list(csv.DictReader(file))
         sim = np.genfromtxt(here/(prefix+"canonical-joints.csv"), names=True, delimiter=",")
@@ -54,7 +56,6 @@ def main():
             physical, simulated = transit(x), transit(model)
             results.append([prefix or "first",j,axis,"up" if up else "down",*physical,*simulated])
             if axis == "head" and up:
-                col = int(bool(prefix))
                 for panel, field, ylabel in zip(hold_axes[:,col],("head_deg","gyro_y"),("Head angle (°)","Gyro Y (rad/s)")):
                     physical_trace = [float(states[i][field]) for i in select]
                     simulated_trace = sim[field][np.searchsorted(sim["s"],t,side="right")-1]
@@ -62,8 +63,8 @@ def main():
                     panel.plot(t-cue,physical_trace,".-",color=color,label=f"Physical raise {1 if j==1 else 2}")
                     panel.plot(t-cue,simulated_trace,"--",color=color,label="Simulated",lw=1)
                     panel.set_ylabel(ylabel)
-                hold_axes[0,col].set_title("Repeat recording" if prefix else "First recording")
-            if prefix:
+                hold_axes[0,col].set_title(["First recording", "Second recording", "Third recording"][col])
+            if prefix == prefixes[-1]:
                 ax = axes[int(axis=="lift"),int(not up)]
                 ax.plot(t-cue,x,".-",color="C0",lw=1,label="Physical")
                 ax.plot(t-cue,model,".--",color="C1",lw=1,label="Canonical")
@@ -74,13 +75,15 @@ def main():
     for ax in axes[-1]: ax.set_xlabel("Seconds from command")
     hold_axes[0,0].legend(fontsize=7)
     for panel in hold_axes[-1]: panel.set_xlabel("Seconds from head raise command")
-    hold_fig.savefig(here/"head-hold.png",dpi=160)
-    fig.savefig(here/"repeat-canonical.png",dpi=160)
-    with (here/"canonical-transits.csv").open("w") as file:
+    hold_fig.savefig(here/("three-head-holds.png" if include_third else "head-hold.png"),dpi=160)
+    fig.savefig(here/("third-canonical.png" if include_third else "repeat-canonical.png"),dpi=160)
+    with (here/("three-canonical-transits.csv" if include_third else "canonical-transits.csv")).open("w") as file:
         w = csv.writer(file,lineterminator="\n")
         w.writerow("recording cue axis direction real_low_ms real_ms real_high_ms sim_low_ms sim_ms sim_high_ms".split())
         w.writerows(results)
 
 
 if __name__=="__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--include-third", action="store_true")
+    main(parser.parse_args().include_third)
