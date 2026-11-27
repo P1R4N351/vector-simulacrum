@@ -18,13 +18,15 @@ path=np.genfromtxt(here/"pickup-path.csv",names=True,delimiter=",")
 sights=np.genfromtxt(here/"pickup-sightings.csv",names=True,delimiter=",")
 
 
-def replay(m, rake_angles, *, report_damage=False, sighting=None, observe=None, lateral_mm=0):
+def replay(m, rake_angles, *, report_damage=False, sighting=None, observe=None, lateral_mm=0, yaw_correction=None):
     fork=m.body("fork").mocapid[0]
     rails=[m.body(f"rail{i}").mocapid[0] for i in range(2)]
     for dt in (.001,.0005):
         m.opt.timestep=dt
         t=np.arange(-.3,8.31,dt)
         x,y,h,l,p=[np.interp(t,path["time_s"],path[k]) for k in ("x_mm","y_mm","yaw_rad","lift_mm","pitch_rad")]
+        if yaw_correction is not None:
+            h += np.interp(t,*yaw_correction)
         bx,_,bz=v["lift_base_position_mm"]
         reach=bx+np.sqrt(v["lift_arm_length_mm"]**2-(l-bz)**2)
         wrist=.001*np.column_stack([x+reach*np.cos(h),y+reach*np.sin(h),l])

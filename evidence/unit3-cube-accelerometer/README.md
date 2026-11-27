@@ -189,3 +189,5 @@ These runs provide little leverage to separate axis bias from gain. For an indep
 [Missing-tooth sensitivity on the physical pickup](pickup-tooth.md)
 
 [Where the printed fork passes the lifting lip](pickup-undercut.md)
+
+[Robot and cube approach headings from the overhead camera](approach-heading.md)
