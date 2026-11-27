@@ -31,7 +31,7 @@ CELL_CHARGER = 5
 BACKUP_SPEEDS_MMPS = (-102.0, -112.0, -96.0, -122.0, -106.0)  # by wiggle count, as before
 BACKUP_MIN_TICKS = 320
 BACKUP_MARGIN = 1.3
-SEAT_DEPTH_MM = 30.0  # the seated robot's origin is this far behind the lip (web/src/sim/robot.js _localizeOnCharger)
+SEAT_DEPTH_MM = 30.0  # the seated robot's origin is this far behind the lip (simulacrum/robot.py localize_on_charger)
 LIFT_UP_WAIT_TICKS = 200  # control ticks (1 s): the longest the dock waits for the lift to reach its backing height
 # Control ticks (1.65 s) a retry may take pulling forward to its goal. At 165 the pull stopped about 47 mm out, short of
 # its 78 or 90 mm goal with the rear skids still on the dock's lip; the alignment turn after it could not turn there,
@@ -335,14 +335,14 @@ def _place_docked(sim: Any, head_deg: float, lift_mm: float) -> None:
 
 def make_dock_sim(start_xy_mm: Tuple[float, float] = (0.0, 0.0), heading_deg: float = 0.0,
                   head_deg: float = 4.0, lift_mm: float = 32.0, start_docked: bool = False,
-                  noise_seed: int = 1) -> Any:
+                  noise_seed: int = 1, calm_mode: bool = False) -> Any:
     """Instantiate Python VectorSim on the free-cube + charger-dock table scene."""
     import mujoco
     from .robot import VectorSim
 
     v = params.values(params.load())
     xml = mjcf.build_mjcf(v, (), cube="free", dock="scene")
-    sim = VectorSim(values=v, noise_seed=noise_seed)
+    sim = VectorSim(values=v, noise_seed=noise_seed, calm_mode=calm_mode)
     sim.model = mujoco.MjModel.from_xml_string(xml)
     sim.data = mujoco.MjData(sim.model)
     sim._index_model()
@@ -675,7 +675,13 @@ class DockingExplorer:
         twisted = ctx.backup_ticks > 90 and abs(_wrap(out_yaw - yaw)) > math.radians(10.0) and not dock_st["on_charger"]
         past_rear = ch is not None and not dock_st["on_charger"] and not dock_st["on_charger_platform"] and rfwd < -95.0
         if dock_st["on_charger"] or ctx.backup_ticks > ctx.backup_budget or twisted or past_rear:
-            sim._wheel_target = [0.0, 0.0]
+            if dock_st["on_charger"]:
+                sim._stop_treads_at_contact()
+                if ch is not None:
+                    sim.localize_on_charger(ch)
+            else:
+                sim._wheel_target = [0.0, 0.0]
+                sim._wheel_accel = [0.0, 0.0]
             ctx.sub, ctx.stage = _SubMotion(kind="wait", wait_ticks=22), "verify"
             return None
         spd = BACKUP_SPEEDS_MMPS[ctx.wiggle_count % len(BACKUP_SPEEDS_MMPS)]
@@ -693,6 +699,9 @@ class DockingExplorer:
             if not self._step_sub(ctx.sub):
                 return None
             if dock_st["on_charger"]:
+                if ch is not None:
+                    sim.localize_on_charger(ch)
+                    sim._publish_state()
                 sim.command_head_angle(0.0)
                 sim.command_lift_height(32.0)
                 return "completed"

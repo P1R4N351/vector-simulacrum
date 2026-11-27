@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import unittest
 
 import _common
@@ -72,6 +73,14 @@ class AutonomyMujoco(unittest.TestCase):
             self.assertEqual(dock_res["result"], "completed", f"{label}: {dock_res}")
             self.assertTrue(autonomy.sync_dock_contact(sim)["on_charger"], label)
             self.assertAlmostEqual(sim.battery_volts, 4.2, places=2)
+            ch = ctrl.nav_map.charger_pose
+            self.assertIsNotNone(ch, label)
+            assert ch is not None
+            exp_x = ch["lip_x"] - autonomy.SEAT_DEPTH_MM * ch["out_x"]
+            exp_y = ch["lip_y"] - autonomy.SEAT_DEPTH_MM * ch["out_y"]
+            exp_yaw = math.atan2(ch["out_y"], ch["out_x"])
+            self.assertLess(math.hypot(sim.state.x_mm - exp_x, sim.state.y_mm - exp_y), 1.0, label)
+            self.assertLess(abs(math.degrees(autonomy._wrap(sim.state.pose_angle_rad - exp_yaw))), 0.5, label)
 
     def test_the_lift_holds_still_while_the_robot_turns_onto_the_dock_and_backs_on(self) -> None:
         """The lift moves only while the robot stands. Raised at the start of the turn onto the dock's axis, with
