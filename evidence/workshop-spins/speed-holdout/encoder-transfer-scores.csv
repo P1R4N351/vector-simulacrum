@@ -1,0 +1,61 @@
+turn,model,phase,packets,yaw_rmse_rad_s,steady_error_pct
+1,Frozen physics,acceleration,9,0.09256474023254767,
+1,Frozen physics,steady,10,0.0729581407969374,-1.8667420600913665
+1,Frozen physics,braking,5,0.776297086841326,
+1,Model gain × measured wheels,acceleration,9,0.1197320860113691,
+1,Model gain × measured wheels,steady,10,0.10905857596692996,-5.734715097745591
+1,Model gain × measured wheels,braking,5,0.43916972051966235,
+1,Workshop gain × model wheels,acceleration,9,0.07964892182587083,
+1,Workshop gain × model wheels,steady,10,0.13918656917793515,9.30408461573058
+1,Workshop gain × model wheels,braking,5,0.728496944573509,
+1,Workshop gain × measured wheels,acceleration,9,0.17912751498653473,
+1,Workshop gain × measured wheels,steady,10,0.10543691266607776,5.426183662350349
+1,Workshop gain × measured wheels,braking,5,0.3698887564548151,
+1,Workshop gain with offset,acceleration,9,0.1141696000957287,
+1,Workshop gain with offset,steady,10,0.10151818442791063,5.088775786254184
+1,Workshop gain with offset,braking,5,0.3037905380666097,
+2,Frozen physics,acceleration,9,0.22062053570337883,
+2,Frozen physics,steady,10,0.19996561392231685,2.9458518236333724
+2,Frozen physics,braking,5,0.22616877134856897,
+2,Model gain × measured wheels,acceleration,9,0.15621586846600158,
+2,Model gain × measured wheels,steady,10,0.13119379852605897,-3.972538830462186
+2,Model gain × measured wheels,braking,5,0.32554951649107616,
+2,Workshop gain × model wheels,acceleration,9,0.19227999564697365,
+2,Workshop gain × model wheels,steady,10,0.21942977623761692,12.523807958687355
+2,Workshop gain × model wheels,braking,5,0.21026218318484619,
+2,Workshop gain × measured wheels,acceleration,9,0.1395636238503272,
+2,Workshop gain × measured wheels,steady,10,0.1537669801550739,7.396999525185679
+2,Workshop gain × measured wheels,braking,5,0.30192468352958585,
+2,Workshop gain with offset,acceleration,9,0.08562329655157001,
+2,Workshop gain with offset,steady,10,0.15381972363594779,7.0628844794630785
+2,Workshop gain with offset,braking,5,0.21497586926726303,
+3,Frozen physics,acceleration,10,0.5356994820328491,
+3,Frozen physics,steady,9,0.2612666342249828,-4.628202791598101
+3,Frozen physics,braking,5,1.0789661264735007,
+3,Model gain × measured wheels,acceleration,10,0.5290969021312655,
+3,Model gain × measured wheels,steady,9,0.24368046805935153,-4.556749468891967
+3,Model gain × measured wheels,braking,5,0.7163814661666469,
+3,Workshop gain × model wheels,acceleration,10,0.5653151282647596,
+3,Workshop gain × model wheels,steady,9,0.391185727375436,8.911651121086335
+3,Workshop gain × model wheels,braking,5,0.9337746524789733,
+3,Workshop gain × measured wheels,acceleration,10,0.6899040098661344,
+3,Workshop gain × measured wheels,steady,9,0.30195047137557657,6.743619034918648
+3,Workshop gain × measured wheels,braking,5,0.6397180547627971,
+3,Workshop gain with offset,acceleration,10,0.5139022394518046,
+3,Workshop gain with offset,steady,9,0.3006073847745065,6.606974559435415
+3,Workshop gain with offset,braking,5,0.5272106361670238,
+4,Frozen physics,acceleration,10,0.6177815792387489,
+4,Frozen physics,steady,9,0.42489845610315313,1.4506377431807387
+4,Frozen physics,braking,5,0.9265564684478887,
+4,Model gain × measured wheels,acceleration,10,0.6834423708635191,
+4,Model gain × measured wheels,steady,9,0.23814152573203834,-3.214932736264142
+4,Model gain × measured wheels,braking,5,0.759800252348184,
+4,Workshop gain × model wheels,acceleration,10,0.7367136106887541,
+4,Workshop gain × model wheels,steady,9,0.4086312817088528,10.238649737849125
+4,Workshop gain × model wheels,braking,5,0.8758404613402915,
+4,Workshop gain × measured wheels,acceleration,10,0.789188597557965,
+4,Workshop gain × measured wheels,steady,9,0.3649807036331931,8.244305289056863
+4,Workshop gain × measured wheels,braking,5,0.6700438409546461,
+4,Workshop gain with offset,acceleration,10,0.4601226789282456,
+4,Workshop gain with offset,steady,9,0.3653615950078685,8.092120962666561
+4,Workshop gain with offset,braking,5,0.5063826830868703,

@@ -1,0 +1,31 @@
+turn,model,phase,packets,yaw_rmse_rad_s,steady_error_pct
+3,Frozen physics,acceleration,10,0.3437833854922327,
+3,Frozen physics,steady,9,0.342190672850502,-8.172517501169605
+3,Frozen physics,braking,5,0.8179094029828985,
+3,Model gain × measured wheels,acceleration,10,0.16119902626779467,
+3,Model gain × measured wheels,steady,9,0.2577803416781606,-7.938555600758111
+3,Model gain × measured wheels,braking,5,0.532181936197786,
+3,Workshop gain × model wheels,acceleration,10,0.33303038640794574,
+3,Workshop gain × model wheels,steady,9,0.23883038969366965,1.3555931119329854
+3,Workshop gain × model wheels,braking,5,0.7186851558314382,
+3,Workshop gain × measured wheels,acceleration,10,0.26019472708866564,
+3,Workshop gain × measured wheels,steady,9,0.1710252947608637,2.9614110382178804
+3,Workshop gain × measured wheels,braking,5,0.5057751884693128,
+3,Workshop gain with offset,acceleration,10,0.20038346651109074,
+3,Workshop gain with offset,steady,9,0.18285093105896974,2.930849839019552
+3,Workshop gain with offset,braking,5,0.3832705000395194,
+4,Frozen physics,acceleration,10,0.3487405095358611,
+4,Frozen physics,steady,9,0.3726982654044993,-8.80924964961116
+4,Frozen physics,braking,5,0.8018157298059462,
+4,Model gain × measured wheels,acceleration,10,0.0454523645403525,
+4,Model gain × measured wheels,steady,9,0.25933782288147533,-8.974912936054137
+4,Model gain × measured wheels,braking,5,0.5009296705994748,
+4,Workshop gain × model wheels,acceleration,10,0.4111218359317572,
+4,Workshop gain × model wheels,steady,9,0.24389865952029105,4.044764137768682
+4,Workshop gain × model wheels,braking,5,0.7497724002605464,
+4,Workshop gain × measured wheels,acceleration,10,0.1806082445521511,
+4,Workshop gain × measured wheels,steady,9,0.1318263857453988,1.8023502144582555
+4,Workshop gain × measured wheels,braking,5,0.4610674569159043,
+4,Workshop gain with offset,acceleration,10,0.20709134975838883,
+4,Workshop gain with offset,steady,9,0.1313888738000794,1.1730583057179762
+4,Workshop gain with offset,braking,5,0.39460996090899203,
