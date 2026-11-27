@@ -181,3 +181,5 @@ These runs provide little leverage to separate axis bias from gain. For an indep
 
 **Stationary noise by axis.** The original 643 resting packets give effective X/Y/Z input noise densities of 105/123/141 µg/√Hz with the recorded word format. The unit 3 cube profile now applies these multipliers before filtering and digitization. The earlier scalar density remains the common scale. The evaluation uses successive within-packet sample differences, avoiding interpacket receipt jitter. Four independent 20 s noise realizations predict each axis. Held-out windows span 0.8 to 0.1 s before each lift command. In 218 D1 packets and 149 D2 packets, RMS error across the three axis noise levels falls from 0.349 to 0.151 mg and from 0.199 to 0.134 mg respectively. These are effective stationary noise levels for this cube on the shelf. Mechanical vibration in the room could contribute. [Recorded versus simulated](axis-noise.png) · [scores](axis-noise.csv) · [reproduce](axis_noise.py).
 \n[Cube response, camera slide and wrist onset brackets](motion-brackets.md)
+
+[Printed fork load and wrist pitch sensitivity](fork-load-limit.md)
