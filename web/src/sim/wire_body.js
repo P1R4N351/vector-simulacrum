@@ -69,7 +69,7 @@ export class WireBody {
     sim.bodyRangeClock = true;
     this.seq = 0;
     this.encoders = new WireMotorEncoders();
-    this.cubeTick = sim.cubeSensor?.ticks ?? 0;
+    this.lastCubePacket = sim.cubeSensor?.packet ?? null;
     this.cubeTaps = sim.cubeSensor?.packet?.taps ?? 0;
     this.lastAdvertisementSeq = null;
     this.cubeSensor = sim.cubeSensor;
@@ -111,7 +111,8 @@ export class WireBody {
     if (!sensor) return [];
     if (sensor !== this.cubeSensor) {
       this.cubeSensor = sensor;
-      this.cubeTick = this.cubeTaps = 0;
+      this.lastCubePacket = null;
+      this.cubeTaps = 0;
     }
     // The unit 3 shelf cell reported 0x01bc in direct BLE captures. Other scenes
     // use the upstream LightCube PROTO default (1.5 V, truncated ADC counts).
@@ -121,16 +122,16 @@ export class WireBody {
       frames.push(cubeFrame([0, 0, 0], true, false, railCounts));
       this.lastAdvertisementSeq = this.seq;
     }
-    // The sensor only retains its latest three slots after a delivery interruption.
-    this.cubeTick = Math.max(this.cubeTick, sensor.ticks - sensor.slots.length);
-    while (this.cubeTick < sensor.ticks) {
-      const slot = sensor.slots[this.cubeTick % 3];
-      this.cubeTick++;
-      // tap_count belongs to the completed three-slot report, including its wrap.
-      const reportEnd = this.cubeTick % 3 === 0;
-      const tapped = reportEnd && sensor.packet.taps !== this.cubeTaps;
-      if (reportEnd) this.cubeTaps = sensor.packet.taps;
-      frames.push(cubeFrame(slot, false, tapped, railCounts));
+    // The firmware publishes all three slots together. Its live slot array still
+    // belongs to the previous BLE report while the next report is accumulating.
+    const packet = sensor.packet;
+    if (packet && packet !== this.lastCubePacket) {
+      for (const [index, slot] of packet.slots.entries()) {
+        const tapped = index === 2 && packet.taps !== this.cubeTaps;
+        frames.push(cubeFrame(slot, false, tapped, railCounts));
+      }
+      this.lastCubePacket = packet;
+      this.cubeTaps = packet.taps;
     }
     return frames;
   }
