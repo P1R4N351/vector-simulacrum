@@ -1,0 +1,5 @@
+session,states,initial_wait_s,raise_return_since_subscription_s,angle_at_return_deg,max_hold_drop_deg,max_abs_hold_gyro_rad_s,lowering_gyro_onset_s,hold_angle_rmse_deg,hold_animated_packets,hold_packets,initial_animated_packets,initial_packets,initial_head_range_deg,last_animated_before_lower_since_subscription_s
+1,129,1.042,3.327,25.92,34.16,1.37,0.179,25.55,26,34,17,17,4.92,4.822
+2,269,9.076,11.484,24.69,0,0.002,,0.25,0,33,81,151,25.07,4.814
+3,266,9.061,11.399,24.69,0,0.001,,0.25,0,34,82,150,24.58,4.919
+4,129,1.033,3.317,25.43,33.79,1.274,0.241,24.64,27,34,17,17,3.69,4.873
