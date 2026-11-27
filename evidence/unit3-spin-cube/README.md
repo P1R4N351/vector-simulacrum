@@ -202,3 +202,22 @@ A position servo tracking its own measured output introduces a second response d
 The unloaded control disables cube contact and preserves the recorded chassis motion, lift linkage, gravity and actuator dynamics. With compensation, six unloaded 60 mm crossings fall within 1.4 ms of the interpolated SDK reference. W26 remains 17.3 ms late. Its SDK receipt stream has a 376 ms gap followed by a burst: reported height falls from 91.8 to 64.8 mm in 5.4 ms and then to 34.0 mm in 19.3 ms. These intervals measure receipt at the host. Their derivatives are unreliable estimates of physical shaft speed.
 
 The loaded crossings remain late after applying the same correction. This separates the extra unloaded servo lag from the larger discrepancy during contact. Scores compare integrated output height with the interpolated measurement at the same end-of-step time. Five sensor phases per recording are averaged for the tap metrics. [Per-mount results](lift-tracking.csv). Reproduce with `python lift_tracking.py`.
+
+## W26 SDK receipt burst
+
+![W26 lift descent under two candidate report clocks](receipt-burst.png)
+
+W26 contains a 376 ms gap in host receipts followed by several tightly clustered robot states. Outside that burst, median report spacing before −0.8 s is 59.1 ms. Holding the two bracketing receipts fixed and distributing the enclosed reports evenly gives 61.1 ms per report. The physical radio packet times and the high-pitch alignment report stay fixed. All robot state fields within a report move together.
+
+The robot's last-image clock provides a separate check. Two successive image-clock changes inside the burst span 159 ms of robot image time. Their first reporting states arrive 12.8 ms apart on the host. Their reconstructed spacing is 183.3 ms. Image capture and robot state publication are asynchronous. This supports delivery compression but does not uniquely establish encoder acquisition times.
+
+| W26, velocity-compensated replay | Host receipts | Evenly spaced burst |
+|---|---:|---:|
+| Unloaded lift height RMSE | 5.20 mm | 0.90 mm |
+| Loaded lift height RMSE | 5.04 mm | 3.55 mm |
+| Absolute tap count error, mean across five phases | 2.0 | 1.0 |
+| Absolute first tap timing error | 568 ms | 568 ms |
+
+The clock reconstruction accounts for much of the unloaded outlier. The first simulated tap remains early under both clocks, so the burst cannot account for that discrepancy. Both RMSE scores use the height trace interpolated under their respective candidate clocks. This is a sensitivity analysis on one burst, with no independently measured encoder clock.
+
+[Clock reconstruction](receipt-burst-clock.csv) · [Robot last-image counter](receipt-burst-images.csv) · [Scores](receipt-burst.csv). Run `python receipt_burst.py`.
