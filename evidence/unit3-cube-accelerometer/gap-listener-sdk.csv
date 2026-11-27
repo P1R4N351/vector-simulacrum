@@ -1,0 +1,12 @@
+run,kind,sdk_ms,all_error_ms,dedup_error_ms,nominal_error_ms,forecast_error_ms,anchored_error_ms
+R10,start,8594166,14,14,-8536,227,216
+R10,stop,8594806,34,34,-8516,238,227
+R11,start,8771156,-26,4,-5846,-160,-152
+R11,stop,8771462,18,-2,-5792,122,131
+R8,start,559323,17,17,-1893,76,63
+W11,start,312101,9,9,-2921,133,74
+W11,stop,313199,11,11,-3149,126,67
+shelf-roll-stop/S22B,start,28295128,22,82,-6398,170,243
+shelf-roll-stop/S22B,stop,28295860,-20,-40,-6620,-59,248
+shelf-roll-stop/S22B,start,28313242,-22,-22,-9632,228,301
+shelf-roll-stop/S22B,stop,28314432,28,8,-9772,306,379
