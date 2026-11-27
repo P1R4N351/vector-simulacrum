@@ -14,3 +14,5 @@ From the last physical wheel edge through +400 ms the two held-out gyro integral
 Each scene starts on the table clear of the dock and cube, at the first recorded head angle and an assumed 32.7 mm lift. The simulation uses the Vector 2.0 web model at commit 232c712. Each reported wheel speed is held until the next native packet as a motor target. This reapplies the motor response to a measured signal and cannot alone assign the full-turn discrepancy to tread friction. Integrated turn-aligned head-axis gyro also differs from a camera measurement of world heading. No surface or physics parameters were fitted here.
 
 Scores use the native sample times, from the first packet through +400 ms relative to the last shaft edge. The steady window is −850 to −250 ms. The first and second pair follow the [original split](../hw-rec-20261119/hybrid-replay.md). To reproduce, install the web dependencies, then run `node replay.mjs > replay.csv` and `python score.py` in this directory. The script checks the four input traces for missing intervals. [All scores](scores.csv)
+
+[Full-spin encoder travel and corrected starting lift](travel.md)
