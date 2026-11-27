@@ -153,6 +153,33 @@ def engine_samples(payload: bytes) -> np.ndarray:
     return slots.astype(np.float32) / 32767 * 4 * 9810
 
 
+class TapBroadcasts:
+    """Physical engine tap grouping (BlockTapFilterComponent, 60 ms engine loop)."""
+
+    def __init__(self) -> None:
+        self.deadline_us = 0
+        self.pending_stamp_ms = 0
+        self.events: List[Tuple[float, int]] = []
+
+    def receive(self, time_s: float, stamp_ms: int) -> None:
+        now = round(time_s * 1e6)
+        # Packets due on an update are handled before the group is published.
+        self._advance(now - 1)
+        if not self.deadline_us:
+            intake = ((now + 59999) // 60000) * 60000
+            # First engine update strictly after the 75 ms grouping window.
+            self.deadline_us = intake + 120000
+        self.pending_stamp_ms = stamp_ms
+
+    def _advance(self, now_us: int) -> None:
+        if self.deadline_us and now_us >= self.deadline_us:
+            self.events.append((self.deadline_us / 1e6, self.pending_stamp_ms))
+            self.deadline_us = 0
+
+    def advance(self, time_s: float) -> None:
+        self._advance(round(time_s * 1e6))
+
+
 class TapListener:
     """Packet-level ObjectTapped candidates before engine tap grouping or SDK delivery."""
 
@@ -160,12 +187,14 @@ class TapListener:
         self.previous: Optional[int] = None
         self.events: List[float] = []
 
-    def receive(self, t_s: float, payload: bytes) -> None:
+    def receive(self, t_s: float, payload: bytes) -> bool:
         assert len(payload) == 20 and payload[0] == COMMAND_ACCEL
         count = payload[1]
-        if self.previous is not None and count != self.previous:
+        changed = self.previous is not None and count != self.previous
+        if changed:
             self.events.append(t_s)
         self.previous = count
+        return changed
 
 
 class MovementListener:
@@ -274,6 +303,7 @@ class CubeAccelerometer:
         self._state_stamp_ms = round(t_s * 1000)
         self.app = CubeApp(self.app_kind)
         self.taps = TapListener()
+        self.tap_broadcasts = TapBroadcasts()
         self.up_axis = UpAxisListener()
         self.movement = MovementListener()
         # Event times are counted, not summed: ten 2 ms steps summed come to 0.020000000000000004 s and would
@@ -310,6 +340,7 @@ class CubeAccelerometer:
         for _ in range(MAX_EVENTS_PER_STEP):
             frame_at, tick_at = self._frame_time(), self._tick_time()
             if min(frame_at, tick_at) > t_s + TIME_EPS_S:
+                self.tap_broadcasts.advance(t_s)
                 self._advance_supervisor(round(t_s * 1e6))
                 return
             if frame_at <= tick_at + TIME_EPS_S:
@@ -333,7 +364,8 @@ class CubeAccelerometer:
             self._advance_supervisor(round(t_s * 1e6) - 1)
             self.packet_timestamps_ms[t_s] = self._state_stamp_ms
             payload = self.app.messages[-1][1]
-            self.taps.receive(t_s, payload)
+            if self.taps.receive(t_s, payload):
+                self.tap_broadcasts.receive(t_s, self._state_stamp_ms)
             for accel in engine_samples(payload):
                 self.up_axis.update(t_s, accel)
                 self.movement.update(t_s, accel, handling_cube=self.handling_cube)
