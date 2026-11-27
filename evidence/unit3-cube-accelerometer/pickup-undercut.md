@@ -8,7 +8,7 @@ By +3.38 s the nearest underside was 14.72 mm away. The nearest fork point lay 1
 
 ## Would a lateral correction recover engagement?
 
-We shifted the fork at its mount by −2, −1, 0, +1 and +2 mm in the robot's lateral axis before the approach. The free cube could react throughout. Runs used both recorded starting sightings and two solver steps. All 20 cases stayed level at +3.38 s. The largest center rise was 0.35 mm and none sustained a lift. The submillimeter clearance in the unmodified trajectory therefore does not identify a mounting correction. These two sighting estimates come from the same physical pickup. [Sensitivity results](pickup-lateral.csv) · [Replay](pickup-lateral.py)
+We shifted the fork at its mount by −2, −1, 0, +1 and +2 mm in the robot's lateral axis before the approach. The free cube could react throughout. Runs used both recorded starting sightings and two solver steps. All 20 cases stayed level at +3.38 s. The largest center rise was 0.34 mm and none sustained a lift. The submillimeter clearance in the unmodified trajectory therefore does not identify a mounting correction. These two sighting estimates come from the same physical pickup. [Sensitivity results](pickup-lateral.csv) · [Replay](pickup-lateral.py)
 
 ## Geometry and reproducibility
 
