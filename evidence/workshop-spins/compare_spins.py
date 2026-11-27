@@ -6,18 +6,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from c7_transfer import simulate,gyro_axes
 from simulacrum import params
-fresh = "--fresh" in sys.argv
+mixed = "--interleaved" in sys.argv
+fresh = mixed or "--fresh" in sys.argv
 base=Path(__file__).parent
 if fresh:
-    base = base / "speed-holdout"
+    base = base / ("interleaved" if mixed else "speed-holdout")
 def load(name):
     with (base/name).open() as f:return list(csv.DictReader(f))
 events=load('events.csv');states=load('states.csv')
 values=params.values(params.load(model='vector_1'))
 commands=[r for r in events if r['event']=='spin']
 stops=[r for r in events if r['event']=='stop']
-assert len(commands)==len(stops)==4
-fig,axes=plt.subplots(2,4,figsize=(14,6),sharex='col',layout='constrained')
+assert len(commands)==len(stops)==(6 if mixed else 4)
+fig,axes=plt.subplots(2,len(commands),figsize=(3.5*len(commands),6),sharex='col',layout='constrained')
 scores=[]; predictions=[]
 for i,(cmd,stop) in enumerate(zip(commands,stops)):
     start=float(cmd['time_s']);end=float(stop['time_s']);speed=int(cmd['detail']) * (1 if fresh else 100);sgn=int(np.sign(speed))
@@ -42,7 +43,7 @@ for i,(cmd,stop) in enumerate(zip(commands,stops)):
         axes[1,i].plot(t,y,'.-',c=c,label=side);axes[1,i].plot(ts,ys,'--',c=c)
     scores.append(metrics)
     for ax in axes[:,i]:ax.axvline(end-start,lw=.8,c='gray')
-    axes[0,i].set_title(f'Turn {i+1} · '+('CCW' if sgn==1 else 'CW'));axes[1,i].set_xlabel('Seconds after command')
+    axes[0,i].set_title(f'{abs(speed)} mm/s · '+('CCW' if sgn==1 else 'CW'));axes[1,i].set_xlabel('Seconds after command')
 axes[0,0].set_ylabel('Chassis-axis yaw (rad/s)');axes[1,0].set_ylabel('Wheel speed (mm/s)')
 axes[0,0].legend(fontsize=8);axes[1,0].legend(fontsize=8)
 fig.savefig(base/'spin-overlay.png',dpi=160)
