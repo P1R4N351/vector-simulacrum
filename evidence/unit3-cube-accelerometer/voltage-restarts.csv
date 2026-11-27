@@ -1,0 +1,7 @@
+run,long_gaps,voltage_adjacent_to_restart,duplicate_at_restart,both,neither,duplicates_elsewhere,voltage_intervals,unique_count_within_firmware_bounds
+resting,18,11,7,0,0,0,11,11
+pickup,38,21,17,0,0,1,20,20
+undock-check,8,5,2,0,1,1,4,4
+A,46,23,23,0,0,0,22,22
+E,64,35,28,0,1,1,34,34
+F,22,13,9,0,0,0,13,13
