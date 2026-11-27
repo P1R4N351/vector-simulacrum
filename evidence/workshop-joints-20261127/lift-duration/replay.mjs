@@ -13,6 +13,8 @@ try {
   const includeFlag = rows.some(r => r[1] === "state" && r.length > 11 && r[11] !== "");
   const samples=[includeFlag ? "s,lift_mm,on_dock,in_position" : "s,lift_mm,on_dock"];
   const finishes=["command_s,target_mm,duration_s,sim_elapsed_s,result"];
+  const ready=["command_s,ready_s"];
+  let waitingForTarget = null;
   let next=0;
   let pending=null;
   for(const row of rows.filter(r=>r[1]==="state")){
@@ -22,9 +24,14 @@ try {
       if(next<commands.length && Number(commands[next][0])<=t){
         const cmd=commands[next++];
         pending={cmd,previous:sim.lastAction};
+        waitingForTarget=cmd;
         if(!sim.setLiftHeight(Number(cmd[2]),null,Number(cmd[3]))) throw Error("Rejected recorded command at "+t);
       }
       sim.tick();
+      if(waitingForTarget && sim._liftServoCmd===sim._liftTarget){
+        ready.push([waitingForTarget[0],Number(first[0])+sim.tickCount*sim.dt].join(","));
+        waitingForTarget=null;
+      }
       if(pending && sim.lastAction!==pending.previous){
         finishes.push([pending.cmd[0],pending.cmd[2],pending.cmd[3],sim.lastAction.ticks*sim.dt,sim.lastAction.result].join(","));
         pending=null;
@@ -35,6 +42,10 @@ try {
     samples.push(sample.join(","));
   }
   if(next!==commands.length || finishes.length!==commands.length+1)throw Error("Incomplete replay");
+  if(process.argv[3]){
+    if(ready.length!==commands.length+1) throw Error("Missing final servo target");
+    writeFileSync(new URL(process.argv[3],evidence),ready.join("\n")+"\n");
+  }
   writeFileSync(new URL("returns.csv",evidence),finishes.join("\n")+"\n");
   writeFileSync(new URL("replay.csv",evidence),samples.join("\n")+"\n");
 } finally {sim.dispose();}
