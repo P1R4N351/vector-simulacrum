@@ -4,10 +4,12 @@ import {VectorSim} from "../../web/src/sim/robot.js";
 const mj=await mujoco(), {values,derived,shelf_outline_mm}=readJson("public/robot/vector2/model.json");
 const clips=JSON.parse(readFileSync(0,"utf8"));
 const testTurns=process.argv.includes("--turns");
-const modes=testTurns ? ["open","ramped","feedback"] : ["open"];
+const scenePath=process.argv.find(arg=>arg.startsWith("--scene="))?.slice(8);
+const sceneController=process.argv.find(arg=>arg.startsWith("--controller="))?.slice(13) ?? "open";
+const modes=scenePath ? [sceneController] : testTurns ? ["open","ramped","feedback"] : ["open"];
 console.log("clip,t,left,right,head,lift,on"+(testTurns?",gyro,x_mm,y_mm,z_mm,yaw_rad":""));
 for (const mode of modes) for (const [name,frames] of Object.entries(testTurns ? {straight_03:clips.straight_03} : {canonical:[],...clips})){
-  const sim=new VectorSim(mj,{values,derived,xml:readText("public/robot/vector2/vector-free-shelf.xml"),
+  const sim=new VectorSim(mj,{values,derived,xml:scenePath ? readFileSync(scenePath,"utf8") : readText("public/robot/vector2/vector-free-shelf.xml"),
     shelfOutline:shelf_outline_mm,startDocked:true,headDeg:Number(process.argv[2]),liftMm:Number(process.argv[3]),noiseSeed:1});
   try{
     const track=kind=>frames.filter(f=>f.Name===kind).sort((a,b)=>a.triggerTime_ms-b.triggerTime_ms);
@@ -49,7 +51,7 @@ for (const mode of modes) for (const [name,frames] of Object.entries(testTurns ?
         sim.setWheelMotors(l,r);
       }
       if(tick%2===0){const s=sim.reportedNow();const row=[testTurns?mode:name,t,s.wl,s.wr,s.head_deg,s.lift_mm,+sim.chargerContact];if(testTurns)row.push(s.gyro_z_dps,...sim.poseMm(),sim._yaw());console.log(row.join(","));}
-      if(testTurns && tick===2800){
+      if(testTurns && (tick===2800 || (scenePath && tick>=1500 && tick<=3200 && tick%20===0))){
         const pairs=new Set();
         const contact=sim.data.contact;
         for(let i=0;i<sim.data.ncon;i++){
@@ -58,7 +60,7 @@ for (const mode of modes) for (const [name,frames] of Object.entries(testTurns ?
           pairs.add(names.join("/"));
           c.delete();
         }
-        console.error(mode,[...pairs].join(" "));
+        console.error(scenePath?t:mode,[...pairs].join(" "));
       }
       sim.tick(1);
     }
