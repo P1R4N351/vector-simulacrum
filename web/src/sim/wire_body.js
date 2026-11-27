@@ -10,9 +10,10 @@ export function motorCommand(bytes) {
   return ENCODER_SCALE.map((_, i) => Math.max(-1, v.getInt16(24 + 2*i, true) / 32767));
 }
 
-// Syscon counts optical edges without direction. The motor bridge supplies the sign.
-class WireWheelEncoder {
-  constructor() {
+// Wheels infer direction from drive duty. Head and lift decode quadrature on the shaft.
+class WireEncoder {
+  constructor(quadrature) {
+    this.quadrature = quadrature;
     this.previous = null;
     this.position = 0;
     this.direction = -1;
@@ -37,7 +38,7 @@ class WireWheelEncoder {
         const clock = Math.round((startSeconds + dt * fraction) * 48000000);
         this.period = ((clock - this.lastEdgeClock) * 256) >>> 0;
         this.lastEdgeClock = clock;
-        this.delta = this.direction * edges;
+        this.delta = (this.quadrature ? Math.sign(step) : this.direction) * edges;
         this.position += this.delta;
         this.idleFrames = 0;
       } else if (++this.idleFrames > 25) {
@@ -53,54 +54,32 @@ export class WireBody {
     this.sim = sim;
     sim.bodyRangeClock = true;
     this.seq = 0;
-    this.prev = null;
-    this.wheels = [new WireWheelEncoder(), new WireWheelEncoder()];
+    this.encoders = ENCODER_SCALE.map((_, i) => new WireEncoder(i >= 2));
     this.cubeTick = sim.cubeSensor?.ticks ?? 0;
     this.cubeTaps = sim.cubeSensor?.packet?.taps ?? 0;
     this.lastAdvertisementSeq = null;
     this.cubeSensor = sim.cubeSensor;
-    this.elapsed = [0, 0, 0, 0];
-    this.delta = [0, 0, 0, 0];
-    this.period = [0, 0, 0, 0];
   }
 
   frame(power) {
     const s = this.sim;
     const startSeconds = s.data.time;
-    if (this.prev === null) {
-      s._treadTravelMm().forEach((mm,i) => this.wheels[i].sample(mm / ENCODER_SCALE[i], 0, startSeconds, 0));
+    if (this.encoders[0].previous === null) {
+      const start = [...s._treadTravelMm(), s.liftAngleRad(), s.headAngleRad()];
+      start.forEach((value,i) => this.encoders[i].sample(value / ENCODER_SCALE[i], 0, startSeconds, 0));
     }
     s.tickWireBody(power);
     const bytes = new Uint8Array(812), v = new DataView(bytes.buffer);
     for (const [offset, value] of [[0,MAGIC], [4,6], [8,this.seq], [16,this.seq]]) v.setUint32(offset,value,true);
     v.setUint8(20,1);
     const positions = [...s._treadTravelMm(), s.liftAngleRad(), s.headAngleRad()];
-    const counts = positions.map((value,i) => Math.sign(value/ENCODER_SCALE[i]) * Math.round(Math.abs(value/ENCODER_SCALE[i])));
     for (let i=0; i<4; i++) {
-      if (i < 2) {
-        const encoder = this.wheels[i];
-        encoder.sample(positions[i] / ENCODER_SCALE[i], power[i], startSeconds, s.dt);
-        v.setInt32(24+12*i, encoder.position, true);
-        v.setInt32(28+12*i, encoder.delta, true);
-        v.setUint32(32+12*i, encoder.period, true);
-        continue;
-      }
-      if (this.prev) {
-        this.elapsed[i] += Math.round(s.dt * 48000000 * 256);
-        if (counts[i] !== this.prev[i]) {
-          this.delta[i] = counts[i] - this.prev[i];
-          this.period[i] = this.elapsed[i];
-          this.elapsed[i] = 0;
-        } else if (this.elapsed[i] >= 1536000000) {
-          this.delta[i] = this.period[i] = 0;
-          this.elapsed[i] = 1536000000;
-        }
-      }
-      v.setInt32(24+12*i, counts[i], true);
-      v.setInt32(28+12*i, this.delta[i], true);
-      v.setUint32(32+12*i, this.period[i], true);
+      const encoder = this.encoders[i];
+      encoder.sample(positions[i] / ENCODER_SCALE[i], power[i], startSeconds, s.dt);
+      v.setInt32(24+12*i, encoder.position, true);
+      v.setInt32(28+12*i, encoder.delta, true);
+      v.setUint32(32+12*i, encoder.period, true);
     }
-    this.prev = counts;
     s.cliffRangesMm().forEach((mm,i) => v.setUint16(72+2*i,mm<0 ? 4 : Math.round(Math.max(4,900-4.48*mm)),true));
     v.setInt16(80,Math.trunc(s.batteryVolts*2048/2.8),true);
     v.setInt16(82,s.chargerContact ? Math.trunc(5*2048/2.8) : 0,true);

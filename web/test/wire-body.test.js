@@ -161,3 +161,36 @@ test("single-channel tread reports the direction and timestamp of its last optic
     assert.equal(packet.getUint32(32,true), held);
   } finally { sim.dispose(); }
 });
+
+test("head and lift encoders follow shaft crossings through load reversal and rest", async () => {
+  const profile = readJson("public/robot/vector2/model.json");
+  const sim = new VectorSim(await mujoco(), {xml:readText("public/robot/vector2/vector-free.xml"),
+    values:profile.values, derived:profile.derived});
+  try {
+    const body = new WireBody(sim);
+    const advance = sim.tickWireBody.bind(sim);
+    let count = 0, next = 0;
+    sim.liftAngleRad = () => count*Math.PI/(4*149.7);
+    sim.headAngleRad = () => -count*Math.PI/(4*366.211);
+    sim.tickWireBody = duty => { advance(duty); count = next; };
+    const frame = target => {
+      next = target;
+      return new DataView(body.frame([0,0,0.2,0.2]).buffer);
+    };
+    frame(1);
+    let packet = frame(3);
+    for (const [offset, sign] of [[48,1],[60,-1]]) {
+      assert.equal(packet.getInt32(offset,true), 3*sign);
+      assert.equal(packet.getInt32(offset+4,true), 2*sign);
+      assert.equal(packet.getUint32(offset+8,true), 1.25*sim.dt*48000000*256);
+    }
+    packet = frame(2.1);
+    assert.equal(packet.getInt32(52,true), -1);
+    assert.equal(packet.getInt32(64,true), 1);
+    const period = packet.getUint32(68,true);
+    for (let i=0; i<25; i++) assert.equal(frame(2.1).getInt32(64,true), 1);
+    packet = frame(2.1);
+    assert.equal(packet.getInt32(64,true), 0);
+    assert.equal(packet.getUint32(68,true), period);
+  } finally { sim.dispose(); }
+});
