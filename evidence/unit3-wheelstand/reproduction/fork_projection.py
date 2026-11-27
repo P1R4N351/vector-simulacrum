@@ -20,8 +20,8 @@ PICKS={64:((349,335),(382,321)),66:((348,325),(384,309)),
 FRAMES=(49,61,*PICKS,86)
 
 
-def project_fork(v,tr,t,cam,heading,lens,verts):
-    angle=replay.mjcf.lift_angle_of_height(v,tr.obs(t,"lift_mm"))
+def project_fork(v,tr,t,cam,heading,lens,verts,*,lift_time=None):
+    angle=replay.mjcf.lift_angle_of_height(v,tr.obs(t if lift_time is None else lift_time,"lift_mm"))
     wrist=np.array(v["lift_base_position_mm"])+v["lift_arm_length_mm"]*np.array([np.cos(angle),0,np.sin(angle)])
     local=verts+wrist
     delta=local-np.array([LENS_X_MM,0,65.5])
