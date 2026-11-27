@@ -191,3 +191,5 @@ These runs provide little leverage to separate axis bias from gain. For an indep
 [Where the printed fork passes the lifting lip](pickup-undercut.md)
 
 [Robot and cube approach headings from the overhead camera](approach-heading.md)
+
+[Shelf friction, rubber footprint and cube yaw](shelf-corner.md)
