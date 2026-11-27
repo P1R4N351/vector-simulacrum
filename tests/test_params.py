@@ -19,7 +19,7 @@ class Vector2(unittest.TestCase):
         replaced = {n for n, e in two.items() if e.get("overrides_base")}
         self.assertEqual(replaced, {"display_resolution_px", "battery_capacity_mah", "total_mass_g", "com_x_mm",
                                     "com_z_mm", "camera_resolution_px", "camera_fov_horizontal_deg", "camera_fov_vertical_deg",
-                                    "accel_scale", "accel_bias_mg", "imu_pitch_offset_deg",
+                                    "accel_scale", "accel_bias_mg", "imu_pitch_offset_deg", "tof_lift_quality",
                                     "cube_accel_noise_density_ug", "cube_accel_noise_axis_scale", "cube_accel_word_format", "cube_accel_scale"})
         self.assertEqual((one["display_resolution_px"]["value"], two["display_resolution_px"]["value"]), ([184, 96], [160, 80]))
         for name in set(one) - replaced:
@@ -27,7 +27,7 @@ class Vector2(unittest.TestCase):
             inherited_measurement = one[name]["provenance"] in ("measured", "fitted")
             self.assertEqual("inherited" in two[name], inherited_measurement, name)
             self.assertNotIn("inherited", one[name], name)
-        self.assertEqual(params.summary(self.two)["inherited"], 27)
+        self.assertEqual(params.summary(self.two)["inherited"], 26)
         self.assertEqual(self.two["robot"], "Digital Dream Labs Vector 2.0")
 
     def test_unit3_camera_uses_its_reported_intrinsics_at_stream_resolution(self) -> None:
