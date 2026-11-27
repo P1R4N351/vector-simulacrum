@@ -7,7 +7,7 @@ const model = readJson("public/robot/vector2/model.json");
 const xml = readText("public/robot/vector2/vector-free-dock.xml");
 console.log("spin,t,wl,wr,gyro");
 for (const trial of JSON.parse(readFileSync(0, "utf8"))) {
-  const sim = new VectorSim(mj, {xml, values:model.values, derived:model.derived,
+  const sim = new VectorSim(mj, {xml, values:{...model.values, battery_rest_voltage_v:trial.volts ?? model.values.battery_rest_voltage_v}, derived:model.derived,
     startXyMm:[0,140], headingDeg:0, headDeg:trial.head, liftMm:trial.lift, noiseSeed:1});
   try {
     sim.controlLevel = "override";
