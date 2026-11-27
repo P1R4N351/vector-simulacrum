@@ -5,7 +5,8 @@ import {VectorSim} from "../../web/src/sim/robot.js";
 const mj = await mujoco();
 const model = readJson("public/robot/vector2/model.json");
 const xml = readText("public/robot/vector2/vector-free-dock.xml");
-console.log("spin,t,wl,wr,gyro");
+const allAxes = process.argv.includes("--imu");
+console.log("spin,t,wl,wr,gyro" + (allAxes ? ",gx,gy,head_deg,raw_gx,raw_gy,raw_gz" : ""));
 for (const trial of JSON.parse(readFileSync(0, "utf8"))) {
   const sim = new VectorSim(mj, {xml, values:{...model.values, battery_rest_voltage_v:trial.volts ?? model.values.battery_rest_voltage_v}, derived:model.derived,
     startXyMm:[0,140], headingDeg:0, headDeg:trial.head, liftMm:trial.lift, noiseSeed:1});
@@ -23,7 +24,8 @@ for (const trial of JSON.parse(readFileSync(0, "utf8"))) {
         stopped = true;
       }
       const state = sim.reportedNow();
-      console.log([trial.spin,t,state.wl,state.wr,state.gyro_z_dps].join(","));
+      console.log([trial.spin,t,state.wl,state.wr,state.gyro_z_dps,...(allAxes ? [...sim._imu()[1].slice(0,2).map(v=>v*180/Math.PI),state.head_deg,
+          ...sim.data.sensordata.slice(sim._gyroAdr,sim._gyroAdr+3).map(v=>v*180/Math.PI)] : [])].join(","));
       sim.tick(1);
     }
   } finally { sim.dispose(); }
