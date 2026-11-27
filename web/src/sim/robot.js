@@ -262,7 +262,6 @@ export class VectorSim {
     this._wheelAccel = [0, 0];
     this._wheelCmd = [0, 0];
     this._applied = [0, 0];
-    this._dirSign = [1, 1];
     this._encoders = [new TreadEncoder(v), new TreadEncoder(v)];
     this._controllers = [new TreadController(v), new TreadController(v)];
     assert(v.motor_reference_voltage_v > 0 && v.battery_rest_voltage_v > 0, "voltages must be positive");
@@ -456,12 +455,9 @@ export class VectorSim {
   // sign from the command (one encoder channel), kept in an integer.
   _reportedWheelSpeeds() {
     const v = this.v;
-    const truth = this._wheelSpeeds();
     const out = [0, 0];
     for (let i = 0; i < 2; i++) {
-      const truthSign = truth[i] < 0 || Object.is(truth[i], -0) ? -1 : 1;
-      const sign = v.encoder_tread_direction_sensed ? truthSign : this._dirSign[i];
-      const speed = this._encoders[i].speedMmps * sign;
+      const speed = this._encoders[i].speedMmps * this._encoders[i].direction;
       out[i] = v.wheel_speed_reported_whole_mmps ? wholeMmps(speed) : speed;
     }
     return out;
@@ -827,8 +823,6 @@ export class VectorSim {
     this.data.ctrl[this._act.head] = delayed[2];
     this._writeLift(delayed[3]);
     this._applied = [left, right];
-    if (left !== 0) this._dirSign[0] = left > 0 ? 1 : -1;
-    if (right !== 0) this._dirSign[1] = right > 0 ? 1 : -1;
     this._driveTreads(left, right);
   }
 
@@ -956,8 +950,10 @@ export class VectorSim {
 
   _tickOnce(power = null) {
     const travel = this._treadTravelMm();
-    this._encoders[0].update(travel[0]);
-    this._encoders[1].update(travel[1]);
+    const direction = this.v.encoder_tread_direction_sensed ? this._wheelSpeeds()
+      : [this.data.ctrl[this._act.left], this.data.ctrl[this._act.right]];
+    this._encoders[0].update(travel[0], direction[0]);
+    this._encoders[1].update(travel[1], direction[1]);
     this._measured = this._reportedWheelSpeeds();
     this._sampleImu();
     const accel = this._imu()[0];

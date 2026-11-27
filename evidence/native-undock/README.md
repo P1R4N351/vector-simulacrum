@@ -37,3 +37,4 @@ python posture.py
 \n[Late turn controller, support contacts and held-out gyro overlays](late-turns.md)
 \n[Ramp exit contact tests and physical overlays](ramp-support.md)
 \n[Measured wheel waveform and gyro transfer](wheel-transfer.md)
+\n[Wheel encoder direction and sub-frame timing](encoder-clock.md)
