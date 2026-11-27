@@ -8,7 +8,7 @@ Twelve archived spins from three robots on distinct hard surfaces were replayed 
 | Unit 2, two 100 mm/s trials each way | 13.08 → 13.32 | 68.57 → 70.73 |
 | Unit 3, 60 and 150 mm/s each way | 31.38 → 31.75 | 72.00 → 73.03 |
 
-The candidate improved the default scene on all four unit 1 stops. It increased error on three of four unit 2 stops and two of four unit 3 stops. In the 42 mm scene, the average braking error fell for all three robots, but four individual stops still worsened. Neither the robot nor the floor can be isolated as the cause because they vary together. These paired comparisons do not justify a global default change.
+The candidate improved the default scene on both clockwise unit 1 stops and gave identical errors on its two counterclockwise stops. It increased error on three of four unit 2 stops and two of four unit 3 stops. In the 42 mm scene, the average braking error fell for all three robots, but four individual stops still worsened. Neither the robot nor the floor can be isolated as the cause because they vary together. These paired comparisons do not justify a global default change.
 
 ![Default wheel geometry, 12 physical and simulated head gyro traces](vector-free-dock.png)
 ![42 mm geometry, same 12 turns](vector-contact42-free-dock.png)
