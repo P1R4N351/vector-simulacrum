@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { gunzipSync } from "node:zlib";
 import { mujoco, readJson, readText } from "../../../web/test/helpers.js";
 import { VectorSim } from "../../../web/src/sim/robot.js";
@@ -20,6 +21,19 @@ const orientation = [w, gy/(2*w), -gx/(2*w), 0];
 const mj = await mujoco();
 const {values,derived} = readJson("public/robot/vector2/model.json");
 const sim = new VectorSim(mj,{values,derived,xml:readText("public/robot/vector2/vector-free.xml")});
+// Optional paired sensor experiment. Both paths get the same settling interval.
+const packetOutput = process.env.VECTOR_PACKET_CSV;
+const firmwarePath = process.env.VECTOR_CUBE_FIRMWARE;
+if (firmwarePath) {
+  if (!packetOutput) throw new Error("set VECTOR_PACKET_CSV for firmware comparisons");
+  const cubeBytes = readFileSync(firmwarePath);
+  if (createHash("sha256").update(cubeBytes).digest("hex") !==
+      "c53e7f1edae6bb034cd18782d01b8fb01ec4e1200b68187931060be59db02bee") {
+    throw new Error("unexpected cube firmware image");
+  }
+  sim.attachFirmware({cubeBytes});
+}
+const packets = [["velocity_mmps","gap_mm","phase_ms","step_after_release","packet_ms","taps","slot","x","y","z"]];
 const joint = mj.mj_name2id(sim.model,mj.mjtObj.mjOBJ_JOINT.value,"cube_root");
 const q = sim.model.jnt_qposadr[joint], dof = sim.model.jnt_dofadr[joint];
 const rows = [["velocity_mmps","gap_mm","phase_ms","low_pairs","nearest_peak_x_g","xyz_rmse_g"]];
@@ -36,7 +50,8 @@ function bottomCorners() {
 try {
   for (const velocity of [-150,-75,0,75,150]) for (const gap of [1,2,3]) for (let phase=0;phase<30;phase+=5) {
     sim.reset();
-    sim.tick(30+phase/5);
+    sim.tick((packetOutput ? 210 : 30)+phase/5);
+    if (packetOutput && !sim.cubeSensor.packet) throw new Error("cube sensor has not started");
     sim.data.qpos.set(orientation,q+3);
     mj.mj_forward(sim.model,sim.data);
     let low=Infinity;
@@ -58,6 +73,10 @@ try {
       sim.tick(1);
       const p=sim.cubeSensor.packet;
       if(p && p!==previous) {
+        if (packetOutput) {
+          p.slots.forEach((axes, index) => packets.push([velocity,gap,phase,i+1,
+            Math.round(p.time_s*1000),p.taps,index,...axes]));
+        }
         slots.push(...p.slots.map(slot=>slot.map(x=>x/values.cube_accel_counts_per_g)));
         previous=p;
       }
@@ -79,7 +98,8 @@ try {
     rows.push([velocity,gap,phase,candidates.length,candidates[0]?.[1]??"",candidates[0]?.[0]??""]);
   }
 } finally { sim.dispose(); }
-writeFileSync(file(pickup ? "browser-impact-slip-pickup.csv" : "browser-impact-slip.csv"),rows.map(r=>r.join(",")).join("\n")+"\n");
+if (packetOutput) writeFileSync(packetOutput, packets.map(row=>row.join(",")).join("\n")+"\n");
+else writeFileSync(file(pickup ? "browser-impact-slip-pickup.csv" : "browser-impact-slip.csv"),rows.map(r=>r.join(",")).join("\n")+"\n");
 
 if (process.argv.includes("--travel")) writeFileSync(file("browser-release-travel.csv"),travel.map(r=>r.join(",")).join("\n")+"\n");
 
