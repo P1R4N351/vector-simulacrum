@@ -942,9 +942,12 @@ class VectorSim:
         span = abs(target - self.head_angle_rad())
         self._set_head_target(target)
         tol = math.radians(v["head_angle_tol_deg"])
+        assert tol > 0.0, "head tolerance must be positive"
+
         def settled(elapsed: int) -> bool:
             return (elapsed >= self._servo_delay and self._accepted_head_target == target
                     and self._head_in_pos and abs(self.head_angle_rad() - target) <= tol)
+
         return self._servo_action(settled, span, self._head_speed)
 
     def set_lift_height(self, height_mm: float, speed_radps: Optional[float] = None, duration_s: float = 0.0) -> ActionResult:
@@ -958,4 +961,5 @@ class VectorSim:
         read = lambda: float(self.data.qpos[self._q["lift"]])
         span = abs(target - read())
         tol = math.radians(v["lift_angle_tol_deg"])
+        assert tol > 0.0, "lift tolerance must be positive"
         return self._servo_action(lambda _: abs(read() - target) <= tol, span, self._lift_speed)
