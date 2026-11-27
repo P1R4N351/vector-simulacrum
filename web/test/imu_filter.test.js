@@ -151,7 +151,8 @@ test("accel_scale multiplies the specific force before accel_bias_mg", async () 
   });
   const a1 = sim1.state.accel_mmps2;
   const a2 = sim2.state.accel_mmps2;
-  assert.ok(Math.abs(a2[2] - 1.02 * a1[2]) < 1e-6);
+  const step = TABLE.accel_range_g * 9810 / 32767;
+  assert.ok(Math.abs(a2[2] - 1.02 * a1[2]) <= (1 + 1.02) * step / 2);
   sim1.dispose();
   sim2.dispose();
 });
@@ -170,4 +171,15 @@ test("reported gyro retains the hardware count spacing before residual bias", as
     });
   }
   sim.dispose();
+});
+
+test("accelerometer reports signed HAL counts including both saturation endpoints", async () => {
+  const values = { ...TABLE, ...QUIET, accel_scale: [1,1,1], accel_bias_mg: [0,0,0] };
+  const sim = new VectorSim(await mujoco(), { xml, values, derived: model.derived });
+  try {
+    sim._imuFilter.reset([-25, .12345, 25, 0, 0, 0]);
+    sim._sampleImu();
+    const step = 9810 * values.accel_range_g / 32767;
+    assert.deepEqual(sim._imu()[0], [-32768 * step, Math.round(123.45 / step) * step, 32767 * step]);
+  } finally { sim.dispose(); }
 });

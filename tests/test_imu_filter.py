@@ -95,6 +95,13 @@ class Filter(unittest.TestCase):
 
 @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
 class InTheRobot(unittest.TestCase):
+    def test_accelerometer_reports_signed_hal_counts(self):
+        sim = VectorSim(values={**TABLE, **QUIET, "accel_scale": [1]*3, "accel_bias_mg": [0]*3})
+        sim._imu_filter.reset(np.array([-25, .12345, 25, 0, 0, 0]))
+        sim._sample_imu()
+        step = 9810 * TABLE["accel_range_g"] / 32767
+        self.assertEqual(sim._imu()[0], (-32768*step, round(123.45/step)*step, 32767*step))
+
     def test_reported_gyro_has_the_stock_steps_before_residual_bias(self):
         sim = VectorSim(values={**TABLE, **QUIET})
         for target in (-180.013, 0.037, 180.013):

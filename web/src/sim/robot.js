@@ -536,13 +536,15 @@ export class VectorSim {
     const v = this.v;
     const out = this._imuFilter.output;
     const mg = 0.001 * v.gravity_mmps2;
-    const aMax = v.accel_range_g * v.gravity_mmps2;
+    // Stock HAL converts the signed chip word using MAX_16BIT_POSITIVE.
+    const accelStep = v.accel_range_g * 9810 / 32767;
     const gMax = v.gyro_range_dps * DEG;
     const accel = [0, 0, 0];
     const gyro = [0, 0, 0];
     for (let i = 0; i < 3; i++) {
-      accel[i] = clamp((out[i] / MM) * v.accel_scale[i] + mg * v.accel_bias_mg[i]
-        + this._gauss(0, mg * v.accel_noise_rms_mg), -aMax, aMax);
+      const value = (out[i] / MM) * v.accel_scale[i] + mg * v.accel_bias_mg[i]
+        + this._gauss(0, mg * v.accel_noise_rms_mg);
+      accel[i] = clamp(Math.round(value / accelStep), -32768, 32767) * accelStep;
     }
     for (let i = 0; i < 3; i++) {
       // True rates are already corrected. The stock 0.989 Z correction scales each count.
