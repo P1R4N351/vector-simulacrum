@@ -62,3 +62,19 @@ Each physical cube reported one tap between 0.8 s before and 0.1 s after the rob
 Across all six Stage 2 replay cases, every 2 ms sampling phase detects at least one tap (`5 of 5`), though individual peak amplitudes still span up to a 3.0x subsampling ratio (W33 `last`, `1.27–3.79 g`) because each 10 ms `CubeSensor` tick retains one of five 2 ms frames. Physical W34 and W35 also show horizontal impacts at `-0.308` s (`1.05 g`) and `-0.258` s (`1.22–1.38 g`) before first fork contact while the lift is still above 82 mm. The `--contact full` option exposes canonical chassis and tread contact geoms for comparison, but `--contact fork` remains the default because replaying raw uncompliant SDK poses with chassis contact starts pre-pushing the cube at `-1.05` to `-0.42` s in the absence of simulated robot recoil.
 
 [SDK trajectory](path.csv.gz) · [Visual cube observations](observations.csv) · [Impact scores](mount-scores.csv). With the web dependencies installed, Python MuJoCo 4.0.1, NumPy and Matplotlib, run `python mount_replay.py` from this directory (or pass `--drive mocap` / `--contact full` to compare ablation modes).
+
+## Timing of the first cube tap
+
+![Tap arrival times across both contact models](tap-timing.png)
+
+The physical cube counter incremented once in each mount window. We compared the first counter increment and total increments from −0.8 to +0.1 seconds relative to stand detection. Each configuration used both recorded cube placements and five sensor sampling phases. The colored marks are increments. The five rows within each placement are successive 2 ms phase offsets.
+
+| Run | Physical tap relative to stand | Fork only, first tap | Fork only, count | Chassis, wheels and fork, first tap | Chassis, wheels and fork, count |
+|---|---:|---:|---:|---:|---:|
+| W33 | −204 ms | 24–32 ms late | 1 | 479–577 ms early | 4–5 |
+| W34 | −262 ms | 53–61 ms late | 1 | 510–518 ms early | 3–4 |
+| W35 | −258 ms | 78–112 ms late | 2 | 124–338 ms early | 3–4 |
+
+The sign of the discrepancy persists across every tested sensor phase and both placements. W35 still produces an extra tap in every fork-only replay. The physical timestamps measure packet receipt and the simulated timestamps measure packet publication. Unknown transport delay limits interpretation of the absolute offsets. The recorded chassis trajectory drives both models, so neither comparison identifies the part that hit the physical cube. All three mounts contributed to earlier model development.
+
+[Per-phase event times and counts](tap-timing.csv). Run `python tap_timing.py` using the dependencies above. Evaluated at revision `5c36f0b`.
