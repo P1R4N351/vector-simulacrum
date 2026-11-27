@@ -456,3 +456,8 @@ Add `rangeClock=body` to the simulator URL to acquire range on the published sys
 The standalone dock and measured shelf scenes use the body clock by default; any other `rangeClock` value turns it off.
 
 Python replays select the same acquisition clock with `VectorSim(body_range_clock=True)` (the default for `environment="p2_shelf"`). The Python standalone dock builder also starts the body clock after placing the robot. Set `sim.charger_contact` from the recorded contact state for replays. For a policy environment, `TaskConfig(body_range_clock=True)` selects the body clock across episode resets.
+
+
+### Docked head wake
+
+Open the Vector 1 browser scene with `?start=docked&calm=1` and select **Take control**, or call `await robot.request_control()` from a program. The head follows the WireOS sleep-wake track. An SDK head raise can interrupt it, and an early raise can relinquish the head to a later animation keyframe. Resetting on the dock restores the calm start. The scene downloads and verifies the pinned animation from the WireOS externals repository over HTTPS. The simulation uses its head channel only. [Measured encoder and gyro comparisons](../evidence/workshop-joints-20261127/wire-wake/motor.md)

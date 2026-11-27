@@ -19,6 +19,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import mujocoWasmUrl from "@mujoco/mujoco/mujoco.wasm?url";
 import { CONTROL_DEFAULT, CONTROL_OVERRIDE, VectorSim } from "../sim/robot.js";
+import { loadWakeHeadTrack } from "./wake_clip.js";
 import { NomadPolicy } from "../sim/nomad.js";
 import { bootHalt, bootLine, gameApi, useGame } from "../store.js";
 import { HIDDEN_FROM_ROBOT } from "./headcam.js";
@@ -116,6 +117,7 @@ async function loadEverything() {
   const hasTableDock = !rescue && !shelf && !["none", "0"].includes(options.get("dock"));
   const startDocked = !rescue && (options.get("start") === "docked" || options.get("dock") === "docked");
   const vector2 = shelf || options.get("robot") === "2";
+  const calmStart = options.get("calm") === "1" && startDocked && !vector2 && hasTableDock;
   const printedFork = options.get("fork") === "printed";
   if (printedFork && !vector2) throw new Error("Printed fork calibration requires robot=2");
   if (printedFork && rescue) throw new Error("Printed fork calibration is not exported for env=rescue");
@@ -143,10 +145,12 @@ async function loadEverything() {
   const navMap = shelf ? JSON.parse(await fetchText("./robot/vector2/" + mapFile)) : null;
   const rescueSide = options.get("side") === "left" ? -1 : 1;
   const rescueMode = options.get("rescueMode") ?? "auto";
+  const wakeHeadTrack = calmStart ? await traced("WAKE HEAD TRACK", loadWakeHeadTrack()) : [];
   const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, camera: model.camera,
     controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
     cubeStartXY: shelf ? mappedCubeXY(navMap, model.values.cube_size_mm, -66, 30) : null,
-    startDocked, rescueSide, rescueMode,
+    startDocked, rescueSide, rescueMode, wakeHeadTrack, calmMode: calmStart,
+    headDeg: calmStart ? model.values.head_angle_min_deg : 0,
     shelfOutline: shelf ? model.shelf_outline_mm : null,
     bodyRangeClock: options.has("rangeClock") ? options.get("rangeClock") === "body" : undefined, chargerContact: options.get("chargerContact") === "1" });
   doneCompile("OK");
@@ -176,6 +180,11 @@ async function loadEverything() {
     doneNomad("OPTIONAL");
   }
   return { mujoco, model, sim, free, navMap };
+}
+
+function resetAtDock(sim, startDocked) {
+  const calmMode = startDocked && sim.wakeHeadTrack.length > 0;
+  sim.reset({ noiseSeed: 1, startDocked, calmMode, headDeg: calmMode ? sim.v.head_angle_min_deg : 0 });
 }
 
 function makeRenderer(canvas) {
@@ -291,7 +300,7 @@ function installApi(ctx) {
     stop: () => (programs.running ? programs.stop() : sim.stopAllMotors()),
     reset: () => {
       programs.stop();
-      sim.reset({ noiseSeed: 1, startDocked: useGame.getState().startDocked });
+      resetAtDock(sim, useGame.getState().startDocked);
       driver.reset();
       visuals.clearTrail();
       useGame.setState({ lastAction: null });
@@ -360,7 +369,7 @@ function installApi(ctx) {
       }
       if (sim._dockBody < 0) return;
       const next = !useGame.getState().startDocked;
-      sim.reset({ noiseSeed: 1, startDocked: next });
+      resetAtDock(sim, next);
       driver.reset();
       visuals.clearTrail();
       useGame.setState({ startDocked: next, lastAction: null });

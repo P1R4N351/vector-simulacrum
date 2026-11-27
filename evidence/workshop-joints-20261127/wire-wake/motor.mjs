@@ -16,11 +16,14 @@ const paths = [
 const traces = ["run,mode,t_s,real_deg,real_gyro,sim_deg,sim_gyro"];
 for (const path of paths) {
   const tr = load(path);
-  for (const mode of ["no-clip","untimed","timed"]) {
+  for (const mode of ["no-clip","untimed","timed","integrated"]) {
     const sim = new VectorSim(mj, { values,derived,xml,controlLevel:CONTROL_OVERRIDE,startDocked:true,
+      calmMode: mode === "integrated" && Boolean(tr.start.flags & 1024),
+      wakeHeadTrack: mode === "integrated" ? frames : [],
       noiseSeed:42,headDeg:tr.start.head,liftMm:tr.start.lift });
     const timeline = [];
     try {
+      if (mode === "integrated" && !sim.requestControl()) throw Error("SDK grant refused");
       let issued = false, waiting = false, next = 0;
       for (let i=0; i*sim.dt<=8.01; i++) {
         const t = i*sim.dt;
@@ -31,7 +34,7 @@ for (const path of paths) {
         if (waiting && !sim.actionRunning && sim.state.head_in_pos) waiting = false;
         while (next < frames.length && t >= frames[next].triggerTime_ms/1000) {
           const f = frames[next++];
-          if (mode === "no-clip" || !(tr.start.flags & 1024) || waiting || sim.actionRunning) continue;
+          if (mode === "integrated" || mode === "no-clip" || !(tr.start.flags & 1024) || waiting || sim.actionRunning) continue;
           const duration = mode === "timed" ? f.durationTime_ms/1000 : 0;
           if (!sim.commandHeadAngle(f.angle_deg,duration)) throw Error("Animation refused");
         }
