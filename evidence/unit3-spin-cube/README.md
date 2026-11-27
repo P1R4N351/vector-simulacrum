@@ -100,3 +100,15 @@ The fork-only replay matched counts on 3/7 mounts at every sampling phase. A con
 Each dashed line marks receipt of a packet with a newly incremented physical counter. The preceding packet arrived 7–49 ms before the first increment packet across runs. Receipt times include transport latency. The five rows per model show 2 ms sensor phase offsets. All runs use the same scoring window, −0.8 to +0.1 s from the first SDK pitch report between 45° and 85°. That reference is sampled at the robot state cadence. The observed cube pose precedes that reference by 0.76–4.93 s, so unobserved cube motion and robot localization error remain possible.
 
 [Per-phase predictions and measured events](earlier-timing.csv) · [SDK trajectories](earlier-path.csv.gz) · [Cube placements](earlier-pose.csv.gz) · [Physical radio counters](earlier-packets.csv.gz). Reproduce with `python earlier_replay.py`. To extract the published inputs again, run `python earlier_inputs.py RAW_DIRECTORY` on the original SDK and BLE logs.
+
+## Does the fork reach the cube before it accelerates?
+
+![Cube acceleration and first simulated fork contact](impact-onset.png)
+
+The physical cube in W4, W25, W27 and W30 exceeded 0.2 g above its baseline **199, 323, 481 and 474 ms before** the fork first touched the simulated cube. The discrepancy therefore already exists upstream of the simulated tap detector. W26 and W29 led by just 9 and 20 ms at the same threshold. Those small differences are difficult to resolve at the packet cadence. W27 was particularly threshold-sensitive: using 0.1 g puts its first received crossing 1.31 s before geometric contact.
+
+W8 begins the three-second replay already touching the fork. Its plotted contact time is the start boundary. Even a cube pose observed strictly before initialization gives that result. Its physical cube also had an earlier 0.30 g transient during the baseline window. This recording does not establish first physical contact.
+
+For each run, initialize using the last same-origin cube pose observed **before** the replay begins. Align both series at the first recorded robot pitch between 45° and 85°. Subtract the component-wise median physical acceleration from −7 to −4 s and the simulated median from −2.9 to −2.1 s before computing vector magnitude. Search for the first threshold crossing from −2 to +0.1 s. The plotted physical dots use packet receipt time for all three slots. The simulated dots show one sensor phase. The CSV includes five phases and thresholds of 0.05, 0.1 and 0.2 g. Acceleration changes can include rotation. No specific robot part can be identified from a threshold crossing alone.
+
+[Threshold crossings and geometric contact times](impact-onset.csv) · [Accelerometer samples](impact-samples.csv.gz) · [Initial cube observations](impact-initial-poses.csv). Run `python impact_onset.py` with the existing replay dependencies. To re-extract the input files, run `python impact_samples.py RAW_DIRECTORY`.
