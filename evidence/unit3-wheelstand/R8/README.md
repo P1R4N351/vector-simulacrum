@@ -138,3 +138,5 @@ The accelerometer site is assumed to be at the cube center. Repeated the identic
 [Canonical packet-noise check on the settled face](rest-packets.md)
 
 [Final packet directions and optical settling interval](final-direction.md)
+
+[Free edge-release thresholds and timing](edge-release.md)
