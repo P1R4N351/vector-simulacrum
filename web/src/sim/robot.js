@@ -20,6 +20,7 @@ import { Hazards } from "./hazards.js";
 import { CHANNELS, ImuFilter } from "./imu_filter.js";
 import { ProxSensor } from "./prox.js";
 import { RescueController } from "./rescue.js";
+import { WireMotorEncoders } from "./wire_body.js";
 import { SysconFirmware } from "./syscon_firmware.js";
 import { assert, clamp, makeGauss, profileStep, pyRound, toward } from "./util.js";
 
@@ -184,6 +185,7 @@ export class VectorSim {
     this._tofHitsMm = [];
     this._rescueCtrl = null;
     this.mujoco.mj_resetData(this.model, this.data);
+    this._spineEncoders = null;
     this._initCommands();
     this.hazards = new Hazards(this.v);
     if (this._rescue) this._initRescueReset(opts);
@@ -663,10 +665,13 @@ export class VectorSim {
       lift_in_pos: this._liftInPos,
     };
     if (this.sysconFirmware) {
-      const counts = [this._encoders[0].counts, this._encoders[1].counts, Math.round(lift), Math.round(head / DEG)];
+      if (!this._spineEncoders) this._initSpineEncoders();
+      const channels = this._spineEncoders.channels;
       this.lastSpineFrame = this.sysconFirmware.packBodyFrame({
         frameCounter: this.tick_,
-        motorPos: counts,
+        motorPos: channels.map(e => e.position),
+        motorDelta: channels.map(e => e.delta),
+        motorPeriod: channels.map(e => e.period),
         cliff: this.cliffRangesMm().map((mm) => (mm < 0 ? 4 : Math.max(4, Math.round(900 - 4.48 * mm)))),
         batteryRaw: Math.trunc(this.batteryVolts * 2048 / 2.8),
         chargerRaw: this.chargerContact ? Math.trunc(5 * 2048 / 2.8) : 0,
@@ -991,7 +996,13 @@ export class VectorSim {
       this._liftServoCmd = ctrl[this._act.lift];
     }
     const before = (this._dockBody >= 0 || this.chargerContact) ? this.poseMm() : null;
+    const startSeconds = this.data.time;
     this._physicsStep();
+    if (this._spineEncoders) {
+      const ctrl = this.data.ctrl;
+      const duty = power ?? [ctrl[this._act.left], -ctrl[this._act.right], 0, 0];
+      this._spineEncoders.sample(this, duty, startSeconds, this.dt);
+    }
     if (this._rescue) this._rescue.sampleContacts();
     this.tick_ += 1;
     this._updateHeadStatus();
@@ -1209,13 +1220,21 @@ export class VectorSim {
     return made;
   }
 
+  _initSpineEncoders() {
+    this._spineEncoders = new WireMotorEncoders();
+    this._spineEncoders.sample(this, [0, 0, 0, 0], this.data.time, 0);
+  }
+
   attachFirmware({ cubeBytes = null, sysconBytes = null, manifest = null } = {}) {
     this._cubeFirmwareBytes = cubeBytes;
     this._firmwareMeta = manifest;
     if (cubeBytes && this.cubeSensor) {
       this.cubeSensor.attachFirmware(new CubeFirmwareVm(cubeBytes, { railCounts: this.shelfOutline ? 444 : 426 }));
     }
-    if (sysconBytes) this.sysconFirmware = new SysconFirmware(sysconBytes);
+    if (sysconBytes) {
+      this.sysconFirmware = new SysconFirmware(sysconBytes);
+      this._initSpineEncoders();
+    }
   }
 
   navMapSnapshot() {

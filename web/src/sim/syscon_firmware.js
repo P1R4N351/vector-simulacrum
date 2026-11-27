@@ -44,7 +44,7 @@ export class SysconFirmware {
     this.framesPacked = 0;
   }
 
-  packBodyFrame({ frameCounter = 0, flags = 1, motorPos = [0, 0, 0, 0], cliff = [600, 600, 600, 600],
+  packBodyFrame({ frameCounter = 0, flags = 1, motorPos = [0, 0, 0, 0], motorDelta = [], motorPeriod = [], cliff = [600, 600, 600, 600],
     batteryRaw = 2948, chargerRaw = 0, chargerFlags = 0, proxMm = 400, proxStatus = 0x58 } = {}) {
     const buf = new Uint8Array(BODY_FRAME_BYTES + 4);
     const view = new DataView(buf.buffer);
@@ -56,6 +56,8 @@ export class SysconFirmware {
     view.setUint8(p + 4, flags & 0xFF);
     for (let i = 0; i < 4; i++) {
       view.setInt32(p + 8 + 12 * i, motorPos[i] | 0, true);
+      view.setInt32(p + 12 + 12 * i, motorDelta[i] ?? 0, true);
+      view.setUint32(p + 16 + 12 * i, motorPeriod[i] ?? 0, true);
       view.setUint16(p + 56 + 2 * i, cliff[i] & 0xFFFF, true);
     }
     view.setInt16(p + 64, batteryRaw, true);
