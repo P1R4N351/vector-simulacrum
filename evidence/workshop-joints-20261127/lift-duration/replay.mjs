@@ -3,7 +3,7 @@ import {VectorSim,CONTROL_OVERRIDE} from "../../../web/src/sim/robot.js";
 import {mujoco,readJson,readText} from "../../../web/test/helpers.js";
 
 // Optional diagnostic variant writes to a separate output folder.
-const [source="./", readyFile, friction, destination, derivative] = process.argv.slice(2);
+const [source="./", readyFile, friction, destination, derivative, powerMode] = process.argv.slice(2);
 const evidence = new URL(source, import.meta.url);
 const output = destination ? new URL(destination,import.meta.url) : evidence;
 let xml = readText("public/robot/vector-contact42-free-dock.xml");
@@ -24,6 +24,18 @@ const rows = readFileSync(new URL("recording.csv",evidence),"utf8").trim().split
 const first = rows.find(row=>row[1]==="state");
 const commands = rows.filter(row=>row[1]==="command");
 const {values,derived} = readJson("public/robot/model.json");
+if(powerMode){
+  if (!destination || output.href===evidence.href || !["proportional","both"].includes(powerMode)) throw Error("Invalid power scaling diagnostic");
+  const stall = values.lift_servo_torque_max_mNm / 1000;
+  const kp = stall * values.lift_power_gains[0];
+  const ratio = kp / (values.lift_servo_kp_mNm_per_rad / 1000);
+  const lift = /<position name="lift"[^>]+>/;
+  if (!lift.test(xml)) throw Error("Missing lift actuator");
+  xml=xml.replace(lift, actuator => {
+    const scaled=actuator.replace(/ kp="[^"]+"/, ' kp="'+kp+'"');
+    return powerMode==="both" ? scaled.replace(/ kv="([^"]+)"/, (_,kv)=>' kv="'+(Number(kv)*ratio)+'"') : scaled;
+  });
+}
 const sim = new VectorSim(await mujoco(),{values,derived,xml,
   startDocked:true,controlLevel:CONTROL_OVERRIDE,headDeg:Number(first[5]),liftMm:Number(first[4]),noiseSeed:42});
 try {
