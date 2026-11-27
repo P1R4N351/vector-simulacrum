@@ -31,6 +31,12 @@
     }
   },
   "overrides": {
+    "tof_lift_quality": {
+      "value": 1.748049, "unit": "1", "provenance": "fitted",
+      "source": "REC: evidence/unit3-physical-repeats/fork-ranging. Median of session medians during stable in-window lift poses in A-C. Scores in D-F use the frozen value.",
+      "low": 1.61, "high": 1.86, "kind": "robot",
+      "note": "Unit 3 printed fork. Effective return includes the scene. Bounds span the training-session medians and describe between-session sensitivity."
+    },
     "cube_accel_word_format": {
       "value": [2, 1],
       "unit": "[low bit count, low bit value]",

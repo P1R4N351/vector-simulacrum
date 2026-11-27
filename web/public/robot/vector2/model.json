@@ -122,7 +122,7 @@
   ]
  ],
  "source": {
-  "table_sha256": "9eabd41c5dd6ee22cacc13b65e86f4fd06739b087f43a0adb59704eba74e0345",
+  "table_sha256": "0835adc9a4f9bce04a47bfe3ff8c618d77ced62aa46d4b91487e9221ca4198fa",
   "trial_xml_sha256": "d428f733b8b1cf225785d17e1d0afd054a1891ec72d19ba8d4eb3c95f95f6a7c",
   "vector-contact42-dock_sha256": "4b3563167a4d2eb4baf6b9bbf2b2dc5f938b98e8d5b7f12896ef2466508f8c2f",
   "vector-contact42-free-dock_sha256": "06d89d9e53f1b36c19178f7f30ea8bb999b5d363a0d6f95cd3c99f2a53b26f01",
@@ -451,7 +451,7 @@
   "tof_lift_distance_mm": 15.0,
   "tof_lift_occluding_max_mm": 56.0,
   "tof_lift_occluding_min_mm": 34.0,
-  "tof_lift_quality": 11.7,
+  "tof_lift_quality": 1.748049,
   "tof_position_mm": [
    10.0,
    0.0,
