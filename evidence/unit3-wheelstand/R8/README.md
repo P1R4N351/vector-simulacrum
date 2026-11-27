@@ -136,3 +136,5 @@ The accelerometer site is assumed to be at the cube center. Repeated the identic
 [Location sensitivity](chip-offset.png) · [Nine replay results](chip-offset.csv) · [Reproduce](chip_offset.py)
 
 [Canonical packet-noise check on the settled face](rest-packets.md)
+
+[Final packet directions and optical settling interval](final-direction.md)
