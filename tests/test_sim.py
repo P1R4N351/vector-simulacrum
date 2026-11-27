@@ -283,7 +283,8 @@ class Servos(unittest.TestCase):
         sim.advance(0.5)
         self.assertAlmostEqual(math.degrees(sim.head_angle_rad()), sim.v["head_angle_min_deg"], delta=tol)
         self.assertAlmostEqual(math.degrees(sim.state.head_angle_rad), sim.v["head_angle_min_deg"], delta=tol)
-        counts = sim.state.head_angle_rad / sim.v["head_rad_per_encoder_count"]
+        head_low = math.radians(sim.v["head_angle_min_deg"])
+        counts = (sim.state.head_angle_rad - head_low) / sim.v["head_rad_per_encoder_count"]
         self.assertAlmostEqual(counts, round(counts), places=6, msg="head angle is reported in whole encoder counts")
 
     def test_lift_encoder_counts_begin_at_calibrated_low_angle(self) -> None:
