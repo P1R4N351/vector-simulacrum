@@ -86,7 +86,7 @@
  },
  "robot_model": "vector_1",
  "source": {
-  "table_sha256": "601396c38affa24bf10410128f6cb5aac173d3d769507be841203d7b9bc7384d",
+  "table_sha256": "2bdf8a4b48ef5c8ae1c1954053609f50e313ce719b389b1943cf52683db2ad9f",
   "trial_xml_sha256": "c8ccbd3eed75bdef0d46cb8722d88e7abe008d9905965d13eb50c9ddf2daa1c9",
   "vector-contact42-dock_sha256": "db6d35dd2790c9dfdcc1934e786811799d5c16175db98803166ea4c3c64c4f4c",
   "vector-contact42-free-dock_sha256": "10c52f3ff9ff39bf594ca1a37e8bcac1e55865318f42f0b6b368ed4d14e83197",
@@ -246,7 +246,7 @@
    0.03,
    4000.0
   ],
-  "head_rad_per_encoder_count": 0.0021447,
+  "head_rad_per_encoder_count": 0.002144660335034132,
   "head_servo_kp_mNm_per_rad": 300.0,
   "head_servo_kv_mNms_per_rad": 4.0,
   "head_speed_default_radps": 10.0,
@@ -371,7 +371,7 @@
    3000.0
   ],
   "lift_power_in_position_max": 0.1,
-  "lift_rad_per_encoder_count": 0.0052465,
+  "lift_rad_per_encoder_count": 0.0052464809268713,
   "lift_servo_kp_mNm_per_rad": 600.0,
   "lift_servo_kv_mNms_per_rad": 12.0,
   "lift_servo_torque_max_mNm": 60.0,
