@@ -22,3 +22,18 @@ Scores use the first downward crossings of 20% and 80% of nominal commanded trav
 ## Reproduce
 
 With web dependencies installed, run `node replay.mjs` from this folder and then `python3 compare.py` with NumPy and Matplotlib. Inputs and outputs are [physical packets and SDK events](recording.csv), [sampled replay](replay.csv), and [per-trial scores and bounds](scores.csv).
+
+## Does a constant timing advance transfer?
+
+![Held-out lift traces scaled to each fork’s measured pre-command height](phase.png)
+
+For each trace, the median lift height over 200 ms before command issue defines 0% travel and the commanded 32 mm defines 100%. The first repetition at each height supplies an interpolated 50% crossing. The median model delay across those two heights gives a timing advance of 93 ms for fast commands and 72 ms for slow commands. The plot applies each advance to the full simulated trace of the corresponding second repetitions. This tests transfer within one session. There are two training strokes and two test strokes per duration.
+
+| Held-out stroke | Model minus physical at 20%, 50%, 80% (ms) | After advance (ms) |
+|---|---:|---:|
+| 62 → 32, fast | +79, +96, +91 | −14, +3, −2 |
+| 44 → 32, fast | −24, +55, +77 | −117, −37, −16 |
+| 62 → 32, slow | +76, −27, +109 | +4, −99, +37 |
+| 44 → 32, slow | +44, +136, +43 | −28, +64, −29 |
+
+The advance aligns the longer fast stroke across all three thresholds. It makes the shorter fast stroke cross 20% an estimated 117 ms early. The slow strokes also disagree about the midpoint. The data support testing a travel-dependent response with higher-rate encoder samples before changing canonical timing. These interpolated residuals have roughly 60 ms packet resolution; the small residuals do not establish millisecond accuracy. Regenerate with `python3 phase.py`.
