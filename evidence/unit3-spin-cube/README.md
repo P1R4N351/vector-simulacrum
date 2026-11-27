@@ -143,3 +143,13 @@ We compared support time constants of 4, 8, 16, 32 and 64 ms on the first three 
 Only the two front support geom time constants vary in this diagnostic. Higher-priority rubber corner geoms retain their 8 ms parameter at support–corner contacts, while the equal-priority plastic shell and support contribute to support–shell contacts. W26 illustrates the consequence of changing that one setting. At zero phase, 4 ms predicts one tap, 14 ms early. At 16 ms it predicts four taps, the first 554 ms early. The measurements give no basis for adopting the 16 ms setting.
 
 [Scores by trial and phase](tread-softness.csv). Reproduce with `python tread_softness.py`.
+
+## W4 cube displacement during mounting
+
+![Overhead W4 glyph displacement and simulated cube top displacement](optical-mount.png)
+
+At the last camera sample inside the mount replay, the tracked top glyph had moved **10.05 mm in its initial image plane**. This frame is 7 ms before the first SDK pitch sample above 45°. At the same instant the simulated top center had moved horizontally by 16.7–18.5 mm with fork contact, 3.8–6.4 mm with the two nominal front supports added, 3.6–4.8 mm with softer front supports, and 2.8–7.5 mm with full contact. The ranges span two observed starting placements. The later placement was observed only 0.76 s before the pitch crossing and is used as a sensitivity check.
+
+The lower panels show a separate prediction: **all eight replays raise the cube top center by 32–45 mm** at that frame. The physical recording provides a single oblique image of the glyph. Transforming its pixels into the starting glyph plane couples apparent planar displacement to height and tilt. The camera measurement alone cannot establish the true horizontal or vertical displacement or validate the simulated rise. A second synchronized view or an independently calibrated camera projection would help distinguish the trajectories. During the motion the correlation score falls as low as 0.43, recovering to 0.76 at the final matched frame. The 5 Hz recording cannot time individual cube taps.
+
+The simulation follows a point 22 mm above the cube center along its local vertical. Each curve is zeroed after the initial gravity settling period. Camera measurements use the original W4 optical track and its reference frame. The command-to-pitch offset of 4.2768703 s comes from the SDK event log. No alignment or scale was fitted to the simulated motion. [Original corrected camera track and recording](../unit3-wheelstand/W4) · [Frame-by-frame results including simulated tilt](optical-mount.csv). Run `python optical_mount.py` using the existing replay dependencies.
