@@ -3,7 +3,7 @@ import {VectorSim,CONTROL_OVERRIDE} from "../../../web/src/sim/robot.js";
 import {mujoco,readJson,readText} from "../../../web/test/helpers.js";
 
 // Optional diagnostic variant writes to a separate output folder.
-const [source="./", readyFile, friction, destination, derivative, powerMode] = process.argv.slice(2);
+const [source="./", readyFile, friction, destination, derivative, powerMode, staticFriction] = process.argv.slice(2);
 const evidence = new URL(source, import.meta.url);
 const output = destination ? new URL(destination,import.meta.url) : evidence;
 let xml = readText("public/robot/vector-contact42-free-dock.xml");
@@ -43,6 +43,21 @@ try {
     if(output.href===evidence.href) throw Error("Use separate output for diagnostic replay");
     (await import("./derivative/derivative.mjs")).addDerivative(sim,derivative);
   }
+  let updateFriction;
+  if (staticFriction !== undefined) {
+    const peak = Number(staticFriction);
+    const sliding = Number(friction);
+    if (!destination || output.href === evidence.href || !Number.isFinite(peak) || !(peak > sliding && sliding > 0)) {
+      throw Error("Specify positive sliding friction, higher static friction, and separate output");
+    }
+    const joint = sim.mujoco.mj_name2id(sim.model, sim.mujoco.mjtObj.mjOBJ_JOINT.value, "lift_joint");
+    if (joint < 0) throw Error("Missing lift hinge");
+    const dof = sim.model.jnt_dofadr[joint];
+    updateFriction = () => {
+      const speed = sim.data.qvel[dof];
+      sim.model.dof_frictionloss[dof] = sliding + (peak - sliding) * Math.exp(-((speed / 0.1) ** 2));
+    };
+  }
   const includeFlag = rows.some(r => r[1] === "state" && r.length > 11 && r[11] !== "");
   const samples=[includeFlag ? "s,lift_mm,on_dock,in_position" : "s,lift_mm,on_dock"];
   const finishes=["command_s,target_mm,duration_s,sim_elapsed_s,result"];
@@ -60,6 +75,7 @@ try {
         waitingForTarget=cmd;
         if(!sim.setLiftHeight(Number(cmd[2]),null,Number(cmd[3]))) throw Error("Rejected recorded command at "+t);
       }
+      if (updateFriction) updateFriction();
       sim.tick();
       if(waitingForTarget && sim._liftServoCmd===sim._liftTarget){
         ready.push([waitingForTarget[0],Number(first[0])+sim.tickCount*sim.dt].join(","));
