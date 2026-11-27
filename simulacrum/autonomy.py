@@ -352,6 +352,8 @@ def make_dock_sim(start_xy_mm: Tuple[float, float] = (0.0, 0.0), heading_deg: fl
     else:
         sim._place(start_xy_mm, heading_deg)
         sim._pose_servos(head_deg, lift_mm)
+    # Start range acquisition in the assembled dock scene, after placing the robot.
+    sim.body_range_clock = True
     sim._settle()
     for enc, tr in zip(sim._encoders, sim._tread_travel_mm()):
         enc._path_mm, enc._last_travel, enc.counts, enc.speed_mmps = 0.0, tr, 0, 0.0

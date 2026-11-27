@@ -45,6 +45,24 @@ test("docked range holds the acquisition while SDK lift flags continue, then res
   }
 });
 
+test("standalone dock holds its initial range as the lift enters view", async () => {
+  const { values, derived } = readJson("public/robot/vector2/model.json");
+  const sim = new VectorSim(await mujoco(), { values, derived, startDocked: true,
+    xml: readText("public/robot/vector2/vector-free-dock.xml") });
+  try {
+    assert.ok(sim.chargerContact);
+    const count = sim.rawRangeSample().count;
+    sim.commandLiftHeight(45);
+    sim.tick(150);
+    assert.ok(sim.state.prox_is_lift_in_fov);
+    assert.equal(sim.rawRangeSample().count, count);
+    sim.tick(55);
+    assert.equal(sim.rawRangeSample().count, count + 1);
+  } finally {
+    sim.dispose();
+  }
+});
+
 test("shelf range acquisition stays slow under WireOS head and lift power until a tread is driven", async () => {
   const { values, derived, shelf_outline_mm } = readJson("public/robot/vector2/model.json");
   const sim = new VectorSim(await mujoco(), {
