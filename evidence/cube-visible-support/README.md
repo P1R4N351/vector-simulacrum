@@ -17,3 +17,5 @@ The deployed scene and repository scene at 7d2aecb produced identical [sampled c
 [Stock photograph with separate rail and rubber measurements](photo-spans.md)
 
 [Five recorded pushes replayed at four shell and pad widths](push-width.md)
+
+[One-sided grip and slip during the recorded raise](side-grip.md)
