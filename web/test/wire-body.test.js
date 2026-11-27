@@ -28,10 +28,10 @@ test("upstream v6 motor packet drives the WASM body and v1 free cube returns spe
     assert.ok(Number.isFinite(last.getFloat32(804,true)));
     assert.equal(frames.filter(bytes => bytes[8] === 1).length, 1);
     const accel = frames.filter(bytes => bytes[8] === 2);
-    assert.equal(accel.length, 40);
+    assert.equal(accel.length, 39);
     const cube=new DataView(accel.at(-1).buffer);
     assert.equal(cube.getUint8(8),2);
-    assert.equal(cube.getInt16(34,true),sim.cubeSensor.slots[0][2]);
+    assert.equal(cube.getInt16(34,true),sim.cubeSensor.packet.slots[2][2]);
     const expectedZ = profile.values.cube_accel_counts_per_g * profile.values.cube_accel_scale[2];
     assert.ok(Math.abs(cube.getInt16(34,true)-expectedZ)<150);
   } finally { sim.dispose(); }
@@ -102,14 +102,18 @@ test("cube v1 preserves physical slot ordering and a wrapping firmware tap count
   const body = new WireBody({cubeSensor: sensor});
   body.seq = 2;
   body.cubeTaps = 255;
-  sensor.packet = {taps: 0};
-  for (let i = 0; i < 6; i++) {
-    sensor.ticks++;
-    const [bytes] = body.cubeFrames();
-    const view = new DataView(bytes.buffer);
-    assert.deepEqual([30,32,34].map(offset => view.getInt16(offset,true)), sensor.slots[i%3]);
-    assert.equal(bytes[36], Number(i === 2));
-    assert.equal(view.getUint16(38,true),426);
+  for (let report = 0; report < 2; report++) {
+    assert.deepEqual(body.cubeFrames(), []);
+    const slots = sensor.slots.map(slot => slot.map(value => value + report));
+    sensor.packet = {taps: 0, slots};
+    const frames = body.cubeFrames();
+    assert.equal(frames.length, 3);
+    frames.forEach((bytes, i) => {
+      const view = new DataView(bytes.buffer);
+      assert.deepEqual([30,32,34].map(offset => view.getInt16(offset,true)), slots[i]);
+      assert.equal(bytes[36], Number(report === 0 && i === 2));
+      assert.equal(view.getUint16(38,true),426);
+    });
     assert.deepEqual(body.cubeFrames(), []);
   }
 });
@@ -118,9 +122,9 @@ test("shelf cube advertises and reports the measured rail ADC word", () => {
   const sensor = {ticks: 0, slots: [[0,0,8192],[0,0,8192],[0,0,8192]], packet: null};
   const body = new WireBody({cubeSensor: sensor, shelfOutline: [[0,0],[200,0],[0,200]]});
   body.seq = 1;
-  sensor.ticks = 1;
+  sensor.packet = {taps: 0, slots: sensor.slots};
   const frames = body.cubeFrames();
-  assert.deepEqual(frames.map(bytes => bytes[8]), [1,2]);
+  assert.deepEqual(frames.map(bytes => bytes[8]), [1,2,2,2]);
   for (const bytes of frames) assert.equal(new DataView(bytes.buffer).getUint16(38,true),444);
 });
 
