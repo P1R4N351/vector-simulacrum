@@ -14,3 +14,5 @@ Workshop unit B provided 572 passive SDK reports over 34.27 s at the same median
 ![Eight docked head moves aligned to an encoder crossing and the other unit's stationary gyro](docked-pair.png)
 
 [Active trace](active.csv) · [Passive trace](passive.csv) · [Per-move figures](moves.csv). Times use monotonic host receipt relative to each recording's start. All angles are degrees except gyro channels (rad/s). Acceleration is reported in mm/s². Run `python analyze.py` here for the plot and summaries. This experiment adds physical references without fitting a simulator parameter.
+
+[Canonical replay at control-tick and observed SDK cadence](replay.md)
