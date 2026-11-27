@@ -35,7 +35,7 @@ DUMP = []
 CUBE_SHIFT_MM = 0.0
 
 
-def build(v, fixture):
+def build(v, fixture, edit_tree=None):
     tree = ET.fromstring(mjcf.build_mjcf(v, (), cube="free"))
     fx = ET.parse(fixture)
     asset = ET.SubElement(tree, "asset")
@@ -49,6 +49,8 @@ def build(v, fixture):
     assert len(pieces) == 58
     for piece in pieces:
         ET.SubElement(fork, "geom", dict(attrs, type="mesh", mesh=piece.get("mesh"), name=piece.get("name"), mass="0"))
+    if edit_tree is not None:
+        edit_tree(tree)
     return mj.MjModel.from_xml_string(ET.tostring(tree, encoding="unicode"))
 
 
