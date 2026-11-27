@@ -238,6 +238,8 @@ export class VectorSim {
     this._gyroAdr = sensor("gyro");
     this._accelAdr = sensor("accel");
     this._imuAdr = [0, 1, 2].map((i) => this._accelAdr + i).concat([0, 1, 2].map((i) => this._gyroAdr + i));
+    const lower = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT.value, "lift_lower_joint");
+    this._lowerQ = lower >= 0 ? model.jnt_qposadr[lower] : -1;
     this._q = { head: qadr("head"), lift: qadr("lift"), wrist: qadr("wrist") };
     this._dof = { wheelFl: dof("wheel_fl"), wheelFr: dof("wheel_fr") };
     this._wheelQ = [qadr("wheel_fl"), qadr("wheel_fr")];
@@ -326,6 +328,7 @@ export class VectorSim {
     qpos[5] = Math.cos(yaw / 2) * Math.sin(pitch / 2);
     qpos[6] = Math.sin(yaw / 2) * Math.cos(pitch / 2);
     qpos[this._q.lift] = this.d.lift_angle_min;
+    if (this._lowerQ >= 0) qpos[this._lowerQ] = this.d.lift_angle_min;
     qpos[this._q.wrist] = -this.d.lift_angle_min;
     this.data.ctrl[this._act.lift] = this._liftServoCmd = this.d.lift_angle_min;
     this.mujoco.mj_forward(this.model, this.data);
@@ -344,6 +347,7 @@ export class VectorSim {
     const qpos = this.data.qpos;
     qpos[this._q.head] = head;
     qpos[this._q.lift] = lift;
+    if (this._lowerQ >= 0) qpos[this._lowerQ] = lift;
     qpos[this._q.wrist] = -lift;
     this._acceptedHeadTarget = this._headTarget = this._headCmd = head;
     this._liftTarget = this._liftCmd = lift;
