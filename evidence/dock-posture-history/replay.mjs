@@ -6,6 +6,10 @@ const mode=process.argv[2];
 if (!["static","posture","wheels","full","noslip","shaft","shaft-noslip","shaft-linear"].includes(mode)) throw Error("Unknown replay");
 const {values,derived,shelf_outline_mm}=readJson("public/robot/vector2/model.json");
 let xml=readText("public/robot/vector2/vector-free-shelf.xml");
+if(process.argv[3]){
+  const {dockImpedance}=await import("../dock-impedance/variant.mjs");
+  xml=dockImpedance(xml,process.argv[3]);
+}
 const shaft=mode.startsWith("shaft");
 if(shaft) xml=xml.replace(/<general name="(left|right)_wheel" joint="([^"]+)" gainprm="([^"]+)"[^>]*\/>/g,
   (_,side,joint,cap)=>`<velocity name="${side}_wheel" joint="${joint}" kv="0.8" forcelimited="true" forcerange="-${cap} ${cap}"/>`);
