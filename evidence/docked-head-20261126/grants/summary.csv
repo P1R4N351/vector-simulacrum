@@ -1,0 +1,4 @@
+session,passive_s,grant_wait_ms,passive_packets,passive_calm,passive_animating,passive_head_range_deg,grant_packets,grant_calm,grant_animating,first_animating_s,first_calm_off_s,grant_head_range_deg,first_gyro_motion_s,last_animating_s
+pilot,9.023,59,151,151,0,0.0,134,1,86,0.061,0.061,23.84,1.079,5.159
+session-1,9.072,58,151,151,0,0.0,134,1,85,0.064,0.064,25.8,1.023,5.1
+session-2,14.06,62,234,234,0,0.0,134,2,86,0.057,0.121,26.17,1.081,5.156
