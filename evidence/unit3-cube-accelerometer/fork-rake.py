@@ -18,7 +18,7 @@ path=np.genfromtxt(here/"pickup-path.csv",names=True,delimiter=",")
 sights=np.genfromtxt(here/"pickup-sightings.csv",names=True,delimiter=",")
 
 
-def replay(m, rake_angles, *, report_damage=False, sighting=None):
+def replay(m, rake_angles, *, report_damage=False, sighting=None, observe=None, lateral_mm=0):
     fork=m.body("fork").mocapid[0]
     rails=[m.body(f"rail{i}").mocapid[0] for i in range(2)]
     for dt in (.001,.0005):
@@ -35,6 +35,8 @@ def replay(m, rake_angles, *, report_damage=False, sighting=None):
         points=np.stack([axis+rot.apply(points[:,j]-axis) for j in range(2)],axis=1)
         quats=(rot*Rotation.from_quat(quats,scalar_first=True)).as_quat(scalar_first=True)
         body_rot=rot*Rotation.from_euler("z",h[:, None])
+        if lateral_mm:
+            wrist += body_rot.apply([0,lateral_mm / 1000,0])
         for rake in rake_angles:
             orient=(body_rot*Rotation.from_euler("y",rake,degrees=True)).as_quat(scalar_first=True)
             d=mj.MjData(m)
@@ -50,6 +52,8 @@ def replay(m, rake_angles, *, report_damage=False, sighting=None):
                 d.mocap_pos[rails]=points[i]
                 d.mocap_quat[rails]=quats[i]
                 mj.mj_step(m,d)
+                if observe is not None:
+                    observe(m,d,clock,i)
                 series.append(pose[:3].copy()*1000)
                 if report_damage:
                     inclinations.append(np.degrees(np.arccos(np.clip(1-2*np.sum(pose[4:6]**2),-1,1))))

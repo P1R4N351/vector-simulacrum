@@ -187,3 +187,5 @@ These runs provide little leverage to separate axis bias from gain. For an indep
 [Visible cube tilt during the first wrist rise](pickup-entry.md)
 
 [Missing-tooth sensitivity on the physical pickup](pickup-tooth.md)
+
+[Where the printed fork passes the lifting lip](pickup-undercut.md)
