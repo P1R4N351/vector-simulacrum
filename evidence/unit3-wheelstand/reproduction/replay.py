@@ -252,7 +252,7 @@ class _Run:
                            1000 * d.xpos[cube_id, 0], 1000 * d.xpos[cube_id, 2], 1000 * d.xpos[self.chassis, 0]])
 
 
-def run(m, v, tr, start, onset, lift_spec, seed):
+def run(m, v, tr, start, onset, lift_spec, seed, *, tap_times=None):
     """Replay from release time `start`, wheelstand command at `onset`; returns (trace, packets, taps, overlap)."""
     r = _Run(m, v, tr, start, onset, lift_spec, seed)
     r.settle(seed)
@@ -271,6 +271,8 @@ def run(m, v, tr, start, onset, lift_spec, seed):
         r.sample(i, t)
     pk = np.array([[start + tt, np.linalg.norm(a) / 8192] for tt, p in r.sensor.messages
                    for a in np.frombuffer(p[2:], "<i2").reshape(3, 3)])
+    if tap_times is not None:
+        tap_times.extend(start + tt for tt in r.sensor.taps.events)
     return np.array(r.trace), pk, len(r.sensor.taps.events), r.overlap
 
 
