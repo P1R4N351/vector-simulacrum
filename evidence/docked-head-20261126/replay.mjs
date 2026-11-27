@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { CONTROL_OVERRIDE, VectorSim } from "../../web/src/sim/robot.js";
 import { mujoco, readJson, readText } from "../../web/test/helpers.js";
 
-const rows = readFileSync(new URL("unit2.csv", import.meta.url), "utf8").trim().split(/\r?\n/).slice(1).map(line => line.split(","));
+const rows = readFileSync(new URL(process.argv[2] ?? "unit2.csv", import.meta.url), "utf8").trim().split(/\r?\n/).slice(1).map(line => line.split(","));
 const first = rows.find(row => row[1] === "state");
 const commands = rows.filter(row => row[1] === "command");
 const {values, derived} = readJson("public/robot/model.json");
@@ -26,5 +26,5 @@ try {
     output.push([time, state.head_angle_rad * 180 / Math.PI, state.gyro_radps[1], +sim.chargerContact].join(","));
     sim.tick(1);
   }
-  writeFileSync(new URL("canonical.csv", import.meta.url), output.join("\n") + "\n");
+  writeFileSync(new URL(process.argv[3] ?? "canonical.csv", import.meta.url), output.join("\n") + "\n");
 } finally { sim.dispose(); }
