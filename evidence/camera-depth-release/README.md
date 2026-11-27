@@ -1,4 +1,4 @@
-# Does starting depth explain P2Y8's W35 charger release?
+# Does starting depth explain the W35 charger release?
 
 ![W35 camera travel and charger release](release.png)
 
