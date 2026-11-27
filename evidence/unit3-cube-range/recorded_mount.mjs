@@ -9,10 +9,11 @@ const trials = JSON.parse(readFileSync(0, "utf8"));
 const mj = await mujoco();
 const model = readJson("public/robot/vector2/model.json");
 const dock = readText("public/robot/vector2/vector-free-dock.xml");
+const traceHubs = process.env.VECTOR_TRACE_DOCK_HUBS === "1";
 const tracePitch = process.env.VECTOR_TRACE_DOCK_PITCH === "1";
 const traceShafts = process.env.VECTOR_TRACE_SHAFTS === "1";
 const tracePins = process.env.VECTOR_TRACE_DOCK_PINS === "1";
-console.log("session,variant,t_s,out_mm,lat_mm,yaw_deg,left_mmps,right_mmps,on" + (tracePins ? ",lx,ly,lz,rx,ry,rz" : "") + (traceShafts ? ",shaft_l,shaft_r" : "") + (tracePitch ? ",pitch_deg" : ""));
+console.log("session,variant,t_s,out_mm,lat_mm,yaw_deg,left_mmps,right_mmps,on" + (tracePins ? ",lx,ly,lz,rx,ry,rz" : "") + (traceShafts ? ",shaft_l,shaft_r" : "") + (tracePitch ? ",pitch_deg" : "") + (traceHubs ? ",hub_center_out_mm,hub_side_offset_mm" : ""));
 const extraModel = process.argv[2] ? readFileSync(process.argv[2], "utf8") : null;
 for (const trial of trials) {
   for (const variant of extraModel ? ["supplied"] : ["canonical", "driven_rear_envelope", "driven_mean_only"]) {
@@ -48,8 +49,14 @@ for (const trial of trials) {
         else sim.setWheelMotors(left, right);
         const [x, y] = sim.poseMm();
         const { wl, wr } = sim.reportedNow();
+        const hubReport = [];
+        if (traceHubs) {
+          const row = sim.data.xmat.subarray(9 * sim._chassisBody);
+          // The physical hub midpoint is 24 mm behind the origin and 12.625 mm above it.
+          hubReport.push(x + 120 - 24 * row[0] + 12.625 * row[2], 30 * row[1]);
+        }
         console.log([trial.name, variant, t, x + 120, y, sim._yaw() * 180 / Math.PI,
-          wl, wr, +sim.chargerContact, ...(tracePins ? pinOffsets(sim).flat() : []), ...(traceShafts ? sim._wheelSpeeds() : []), ...(tracePitch ? [sim._pitch() * 180 / Math.PI] : [])].join(","));
+          wl, wr, +sim.chargerContact, ...(tracePins ? pinOffsets(sim).flat() : []), ...(traceShafts ? sim._wheelSpeeds() : []), ...(tracePitch ? [sim._pitch() * 180 / Math.PI] : []), ...hubReport].join(","));
         sim.tick(1);
       }
     } finally { sim.dispose(); }
