@@ -1,6 +1,32 @@
 // Engine-side CubeAccelComponent listeners. Each delivered packet supplies three
 // ordered samples. SDK event suppression during carrying/docking is downstream.
 const f32 = Math.fround;
+// Physical BlockTapFilterComponent waits 75 ms from engine intake. The first
+// eligible 60 ms engine update publishes the last tap's original payload.
+export class TapBroadcasts {
+  constructor() {
+    this.deadlineUs = 0;
+    this.pending = null;
+    this.count = 0;
+    this.last = null;
+  }
+
+  receive(event) {
+    const now = Math.round(event.time_s * 1e6);
+    this.advanceUs(now - 1);
+    if (!this.deadlineUs) this.deadlineUs = (Math.ceil(now / 60000) + 2) * 60000;
+    this.pending = event;
+  }
+
+  advanceUs(now) {
+    if (!this.deadlineUs || now < this.deadlineUs) return;
+    this.last = { ...this.pending, broadcast_s: this.deadlineUs / 1e6 };
+    this.count++;
+    this.deadlineUs = 0;
+    this.pending = null;
+  }
+}
+
 export class CubeListeners {
   constructor() {
     this.previousTapCount = null;

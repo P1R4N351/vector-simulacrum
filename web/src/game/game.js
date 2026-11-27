@@ -254,6 +254,8 @@ function telemetryOf(sim, extra) {
     front_rpm: [t.wheel_spin_radps[0] * RPM, t.wheel_spin_radps[1] * RPM],
     rear_rpm: [t.wheel_spin_radps[2] * RPM, t.wheel_spin_radps[3] * RPM],
     cube_axis: sim.cubeSensor?.listeners.axis, cube_moving: sim.cubeSensor?.listeners.moving,
+    cube_tap_broadcasts: sim.cubeSensor?.tapBroadcasts.count,
+    cube_last_tap_broadcast_s: sim.cubeSensor?.tapBroadcasts.last?.broadcast_s,
     cube_tap_events: sim.cubeSensor?.listeners.tapEvents,
     cube_last_tap_s: sim.cubeSensor?.listeners.lastTapTime,
     cube_movement_broadcasts: sim.cubeSensor?.movementBroadcastCount,

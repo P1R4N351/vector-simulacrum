@@ -83,6 +83,19 @@ class TestCubeRobotTimestamps(unittest.TestCase):
 
 
 class ChipAndApp(unittest.TestCase):
+    def test_grouped_taps_keep_last_payload_after_wait(self):
+        from simulacrum.cube import TapBroadcasts
+        taps = TapBroadcasts()
+        taps.receive(.061, 55)
+        taps.receive(.195, 180)
+        taps.advance(.239999)
+        self.assertEqual(taps.events, [])
+        taps.advance(.24)
+        self.assertEqual(taps.events, [(.24, 180)])
+        taps.receive(.241, 239)
+        taps.advance(.42)
+        self.assertEqual(taps.events[-1], (.42, 239))
+
     def test_at_rest_on_its_base_the_cube_sends_one_g_on_z_every_30_ms(self) -> None:
         chip = run(QUIET, 1.0, lambda n: [0.0, 0.0, 1.0])
         self.assertEqual(len(chip.messages), 33)

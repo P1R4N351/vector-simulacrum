@@ -73,7 +73,7 @@ function Readouts({ t }) {
   if (t.cube_slot_g) {
     const axes = ["unknown", "−X", "+X", "−Y", "+Y", "−Z", "+Z"];
     const countWithTime = (count, time) => time == null ? String(count) : `${count} · last at ${fmt(time, 2)} s`;
-    rows.push(["cube taps", countWithTime(t.cube_tap_events, t.cube_last_tap_s)],
+    rows.push(["cube tap broadcasts", countWithTime(t.cube_tap_broadcasts, t.cube_last_tap_broadcast_s)],
       ["cube movement broadcasts", t.cube_movement_broadcasts],
       ["cube motion transitions", countWithTime(t.cube_motion_transitions, t.cube_last_motion_s)],
       ["cube acceleration", t.cube_slot_g.map(g => fmt(g, 2)).join(" / ") + " g"],

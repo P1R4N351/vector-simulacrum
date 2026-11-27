@@ -1,5 +1,5 @@
 // Stock last-frame cube app, following simulacrum/cube.py. Packet slots are in chip-axis counts.
-import { CubeListeners } from "./cube_listeners.js";
+import { CubeListeners, TapBroadcasts } from "./cube_listeners.js";
 import { ImuFilter } from "./imu_filter.js";
 import { assert, clamp, makeGauss, pyRound } from "./util.js";
 
@@ -23,6 +23,7 @@ export class CubeSensor {
     this.movementBroadcastCount = 0;
     this.firmware = null;
     this.listeners = new CubeListeners();
+    this.tapBroadcasts = new TapBroadcasts();
   }
 
   attachFirmware(vm) {
@@ -77,6 +78,9 @@ export class CubeSensor {
     if (bodyStateStampMs !== undefined) {
       for (const event of events) event.timestamp = bodyStateStampMs;
     }
+    for (const event of events) {
+      if ("tap_count" in event) this.tapBroadcasts.receive(event);
+    }
     // The engine keeps filtering the handled cube but suppresses its movement broadcasts.
     const movementBroadcasts = this.handlingCube ? [] : events.filter(event => "moving" in event);
     this.movementBroadcastCount += movementBroadcasts.length;
@@ -94,7 +98,10 @@ export class CubeSensor {
     for (let i = 0; i < 64; i++) {
       const nextFrame = (this.frames + 1) * this.framePeriod;
       const nextTick = (this.ticks + 1) * this.tickPeriod;
-      if (Math.min(nextFrame, nextTick) > time + 1e-9) return;
+      if (Math.min(nextFrame, nextTick) > time + 1e-9) {
+        this.tapBroadcasts.advanceUs(Math.round(time * 1e6));
+        return;
+      }
       if (nextFrame <= nextTick + 1e-9) {
         this.store(frame);
         this.frames++;

@@ -125,3 +125,17 @@ test("browser movement broadcasts follow the physical carry-state recordings", (
     });
   }
 });
+
+test("grouped taps publish without another packet and keep the newest body stamp", () => {
+  const sensor = new CubeSensor(quietChip, .001, 0, [0,0,1]);
+  const slots = Array.from({ length: 3 }, () => [0,0,8192]);
+  sensor.receivePacket({time_s:.01, taps:255, slots}, 5);
+  sensor.receivePacket({time_s:.061, taps:0, slots}, 55);
+  sensor.receivePacket({time_s:.195, taps:1, slots}, 180);
+  const group = sensor.tapBroadcasts;
+  group.advanceUs(239999);
+  assert.equal(group.count, 0);
+  group.advanceUs(240000);
+  assert.equal(group.count, 1);
+  assert.deepEqual(group.last, { tap_count:1, time_s:.195, timestamp:180, broadcast_s:.24 });
+});
