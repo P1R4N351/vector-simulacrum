@@ -8,7 +8,6 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
-import evaluate
 
 
 def trim(source, target, side, cut_mm):
@@ -39,6 +38,7 @@ def trim(source, target, side, cut_mm):
 
 
 def main():
+    import evaluate
     source = Path(sys.argv[2]).resolve()
     rows = []
     with TemporaryDirectory() as tmp:

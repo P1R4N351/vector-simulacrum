@@ -13,19 +13,14 @@ sys.path[:0]=[str(repo),str(repo/"evidence/unit3-printed-fork-contact")]
 from replay_links import add_links,rail_paths,require_printed_fork
 from simulacrum import params
 
-tree=ET.parse(sys.argv[1])
-require_printed_fork(tree)
-add_links(tree,repo)
-m=mj.MjModel.from_xml_string(ET.tostring(tree.getroot(),encoding="unicode"))
 v=params.values(params.load(model="vector_2"))
 path=np.genfromtxt(here/"pickup-path.csv",names=True,delimiter=",")
 sights=np.genfromtxt(here/"pickup-sightings.csv",names=True,delimiter=",")
-cube=m.body("cube").id
-fork=m.body("fork").mocapid[0]
-rails=[m.body(f"rail{i}").mocapid[0] for i in range(2)]
-with (here/"fork-rake.csv").open("w") as f:
-    w=csv.writer(f,lineterminator="\n")
-    w.writerow("dt_ms rake_deg slide_cross_s slide_2p59_mm slide_2p86_mm max_rise_mm held_rise_mm".split())
+
+
+def replay(m, rake_angles, *, report_damage=False, sighting=None):
+    fork=m.body("fork").mocapid[0]
+    rails=[m.body(f"rail{i}").mocapid[0] for i in range(2)]
     for dt in (.001,.0005):
         m.opt.timestep=dt
         t=np.arange(-.3,8.31,dt)
@@ -40,14 +35,15 @@ with (here/"fork-rake.csv").open("w") as f:
         points=np.stack([axis+rot.apply(points[:,j]-axis) for j in range(2)],axis=1)
         quats=(rot*Rotation.from_quat(quats,scalar_first=True)).as_quat(scalar_first=True)
         body_rot=rot*Rotation.from_euler("z",h[:, None])
-        for rake in (0,-10,-5,5,10):
+        for rake in rake_angles:
             orient=(body_rot*Rotation.from_euler("y",rake,degrees=True)).as_quat(scalar_first=True)
             d=mj.MjData(m)
             pose=d.joint("cube_root").qpos
-            s=sights[-1]
+            s=sights[-1] if sighting is None else sighting
             yaw=Rotation.from_quat([s[k] for k in ("qx","qy","qz","qw")]).as_euler("xyz")[2]
             pose[:]=[s["x_mm"]/1000,s["y_mm"]/1000,.0222,np.cos(yaw/2),0,0,np.sin(yaw/2)]
             series=[]
+            inclinations=[]
             for i,clock in enumerate(t):
                 d.mocap_pos[fork]=wrist[i]
                 d.mocap_quat[fork]=orient[i]
@@ -55,11 +51,27 @@ with (here/"fork-rake.csv").open("w") as f:
                 d.mocap_quat[rails]=quats[i]
                 mj.mj_step(m,d)
                 series.append(pose[:3].copy()*1000)
+                if report_damage:
+                    inclinations.append(np.degrees(np.arccos(np.clip(1-2*np.sum(pose[4:6]**2),-1,1))))
             xyz=np.array(series)
             rest=np.median(xyz[t<0],axis=0)
             slide=np.linalg.norm(xyz[:,:2]-rest[:2],axis=1)
             rise=xyz[:,2]-rest[2]
             moving=np.flatnonzero((t>=0)&(slide>2))
-            w.writerow([dt*1000,rake,t[moving[0]] if moving.size else None,
-                        *np.interp([2.5944,2.8593],t,slide),np.max(rise[t>=0]),np.median(rise[t>=6.5])])
-            f.flush()
+            row=[dt*1000,rake,t[moving[0]] if moving.size else None,
+                        *np.interp([2.5944,2.8593],t,slide),np.max(rise[t>=0]),np.median(rise[t>=6.5])]
+            if report_damage:
+                row.extend(np.interp([3.11,3.38,3.64],t,inclinations))
+            yield row
+
+
+
+if __name__ == "__main__":
+    tree=ET.parse(sys.argv[1])
+    require_printed_fork(tree)
+    add_links(tree,repo)
+    m=mj.MjModel.from_xml_string(ET.tostring(tree.getroot(),encoding="unicode"))
+    with (here/"fork-rake.csv").open("w") as f:
+        w=csv.writer(f,lineterminator="\n")
+        w.writerow("dt_ms rake_deg slide_cross_s slide_2p59_mm slide_2p86_mm max_rise_mm held_rise_mm".split())
+        w.writerows(replay(m,(0,-10,-5,5,10)))
