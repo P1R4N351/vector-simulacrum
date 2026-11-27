@@ -3,7 +3,7 @@ import {VectorSim,CONTROL_OVERRIDE} from "../../../web/src/sim/robot.js";
 import {mujoco,readJson,readText} from "../../../web/test/helpers.js";
 
 // Optional diagnostic variant writes to a separate output folder.
-const [source="./", readyFile, friction, destination] = process.argv.slice(2);
+const [source="./", readyFile, friction, destination, derivative] = process.argv.slice(2);
 const evidence = new URL(source, import.meta.url);
 const output = destination ? new URL(destination,import.meta.url) : evidence;
 let xml = readText("public/robot/vector-contact42-free-dock.xml");
@@ -14,6 +14,12 @@ if (friction !== undefined) {
   if(xml.split(joint).length!==2) throw Error("Expected one lift hinge");
   xml=xml.replace(joint,joint+' frictionloss="'+torque+'"');
 }
+if (derivative && !["error","target"].includes(derivative)) throw Error("Unknown derivative mode");
+if (derivative==="error") {
+  const actuator=/<position name="lift"[^>]* kv="[^"]+"/;
+  if(!actuator.test(xml)) throw Error("Missing lift velocity damping");
+  xml=xml.replace(actuator, match=>match.replace(/ kv="[^"]+"/,' kv="0"'));
+}
 const rows = readFileSync(new URL("recording.csv",evidence),"utf8").trim().split(/\r?\n/).slice(1).map(s=>s.split(","));
 const first = rows.find(row=>row[1]==="state");
 const commands = rows.filter(row=>row[1]==="command");
@@ -21,6 +27,10 @@ const {values,derived} = readJson("public/robot/model.json");
 const sim = new VectorSim(await mujoco(),{values,derived,xml,
   startDocked:true,controlLevel:CONTROL_OVERRIDE,headDeg:Number(first[5]),liftMm:Number(first[4]),noiseSeed:42});
 try {
+  if(derivative){
+    if(output.href===evidence.href) throw Error("Use separate output for diagnostic replay");
+    (await import("./derivative/derivative.mjs")).addDerivative(sim,derivative);
+  }
   const includeFlag = rows.some(r => r[1] === "state" && r.length > 11 && r[11] !== "");
   const samples=[includeFlag ? "s,lift_mm,on_dock,in_position" : "s,lift_mm,on_dock"];
   const finishes=["command_s,target_mm,duration_s,sim_elapsed_s,result"];
