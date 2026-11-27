@@ -165,3 +165,21 @@ The physical cube delivered 21 acceleration slots in seven radio packets during 
 The simulated forces explain why the mount is sensitive to placement. With the 4 ms front supports and the initial cube pose, the fork supplies −0.088 N·s of vertical impulse on the cube and the front supports supply +0.225 N·s (positive is upward). With the later cube pose those contributions reverse to +0.641 and −0.531 N·s. In both cases the robot lifts the cube through opposing contact forces. Their size and direction depend on small placement changes in a replay that prescribes the robot motion. They are model predictions; the physical cube has no sensor for individual contact forces.
 
 The analysis sums solved normal loads per support, uses 10 micronewtons as the unloaded cutoff, and records shelf-unloaded intervals of at least 20 ms. Vertical impulses integrate the full contact force on the cube, including friction, in world coordinates. Three ordered physical slots share one packet receipt time. [Interval scores and impulses](support-trace.csv). Run `python support_trace.py` with the existing replay dependencies.
+
+## Can the lift actuator sustain the prescribed grip?
+
+![Equivalent contact load about the lift hinge](lift-reaction.png)
+
+W4's prescribed fork receives peak cube-contact loads equivalent to **5.86 and 7.77 N·m** at the lift hinge for the two observed cube placements. The canonical actuator limit is **0.060 N·m**. The absolute contact load exceeds that limit for 139 and 318 ms respectively during the 900 ms scoring window. This is an equivalent load for the ideal level-fork linkage. We compute virtual work by projecting the world contact force onto the translation of the fork per radian of lift rotation; under this constraint the fork orientation stays fixed relative to the chassis. The signal excludes joint-stop forces, inertia, gravity and motor torque. A joint stop can support loads greater than motor torque. The robot's physical motor torque was not measured.
+
+To test the effect of permitting lift motion under load, retain the recorded chassis trajectory and the two front tread supports, then assemble the canonical lift arm, hinge, leveling wrist constraint and torque-limited position actuator. Use measured lift height as the servo target. Across seven mounts, output height differs from the recorded height by **3.49–5.49 mm RMS** during the scoring window. The servo reaches its torque limit in six mounts. The commanded and measured hardware angles are separate quantities, so a replay using measured height as a target includes servo lag.
+
+| Across seven mounts and five sampling phases | Prescribed fork | Actuated lift |
+|---|---:|---:|
+| Mean absolute tap count error | 1.74 | 1.60 |
+| Mean absolute first tap timing error | 321 ms | 378 ms |
+| Exact count matches | 5/35 | 4/35 |
+
+The articulated lift removes the independently prescribed fork motion. It modestly reduces count error, but first-tap timing gets worse and the recorded lift trajectory diverges. Chassis motion remains prescribed, so this experiment does not establish whether a freely moving robot would develop the same grip. The five phases per run share the same physical recording.
+
+[Contact loads](lift-reaction.csv) · [Actuator and tap scores](actuated-mount.csv). Reproduce with `python lift_reaction.py` and `python actuated_mount.py`.
