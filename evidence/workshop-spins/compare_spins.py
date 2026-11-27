@@ -1,12 +1,15 @@
 """Use the archived recorded-pose analysis modules on PYTHONPATH."""
-import csv,math
+import csv,math,sys
 from pathlib import Path
 from types import SimpleNamespace
 import matplotlib.pyplot as plt
 import numpy as np
 from c7_transfer import simulate,gyro_axes
 from simulacrum import params
+fresh = "--fresh" in sys.argv
 base=Path(__file__).parent
+if fresh:
+    base = base / "speed-holdout"
 def load(name):
     with (base/name).open() as f:return list(csv.DictReader(f))
 events=load('events.csv');states=load('states.csv')
@@ -17,8 +20,8 @@ assert len(commands)==len(stops)==4
 fig,axes=plt.subplots(2,4,figsize=(14,6),sharex='col',layout='constrained')
 scores=[]; predictions=[]
 for i,(cmd,stop) in enumerate(zip(commands,stops)):
-    start=float(cmd['time_s']);end=float(stop['time_s']);sgn=int(cmd['detail'])
-    seg=SimpleNamespace(t_cmd=start,t_stop=end,left=-100*sgn,right=100*sgn)
+    start=float(cmd['time_s']);end=float(stop['time_s']);speed=int(cmd['detail']) * (1 if fresh else 100);sgn=int(np.sign(speed))
+    seg=SimpleNamespace(t_cmd=start,t_stop=end,left=-speed,right=speed)
     prior=next(r for r in reversed(states) if float(r['time_s'])<=start)
     sim=simulate(values,{'head':float(prior['head_rad']),'lift':float(prior['lift_mm'])},seg,3.75)
     predictions.extend([dict(turn=i+1,**r) for r in sim])
