@@ -11,7 +11,7 @@ Twelve physical moves crossed two targets (44 and 52 mm) with approach from 12 m
 | 52 mm | Raise | −0.02 mm | +0.33 mm |
 | 52 mm | Lower | −2.08 mm | −0.36 mm |
 
-Endpoints use median lift height 0.9–1.1 seconds after each SDK command. At 52 mm all three physical lowers settled below all three raises. At 44 mm the two groups overlapped. A difference by direction can therefore matter even with the same requested travel and target.
+These fixed-time readings use median lift height 0.9–1.1 seconds after each SDK command. At 52 mm all three physical lowers were below all three raises in this window. The three lowers had yet to return success. Measuring after SDK acknowledgement reduces the median separation from 2.06 to 1.38 mm. [Post-return comparison](../return-times/README.md) At 44 mm the two groups overlapped. A difference by direction can therefore matter even with the same requested travel and target.
 
 We estimated the median physical-minus-canonical endpoint offset on the six 44 mm training trials. The common offset and the separate raising and lowering offsets all rounded to −1.38 mm. On the six 52 mm holdouts either correction reduced mean absolute endpoint error from 1.26 to 0.81 mm. A retrospective cross-check on the preceding session’s four lowers per target gave 1.64 → 0.43 mm at 40 mm, but 0.42 → 1.47 mm at the minimum (32 mm). Applying a global offset would degrade the lower endpoint. This check adjusts predicted endpoint readings only. It does not establish a mechanical cause or reproduce the intermediate pauses.
 
