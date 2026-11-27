@@ -1084,14 +1084,28 @@ export class VectorSim {
     return true;
   }
 
+  _startHead(angleDeg, speedRadps, durationS) {
+    assert(Number.isFinite(durationS) && durationS >= 0, "bad head duration");
+    const v = this.v;
+    const target = clamp(angleDeg, v.head_angle_min_deg, v.head_angle_max_deg) * DEG;
+    this._headSpeed = speedRadps ? Math.abs(speedRadps) : v.head_speed_default_radps;
+    this._headAccel = v.head_accel_default_radps2;
+    this._servoRate[0] = 0;
+    const span = Math.abs(target - this._headCmd);
+    if (durationS > 0 && span > 0) {
+      // WireOS allocates a tenth of the requested duration to each velocity ramp.
+      const peak = span / (0.9 * durationS);
+      this._headSpeed = Math.min(v.head_speed_max_radps, peak);
+      this._headAccel = Math.min(10000, peak / (0.1 * durationS));
+    }
+    this._setHeadTarget(target);
+  }
+
   // Set the head target and return at once.
-  commandHeadAngle(angleDeg) {
+  commandHeadAngle(angleDeg, durationS = 0) {
     assert(Number.isFinite(angleDeg), "bad head angle");
     if (!this.hasControl) return false;
-    const v = this.v;
-    this._headSpeed = v.head_speed_default_radps;
-    this._servoRate[0] = 0;
-    this._setHeadTarget(clamp(angleDeg, v.head_angle_min_deg, v.head_angle_max_deg) * DEG);
+    this._startHead(angleDeg, null, durationS);
     return true;
   }
 
@@ -1199,17 +1213,13 @@ export class VectorSim {
   }
 
   // Tilt the head and wait for it; the angle is clamped to the robot's range.
-  setHeadAngle(angleDeg, speedRadps = null) {
+  setHeadAngle(angleDeg, speedRadps = null, durationS = 0) {
     assert(Number.isFinite(angleDeg), "bad head angle");
     if (!this.hasControl || this._action !== null) return this._refuse();
-    const v = this.v;
-    this._headSpeed = speedRadps ? Math.abs(speedRadps) : v.head_speed_default_radps;
-    this._servoRate[0] = 0;
-    const target = clamp(angleDeg, v.head_angle_min_deg, v.head_angle_max_deg) * DEG;
+    this._startHead(angleDeg, speedRadps, durationS);
+    const target = this._headTarget;
     const span = Math.abs(target - this.headAngleRad());
-    const made = this._newServoAction("head", target, v.head_angle_tol_deg * DEG, span, this._headSpeed);
-    this._setHeadTarget(target);
-    return made;
+    return this._newServoAction("head", target, this.v.head_angle_tol_deg * DEG, span, this._headSpeed);
   }
 
   // Raise or lower the lift and wait for it; the height is clamped to the robot's range.

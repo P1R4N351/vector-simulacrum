@@ -308,6 +308,15 @@ class Servos(unittest.TestCase):
         sim.command_lift_height(32)
         self.assertFalse(sim.step(sim._state_ticks).lift_in_pos)
 
+    def test_head_duration_applies_to_one_action(self) -> None:
+        sim = VectorSim()
+        timed = sim.set_head_angle(30, duration_s=1.4)
+        self.assertEqual(timed.result, robot.RESULT_COMPLETED)
+        self.assertGreater(timed.ticks * sim.dt, 1.2)
+        default = sim.set_head_angle(0)
+        self.assertEqual(default.result, robot.RESULT_COMPLETED)
+        self.assertLess(default.ticks * sim.dt, 1.0)
+
     def test_lift_duration_applies_to_one_action(self) -> None:
         sim = VectorSim()
         timed = sim.set_lift_height(92.0, duration_s=1.4)

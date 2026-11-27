@@ -18,7 +18,7 @@ const PRINT_WIDTH = 2000; // characters kept of one printed line
 export const ROBOT_CALLS = [
   ["await robot.drive_straight(distance_mm, speed_mmps)", "drive along the heading; negative distance is backwards"],
   ["await robot.turn_in_place(angle_deg, speed_dps?)", "turn on the spot; positive is to the left"],
-  ["await robot.set_head_angle(angle_deg)", "tilt the head (-22 to 45 degrees)"],
+  ["await robot.set_head_angle(angle_deg, speed_radps?, duration_s?)", "tilt the head (-22 to 45 degrees), optionally over a specified duration"],
   ["await robot.set_lift_height(height)", "move the lift: 0.0 is the bottom, 1.0 the top"],
   ["await robot.set_wheel_motors(left_mmps, right_mmps)", "set tread speeds and return at once"],
   ["await robot.stop_all_motors()", "treads to zero, head and lift held"],
