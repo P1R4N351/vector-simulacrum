@@ -2,7 +2,8 @@ import {readFileSync,writeFileSync} from "node:fs";
 import {VectorSim,CONTROL_OVERRIDE} from "../../../web/src/sim/robot.js";
 import {mujoco,readJson,readText} from "../../../web/test/helpers.js";
 
-const rows = readFileSync(new URL("recording.csv",import.meta.url),"utf8").trim().split(/\r?\n/).slice(1).map(s=>s.split(","));
+const evidence = new URL(process.argv[2] || "./", import.meta.url);
+const rows = readFileSync(new URL("recording.csv",evidence),"utf8").trim().split(/\r?\n/).slice(1).map(s=>s.split(","));
 const first = rows.find(row=>row[1]==="state");
 const commands = rows.filter(row=>row[1]==="command");
 const {values,derived} = readJson("public/robot/model.json");
@@ -24,5 +25,5 @@ try {
     samples.push([receipt,sim.state.lift_height_mm,+sim.chargerContact].join(","));
   }
   if(next!==commands.length)throw Error("Incomplete replay");
-  writeFileSync(new URL("replay.csv",import.meta.url),samples.join("\n")+"\n");
+  writeFileSync(new URL("replay.csv",evidence),samples.join("\n")+"\n");
 } finally {sim.dispose();}
