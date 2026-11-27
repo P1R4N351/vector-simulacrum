@@ -1,0 +1,20 @@
+unit,joint,direction,elapsed_ms
+First recording,head,raise,219
+First recording,head,lower,247
+First recording,lift,raise,169
+First recording,lift,lower,194
+First recording,lift,raise,217
+First recording,lift,lower,195
+Repeat recording,head,raise,224
+Repeat recording,head,lower,230
+Repeat recording,lift,raise,149
+Repeat recording,lift,lower,178
+Repeat recording,lift,raise,176
+Repeat recording,lift,lower,157
+Third recording,head,raise,229
+Third recording,head,raise,251
+Third recording,head,lower,216
+Third recording,lift,raise,177
+Third recording,lift,lower,221
+Third recording,lift,raise,203
+Third recording,lift,lower,199
