@@ -74,7 +74,7 @@ values, ranked" below).
 | `demo.py`, `measure.py` | A short run; the model figures quoted below |
 | `evidence/hw-rec-20261115/` | The initial recording, the script that made it, SHA-256 in the table's `REC` source |
 | `evidence/` | Smoke run learning curves and outputs; fit, replay, measurement, ranking, cube pickup, wheelstand, dock, and fault-check evidence |
-| `tests/` | `run_all.py` (36 test modules, 485 declared tests), `test_cube_pickup.py` (10 standalone pickup tests; 37 `test_*.py` files total), `mutate.py` (273 fault arms + 1 neutral control) |
+| `tests/` | `run_all.py` (36 test modules, 495 declared tests), `test_cube_pickup.py` (10 standalone pickup tests; 37 `test_*.py` files total), `mutate.py` (277 fault arms + 1 neutral control) |
 | `run_in_ct.sh` | Copies this directory into a container host and runs a file there, on MuJoCo 4.0.1 |
 | `env/`, `pinned_run.py`, `simulacrum/mujoco_pin.py` | The pinned MuJoCo 4.0.1 environment (hashed wheels, setup script) and the check that a run used it |
 | `mcp_server.py`, `simulacrum/mcp_service.py` | An MCP server over stdio: the table, the recordings and the recorder's command line as tools. Read-only; no robot, no MuJoCo |
