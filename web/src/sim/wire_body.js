@@ -49,12 +49,25 @@ class WireEncoder {
   }
 }
 
+export class WireMotorEncoders {
+  constructor() {
+    this.channels = ENCODER_SCALE.map((_, i) => new WireEncoder(i >= 2));
+  }
+
+  sample(sim, power, startSeconds, dt) {
+    const positions = [...sim._treadTravelMm(), sim.liftAngleRad(), sim.headAngleRad()];
+    this.channels.forEach((encoder, i) => {
+      encoder.sample(positions[i] / ENCODER_SCALE[i], power[i], startSeconds, dt);
+    });
+  }
+}
+
 export class WireBody {
   constructor(sim) {
     this.sim = sim;
     sim.bodyRangeClock = true;
     this.seq = 0;
-    this.encoders = ENCODER_SCALE.map((_, i) => new WireEncoder(i >= 2));
+    this.encoders = new WireMotorEncoders();
     this.cubeTick = sim.cubeSensor?.ticks ?? 0;
     this.cubeTaps = sim.cubeSensor?.packet?.taps ?? 0;
     this.lastAdvertisementSeq = null;
@@ -64,18 +77,16 @@ export class WireBody {
   frame(power) {
     const s = this.sim;
     const startSeconds = s.data.time;
-    if (this.encoders[0].previous === null) {
-      const start = [...s._treadTravelMm(), s.liftAngleRad(), s.headAngleRad()];
-      start.forEach((value,i) => this.encoders[i].sample(value / ENCODER_SCALE[i], 0, startSeconds, 0));
+    if (this.encoders.channels[0].previous === null) {
+      this.encoders.sample(s, power, startSeconds, 0);
     }
     s.tickWireBody(power);
     const bytes = new Uint8Array(812), v = new DataView(bytes.buffer);
     for (const [offset, value] of [[0,MAGIC], [4,6], [8,this.seq], [16,this.seq]]) v.setUint32(offset,value,true);
     v.setUint8(20,1);
-    const positions = [...s._treadTravelMm(), s.liftAngleRad(), s.headAngleRad()];
+    this.encoders.sample(s, power, startSeconds, s.dt);
     for (let i=0; i<4; i++) {
-      const encoder = this.encoders[i];
-      encoder.sample(positions[i] / ENCODER_SCALE[i], power[i], startSeconds, s.dt);
+      const encoder = this.encoders.channels[i];
       v.setInt32(24+12*i, encoder.position, true);
       v.setInt32(28+12*i, encoder.delta, true);
       v.setUint32(32+12*i, encoder.period, true);

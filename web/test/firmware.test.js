@@ -8,7 +8,7 @@ import { CubeFirmwareVm } from "../src/sim/cube_firmware.js";
 import { VectorSim } from "../src/sim/robot.js";
 import { SysconFirmware, spineCrc32 } from "../src/sim/syscon_firmware.js";
 import { ThumbCpu, ThumbError } from "../src/sim/thumb.js";
-import { ROOT, mujoco, readJson, readText } from "./helpers.js";
+import { ROOT, makeSyntheticSysconFlash, mujoco, readJson, readText } from "./helpers.js";
 
 const FW_DIR = join(ROOT, "public/robot/firmware");
 const HAVE_FIRMWARE = ["cube.plain.bin", "syscon-flash.bin", "firmware_manifest.json"]
@@ -19,17 +19,6 @@ function wordsToBytes(words) {
   const view = new DataView(out.buffer);
   for (let i = 0; i < words.length; i++) view.setUint16(2 * i, words[i], true);
   return out;
-}
-
-function makeSyntheticSysconFlash() {
-  const flash = new Uint8Array(0x10000);
-  const view = new DataView(flash.buffer);
-  flash.set(new TextEncoder().encode("C2MO"), 0x2000);
-  view.setUint32(0x2110, 0x20001A00, true);
-  view.setUint32(0x2114, 0x0800212D, true);
-  flash.set(new TextEncoder().encode("Ws00000009c263e\0"), 0x2118);
-  view.setUint16(0x2128, 0x574B, true);
-  return flash;
 }
 
 test("ThumbCpu executes arithmetic, backward signed branch, MMIO, hooks, and bounds checks", () => {
@@ -110,4 +99,33 @@ test("optional real unmodified cube.plain.bin + syscon-flash.bin execute in Cube
   } finally {
     sim.dispose();
   }
+});
+
+test("Spine motor snapshots carry native quadrature counts, signed deltas and timers", async () => {
+  const { WireBody } = await import("../src/sim/wire_body.js");
+  const { values, derived } = readJson("public/robot/model.json");
+  const sim = new VectorSim(await mujoco(), { values, derived, xml: readText("public/robot/vector-free-dock.xml"), startDocked: true });
+  try {
+    sim.attachFirmware({ sysconBytes: makeSyntheticSysconFlash() });
+    for (let pass = 0; pass < 2; pass++) {
+      if (pass) sim.reset({ headDeg: -8, liftMm: 35, startDocked: true });
+      const bridge = new WireBody(sim);
+      let moving = false;
+      let previous = sim.lastSpineFrame;
+      for (let i = 0; i < 180; i++) {
+        const sign = i < 90 ? 1 : -1;
+        const packet = bridge.frame([.12, -.12, sign * .08, sign * .1]);
+        const frame = sim.lastSpineFrame;
+        if (frame === previous) continue;
+        previous = frame;
+        assert.ok(SysconFirmware.verifyBodyFrame(frame));
+        assert.deepEqual([...frame.slice(16,64)], [...packet.slice(24,72)]);
+        const v = new DataView(frame.buffer, frame.byteOffset, frame.byteLength);
+        assert.equal(v.getInt32(52,true), Math.floor(sim.headAngleRad() * 4 * 366.211 / Math.PI + .5));
+        assert.equal(v.getInt32(40,true), Math.floor(sim.liftAngleRad() * 4 * 149.7 / Math.PI + .5));
+        moving ||= v.getInt32(56,true) !== 0 && v.getUint32(60,true) > 0;
+      }
+      assert.ok(moving);
+    }
+  } finally { sim.dispose(); }
 });

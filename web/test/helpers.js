@@ -24,3 +24,14 @@ export function mujoco() {
   if (modulePromise === null) modulePromise = loadMujoco();
   return modulePromise;
 }
+
+export function makeSyntheticSysconFlash() {
+  const flash = new Uint8Array(0x10000);
+  const view = new DataView(flash.buffer);
+  flash.set(new TextEncoder().encode("C2MO"), 0x2000);
+  view.setUint32(0x2110, 0x20001A00, true);
+  view.setUint32(0x2114, 0x0800212D, true);
+  flash.set(new TextEncoder().encode("Ws00000009c263e\0"), 0x2118);
+  view.setUint16(0x2128, 0x574B, true);
+  return flash;
+}
