@@ -221,3 +221,15 @@ The robot's last-image clock provides a separate check. Two successive image-clo
 The clock reconstruction accounts for much of the unloaded outlier. The first simulated tap remains early under both clocks, so the burst cannot account for that discrepancy. Both RMSE scores use the height trace interpolated under their respective candidate clocks. This is a sensitivity analysis on one burst, with no independently measured encoder clock.
 
 [Clock reconstruction](receipt-burst-clock.csv) · [Robot last-image counter](receipt-burst-images.csv) · [Scores](receipt-burst.csv). Run `python receipt_burst.py`.
+
+## Was W26's early simulated tap present in the physical acceleration?
+
+![W4 through W30 acceleration around first predicted tap](early-impact.png)
+
+At reference sensor phase, the actuated replay predicts W26's first tap at −0.690 s. Three physical cube packets arrive within ±50 ms, the nearest 8.5 ms away. The largest change from resting acceleration in those packets is **0.023 g**, versus **0.484 g** in the simulated packets. Widening the comparison to ±100 ms includes six physical packets and raises the maxima to **0.075 g physical and 0.541 g simulated**. Across all five simulated sensor phases, every ±100 ms comparison still gives a physical peak below 0.08 g and a simulated peak above 0.46 g. The first physical counter increment arrives later at −0.136 s.
+
+The recorded SDK samples bracketing the reference prediction have the lift raised to 91.8 mm. At −0.715 s the left and right wheel speeds are 64 and 17 mm/s, dropping to 35 and 5 mm/s at −0.655 s. This is a moving approach with unequal tread speeds. The replay prescribes chassis motion but attaches the front support surfaces rigidly to it.
+
+W25 and W29 also have three packets within ±50 ms and show much smaller physical peaks (0.012 and 0.028 g) than the simulated ones (1.05 and 1.06 g). W30 shows a genuine larger physical impulse of 0.622 g there. W27 has no physical packet within ±50 ms at the reference phase and cannot support the same comparison.
+
+Each peak is the maximum norm of the acceleration-vector change from that stream's resting baseline, without shifting either clock to align peaks. Host receipt times, missing high-rate samples and unsynchronized sensor phases limit conclusions about individual shocks. A small measured peak weakens an explanation based solely on a missed tap-counter increment. It does not rule out a short unsampled impulse. [All phases, time windows and coverage](early-impact.csv). Run `python early_impact.py`.
