@@ -3,20 +3,33 @@ import { CONTROL_OVERRIDE, VectorSim } from "../../web/src/sim/robot.js";
 import { mujoco, readJson, readText } from "../../web/test/helpers.js";
 
 const file = name => new URL(name, import.meta.url);
-const rows = readFileSync(file("states.csv"), "utf8").trim().split(/\r?\n/).slice(1).map(row => row.split(","));
+const posture = process.argv.includes("--posture");
+const source = posture ? "../docked-head-20261126/lift-posture/active.csv" : "states.csv";
+const rows = readFileSync(file(source), "utf8").trim().split(/\r?\n/).slice(1).map(row => row.split(","));
 const states = rows.filter(row => row[1] === "state");
-const trials = rows.filter(row => row[1] === "trial");
+const trials = posture
+  ? rows.filter(row => row[1] === "head").filter((_, index) => index % 3 !== 0)
+  : rows.filter(row => row[1] === "trial");
 const { values, derived } = readJson("public/robot/model.json");
-const xml = readText("public/robot/vector-contact42-free-dock.xml");
+let xml = readText("public/robot/vector-contact42-free-dock.xml");
+const frictionArg = process.argv.find(arg => arg.startsWith("--friction-mNm="));
+const friction = frictionArg ? Number(frictionArg.split("=")[1]) : null;
+if (friction !== null) {
+  if (!Number.isFinite(friction) || friction < 0) throw Error("Expected a nonnegative friction torque");
+  const joint = '<joint name="head_joint"';
+  if (!xml.includes(joint)) throw Error("Head joint missing");
+  xml = xml.replace(joint, joint + ` frictionloss="${friction / 1000}"`);
+}
 const module = await mujoco();
 const release = process.argv.includes("--release");
-const output = ["trial,from_deg,s,real_deg,sim_deg,real_gyro_y,sim_gyro_y,sim_initial_deg"];
+const output = ["trial,from_deg,s,real_deg,sim_deg,real_gyro_y,sim_gyro_y,sim_initial_deg,released"];
 
 for (const [i, trial] of trials.entries()) {
   const cue = Number(trial[0]);
-  const initial = Number(states.filter(row => Number(row[0]) < cue).at(-1)[4]);
+  const before = states.filter(row => Number(row[0]) < cue).at(-1);
+  const initial = Number(before[4]);
   const sim = new VectorSim(module, { values, derived, xml, controlLevel: CONTROL_OVERRIDE,
-    startDocked: true, headDeg: initial, noiseSeed: 42 });
+    startDocked: true, headDeg: initial, liftMm: posture ? Number(before[5]) : null, noiseSeed: 42 });
   try {
     sim.tick(Math.round(0.6 / sim.dt));
     const initialReport = sim.reportedNow().head_deg;
@@ -41,8 +54,10 @@ for (const [i, trial] of trials.entries()) {
 
       if (!sim.chargerContact) throw Error("Lost simulated dock");
       const state = sim.state;
-      output.push([i+1,trial[2],time,row[4],state.head_angle_rad*180/Math.PI,row[5],state.gyro_radps[1],initialReport].join(","));
+      output.push([i+1,posture ? initial : trial[2],time,row[4],state.head_angle_rad*180/Math.PI,row[posture ? 7 : 5],state.gyro_radps[1],initialReport,+released].join(","));
     }
   } finally { sim.dispose(); }
 }
-writeFileSync(file(release ? "released.csv" : "replayed.csv"),output.join("\n")+"\n");
+const name = release ? "released" : "replayed";
+const outputName = friction === null ? name : `${name}-${friction}mNm`;
+writeFileSync(file((posture ? "posture-" : "") + outputName + ".csv"),output.join("\n")+"\n");
