@@ -32,3 +32,4 @@ for mode in static posture wheels full noslip shaft shaft-noslip shaft-linear; d
 done
 python compare.py < /tmp/w35-history.json
 ```
+[Net dock travel between the archived camera endpoints](endpoints.md)
