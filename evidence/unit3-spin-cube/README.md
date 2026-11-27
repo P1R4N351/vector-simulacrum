@@ -183,3 +183,22 @@ To test the effect of permitting lift motion under load, retain the recorded cha
 The articulated lift removes the independently prescribed fork motion. It modestly reduces count error, but first-tap timing gets worse and the recorded lift trajectory diverges. Chassis motion remains prescribed, so this experiment does not establish whether a freely moving robot would develop the same grip. The five phases per run share the same physical recording.
 
 [Contact loads](lift-reaction.csv) · [Actuator and tap scores](actuated-mount.csv). Reproduce with `python lift_reaction.py` and `python actuated_mount.py`.
+
+## How much lift tracking error comes from replaying a measurement as a command?
+
+![Loaded and unloaded lift-height traces with and without velocity compensation](lift-tracking.png)
+
+A position servo tracking its own measured output introduces a second response delay. The canonical velocity damping divided by position gain gives a 20 ms lead. We added that factor times the recorded angular velocity to the reference angle, clipped the reference to the original actuator range, and kept the original force limit. The velocity estimate is a backward difference of the interpolated SDK trajectory. This is an offline reconstruction of a possible command; hardware motor commands were not recorded.
+
+| Seven-mount mean | Original | Compensated |
+|---|---:|---:|
+| Unloaded lift height RMSE | 3.59 mm | 1.26 mm |
+| Unloaded absolute timing error at 60 mm on descent | 20.8 ms | 3.0 ms |
+| Loaded lift height RMSE | 4.51 mm | 4.03 mm |
+| Loaded absolute timing error at 60 mm on descent | 32.8 ms | 32.3 ms |
+| Loaded mean absolute cube tap count error | 1.60 | 1.71 |
+| Loaded mean absolute first tap error | 378 ms | 389 ms |
+
+The unloaded control disables cube contact and preserves the recorded chassis motion, lift linkage, gravity and actuator dynamics. With compensation, six unloaded 60 mm crossings fall within 1.4 ms of the interpolated SDK reference. W26 remains 17.3 ms late. Its SDK receipt stream has a 376 ms gap followed by a burst: reported height falls from 91.8 to 64.8 mm in 5.4 ms and then to 34.0 mm in 19.3 ms. These intervals measure receipt at the host. Their derivatives are unreliable estimates of physical shaft speed.
+
+The loaded crossings remain late after applying the same correction. This separates the extra unloaded servo lag from the larger discrepancy during contact. Scores compare integrated output height with the interpolated measurement at the same end-of-step time. Five sensor phases per recording are averaged for the tap metrics. [Per-mount results](lift-tracking.csv). Reproduce with `python lift_tracking.py`.
