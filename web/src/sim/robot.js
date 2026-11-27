@@ -97,6 +97,7 @@ export class VectorSim {
     this.mujoco = mujoco;
     this.shelfOutline = opts.shelfOutline;
     this.cubeStartXY = opts.cubeStartXY;
+    this.wakeHeadTrack = opts.wakeHeadTrack ?? [];
     this.cameraSpec = opts.camera ?? null;
     this._cubeFirmwareBytes = null;
     this.sysconFirmware = null;
@@ -167,6 +168,7 @@ export class VectorSim {
     assert(level === CONTROL_DEFAULT || level === CONTROL_OVERRIDE, "unknown control level");
     this.controlLevel = level;
     this.calmMode = opts.calmMode ?? this.calmMode ?? false;
+    this._wake = null;
     this._bodyLoopUs = Math.round(1000 * (this.v.supervisor_loop_ms ?? this.v.control_period_ms));
     assert(this._bodyLoopUs > 0, "supervisor loop must advance");
     this._nextBodyLoopUs = this._bodyLoopUs;
@@ -190,6 +192,9 @@ export class VectorSim {
     this.hazards = new Hazards(this.v);
     if (this._rescue) this._initRescueReset(opts);
     else this._initSingleReset(opts);
+    if (this.chargerContact && this.calmMode && this.wakeHeadTrack.length) {
+      this.hasControl = this.state.has_control = false;
+    }
     if (this.chargerContact) this.batteryVolts = 4.20;
     this.cubeSensor = this._cubeAdr < 0 ? null : new CubeSensor(
       this.v, this.model.opt.timestep, opts.noiseSeed ?? 0, this._cubeForce(),
@@ -953,8 +958,29 @@ export class VectorSim {
 
   // One body frame under the external WireOS motor controller.
   tickWireBody(power) {
+    this._wake = null; // the external firmware owns the motors
     assert(power.length === 4 && power.every(n => Number.isFinite(n) && Math.abs(n) <= 1), "bad motor duty");
     this._tickOnce(power);
+  }
+
+  _advanceWakeHead() {
+    const wake = this._wake;
+    if (!wake) return;
+    if (!this.chargerContact || !this.hasControl) {
+      this._wake = null;
+      return;
+    }
+    const elapsed = (this.tick_ - wake.startTick) * this.dt;
+    if (wake.waiting && this._action?.kind !== "head" && this.state.head_in_pos) wake.waiting = false;
+    while (wake.next < this.wakeHeadTrack.length) {
+      const frame = this.wakeHeadTrack[wake.next];
+      if (elapsed < frame.triggerTime_ms / 1000) break;
+      wake.next++;
+      if (!wake.waiting) {
+        this._startHead(frame.angle_deg, null, frame.durationTime_ms / 1000);
+      }
+    }
+    if (wake.next === this.wakeHeadTrack.length) this._wake = null;
   }
 
   _tickOnce(power = null) {
@@ -981,6 +1007,7 @@ export class VectorSim {
       this._applied = [rc.left * this.v.tread_noload_speed_mmps, rc.right * this.v.tread_noload_speed_mmps];
     } else if (power === null) {
       this._maybeReact();
+      this._advanceWakeHead();
       this._rampCommands();
       this._writeControls();
     } else {
@@ -1055,6 +1082,10 @@ export class VectorSim {
   // Ask for control back. Refused while the robot is still reacting.
   requestControl() {
     if (this._reactPhase !== "idle") return false;
+    if (this.calmMode && this.chargerContact && this.wakeHeadTrack.length) {
+      this.calmMode = false;
+      this._wake = { startTick: this.tick_, next: 0, waiting: false };
+    }
     this.hasControl = true;
     this._cancelled = false;
     return true;
@@ -1073,6 +1104,7 @@ export class VectorSim {
 
   stopAllMotors() {
     if (!this.hasControl || this._action !== null) return false;
+    this._wake = null;
     this._wheelTarget = [0, 0];
     this._wheelAccel = [0, 0];
     this._headCmd = this.headAngleRad();
@@ -1105,6 +1137,7 @@ export class VectorSim {
   commandHeadAngle(angleDeg, durationS = 0) {
     assert(Number.isFinite(angleDeg), "bad head angle");
     if (!this.hasControl) return false;
+    this._wake = null; // a direct motor command takes ownership of the head
     this._startHead(angleDeg, null, durationS);
     return true;
   }
@@ -1216,6 +1249,7 @@ export class VectorSim {
   setHeadAngle(angleDeg, speedRadps = null, durationS = 0) {
     assert(Number.isFinite(angleDeg), "bad head angle");
     if (!this.hasControl || this._action !== null) return this._refuse();
+    if (this._wake) this._wake.waiting = true;
     this._startHead(angleDeg, speedRadps, durationS);
     const target = this._headTarget;
     const span = Math.abs(target - this.headAngleRad());
