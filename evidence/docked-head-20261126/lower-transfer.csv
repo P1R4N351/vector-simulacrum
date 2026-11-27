@@ -1,0 +1,5 @@
+cue,split,delay_ms,angle_rmse_deg,gyro_y_rmse_rad_s
+4,fit,0,2.899,0.419
+4,fit,20,0.743,0.22
+6,held-out,0,2.69,0.283
+6,held-out,20,1.512,0.205
