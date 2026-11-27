@@ -176,7 +176,7 @@ export class VectorSim {
     this._gauss = makeGauss(opts.noiseSeed ?? 0);
     // The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
     this._proxSensor = new ProxSensor(this.v, (opts.noiseSeed ?? 0) + 1);
-    this.bodyRangeClock = opts.bodyRangeClock ?? this.bodyRangeClock ?? Boolean(this.shelfOutline);
+    this.bodyRangeClock = Boolean(this.sysconFirmware) || (opts.bodyRangeClock ?? this.bodyRangeClock ?? Boolean(this.shelfOutline));
     this.chargerContact = opts.chargerContact ?? this.chargerContact ?? false;
     this._rangeBodyTicks = 0;
     this._rangeBodyPhaseUs = 0;
@@ -676,7 +676,7 @@ export class VectorSim {
         batteryRaw: Math.trunc(this.batteryVolts * 2048 / 2.8),
         chargerRaw: this.chargerContact ? Math.trunc(5 * 2048 / 2.8) : 0,
         chargerFlags: this.chargerContact ? 3 : 0,
-        proxMm: prox.distance_mm,
+        proxSample: this.rawRangeSample(),
       });
     }
   }
@@ -1233,6 +1233,7 @@ export class VectorSim {
     }
     if (sysconBytes) {
       this.sysconFirmware = new SysconFirmware(sysconBytes);
+      this.bodyRangeClock = true;
       this._initSpineEncoders();
     }
   }

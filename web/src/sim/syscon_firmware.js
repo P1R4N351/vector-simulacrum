@@ -1,3 +1,4 @@
+import { writeBodyRange } from "./prox.js";
 // Verifies the real 64 KB STM32F030 syscon flash image (sysboot.bin + syscon.dfu)
 // and implements the wire-os-victor spine CRC32 (0xEDB88320, init 0xFFFFFFFF, xorout 0)
 // and BodyToHead DATA_FRAME codec matching robot/fixture/stm/lib/spine_crc.c.
@@ -45,7 +46,7 @@ export class SysconFirmware {
   }
 
   packBodyFrame({ frameCounter = 0, flags = 1, motorPos = [0, 0, 0, 0], motorDelta = [], motorPeriod = [], cliff = [600, 600, 600, 600],
-    batteryRaw = 2948, chargerRaw = 0, chargerFlags = 0, proxMm = 400, proxStatus = 0x58 } = {}) {
+    batteryRaw = 2948, chargerRaw = 0, chargerFlags = 0, proxMm = 400, proxStatus = 0x58, proxSample = null } = {}) {
     const buf = new Uint8Array(BODY_FRAME_BYTES + 4);
     const view = new DataView(buf.buffer);
     view.setUint32(0, SYNC_BODY_TO_HEAD, true);
@@ -64,8 +65,12 @@ export class SysconFirmware {
     view.setInt16(p + 66, chargerRaw, true);
     view.setInt16(p + 68, 25, true);
     view.setUint16(p + 70, chargerFlags, true);
-    view.setUint8(p + 76, proxStatus & 0xFF);
-    view.setUint16(p + 78, ((proxMm & 0xFF) << 8) | ((proxMm >> 8) & 0xFF), true);
+    if (proxSample) {
+      writeBodyRange(view, p + 76, proxSample, proxStatus);
+    } else {
+      view.setUint8(p + 76, proxStatus & 0xFF);
+      view.setUint16(p + 78, proxMm & 0xFFFF);
+    }
     const crc = spineCrc32(buf, p, p + 768);
     view.setUint32(p + 768, crc, true);
     this.framesPacked += 1;

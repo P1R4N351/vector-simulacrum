@@ -102,3 +102,16 @@ export class ProxSensor {
     return { distance_mm: distance, signal_quality: quality, unobstructed, found_object: found, is_lift_in_fov: liftInView };
   }
 }
+
+// Sensor register bytes are big-endian; syscon appends its little-endian sample counter.
+export function writeBodyRange(view, offset, sample, status = 0x58) {
+  const quality = Math.max(0, sample.quality);
+  // The two fixed-point words encode a ratio. Keep the nominal 90 effective
+  // SPADs while the 9.7 return rate fits; scale down for strong reflections.
+  const spads = Math.max(1, Math.min(90, Math.floor(65535 / (128 * quality))));
+  view.setUint8(offset, status);
+  view.setUint16(offset + 2, Math.min(65535, Math.max(0, Math.round(sample.raw))));
+  view.setUint16(offset + 4, Math.min(65535, Math.round(128 * spads * quality)));
+  view.setUint16(offset + 8, 256 * spads);
+  view.setUint16(offset + 10, sample.count, true);
+}
