@@ -962,4 +962,7 @@ class VectorSim:
         span = abs(target - read())
         tol = math.radians(v["lift_angle_tol_deg"])
         assert tol > 0.0, "lift tolerance must be positive"
-        return self._servo_action(lambda _: abs(read() - target) <= tol, span, self._lift_speed)
+        def settled(_: int) -> bool:
+            return (span <= tol or self._lift_in_pos) and abs(read() - target) <= tol
+
+        return self._servo_action(settled, span, self._lift_speed)

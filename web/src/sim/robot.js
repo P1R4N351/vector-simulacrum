@@ -1339,7 +1339,7 @@ export class VectorSim {
   _newServoAction(kind, target, tol, span, speed) {
     assert(tol > 0 && speed > 0, "servo tolerance and speed must be positive");
     const [target0, accel0] = [this._wheelTarget, this._wheelAccel];
-    const made = this._newAction(kind, { servo: true, phase: "run", target, tol, budget: this._budgetTicks(span / speed) });
+    const made = this._newAction(kind, { servo: true, phase: "run", target, tol, startInTolerance: span <= tol, budget: this._budgetTicks(span / speed) });
     this._wheelTarget = target0;
     this._wheelAccel = accel0;
     return made;
@@ -1399,7 +1399,7 @@ export class VectorSim {
       return this.tick_ - a.tick0 >= this._servoDelay && this._acceptedHeadTarget === a.target &&
         this._headInPos && Math.abs(this.headAngleRad() - a.target) <= a.tol;
     }
-    return Math.abs(this.data.qpos[this._q.lift] - a.target) <= a.tol;
+    return (a.startInTolerance || this._liftInPos) && Math.abs(this.data.qpos[this._q.lift] - a.target) <= a.tol;
   }
 
   _steerDrive(a) {
