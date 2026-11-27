@@ -11,7 +11,7 @@ from front_contact import front_model
 PITCH_AFTER_COMMAND = 4.2768703
 
 
-def top_track(model, traj, pose):
+def top_track(model, traj, pose, observe_step=None):
     data = mj.MjData(model)
     cube = model.body("cube").id
     adr = int(model.jnt_qposadr[int(model.body_jntadr[cube])])
@@ -50,6 +50,8 @@ def top_track(model, traj, pose):
             dt,
         )
         mj.mj_step(model, data)
+        if observe_step is not None:
+            observe_step(data)
         # Update transforms to the post-integration pose before reading the top point.
         mj.mj_kinematics(model, data)
         tilt = np.degrees(np.arccos(np.clip(data.xmat[cube, 8], -1, 1)))
