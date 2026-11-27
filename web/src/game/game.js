@@ -19,7 +19,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import mujocoWasmUrl from "@mujoco/mujoco/mujoco.wasm?url";
 import { CONTROL_DEFAULT, CONTROL_OVERRIDE, VectorSim } from "../sim/robot.js";
-import { loadWakeHeadTrack } from "./wake_clip.js";
+import { loadDockWakeTracks } from "./wake_clip.js";
 import { NomadPolicy } from "../sim/nomad.js";
 import { bootHalt, bootLine, gameApi, useGame } from "../store.js";
 import { HIDDEN_FROM_ROBOT } from "./headcam.js";
@@ -145,11 +145,11 @@ async function loadEverything() {
   const navMap = shelf ? JSON.parse(await fetchText("./robot/vector2/" + mapFile)) : null;
   const rescueSide = options.get("side") === "left" ? -1 : 1;
   const rescueMode = options.get("rescueMode") ?? "auto";
-  const wakeHeadTrack = calmStart ? await traced("WAKE HEAD TRACK", loadWakeHeadTrack()) : [];
+  const wake = calmStart ? await traced("DOCK WAKE TRACKS", loadDockWakeTracks()) : null;
   const sim = new VectorSim(mujoco, { xml, values: model.values, derived: model.derived, camera: model.camera,
     controlLevel: CONTROL_DEFAULT, noiseSeed: 1,
     cubeStartXY: shelf ? mappedCubeXY(navMap, model.values.cube_size_mm, -66, 30) : null,
-    startDocked, rescueSide, rescueMode, wakeHeadTrack, calmMode: calmStart,
+    startDocked, rescueSide, rescueMode, wakeHeadTrack: wake?.head, wakeLiftFrame: wake?.lift, calmMode: calmStart,
     headDeg: calmStart ? model.values.head_angle_min_deg : 0,
     shelfOutline: shelf ? model.shelf_outline_mm : null,
     bodyRangeClock: options.has("rangeClock") ? options.get("rangeClock") === "body" : undefined, chargerContact: options.get("chargerContact") === "1" });

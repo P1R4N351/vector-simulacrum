@@ -30,3 +30,22 @@ test("docked calm head track starts once on grant and honors stop and reset", as
     assert.equal(sim.headCommandRad,0);
   } finally { sim.dispose(); }
 });
+
+test("dock wake lowers an elevated lift once and a later SDK lift target takes precedence", async () => {
+  const { values, derived } = readJson("public/robot/model.json");
+  const sim = new VectorSim(await mujoco(), { xml:readText("public/robot/vector-contact42-free-dock.xml"),
+    values, derived, startDocked:true, calmMode:true, liftMm:56,
+    wakeHeadTrack:[{triggerTime_ms:0, durationTime_ms:132, angle_deg:-22}],
+    wakeLiftFrame:{triggerTime_ms:0, durationTime_ms:132, height_mm:32} });
+  try {
+    assert.ok(sim.state.lift_height_mm > 50);
+    sim.requestControl();
+    sim.tick(Math.round(.8 / sim.dt));
+    assert.ok(sim.state.lift_height_mm < 35);
+    assert.ok(sim.commandLiftHeight(50));
+    sim.requestControl();
+    sim.tick(Math.round(.8 / sim.dt));
+    assert.ok(Math.abs(sim.state.lift_height_mm - 50) < 2);
+    assert.equal(sim.chargerContact,true);
+  } finally { sim.dispose(); }
+});
