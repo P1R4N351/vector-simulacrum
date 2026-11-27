@@ -20,3 +20,5 @@ Scores use the native sample times, from the first packet through +400 ms relati
 [Replay of the original wheel commands on a separate SDK session](command-spins.md)
 
 [Steady wheel error by side, direction and observed battery voltage](wheel-voltage.md)
+
+[Steady head inclination and transverse gyro variation](spin-axes.md)
