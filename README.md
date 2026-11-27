@@ -25,7 +25,7 @@ recordings, **19** are fitted to them, **17** come from the manual, **104** from
 vendor or household software, **39** are assumed about the robot or cube, and
 **9** are settings of the scene, solver, and tip supports that have no real
 value to find (plus **18** open measurements in `missing`).
-`parameters-vector2.json` overrides **15** entries and inherits **27**
+`parameters-vector2.json` overrides **16** entries and inherits **26**
 measured/fitted entries for Vector 2.0 (**11** `measured`, **23** `fitted`,
 **14** `manual`, **105** `sdk`, **36** `assumed`, **9** `chosen`). On the
 Nov 15 segments the fit never saw, wheel-speed and gyro error fell from 0.33 of
@@ -40,7 +40,7 @@ values, ranked" below).
 | File | What it is |
 |---|---|
 | `parameters.json` | The single source of every physical number for Vector 1.0, with provenance |
-| `parameters-vector2.json` | Vector 2.0 parameter overrides (15 overrides, 27 inherited measured/fitted entries over `parameters.json`) |
+| `parameters-vector2.json` | Vector 2.0 parameter overrides (16 overrides, 26 inherited measured/fitted entries over `parameters.json`) |
 | `simulacrum/params.py` | Loads and checks the tables (`vector_1` / `vector_2`); draws randomised robots from a seed |
 | `simulacrum/mjcf.py` | Generates the MJCF (robot, table/shelf scene, free/carried cube, charger dock) from the table |
 | `simulacrum/body_mesh.py` | The robot's real outer shape from Anki's animation rig, fetched at a pinned hash and cut into convex collision pieces and visual meshes; `VectorSim(body=...)` uses it. See [evidence/body-shape](evidence/body-shape/README.md) |
