@@ -1395,8 +1395,11 @@ export class VectorSim {
   }
 
   _servoDone(a) {
-    const now = a.kind === "head" ? this.headAngleRad() : this.data.qpos[this._q.lift];
-    return Math.abs(now - a.target) <= a.tol;
+    if (a.kind === "head") {
+      return this.tick_ - a.tick0 >= this._servoDelay && this._acceptedHeadTarget === a.target &&
+        this._headInPos && Math.abs(this.headAngleRad() - a.target) <= a.tol;
+    }
+    return Math.abs(this.data.qpos[this._q.lift] - a.target) <= a.tol;
   }
 
   _steerDrive(a) {

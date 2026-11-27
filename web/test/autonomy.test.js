@@ -34,7 +34,8 @@ test("observeMarkers enforces FOV, Light Cube occlusion, gyro gate, and 4 mm loc
   });
   try {
     clearSim.setHeadAngle(0);
-    for (let i = 0; i < 60 && clearSim.actionRunning; i++) clearSim.tick(1);
+    for (let i = 0; i < Math.ceil(1 / clearSim.dt) && clearSim.actionRunning; i++) clearSim.tick(1);
+    assert.equal(clearSim.actionRunning, false);
     const obs = observeMarkers(clearSim, model.camera);
     assert.ok(obs.charger, "expected charger detection even while body pitches");
     assert.ok(Math.abs(obs.charger.lipX - (-120)) < 4, `lipX=${obs.charger.lipX}`);

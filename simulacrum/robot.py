@@ -28,7 +28,7 @@ import collections
 import math
 import random
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 import mujoco
 import numpy as np
@@ -912,9 +912,9 @@ class VectorSim:
             self._tick_once()
         return self._finish_action(result, start, yaw0, tick0)
 
-    def _servo_action(self, read: Any, target: float, tol_rad: float, span: float, speed: float) -> ActionResult:
+    def _servo_action(self, done: Callable[[int], bool], span: float, speed: float) -> ActionResult:
         """Wait for the head or lift to reach its target."""
-        assert tol_rad > 0.0 and speed > 0.0, "servo tolerance and speed must be positive"
+        assert speed > 0.0, "servo speed must be positive"
         start, yaw0, tick0 = self.pose_mm(), self._yaw_total, self.tick
         result = RESULT_TIMEOUT
         for _ in range(self._budget_ticks(span / speed)):
@@ -922,7 +922,7 @@ class VectorSim:
             if stop is not None:
                 result = stop
                 break
-            if abs(read() - target) <= tol_rad:
+            if done(self.tick - tick0):
                 result = RESULT_COMPLETED
                 break
             self._tick_once()
@@ -941,8 +941,14 @@ class VectorSim:
         target = math.radians(_clamp(angle_deg, v["head_angle_min_deg"], v["head_angle_max_deg"]))
         span = abs(target - self.head_angle_rad())
         self._set_head_target(target)
-        return self._servo_action(self.head_angle_rad, target, math.radians(v["head_angle_tol_deg"]),
-                                  span, self._head_speed)
+        tol = math.radians(v["head_angle_tol_deg"])
+        assert tol > 0.0, "head tolerance must be positive"
+
+        def settled(elapsed: int) -> bool:
+            return (elapsed >= self._servo_delay and self._accepted_head_target == target
+                    and self._head_in_pos and abs(self.head_angle_rad() - target) <= tol)
+
+        return self._servo_action(settled, span, self._head_speed)
 
     def set_lift_height(self, height_mm: float, speed_radps: Optional[float] = None, duration_s: float = 0.0) -> ActionResult:
         """Raise or lower the lift; the height is clamped to the robot's range."""
@@ -954,4 +960,6 @@ class VectorSim:
         target = self._lift_target
         read = lambda: float(self.data.qpos[self._q["lift"]])
         span = abs(target - read())
-        return self._servo_action(read, target, math.radians(v["lift_angle_tol_deg"]), span, self._lift_speed)
+        tol = math.radians(v["lift_angle_tol_deg"])
+        assert tol > 0.0, "lift tolerance must be positive"
+        return self._servo_action(lambda _: abs(read() - target) <= tol, span, self._lift_speed)
