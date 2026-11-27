@@ -98,6 +98,7 @@ export class VectorSim {
     this.shelfOutline = opts.shelfOutline;
     this.cubeStartXY = opts.cubeStartXY;
     this.wakeHeadTrack = opts.wakeHeadTrack ?? [];
+    this.wakeLiftFrame = opts.wakeLiftFrame ?? null;
     this.cameraSpec = opts.camera ?? null;
     this._cubeFirmwareBytes = null;
     this.sysconFirmware = null;
@@ -1084,6 +1085,10 @@ export class VectorSim {
     if (this._reactPhase !== "idle") return false;
     if (this.calmMode && this.chargerContact && this.wakeHeadTrack.length) {
       this.calmMode = false;
+      // The pinned clip has a single lift target at grant, before later SDK commands.
+      if (this.wakeLiftFrame) {
+        this._startLift(this.wakeLiftFrame.height_mm, null, this.wakeLiftFrame.durationTime_ms / 1000);
+      }
       this._wake = { startTick: this.tick_, next: 0, waiting: false };
     }
     this.hasControl = true;
