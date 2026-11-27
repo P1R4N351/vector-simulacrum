@@ -10,7 +10,8 @@ const {values,derived} = readJson("public/robot/model.json");
 const sim = new VectorSim(await mujoco(),{values,derived,xml:readText("public/robot/vector-contact42-free-dock.xml"),
   startDocked:true,controlLevel:CONTROL_OVERRIDE,headDeg:Number(first[5]),liftMm:Number(first[4]),noiseSeed:42});
 try {
-  const samples=["s,lift_mm,on_dock"];
+  const includeFlag = rows.some(r => r[1] === "state" && r.length > 11 && r[11] !== "");
+  const samples=[includeFlag ? "s,lift_mm,on_dock,in_position" : "s,lift_mm,on_dock"];
   const finishes=["command_s,target_mm,duration_s,sim_elapsed_s,result"];
   let next=0;
   let pending=null;
@@ -29,7 +30,9 @@ try {
         pending=null;
       }
     }
-    samples.push([receipt,sim.state.lift_height_mm,+sim.chargerContact].join(","));
+    const sample = [receipt,sim.state.lift_height_mm,+sim.chargerContact];
+    if(includeFlag) sample.push(+sim.state.lift_in_pos);
+    samples.push(sample.join(","));
   }
   if(next!==commands.length || finishes.length!==commands.length+1)throw Error("Incomplete replay");
   writeFileSync(new URL("returns.csv",evidence),finishes.join("\n")+"\n");
