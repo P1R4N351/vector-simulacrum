@@ -176,7 +176,7 @@ export class VectorSim {
     this._gauss = makeGauss(opts.noiseSeed ?? 0);
     // The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
     this._proxSensor = new ProxSensor(this.v, (opts.noiseSeed ?? 0) + 1);
-    this.bodyRangeClock = Boolean(this.sysconFirmware) || (opts.bodyRangeClock ?? this.bodyRangeClock ?? Boolean(this.shelfOutline));
+    this.bodyRangeClock = Boolean(this.sysconFirmware) || (opts.bodyRangeClock ?? this.bodyRangeClock ?? (this._dockBody >= 0 || Boolean(this.shelfOutline)));
     this.chargerContact = opts.chargerContact ?? this.chargerContact ?? false;
     this._rangeBodyTicks = 0;
     this._rangeBodyPhaseUs = 0;

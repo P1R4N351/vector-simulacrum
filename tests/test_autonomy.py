@@ -24,6 +24,18 @@ class NavMapUnit(unittest.TestCase):
 
 @unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
 class AutonomyMujoco(unittest.TestCase):
+    def test_standalone_dock_holds_range_during_a_lift_move(self) -> None:
+        sim = autonomy.make_dock_sim(start_docked=True)
+        self.assertTrue(sim.charger_contact)
+        sample = sim._range_sample
+        self.assertIsNotNone(sample)
+        sim.command_lift_height(45)
+        sim.step(150)
+        self.assertTrue(sim.state.prox_is_lift_in_fov)
+        self.assertIs(sim._range_sample, sample)
+        sim.step(55)
+        self.assertIsNot(sim._range_sample, sample)
+
     def test_observe_markers_accuracy_and_occlusion(self) -> None:
         sim = autonomy.make_dock_sim(start_xy_mm=(0.0, 0.0), heading_deg=180.0, head_deg=4.0, lift_mm=32.0)
         obs = autonomy.observe_markers(sim)
