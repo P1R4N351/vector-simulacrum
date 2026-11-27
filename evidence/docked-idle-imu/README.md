@@ -18,3 +18,4 @@ In explicit calm mode the canonical SDK state now holds the most recent supervis
 
 [Physical A](unit-A.csv) · [Physical B](unit-B.csv) · [Physical C](unit-C.csv) · [Scores](summary.csv). Capture uses angles in radians, angular rates in rad/s, acceleration in mm/s² and wheel speeds in mm/s. Replay with web test dependencies via `node replay.mjs > after.csv`; the retained before trace used the same script and seed on 3d89cf3. Run `python compare.py` to regenerate the plot and summary.
 [Hardware count spacing and stationary variation](counts.md)
+[Charger contact creep and three-posture replay](settling.md)
