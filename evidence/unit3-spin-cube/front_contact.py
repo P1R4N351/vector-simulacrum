@@ -10,7 +10,7 @@ from earlier_inputs import TRIALS
 from tap_timing import events
 
 
-def main():
+def replay_front_contact(time_constant_ms, trials, output):
     v, derived, source = m._load_model_config()
     source = copy.deepcopy(source)
     chassis = source.find(".//body[@name='chassis']")
@@ -22,16 +22,18 @@ def main():
             for geom in wheel.findall("geom"):
                 wheel.remove(geom)
     model = m.build_model(source, v, derived, drive="freejoint", contact="full")
+    for side in ("l", "r"):
+        model.geom(f"tip_front_{side}").solref[0] = time_constant_ms / 1000
     path, poses, counters = [
         m._load_structured(f"earlier-{key}.csv.gz")
         for key in ("path", "pose", "packets")
     ]
-    with (m.HERE / "front-contact.csv").open("w") as f:
+    with output.open("w") as f:
         writer = csv.writer(f, lineterminator="\n")
         writer.writerow(
             "trial phase_ms measured_count predicted_count first_error_ms".split()
         )
-        for name in TRIALS:
+        for name in trials:
             px = counters[counters["trial"] == name]
             real = events(px["t_s"], px["tap"])
             traj = m.compute_trajectory(
@@ -67,4 +69,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    replay_front_contact(4, TRIALS, m.HERE / "front-contact.csv")

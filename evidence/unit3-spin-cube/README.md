@@ -124,3 +124,22 @@ Negative values are geometric intersection depths with the cube held fixed, so t
 We then repeated the free-cube replay with only the two nominal front tread supports added to the fork. For direct comparison with the earlier fork/full replays, this test uses the same last-seen placements and the same five sensor sampling phases. On W26 it predicts the physical count of one, 6–14 ms before the packet increment. It predicts excess taps on the other six. W30's first increment is within 19 ms across all phases, but five increments occur where two were measured. The added contact captures the timing in individual runs and fails to transfer their impact counts.
 
 [Per-part signed distances and closest geoms](impact-clearance.csv) · [Front support replay scores](front-contact.csv). Run `python impact_clearance.py` and `python front_contact.py` with the existing replay dependencies.
+
+## Does softer front tread contact reduce excess taps?
+
+Increasing the front support time constant to **16 ms** improved the selection runs but worsened both tap count and timing on four other mounts. The canonical support setting is **4 ms**.
+
+| Runs | Support setting | Mean absolute count error (taps) | Mean absolute first tap error (ms) |
+|---|---:|---:|---:|
+| W4, W8, W25 | 4 ms | 1.47 | 283 |
+| W4, W8, W25 | 16 ms | 1.27 | 273 |
+| W26, W27, W29, W30 | 4 ms | 1.95 | 349 |
+| W26, W27, W29, W30 | 16 ms | 2.25 | 480 |
+
+![Front support contact transfer](tread-softness.png)
+
+We compared support time constants of 4, 8, 16, 32 and 64 ms on the first three runs. Selection minimized mean absolute count error, breaking ties by first tap timing and then smaller time constant. We ran only the selected setting and the control on the four transfer runs. Each mount contributed five equally weighted sampling phases. These are seven recordings on a single robot. The phases measure sampling sensitivity. A missing predicted first tap would incur the window length of 900 ms in the timing metric.
+
+Only the two front support geom time constants vary in this diagnostic. Higher-priority rubber corner geoms retain their 8 ms parameter at support–corner contacts, while the equal-priority plastic shell and support contribute to support–shell contacts. W26 illustrates the consequence of changing that one setting. At zero phase, 4 ms predicts one tap, 14 ms early. At 16 ms it predicts four taps, the first 554 ms early. The measurements give no basis for adopting the 16 ms setting.
+
+[Scores by trial and phase](tread-softness.csv). Reproduce with `python tread_softness.py`.
