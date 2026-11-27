@@ -1,4 +1,5 @@
 """Compare pinned WireOS head targets to SDK traces on their grant clocks."""
+import argparse
 import csv
 import hashlib
 import io
@@ -20,6 +21,14 @@ assert hashlib.sha256(payload).hexdigest() == "5eb484bf0eb5ea4f4def6abdd7f7b236e
 with tarfile.open(fileobj=io.BytesIO(payload)) as archive:
     frames = json.load(archive.extractfile("anim_gotosleep_wakeup_01.json"))["anim_gotosleep_wakeup_01"]
 keys = [f for f in frames if f["Name"] == "HeadAngleKeyFrame"]
+parser = argparse.ArgumentParser()
+parser.add_argument("--export-head-targets", type=Path)
+args = parser.parse_args()
+if args.export_head_targets:
+    fields = ("triggerTime_ms", "durationTime_ms", "angle_deg")
+    args.export_head_targets.write_text(json.dumps([{k: f[k] for k in fields} for f in keys]))
+    raise SystemExit(0)
+
 times, angles = [], []
 for k in keys:
     start = k["triggerTime_ms"] / 1000
