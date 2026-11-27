@@ -87,16 +87,16 @@
  "robot_model": "vector_1",
  "source": {
   "table_sha256": "2bdf8a4b48ef5c8ae1c1954053609f50e313ce719b389b1943cf52683db2ad9f",
-  "trial_xml_sha256": "c8ccbd3eed75bdef0d46cb8722d88e7abe008d9905965d13eb50c9ddf2daa1c9",
-  "vector-contact42-dock_sha256": "db6d35dd2790c9dfdcc1934e786811799d5c16175db98803166ea4c3c64c4f4c",
-  "vector-contact42-free-dock_sha256": "10c52f3ff9ff39bf594ca1a37e8bcac1e55865318f42f0b6b368ed4d14e83197",
-  "vector-contact42-free_sha256": "109e5406f67cc2e9e7f44f6e66e3a7e370f33bfff422b6bdacddf44cf87edc73",
-  "vector-dock_sha256": "aafe71071ccb8bff904280a15f2ddb6084135cf29765ce5101e520b3f317b115",
-  "vector-free-dock_sha256": "9460c588ab01dd329e012793c917988d59fba9481b6bed4dd7ed1b0e69864c32",
-  "vector-free_sha256": "2b1166b00915c72c8b60b0bf00717572f2b4e81e42152c51180348ab5dcc9c90",
-  "vector-rescue-free_sha256": "6659f69694efcdd43d7c167f633c5251911e0b196bd43ede76ac94efa890827a",
-  "vector-rescue_sha256": "0c9879c5038f4ebae0a2821ce15f5e8c6a87b14a93333f2ffd74653ce75adb21",
-  "xml_sha256": "0a74cfff7a62c755a4fb3b0d65eb5193b6672f1b4d7cde686645e3cdc6a48414"
+  "trial_xml_sha256": "b58d20c0e7a39ef255b9adb3dc5cbce6fbbac556973b45de9bbe6b89cfe9abd0",
+  "vector-contact42-dock_sha256": "60f105e5ecc21654356cbc8936bec6bc09c03310a07c45367ec4bbd7ef87db7f",
+  "vector-contact42-free-dock_sha256": "bc2e01ca7b733983697982ead7cd05afefc411ff2bc68cd562738f7f4035e77b",
+  "vector-contact42-free_sha256": "224c36c1d28e505f831c9a0027287801643265b7cbc3250572522a75fcb9e9d6",
+  "vector-dock_sha256": "8965b2734c9a8fd188a9f5566c92eb29625702cb267026936f53a40ca2ae0d27",
+  "vector-free-dock_sha256": "e56b1a1f978f72cfa8a6197bf4bd2dade4df94a44418140ce37769bf13af0fcf",
+  "vector-free_sha256": "86ccd380703131aaecddc3b04d0c29307ca1118bc89d99c605138db6a57a0f80",
+  "vector-rescue-free_sha256": "1fdf5cb6a14b7abd77eca925b7563305b95651639a2492483ba24e11ece60eec",
+  "vector-rescue_sha256": "f5d978d5a31c5138a63c684ecb687fecb1b272a9b27e7ddb446ea8e9f49ad846",
+  "xml_sha256": "bf87b76769a7daba7e473096d8436be9945ff6ff9a6c7e9a4bd21a1ac3f73c1e"
  },
  "values": {
   "accel_bias_mg": [

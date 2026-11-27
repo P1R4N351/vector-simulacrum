@@ -104,3 +104,24 @@ class AutonomyMujoco(unittest.TestCase):
         for stage, seen, _ in visits:
             self.assertGreater(len(seen), 20, stage)
             self.assertLess(max(seen) - min(seen), 1.0, "the lift moved %.2f mm during %s" % (max(seen) - min(seen), stage))
+
+    def test_docked_idle_hold_stays_connected_and_releases_on_command(self) -> None:
+        sim = autonomy.make_dock_sim(start_docked=True)
+        x0 = sim.pose_mm()[0]
+        idle_ticks = int(round(70.7 / sim.dt))
+        for _ in range(idle_ticks // 20):
+            sim.step(20)
+            self.assertTrue(autonomy.sync_dock_contact(sim)["on_charger"])
+        remainder = idle_ticks % 20
+        if remainder > 0:
+            sim.step(remainder)
+        self.assertTrue(autonomy.sync_dock_contact(sim)["on_charger"])
+        self.assertLess(abs(sim.pose_mm()[0] - x0), 2.5)
+        sim.set_wheel_motors(60.0, 60.0)
+        released_tick = None
+        for tick in range(1, int(round(0.6 / sim.dt)) + 1):
+            sim.step(1)
+            if not autonomy.sync_dock_contact(sim)["on_charger"]:
+                released_tick = tick
+                break
+        self.assertIsNotNone(released_tick)

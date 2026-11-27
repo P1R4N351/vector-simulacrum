@@ -169,10 +169,12 @@ def tread_drive(v: Dict[str, Any]) -> Dict[str, float]:
 
 def _wheel_xml(v: Dict[str, Any], name: str, x_mm: float, y_mm: float, radius_mm: float, driven: bool) -> str:
     assert radius_mm > 0.0 and v["tread_width_mm"] > 0.0, "wheel must have size"
+    fric_tc = v["control_period_ms"] * 0.001
+    assert fric_tc >= 2.0 * v["sim_timestep_ms"] * 0.001, "control period below two timesteps"
     half_w = 0.5 * v["tread_width_mm"] * MM
     mass = v["wheel_mass_g"] * GRAM
     arm = v["wheel_armature_gcm2"] * 1e-7
-    loss = f' frictionloss="{num(tread_drive(v)["friction_Nm"])}"' if driven else ""
+    loss = f' solreffriction="{num(fric_tc)} 1" frictionloss="{num(tread_drive(v)["friction_Nm"])}"' if driven else ""
     return (
         f'    <body name="{name}" pos="{vec((x_mm * MM, y_mm * MM, radius_mm * MM))}">\n'
         f'      <joint name="{name}_joint" type="hinge" axis="0 1 0" armature="{num(arm)}"{loss}/>\n'
@@ -603,17 +605,27 @@ def _scene_xml(v: Dict[str, Any], obstacles: Sequence[Sequence[float]], shelf_ge
     return out
 
 
-def _dock_geom_attrs(role: str) -> str:
+def _dock_geom_attrs(v: Dict[str, Any], part: str, role: str) -> str:
     """Contact and visual attributes for one role in dock_surface.csv."""
     assert role in ("ramp", "guide", "shell", "pin"), f"unknown dock role {role!r}"
+    assert v["tread_friction"] > 0.0, "tread friction must be positive"
+    tc = v["contact_time_constant_ms"] * 0.001
+    assert tc >= 2.0 * v["sim_timestep_ms"] * 0.001, "contact time constant below two timesteps"
     if role == "pin":
         return 'contype="0" conaffinity="0" rgba="0.78 0.63 0.33 1"'
+    if part == "pocket":
+        return (f'contype="0" conaffinity="1" priority="2" condim="3" friction="0.05 0.005 0.0001" '
+                f'solref="{num(tc)} 1" solimp="0.999 0.999 0.001" rgba="0.18 0.19 0.21 1"')
     if role == "guide":
         return 'contype="0" conaffinity="1" priority="2" condim="3" friction="0.05 0.005 0.0001" rgba="0.18 0.19 0.21 1"'
+    if role == "ramp":
+        return (f'contype="0" conaffinity="1" priority="2" condim="3" '
+                f'friction="{num(v["tread_friction"])} 0.005 0.0001" '
+                f'solref="{num(tc)} 1" solimp="0.999 0.999 0.001" rgba="0.18 0.19 0.21 1"')
     return 'contype="0" conaffinity="1" rgba="0.18 0.19 0.21 1"'
 
 
-def _dock_xml(dock: Any) -> str:
+def _dock_xml(v: Dict[str, Any], dock: Any) -> str:
     """Return `<body name="dock">...</body>` when requested, else empty string."""
     pose = dock_model.resolve_dock_pose(dock)
     if pose is None:
@@ -627,7 +639,7 @@ def _dock_xml(dock: Any) -> str:
         half = vec([c * MM for c in box.half_mm])
         bquat = vec(box.quat)
         geoms.append(f'      <geom name="dock_{box.part}" type="box" pos="{pos}" quat="{bquat}" '
-                     f'size="{half}" {_dock_geom_attrs(box.role)}/>\n')
+                     f'size="{half}" {_dock_geom_attrs(v, box.part, box.role)}/>\n')
     pin_l = vec([c * MM for c in dock_model.PIN_LEFT_MM])
     pin_r = vec([c * MM for c in dock_model.PIN_RIGHT_MM])
     marker = vec([c * MM for c in dock_model.MARKER_POS_MM])
@@ -660,7 +672,7 @@ def build_mjcf(v: Dict[str, Any], obstacles: Sequence[Sequence[float]] = (), cub
             raise ValueError("the shelf survey already places the dock")
         dock = shelf_survey()["dock_pose_mm"]
         shelf_assets, shelf_geoms = _shelf_mesh(v["table_thickness_mm"])
-    dock_body = _dock_xml(dock)
+    dock_body = _dock_xml(v, dock)
     if body is not None:
         lower, upper = body["frames"]["lift_lower"]["origin_mm"], v["lift_base_position_mm"]
         d = derive(v, (lower[0] - upper[0], lower[2] - upper[2]))

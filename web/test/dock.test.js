@@ -185,6 +185,20 @@ test("vector-free-dock.xml and vector-contact42-free-dock.xml compile with Light
     docked.dispose();
   }
 
+  const idle = new VectorSim(runtime, { xml, values, derived, startDocked: true, noiseSeed: 1 });
+  try {
+    const x0 = idle.poseMm()[0];
+    let connected = true;
+    for (let i = 0; i < 3000; i++) {
+      idle.tick(1);
+      if (!idle.simTruth().on_charger) connected = false;
+    }
+    assert.equal(connected, true);
+    assert.ok(Math.abs(idle.poseMm()[0] - x0) < 0.5, `unexpected 15s idle creep ${idle.poseMm()[0] - x0}`);
+  } finally {
+    idle.dispose();
+  }
+
   for (const [sceneXml, speedMmps, holdTicks] of [[xml, -100, 1], [c42Xml, -45, 35]]) {
     const backup = new VectorSim(runtime, { xml: sceneXml, values, derived, startXyMm: [-55, 0], headingDeg: 0, liftMm: 45, noiseSeed: 1 });
     try {
