@@ -92,3 +92,15 @@ ax[0].legend(fontsize=7);ax[1].legend(fontsize=8)
 fig.savefig(here/'registered-replay.png',dpi=165)
 with (here/'registered-replay.csv').open('w') as f:
     w=csv.writer(f);w.writerow('registration variant start_out_mm optical_mm simulated_visible_mm simulated_center_mm nominal_side_projection_mm ever_on yaw_at_physical_flag_deg'.split());w.writerows(scores)
+
+# Preserve centerline traces for independent observations in both cameras.
+with (here/'registered-center.csv').open('w') as f:
+    writer = csv.writer(f)
+    writer.writerow(['variant', 't_s', 'inward_mm', 'yaw_deg'])
+    for variant in ('canonical', 'driven_rear_envelope'):
+        rows = sim[(sim['session']=='a5p30') & (sim['variant']==variant)]
+        time = rows['t_s']
+        inward = -rows['hub_center_out_mm']
+        for when in np.r_[peak, time[(time>peak)&(time<0)], 0.]:
+            writer.writerow([variant, when, np.interp(when,time,inward)-np.interp(peak,time,inward),
+                             np.interp(when,time,rows['yaw_deg'])-np.interp(peak,time,rows['yaw_deg'])])
