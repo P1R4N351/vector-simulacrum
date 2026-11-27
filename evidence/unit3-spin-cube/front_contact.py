@@ -10,7 +10,7 @@ from earlier_inputs import TRIALS
 from tap_timing import events
 
 
-def replay_front_contact(time_constant_ms, trials, output):
+def front_model(time_constant_ms):
     v, derived, source = m._load_model_config()
     source = copy.deepcopy(source)
     chassis = source.find(".//body[@name='chassis']")
@@ -24,6 +24,11 @@ def replay_front_contact(time_constant_ms, trials, output):
     model = m.build_model(source, v, derived, drive="freejoint", contact="full")
     for side in ("l", "r"):
         model.geom(f"tip_front_{side}").solref[0] = time_constant_ms / 1000
+    return model, v
+
+
+def replay_front_contact(time_constant_ms, trials, output):
+    model, v = front_model(time_constant_ms)
     path, poses, counters = [
         m._load_structured(f"earlier-{key}.csv.gz")
         for key in ("path", "pose", "packets")
