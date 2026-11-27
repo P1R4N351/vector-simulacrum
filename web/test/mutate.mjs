@@ -25,7 +25,7 @@ const COPIED = ["src/sim", "src/game", "src/program", "test", "public/robot/vect
   "public/robot/model.json",
   "public/robot/vector2", "public/robot/nomad", "camera_calibration.json", "camera_calibration_vector2.json", "package.json"];
 const SUITE = ["test/drive.test.js", "test/hazards.test.js", "test/robot.test.js", "test/tracks.test.js", "test/optics.test.js",
-  "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/face.test.js", "test/model3d.test.js",
+  "test/headcam.test.js", "test/prox.test.js", "test/imu_filter.test.js", "test/calm-imu.test.js", "test/face.test.js", "test/model3d.test.js",
   "test/program.test.js", "test/firmware.test.js", "test/autonomy.test.js", "test/nomad.test.js", "test/lift-integral.test.js",
   "test/rescue.test.js"];
 const ARMS = [
@@ -84,9 +84,9 @@ const ARMS = [
   { name: "IMU filter runs one section", file: "src/sim/imu_filter.js", old: "s1[ch] += g1[ch] * (s0[ch] - s1[ch]);", new: "s1[ch] = s0[ch];", mustFail: true },
   { name: "IMU filter corner taken as rad/s", file: "src/sim/imu_filter.js", old: "const gain = 1 - Math.exp(-2 * Math.PI * corners[row] * stepS);", new: "const gain = 1 - Math.exp(-corners[row] * stepS);", mustFail: true },
   { name: "robot reads the raw sensor, not the filter", file: "src/sim/robot.js", old: "const out = this._imuFilter.output;", new: "const out = this._imuAdr.map((adr) => this.data.sensordata[adr]);", mustFail: true },
-  { name: "IMU filter stepped once per tick", file: "src/sim/robot.js", old: "      this._imuFilter.update(raw);\n      if (this.cubeSensor) {", new: "      if (i === this.d.substeps - 1) this._imuFilter.update(raw);\n      if (this.cubeSensor) {", mustFail: true },
+  { name: "IMU filter stepped once per tick", file: "src/sim/robot.js", old: "      this._imuFilter.update(raw);\n      const endUs = Math.round(this.data.time * 1e6);", new: "      if (i === this.d.substeps - 1) this._imuFilter.update(raw);\n      const endUs = Math.round(this.data.time * 1e6);", mustFail: true },
   { name: "IMU filter not reset after settling", file: "src/sim/robot.js", old: "this.data.time = 0;\n    this._resetImuFilter();", new: "this.data.time = 0;", mustFail: true },
-  { name: "accel_scale dropped in _sampleImu", file: "src/sim/robot.js", old: "accel[i] = clamp((out[i] / MM) * v.accel_scale[i] + mg * v.accel_bias_mg[i]", new: "accel[i] = clamp(out[i] / MM + mg * v.accel_bias_mg[i]", mustFail: true },
+  { name: "accel_scale dropped in _sampleImu", file: "src/sim/robot.js", old: "const value = (out[i] / MM) * v.accel_scale[i] + mg * v.accel_bias_mg[i]", new: "const value = out[i] / MM + mg * v.accel_bias_mg[i]", mustFail: true },
   { name: "3D belt: outer face given sidewall normal", file: "src/game/tracks.js", old: "[p.nx, 0, p.nz]", new: "[0, 1, 0]", mustFail: true },
   { name: "3D shell: decal normals left unnormalized", file: "src/game/shell.js", old: "  geometry.normalizeNormals();\n", new: "", mustFail: true },
   { name: "3D rig: stock fork pivoted on wrist instead of fork_pivot", file: "src/game/sdkmodel.js", old: "s.position.set(-pose.fork_pivot[0], 0, -pose.fork_pivot[1]);", new: "s.position.set(0, 0, 0);", mustFail: true },
@@ -116,6 +116,7 @@ const ARMS = [
   { name: "rescue: stage C approach yaw faces +X instead of patient", file: "src/sim/rescue.js", old: "const yaw = 168.7 * DEG * side;", new: "const yaw = 0;", mustFail: true },
   { name: "rescue: stage A never releases cube carry weld", file: "src/sim/rescue.js", old: "data.eq_active[this._carryWeld] = 0;\n        ctx.releasedAtS = data.time;", new: "data.eq_active[this._carryWeld] = 1;\n        ctx.releasedAtS = data.time;", mustFail: true },
   { name: "rescue: stage C lever never raises fork", file: "src/sim/rescue.js", old: "const rise = clamp((elapsed - 0.09) / 0.23, 0, 1);", new: "const rise = 0;", mustFail: true },
+  { name: "calm mode publishes live IMU every tick", file: "src/sim/robot.js", old: "const [accel, gyro] = this.calmMode ? this._bodyImu : this._imu();", new: "const [accel, gyro] = this._imu();", mustFail: true },
 ];
 
 function makeCopy() {
