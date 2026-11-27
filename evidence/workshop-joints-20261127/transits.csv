@@ -1,0 +1,11 @@
+unit,joint,direction,elapsed_ms
+Workshop A · prior,head,raise,244
+Workshop A · prior,head,lower,219
+Workshop A · prior,head,raise,218
+Workshop A · prior,head,lower,236
+Workshop B · fresh,head,raise,219
+Workshop B · fresh,head,lower,247
+Workshop B · fresh,lift,raise,169
+Workshop B · fresh,lift,lower,194
+Workshop B · fresh,lift,raise,217
+Workshop B · fresh,lift,lower,195
