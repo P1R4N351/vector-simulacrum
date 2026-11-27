@@ -1,0 +1,16 @@
+action,signal,preceding_receipt_s,first_crossing_receipt_s
+pickup,cube apparent tilt,2.1461753845214844,2.4423446655273438
+pickup,wrist height >2mm,2.9533309936523438,3.0096096992492676
+pickup,Before command center >2mm,nan,nan
+pickup,Before command planar >2mm,2.230000000000002,2.2400000000000024
+pickup,Last sighting center >2mm,nan,nan
+pickup,Last sighting planar >2mm,2.2400000000000024,2.250000000000002
+pickup,Last sighting + pitch center >2mm,nan,nan
+pickup,Last sighting + pitch planar >2mm,2.230000000000002,2.2400000000000024
+pickup,overhead planar >2mm,2.0949,2.5944
+place,cube apparent tilt,0.15346264839172363,0.17850971221923828
+place,wrist height >2mm,0.2235722541809082,0.2777392864227295
+place,cube apparent tilt vs pre-turn carry,nan,0.01975703239440918
+place,Before command center >2mm,nan,nan
+place,Last sighting center >2mm,nan,nan
+place,Last sighting + pitch center >2mm,nan,nan
