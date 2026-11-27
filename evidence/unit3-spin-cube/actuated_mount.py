@@ -44,14 +44,19 @@ def build(v, derived, src):
     return mj.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
 
 
-def main():
+def replay(output, feedforward=False, unloaded=False, trajectories=None):
     v, d, s = m._load_model_config()
     model = build(v, d, s)
+    if unloaded:
+        # Keep gravity and linkage dynamics but disable all cube contacts.
+        cube_geoms = model.geom_bodyid == model.body("cube").id
+        model.geom_contype[cube_geoms] = 0
+        model.geom_conaffinity[cube_geoms] = 0
     dt = model.opt.timestep
     path, poses, packets = [
         m._load_structured(f"earlier-{k}.csv.gz") for k in ("path", "pose", "packets")
     ]
-    with (m.HERE / "actuated-mount.csv").open("w") as f:
+    with output.open("w") as f:
         w = csv.writer(f, lineterminator="\n")
         w.writerow(
             "trial phase_ms physical_count simulated_count first_error_ms lift_height_rmse_mm peak_torque_mNm".split()
@@ -89,7 +94,17 @@ def main():
             heights = []
             forces = []
             torque = []
-            for i, cmd in enumerate(angle):
+            target = angle
+            if feedforward:
+                lead_s = (
+                    v["lift_servo_kv_mNms_per_rad"] / v["lift_servo_kp_mNm_per_rad"]
+                )
+                # Backward difference of the interpolated trajectory for offline replay.
+                velocity = np.diff(angle, prepend=angle[0]) / dt
+                target = np.clip(
+                    angle + lead_s * velocity, *model.actuator_ctrlrange[0]
+                )
+            for i, cmd in enumerate(target):
                 m._apply_drive(
                     model, data, "freejoint", tg, buf, i, min(i + 1, len(t) - 1), dt
                 )
@@ -102,7 +117,9 @@ def main():
                 forces.append((data.sensor("cube_accel").data / 9.81).tolist())
             win = (t >= -0.8) & (t <= 0.1)
             err = np.sqrt(np.mean((np.array(heights)[win] - h[win]) ** 2))
-            for phase in range(0, 10, 2):
+            if trajectories is not None:
+                trajectories[name] = (t + dt, h, np.array(heights))
+            for phase in [] if unloaded else range(0, 10, 2):
                 i = round(phase / (1000 * dt))
                 arg = dict(dt=dt, start=t[i], forces=forces[i:])
                 arr = np.array(
@@ -129,4 +146,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    replay(m.HERE / "actuated-mount.csv")
