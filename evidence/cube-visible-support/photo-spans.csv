@@ -1,0 +1,5 @@
+feature,width_in_marker_plane_mm,pick_min_mm,pick_max_mm
+Upper rail,43.511,43.15,43.873
+Lower rail,43.504,43.125,43.883
+Upper rubber pads,44.637,44.279,44.995
+Lower rubber pads,44.718,44.334,45.102

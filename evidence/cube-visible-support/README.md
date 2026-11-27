@@ -13,3 +13,5 @@ python support.py Victor_cube_rig.obj ../../web/public/robot/vector2/vector-free
 ```
 
 The deployed scene and repository scene at 7d2aecb produced identical [sampled clearances](support.csv).
+
+[Stock photograph with separate rail and rubber measurements](photo-spans.md)
