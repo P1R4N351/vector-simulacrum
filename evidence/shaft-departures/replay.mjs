@@ -10,8 +10,10 @@ const shaftXml=xml.replace(/<general name="(left|right)_wheel" joint="([^"]+)" g
 if(!shaftXml.includes('<velocity name="right_wheel"')) throw Error("Missing shaft actuator");
 const trials=JSON.parse(readFileSync(0,"utf8"));
 console.log("trial,mode,offset,t,x_mm,on");
-for(const mode of ["controller","shaft","linear"]){
-  for(const offset of [0,6]){
+const offsets = process.argv.slice(2).map(Number);
+if (!offsets.every(Number.isFinite)) throw Error("Seat offsets must be finite millimetres");
+for(const mode of offsets.length ? ["linear"] : ["controller","shaft","linear"]){
+  for(const offset of offsets.length ? offsets : [0,6]){
     class Seat extends VectorSim {
       _place(...args){
         super._place(...args);
