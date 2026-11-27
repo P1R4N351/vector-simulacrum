@@ -23,6 +23,7 @@ const sim = new VectorSim(mj,{values,derived,xml:readText("public/robot/vector2/
 const joint = mj.mj_name2id(sim.model,mj.mjtObj.mjOBJ_JOINT.value,"cube_root");
 const q = sim.model.jnt_qposadr[joint], dof = sim.model.jnt_dofadr[joint];
 const rows = [["velocity_mmps","gap_mm","phase_ms","low_pairs","nearest_peak_x_g","xyz_rmse_g"]];
+const travel = [["velocity_mmps","gap_mm","phase_ms","matches_low_pair","x_mm","y_mm","horizontal_mm"]];
 try {
   for (const velocity of [-150,-75,0,75,150]) for (const gap of [1,2,3]) for (let phase=0;phase<30;phase+=5) {
     sim.reset();
@@ -40,6 +41,7 @@ try {
     sim.data.qvel.fill(0,dof,dof+6);
     sim.data.qvel[dof]=velocity/1000;
     mj.mj_forward(sim.model,sim.data);
+    const initialXY = sim.data.qpos.slice(q,q+2);
     const slots=[];
     let previous=sim.cubeSensor.packet;
     for(let i=0;i<40;i++){
@@ -57,7 +59,11 @@ try {
       candidates.push([Math.sqrt(err.reduce((a,b)=>a+b,0)/err.length),slots[i+3][0]]);
     }
     candidates.sort((a,b)=>a[0]-b[0]);
+    const dx=1000*(sim.data.qpos[q]-initialXY[0]), dy=1000*(sim.data.qpos[q+1]-initialXY[1]);
+    travel.push([velocity,gap,phase,Number(candidates.length>0),dx,dy,Math.hypot(dx,dy)]);
     rows.push([velocity,gap,phase,candidates.length,candidates[0]?.[1]??"",candidates[0]?.[0]??""]);
   }
 } finally { sim.dispose(); }
 writeFileSync(file(pickup ? "browser-impact-slip-pickup.csv" : "browser-impact-slip.csv"),rows.map(r=>r.join(",")).join("\n")+"\n");
+
+if (process.argv.includes("--travel")) writeFileSync(file("browser-release-travel.csv"),travel.map(r=>r.join(",")).join("\n")+"\n");
