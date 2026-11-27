@@ -1,0 +1,7 @@
+variant,start,contact,peak_deg,peak_to_flag_mm
+autonomous,direct,1,-9.867742796583709,18.075000000000017
+autonomous,positive diagonal,0,,
+autonomous,negative diagonal,1,-9.734042152615753,18.270000000000035
+seam,direct,1,-9.774047710037845,17.985000000000028
+seam,positive diagonal,0,,
+seam,negative diagonal,1,-9.73232866191068,18.375000000000036
