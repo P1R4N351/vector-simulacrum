@@ -165,7 +165,32 @@ class GeneratedModel(unittest.TestCase):
             power = (drag * wheel + friction) / stall
             line = speed / v["tread_noload_speed_mmps"] + v["tread_friction_power_fraction"]
             self.assertAlmostEqual(power, line, places=9, msg=str(speed))
+        fric_tc = self.v["control_period_ms"] * 0.001
+        self.assertEqual(_floats(_find(self.root, "joint", "wheel_fl_joint").get("solreffriction")), [fric_tc, 1.0])
+        self.assertEqual(_floats(_find(self.root, "joint", "wheel_fr_joint").get("solreffriction")), [fric_tc, 1.0])
         self.assertIsNone(_find(self.root, "joint", "wheel_rl_joint").get("frictionloss"))
+        self.assertIsNone(_find(self.root, "joint", "wheel_rl_joint").get("solreffriction"))
+        self.assertIsNone(_find(self.root, "joint", "wheel_rr_joint").get("solreffriction"))
+        cp6 = ET.fromstring(mjcf.build_mjcf(params.values(self.doc, {"control_period_ms": 6.0})))
+        self.assertEqual(_floats(_find(cp6, "joint", "wheel_fl_joint").get("solreffriction")), [0.006, 1.0])
+
+    def test_dock_ramp_and_pocket_preserve_friction_while_funnels_stay_soft(self) -> None:
+        root = ET.fromstring(mjcf.build_mjcf(self.v, dock="docked"))
+        tc = self.v["contact_time_constant_ms"] * 0.001
+        for name in ("dock_lip", "dock_apron", "dock_bed"):
+            geom = _find(root, "geom", name)
+            self.assertEqual(geom.get("priority"), "2", name)
+            self.assertAlmostEqual(_floats(geom.get("friction"))[0], self.v["tread_friction"], places=9, msg=name)
+            self.assertEqual(_floats(geom.get("solref")), [tc, 1.0], name)
+            self.assertEqual(_floats(geom.get("solimp")), [0.999, 0.999, 0.001], name)
+        pocket = _find(root, "geom", "dock_pocket")
+        self.assertEqual(pocket.get("priority"), "2")
+        self.assertAlmostEqual(_floats(pocket.get("friction"))[0], 0.05, places=9)
+        self.assertEqual(_floats(pocket.get("solref")), [tc, 1.0])
+        self.assertEqual(_floats(pocket.get("solimp")), [0.999, 0.999, 0.001])
+        funnel = _find(root, "geom", "dock_funnel_l")
+        self.assertIsNone(funnel.get("solref"))
+        self.assertIsNone(funnel.get("solimp"))
 
     def test_part_masses_add_up_to_the_total(self) -> None:
         masses = mjcf.derive(self.v)["masses_g"]

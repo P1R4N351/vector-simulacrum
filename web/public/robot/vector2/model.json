@@ -123,18 +123,18 @@
  ],
  "source": {
   "table_sha256": "664dd0fb037a20d11d9a7daf5878087e5b943ae282daf80b0a46c6c67bce922d",
-  "trial_xml_sha256": "d428f733b8b1cf225785d17e1d0afd054a1891ec72d19ba8d4eb3c95f95f6a7c",
-  "vector-contact42-dock_sha256": "4b3563167a4d2eb4baf6b9bbf2b2dc5f938b98e8d5b7f12896ef2466508f8c2f",
-  "vector-contact42-free-dock_sha256": "06d89d9e53f1b36c19178f7f30ea8bb999b5d363a0d6f95cd3c99f2a53b26f01",
-  "vector-contact42-free-shelf_sha256": "2f8137ef8a700239cd19795f35e4f644731a1a2e2e7f97b4cdd11ac564b7f63c",
-  "vector-contact42-free_sha256": "e063f6a10147a46e276961b3ec002ec61cbe98bc73cb76569da255a2164125f3",
-  "vector-dock_sha256": "45972ea11aae8db58117b37ce7fa80594718626b197a6c19fd53163a60e54384",
-  "vector-free-dock_sha256": "e039f303e4d761941acf8e4c1f8b0b3dba35ec5e39139f2cdcf3718841fbe149",
-  "vector-free-shelf_sha256": "66a6a1c17c3d62729194582301cc01cd8eed1631dd7b9c26e6ccc5bffa54b377",
-  "vector-free_sha256": "5d86842e3e713b801974e3c7479b65c24deca3b91b71fabd4de17a43014d1358",
-  "vector-rescue-free_sha256": "ac0c0c83e1b1f1f74932afb8d7535d5fec62d57b0bc2c53f91951904c5581bab",
-  "vector-rescue_sha256": "9941056f3ad5df806dca0446367a7df0e3535c49e4f5d50bdac5a24daed1bcf6",
-  "xml_sha256": "67beb4de207fc94075e87ef6d01cee8a84318692140041a55e04018eb43d3cb3"
+  "trial_xml_sha256": "fb640604a604b286784cebd58cfaea06f1010425dee61cb352e01850a114e03e",
+  "vector-contact42-dock_sha256": "92343063e77137721240aa1687afee13aa80113c530fd167cfafb12efcfbfc3e",
+  "vector-contact42-free-dock_sha256": "632ffa10e2eed6a2a66747c21948eb847ad5d9e048a0f092bf727d80692bb942",
+  "vector-contact42-free-shelf_sha256": "6a0710434fe50af638ecb184a7ec2fc449469710d2362689afa32daa41c6d087",
+  "vector-contact42-free_sha256": "40a641a3c800fb9da46044037108293fd00ede26fe5f2d761c2e4f78e1096d2a",
+  "vector-dock_sha256": "2f84b974972e07e5a76dcbb53cbe93f42ba7f976912a036d66bfd1513e28a397",
+  "vector-free-dock_sha256": "74eebcb9eabca07668798743b796e2a166a1342aad5c43cb6cc2f9a2f99499ff",
+  "vector-free-shelf_sha256": "b139a544bc5e1b39cb5f4a6562038e7cfd1251d5e894d035d36520569b7b568f",
+  "vector-free_sha256": "967e7cdef547eba71977f9aac3d597d610619578160e0a322896377edf6d7d2d",
+  "vector-rescue-free_sha256": "6b9ff1959987b9f95340d488712e480fa2572ce13ed7760d332df4dab2a8b7e9",
+  "vector-rescue_sha256": "b227a4ddc3194bf5e09d5a96a24d73b8aa0112d0ca2b9e6f9abad286cc0f0eb5",
+  "xml_sha256": "32f9bfaf36d0df0aaf66a3305a549c4b2912725a351023cb396115e7921d3cee"
  },
  "values": {
   "accel_bias_mg": [
