@@ -102,3 +102,5 @@ WHEELSTAND_FORK_FIXTURE=fixture.xml python tests/run_all.py --only test_wheelsta
 ```
 
 The fixture used here had SHA-256 `4867e81c8d8d92ad3abc621d920af9b550c001e5d8f81d8443d1e84a069b8230`. The LHS points are in `runs/lhs-points.txt`, drawn with seed 1.
+
+[Contact-generated cube tap broadcasts across the four onset cases, with shell-contact sensitivity](contact-events.md)
