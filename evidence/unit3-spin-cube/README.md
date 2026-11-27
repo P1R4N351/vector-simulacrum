@@ -233,3 +233,18 @@ The recorded SDK samples bracketing the reference prediction have the lift raise
 W25 and W29 also have three packets within ±50 ms and show much smaller physical peaks (0.012 and 0.028 g) than the simulated ones (1.05 and 1.06 g). W30 shows a genuine larger physical impulse of 0.622 g there. W27 has no physical packet within ±50 ms at the reference phase and cannot support the same comparison.
 
 Each peak is the maximum norm of the acceleration-vector change from that stream's resting baseline, without shifting either clock to align peaks. Host receipt times, missing high-rate samples and unsynchronized sensor phases limit conclusions about individual shocks. A small measured peak weakens an explanation based solely on a missed tap-counter increment. It does not rule out a short unsampled impulse. [All phases, time windows and coverage](early-impact.csv). Run `python early_impact.py`.
+
+## Moving front tread surfaces
+
+![Measured cube acceleration versus stationary and moving front contact surfaces](moving-treads.png)
+
+We gave each front support cylinder its own left or right SDK wheel-speed trace. Linear tread speed is converted to angular speed using the cylinder's 14.2 mm radius. The replay sets hinge velocity on each 1 ms step before solving contacts. Its rotationally symmetric cylinder keeps the same orientation at step start. Two controls use the same cylinder geometry and added 2 g mass per side: a welded child body, and the same hinge with commanded zero speed. Hinge armatures come from the canonical front wheel joints. All runs retain the measured chassis path, the torque-limited lift, its velocity compensation, and the same initial placements as the earlier actuated replay.
+
+| Seven-mount mean across five sensor phases | Welded | Zero-speed hinge | Recorded speeds |
+|---|---:|---:|---:|
+| Absolute tap count error | 1.43 | 1.57 | 1.49 |
+| Absolute first-tap timing error | 304 ms | 299 ms | 306 ms |
+
+In W26 the earlier excessively early tap disappears even with the welded control. All three controls give a first increment 6–14 ms before the physical one. This change therefore cannot be attributed to tread motion. The new carrier bodies add mass to the previous replay. Measured rotation reproduces W26's single increment at three of five phases, versus two increments at every phase with the zero-speed hinge. W30's first tap stays within 19 ms at reference phase, but predicted count rises from four to five when rolling is enabled, against two measured.
+
+The recorded velocities marginally improve count error relative to zero hinge speed, worsen timing, and do not outperform the welded control on either aggregate measure. The imposed chassis trajectory and force-generating contact representation remain important sources of uncertainty. [Wheel-speed inputs](approach-wheels.csv.gz) · [Scores and acceleration near predicted taps](moving-treads.csv). Reproduce with `python moving_treads.py`. To extract the inputs from the raw SDK logs, run `python wheel_inputs.py RAW_DIRECTORY`.
