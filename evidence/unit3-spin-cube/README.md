@@ -78,3 +78,25 @@ The physical cube counter incremented once in each mount window. We compared the
 The sign of the discrepancy persists across every tested sensor phase and both placements. W35 still produces an extra tap in every fork-only replay. The physical timestamps measure packet receipt and the simulated timestamps measure packet publication. Unknown transport delay limits interpretation of the absolute offsets. The recorded chassis trajectory drives both models, so neither comparison identifies the part that hit the physical cube. All three mounts contributed to earlier model development.
 
 [Per-phase event times and counts](tap-timing.csv). Run `python tap_timing.py` using the dependencies above. Evaluated at revision `5c36f0b`.
+
+## Transfer to seven earlier physical mounts
+
+We froze the velocity-driven model used for W33–35 and applied it to the seven earlier archived runs with a same-origin cube observation in the preceding 12 seconds and an SDK pitch report between 45° and 85°. Each replay used the latest qualifying cube pose and the recorded robot trajectory. No parameters were selected on these runs. Some recordings, especially W4, have informed earlier simulator development. These are additional mounts on the same robot and shelf.
+
+![Counter increments in seven earlier mounts](earlier-timing.png)
+
+| Trial | Physical increments | Fork only | Chassis, wheels and fork |
+|---|---:|---:|---:|
+| W4 | 2 | 2 | 4 |
+| W8 | 2 | 2 | 3–4 |
+| W25 | 3 | 2 | 4–5 |
+| W26 | 1 | 2 | 2 |
+| W27 | 1 | 2 | 6 |
+| W29 | 2 | 2 | 5 |
+| W30 | 2 | 1 | 5 |
+
+The fork-only replay matched counts on 3/7 mounts at every sampling phase. A constant two-tap prediction matches 4/7 on this set. Enabling chassis and wheel contacts overcounted all seven. W8 shows why event timing matters even when counts match. The fork-only model's first increment preceded the first physical increment packet by 585–613 ms. W30 went the other way, with the first simulated increment 499–507 ms late. A common timing shift would move one of these two farther from the recording.
+
+Each dashed line marks receipt of a packet with a newly incremented physical counter. The preceding packet arrived 7–49 ms before the first increment packet across runs. Receipt times include transport latency. The five rows per model show 2 ms sensor phase offsets. All runs use the same scoring window, −0.8 to +0.1 s from the first SDK pitch report between 45° and 85°. That reference is sampled at the robot state cadence. The observed cube pose precedes that reference by 0.76–4.93 s, so unobserved cube motion and robot localization error remain possible.
+
+[Per-phase predictions and measured events](earlier-timing.csv) · [SDK trajectories](earlier-path.csv.gz) · [Cube placements](earlier-pose.csv.gz) · [Physical radio counters](earlier-packets.csv.gz). Reproduce with `python earlier_replay.py`. To extract the published inputs again, run `python earlier_inputs.py RAW_DIRECTORY` on the original SDK and BLE logs.
