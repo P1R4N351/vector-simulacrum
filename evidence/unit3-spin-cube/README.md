@@ -112,3 +112,15 @@ W8 begins the three-second replay already touching the fork. Its plotted contact
 For each run, initialize using the last same-origin cube pose observed **before** the replay begins. Align both series at the first recorded robot pitch between 45° and 85°. Subtract the component-wise median physical acceleration from −7 to −4 s and the simulated median from −2.9 to −2.1 s before computing vector magnitude. Search for the first threshold crossing from −2 to +0.1 s. The plotted physical dots use packet receipt time for all three slots. The simulated dots show one sensor phase. The CSV includes five phases and thresholds of 0.05, 0.1 and 0.2 g. Acceleration changes can include rotation. No specific robot part can be identified from a threshold crossing alone.
 
 [Threshold crossings and geometric contact times](impact-onset.csv) · [Accelerometer samples](impact-samples.csv.gz) · [Initial cube observations](impact-initial-poses.csv). Run `python impact_onset.py` with the existing replay dependencies. To re-extract the input files, run `python impact_samples.py RAW_DIRECTORY`.
+
+## Which surfaces can reach the cube at the first acceleration pulse?
+
+![Clearance of modeled parts from the observed cube](impact-clearance.png)
+
+Hold the upright cube at its last pose observed before replay start and register the robot at receipt of the first 0.2 g packet. Across the seven runs the raised fork has **6.5–20.1 mm of clearance**. A front tread support overlaps the fixed cube by **1.1–7.6 mm** in every run. Each support is the cylinder at the nominal front axle in the canonical chassis model. In W4 the initial pose gives 4.6 mm of front support overlap. A more recent visual observation reduces that to 0.7 mm and changes the chassis from 3.0 mm of overlap to 0.7 mm of clearance. W8's most recent observation occurred after the pulse and is excluded from that comparison. Several trials share the same initial and last-seen pose.
+
+Negative values are geometric intersection depths with the cube held fixed, so they quantify incompatible pose and geometry estimates. They do not measure rubber compression. SDK trajectory error, cube motion after observation, and the time between acceleration sampling and radio receipt can all affect these distances. Only the fork, chassis box, wheels and tread supports are included.
+
+We then repeated the free-cube replay with only the two nominal front tread supports added to the fork. For direct comparison with the earlier fork/full replays, this test uses the same last-seen placements and the same five sensor sampling phases. On W26 it predicts the physical count of one, 6–14 ms before the packet increment. It predicts excess taps on the other six. W30's first increment is within 19 ms across all phases, but five increments occur where two were measured. The added contact captures the timing in individual runs and fails to transfer their impact counts.
+
+[Per-part signed distances and closest geoms](impact-clearance.csv) · [Front support replay scores](front-contact.csv). Run `python impact_clearance.py` and `python front_contact.py` with the existing replay dependencies.
