@@ -1,0 +1,16 @@
+camera_s,feature,x_px,y_px,dx_px,dy_px
+64.5,far_right_crest,49.0,5.0,0.0,0.0
+64.5,left_glyph_bend,23.0,15.0,0.0,0.0
+64.5,right_glyph_bend,43.0,12.0,0.0,0.0
+65.0,far_right_crest,52.0,7.0,3.0,2.0
+65.0,left_glyph_bend,25.0,19.0,2.0,4.0
+65.0,right_glyph_bend,47.0,15.0,4.0,3.0
+65.08333333333333,far_right_crest,54.0,9.0,5.0,4.0
+65.08333333333333,left_glyph_bend,26.0,22.0,3.0,7.0
+65.08333333333333,right_glyph_bend,48.0,18.0,5.0,6.0
+65.16666666666667,far_right_crest,55.0,11.0,6.0,6.0
+65.16666666666667,left_glyph_bend,26.0,25.0,3.0,10.0
+65.16666666666667,right_glyph_bend,49.0,21.0,6.0,9.0
+65.25,far_right_crest,56.0,15.0,7.0,10.0
+65.25,left_glyph_bend,29.0,28.0,6.0,13.0
+65.25,right_glyph_bend,50.0,24.0,7.0,12.0
