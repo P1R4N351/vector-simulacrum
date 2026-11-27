@@ -891,6 +891,11 @@ export class AutonomyController {
     if (ctx.stage === "verify") {
       if (!this._stepSub(ctx.sub)) return { running: true };
       if (sim.chargerContact) {
+        const ch = this.navMap.chargerPose;
+        if (ch) {
+          sim._localizeOnCharger(ch);
+          sim._publishState();
+        }
         sim.commandHeadAngle(0);
         sim.commandLiftHeight(32);
         if (sim.cubeSensor?.firmware) {

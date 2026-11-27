@@ -700,5 +700,48 @@ class Determinism(unittest.TestCase):
             self.assertLess(overrun, _coast_mm(sim.v, 30.0) + DRIVE_ALONG_TOL_MM, seed)
 
 
+@unittest.skipUnless(_common.HAVE_MUJOCO, _common.SKIP_REASON)
+class SensorAndDockParity(unittest.TestCase):
+    def test_calm_mode_holds_both_imu_channels_until_supervisor_update(self) -> None:
+        sim = VectorSim(calm_mode=True)
+
+        def sample() -> tuple:
+            return sim.state.accel_mmps2 + sim.state.gyro_radps
+
+        initial = sample()
+        sim.step(48)
+        self.assertAlmostEqual(sim.state.time_s, 0.24, places=9)
+        self.assertEqual(sample(), initial)
+        sim.step(12)
+        held = sample()
+        self.assertNotEqual(held, initial)
+        sim.step(12)
+        self.assertEqual(sample(), held)
+        sim.calm_mode = False
+        sim.step(12)
+        self.assertNotEqual(sample(), held)
+
+    def test_stop_treads_at_contact_clears_delay_queue(self) -> None:
+        sim = VectorSim()
+        sim.set_wheel_motors(-100.0, -100.0)
+        sim.step(5)
+        self.assertTrue(any(slot[0] != 0.0 or slot[1] != 0.0 for slot in sim._delay))
+        sim._stop_treads_at_contact()
+        self.assertEqual(sim._wheel_target, [0.0, 0.0])
+        self.assertEqual(sim._wheel_accel, [0.0, 0.0])
+        self.assertEqual(sim._wheel_cmd, [0.0, 0.0])
+        self.assertTrue(all(slot[0] == 0.0 and slot[1] == 0.0 for slot in sim._delay))
+
+    def test_localize_on_charger_snaps_reported_pose_without_moving_physics(self) -> None:
+        sim = _quiet_sim(start_xy_mm=(12.0, -7.0), heading_deg=25.0)
+        before_phys = sim.pose_mm()
+        sim.localize_on_charger({"lip_x": -120.0, "lip_y": 5.0, "out_x": 1.0, "out_y": 0.0})
+        sim._publish_state()
+        self.assertAlmostEqual(sim.state.x_mm, -150.0, places=6)
+        self.assertAlmostEqual(sim.state.y_mm, 5.0, places=6)
+        self.assertAlmostEqual(sim.state.pose_angle_rad, 0.0, places=6)
+        self.assertEqual(sim.pose_mm(), before_phys)
+
+
 if __name__ == "__main__":
     unittest.main()

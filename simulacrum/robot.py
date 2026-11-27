@@ -139,7 +139,7 @@ class VectorSim:
                  obstacles: Sequence[Sequence[float]] = (), head_deg: float = 0.0,
                  lift_mm: Optional[float] = None, noise_seed: int = 0, cube: Optional[str] = None,
                  cube_app: str = "last", body: Optional[Dict[str, Any]] = None, *, body_range_clock: Optional[bool] = None, charger_contact: bool = False,
-                 environment: str = "table") -> None:
+                 calm_mode: bool = False, environment: str = "table") -> None:
         assert control_level in (CONTROL_DEFAULT, CONTROL_OVERRIDE), "unknown control level"
         assert isinstance(noise_seed, int), "noise seed must be an int"
         assert cube in mjcf.CUBE_MOUNTS, "unknown cube placement"
@@ -151,6 +151,7 @@ class VectorSim:
         self._prox_sensor = ProxSensor(self.v, noise_seed + 1)
         self.body_range_clock = environment == "p2_shelf" if body_range_clock is None else body_range_clock
         self.charger_contact = charger_contact
+        self.calm_mode = bool(calm_mode)
         self._range_body_phase_us = 0
         self._range_body_ticks = 0
         self._range_sample: Optional[Tuple[float, float]] = None
@@ -239,6 +240,12 @@ class VectorSim:
         self.tread_heat = [0.0, 0.0]
         self._measured = (0.0, 0.0)
         self._imu_sample: Optional[Tuple[Tuple[float, float, float], Tuple[float, float, float]]] = None
+        self._body_loop_us = int(round(1000.0 * v.get("supervisor_loop_ms", v["control_period_ms"])))
+        assert self._body_loop_us > 0, "supervisor loop must advance"
+        self._next_body_loop_us = self._body_loop_us
+        self._body_state_ticks = 0
+        self._body_state_stamp_ms = 0
+        self._body_imu: Optional[Tuple[Tuple[float, float, float], Tuple[float, float, float]]] = None
         self._imu_filter = imu_filter.ImuFilter(v["accel_filter_cutoff_hz"], v["gyro_filter_cutoff_hz"],
                                                 v["imu_filter_second_pole"], float(self.model.opt.timestep))
         self._head_target = self._head_cmd = 0.0
@@ -278,6 +285,8 @@ class VectorSim:
         mujoco.mj_forward(self.model, self.data)
         self._yaw_prev = self._yaw_total = self._yaw()
         self._dock_travel_mm = [0.0, 0.0]
+        self._odom_yaw_offset = 0.0
+        self._odom_offset_mm = [0.0, 0.0]
 
     def _pose_servos(self, head_deg: float, lift_mm: Optional[float]) -> None:
         """Start with the head and lift already at a given angle and height (clamped to the limits)."""
@@ -306,6 +315,10 @@ class VectorSim:
             mujoco.mj_step(self.model, self.data, self.d["substeps"])
         self.data.time = 0.0
         self._reset_imu_filter()
+        self._next_body_loop_us = self._body_loop_us
+        self._body_state_ticks = 0
+        self._body_state_stamp_ms = 0
+        self._body_imu = None
         if self.cube is not None:
             self.cube.reset(self._cube_force_g(), 0.0)
         self._yaw_prev = self._yaw_total = self._yaw()
@@ -409,6 +422,20 @@ class VectorSim:
         g = self.v["gravity_mmps2"] * mjcf.MM
         return np.array(self.data.sensordata[self._cube_adr:self._cube_adr + 3], dtype=float) / g
 
+    def _advance_body_clock(self, end_us: int) -> None:
+        """Advance the 5 ms supervisor body clock and latch _body_imu on calm (50-loop) or active (6-loop) ticks."""
+        assert self._body_loop_us > 0, "supervisor loop must advance"
+        target = 50 if self.calm_mode else 6
+        for _ in range(1000):
+            if self._next_body_loop_us > end_us:
+                break
+            self._body_state_ticks += 1
+            if self._body_state_ticks >= target:
+                self._body_state_stamp_ms = int(round(self._next_body_loop_us / 1000.0))
+                self._body_imu = self._imu()
+                self._body_state_ticks = 0
+            self._next_body_loop_us += self._body_loop_us
+
     def _physics_step(self) -> None:
         """One control tick of physics: the IMU chip filters at every step, not once per tick, and so does a
         carried cube's."""
@@ -417,6 +444,7 @@ class VectorSim:
             self._imu_filter.update(np.array(self.data.sensordata[self._imu_adr], dtype=float))
             if self.cube is not None:
                 self.cube.step(float(self.data.time), self._cube_force_g())
+            self._advance_body_clock(int(round(float(self.data.time) * 1e6)))
 
     def _sample_imu(self) -> None:
         """Read the filtered gyro and accelerometer once, apply this robot's scale, bias and noise, clip to the
@@ -481,15 +509,36 @@ class VectorSim:
         lift_angle = low + counts * lift_step
         return head, mjcf.lift_height_of_angle(v, lift_angle)
 
+    def _reported_planar_pose(self) -> Tuple[float, float, float]:
+        """Reported (x_mm, y_mm, yaw_rad) after charger localization and dock-travel suppression."""
+        x, y, _ = self.pose_mm()
+        dx, dy = x - self._dock_travel_mm[0], y - self._dock_travel_mm[1]
+        c, s = math.cos(self._odom_yaw_offset), math.sin(self._odom_yaw_offset)
+        yaw = self._yaw() + self._odom_yaw_offset
+        if abs(yaw) > math.pi:
+            yaw = math.atan2(math.sin(yaw), math.cos(yaw))
+        return c * dx - s * dy + self._odom_offset_mm[0], s * dx + c * dy + self._odom_offset_mm[1], yaw
+
+    def localize_on_charger(self, charger: Dict[str, float]) -> None:
+        """Engine Charger::GetRobotDockedPose: place reported origin 30 mm behind dock lip, facing outward."""
+        assert all(k in charger for k in ("lip_x", "lip_y", "out_x", "out_y")), "charger pose missing keys"
+        self._odom_yaw_offset = math.atan2(charger["out_y"], charger["out_x"]) - self._yaw()
+        x, y, _ = self._reported_planar_pose()
+        self._odom_offset_mm[0] += charger["lip_x"] - 30.0 * charger["out_x"] - x
+        self._odom_offset_mm[1] += charger["lip_y"] - 30.0 * charger["out_y"] - y
+
     def _publish_state(self) -> None:
-        x, y, z = self.pose_mm()
+        x, y, yaw = self._reported_planar_pose()
+        z = float(self.data.qpos[2]) / mjcf.MM
         left, right = self._reported_wheel_speeds()
         prox = self._prox()
-        accel, gyro = self._imu()
+        if self._body_imu is None:
+            self._body_imu = self._imu()
+        accel, gyro = self._body_imu if self.calm_mode else self._imu()
         head, lift = self._reported_head_and_lift()
         moving = (abs(left) + abs(right)) > self.v["wheel_stopped_threshold_mmps"]
         self.state = RobotState(
-            time_s=self.tick * self.dt, x_mm=x - self._dock_travel_mm[0], y_mm=y - self._dock_travel_mm[1], z_mm=z, pose_angle_rad=self._yaw(),
+            time_s=self.tick * self.dt, x_mm=x, y_mm=y, z_mm=z, pose_angle_rad=yaw,
             pose_pitch_rad=self._pitch(), left_wheel_speed_mmps=left, right_wheel_speed_mmps=right,
             head_angle_rad=head, lift_height_mm=lift, prox_distance_mm=prox.distance_mm,
             prox_found_object=prox.found_object, prox_is_lift_in_fov=prox.is_lift_in_fov,
@@ -555,6 +604,14 @@ class VectorSim:
         out = [wheels[0], wheels[1], servos[2], servos[3]]
         assert len(out) == 4, "delay slot shape"
         return out
+
+    def _stop_treads_at_contact(self) -> None:
+        """A local supervisor stop supersedes tread commands still in the transport delay queue."""
+        self._wheel_target = [0.0, 0.0]
+        self._wheel_accel = [0.0, 0.0]
+        self._wheel_cmd = [0.0, 0.0]
+        for slot in self._delay:
+            slot[0], slot[1] = 0.0, 0.0
 
     def _start_reaction(self) -> None:
         """The robot's own response to a cliff: stop now, lose SDK control, back off after a pause."""
