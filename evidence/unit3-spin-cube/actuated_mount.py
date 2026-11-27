@@ -44,7 +44,14 @@ def build(v, derived, src):
     return mj.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
 
 
-def replay(output, feedforward=False, unloaded=False, trajectories=None):
+def replay(
+    output,
+    feedforward=False,
+    unloaded=False,
+    trajectories=None,
+    path_override=None,
+    trials=TRIALS,
+):
     v, d, s = m._load_model_config()
     model = build(v, d, s)
     if unloaded:
@@ -56,12 +63,14 @@ def replay(output, feedforward=False, unloaded=False, trajectories=None):
     path, poses, packets = [
         m._load_structured(f"earlier-{k}.csv.gz") for k in ("path", "pose", "packets")
     ]
+    if path_override is not None:
+        path = path_override
     with output.open("w") as f:
         w = csv.writer(f, lineterminator="\n")
         w.writerow(
             "trial phase_ms physical_count simulated_count first_error_ms lift_height_rmse_mm peak_torque_mNm".split()
         )
-        for name in TRIALS:
+        for name in trials:
             robot = path[path["trial"] == name]
             pose = poses[poses["trial"] == name][0]
             packets_trial = packets[packets["trial"] == name]

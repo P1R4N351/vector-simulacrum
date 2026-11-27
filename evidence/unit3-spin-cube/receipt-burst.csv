@@ -1,0 +1,5 @@
+clock,condition,height_rmse_mm,mean_count_error,mean_first_tap_error_ms
+Receipt,Unloaded,5.202222556702696,,
+Receipt,Loaded,5.036310017224394,2.0,568.097356796265
+Reconstructed,Unloaded,0.9003975631549218,,
+Reconstructed,Loaded,3.5486418096382173,1.0,568.097356796265
