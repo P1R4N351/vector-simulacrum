@@ -171,6 +171,7 @@ export class VectorSim {
     this._nextBodyLoopUs = this._bodyLoopUs;
     this._bodyStateTicks = 0;
     this._bodyStateStampMs = 0;
+    this._bodyImu = null;
     this._gauss = makeGauss(opts.noiseSeed ?? 0);
     // The time-of-flight sensor draws from its own stream, so its readings do not move the IMU's noise.
     this._proxSensor = new ProxSensor(this.v, (opts.noiseSeed ?? 0) + 1);
@@ -385,6 +386,7 @@ export class VectorSim {
     while (this._nextBodyLoopUs <= endUs) {
       if (++this._bodyStateTicks >= (this.calmMode ? 50 : 6)) {
         this._bodyStateStampMs = Math.round(this._nextBodyLoopUs / 1000);
+        this._bodyImu = this._imu();
         this._bodyStateTicks = 0;
       }
       this._nextBodyLoopUs += this._bodyLoopUs;
@@ -403,13 +405,13 @@ export class VectorSim {
       const sd = this.data.sensordata;
       for (let ch = 0; ch < CHANNELS; ch++) raw[ch] = sd[this._imuAdr[ch]];
       this._imuFilter.update(raw);
+      const endUs = Math.round(this.data.time * 1e6);
       if (this.cubeSensor) {
-        const endUs = Math.round(this.data.time * 1e6);
         // Packets at this step boundary precede a simultaneous body publication.
         this._advanceBodyClock(endUs - 1);
         this.cubeSensor.step(this.data.time, this._cubeForce(), this._bodyStateStampMs);
-        this._advanceBodyClock(endUs);
       }
+      this._advanceBodyClock(endUs);
     }
   }
 
@@ -645,7 +647,9 @@ export class VectorSim {
     const z = this.data.qpos[2] / MM;
     const [left, right] = this._reportedWheelSpeeds();
     const prox = this._prox();
-    const [accel, gyro] = this._imu();
+    // In calm mode successive SDK reports repeat the last supervisor IMU sample.
+    this._bodyImu ??= this._imu();
+    const [accel, gyro] = this.calmMode ? this._bodyImu : this._imu();
     const [head, lift] = this._reportedHeadAndLift();
     this.state = {
       time_s: this.tick_ * this.dt, x_mm: x, y_mm: y, z_mm: z, pose_angle_rad: yaw,
