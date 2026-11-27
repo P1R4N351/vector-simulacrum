@@ -249,8 +249,19 @@ test("head and lift targets are readable and the actions reach them", async () =
   assert.equal(sim.lastAction.result, "completed");
   assert.ok(Math.abs((sim.headAngleRad() * 180) / Math.PI - v.head_angle_max_deg) <= v.head_angle_tol_deg, "head at its top");
   assert.equal(sim.setLiftHeight(v.lift_height_max_mm), true);
-  for (let guard = 0; sim.actionRunning && guard < 5000; guard++) sim.stepAction();
+  let reachedBeforeSettling = false;
+  for (let guard = 0; sim.actionRunning && guard < 5000; guard++) {
+    sim.stepAction();
+    if (sim.actionRunning && !sim._liftInPos && sim.liftHeightMm() > v.lift_height_max_mm - 1) {
+      reachedBeforeSettling = true;
+    }
+  }
+  assert.ok(reachedBeforeSettling);
   assert.equal(sim.lastAction.result, "completed");
+  assert.ok(sim._liftInPos);
+  assert.ok(sim.setLiftHeight(v.lift_height_max_mm));
+  sim.stepAction();
+  assert.equal(sim.actionRunning, false);
   assert.ok(sim.liftHeightMm() > v.lift_height_max_mm - 2, `lift near its top: ${sim.liftHeightMm()}`);
   assert.ok(Math.abs(sim.liftTargetMm - v.lift_height_max_mm) < 1e-6);
   sim.dispose();
