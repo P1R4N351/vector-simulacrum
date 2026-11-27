@@ -31,15 +31,19 @@ class TreadEncoder:
         assert self._mm_per_count > 0.0 and self._zero_ticks >= 1, "encoder scale and zero threshold must be positive"
         self.counts = 0
         self.speed_mmps = 0.0
+        self.direction = 1.0
+        self._drive_direction = 1.0
         self._path_mm = 0.0
         self._last_travel = 0.0
         self._last_edge_s = 0.0
         self._now_s = 0.0
         self._idle_ticks = 0
 
-    def update(self, travel_mm: float) -> float:
+    def update(self, travel_mm: float, drive: float = 0.0) -> float:
         """Feed the tread's signed travel so far; returns the unsigned measured speed in mm/s."""
         assert math.isfinite(travel_mm), "tread travel must be finite"
+        if drive != 0.0:
+            self._drive_direction = math.copysign(1.0, drive)
         step = abs(travel_mm - self._last_travel)
         self._last_travel = travel_mm
         start_path = self._path_mm
@@ -47,6 +51,7 @@ class TreadEncoder:
         total = int(self._path_mm / self._mm_per_count)
         new = total - self.counts
         if new > 0:
+            self.direction = self._drive_direction
             edge_path = total * self._mm_per_count
             edge_s = self._now_s + self._dt * (edge_path - start_path) / step
             span = edge_s - self._last_edge_s

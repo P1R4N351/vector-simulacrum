@@ -230,7 +230,6 @@ class VectorSim:
         self._wheel_accel = [0.0, 0.0]
         self._wheel_cmd = [0.0, 0.0]
         self._applied = [0.0, 0.0]
-        self._dir_sign = [1.0, 1.0]
         self._encoders = [TreadEncoder(v), TreadEncoder(v)]
         self._controllers = [TreadController(v), TreadController(v)]
         assert v["motor_reference_voltage_v"] > 0.0 and v["battery_rest_voltage_v"] > 0.0, "voltages must be positive"
@@ -353,11 +352,9 @@ class VectorSim:
         from the command. The firmware keeps the value in an integer.
         """
         v = self.v
-        truth = self._wheel_speeds()
         out = []
-        for i, encoder in enumerate(self._encoders):
-            sign = math.copysign(1.0, truth[i]) if v["encoder_tread_direction_sensed"] else self._dir_sign[i]
-            speed = encoder.speed_mmps * sign
+        for encoder in self._encoders:
+            speed = encoder.speed_mmps * encoder.direction
             out.append(whole_mmps(speed) if v["wheel_speed_reported_whole_mmps"] else speed)
         assert len(out) == 2, "two treads"
         return out[0], out[1]
@@ -624,9 +621,6 @@ class VectorSim:
         ctrl[self._act["head"]] = delayed[2]
         self._write_lift(delayed[3])
         self._applied = [left, right]
-        for i, speed in enumerate((left, right)):
-            if speed != 0.0:
-                self._dir_sign[i] = 1.0 if speed > 0.0 else -1.0
         self._drive_treads(left, right)
 
     def _write_lift(self, command: float) -> None:
@@ -703,8 +697,10 @@ class VectorSim:
             self._lift_in_pos = True
 
     def _tick_once(self) -> None:
-        for encoder, travel in zip(self._encoders, self._tread_travel_mm()):
-            encoder.update(travel)
+        drive = (self._wheel_speeds() if self.v["encoder_tread_direction_sensed"] else
+                 (self.data.ctrl[self._act["left_wheel"]], self.data.ctrl[self._act["right_wheel"]]))
+        for encoder, travel, direction in zip(self._encoders, self._tread_travel_mm(), drive):
+            encoder.update(travel, direction)
         self._measured = self._reported_wheel_speeds()
         self._sample_imu()
         accel, _ = self._imu()

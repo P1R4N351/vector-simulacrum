@@ -15,6 +15,8 @@ export class TreadEncoder {
     assert(this._mmPerCount > 0 && this._zeroTicks >= 1, "encoder scale and zero threshold must be positive");
     this.counts = 0;
     this.speedMmps = 0;
+    this.direction = 1;
+    this._driveDirection = 1;
     this._pathMm = 0;
     this._lastTravel = 0;
     this._lastEdgeS = 0;
@@ -23,7 +25,8 @@ export class TreadEncoder {
   }
 
   // Feed the tread's signed travel so far; returns the unsigned measured speed in mm/s.
-  update(travelMm) {
+  update(travelMm, drive = 0) {
+    if (drive !== 0) this._driveDirection = Math.sign(drive);
     assert(Number.isFinite(travelMm), "tread travel must be finite");
     const step = Math.abs(travelMm - this._lastTravel);
     this._lastTravel = travelMm;
@@ -32,6 +35,7 @@ export class TreadEncoder {
     const total = Math.trunc(this._pathMm / this._mmPerCount);
     const fresh = total - this.counts;
     if (fresh > 0) {
+      this.direction = this._driveDirection;
       const edgePath = total * this._mmPerCount;
       const edgeS = this._nowS + (this._dt * (edgePath - startPath)) / step;
       const span = edgeS - this._lastEdgeS;

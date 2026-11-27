@@ -34,3 +34,13 @@ test("feedforward line and integer speed match the Python", () => {
   for (const [speed, power] of fixture.feedforward) assert.ok(close(controller.feedforward(speed), power), `ff ${speed}`);
   for (const [speed, whole] of fixture.whole_mmps) assert.equal(wholeMmps(speed), whole, `whole ${speed}`);
 });
+
+test("signed speed holds the last edge across a change in motor duty", () => {
+  const encoder = new TreadEncoder(values);
+  const step = values.tread_mm_per_encoder_count;
+  encoder.update(1.5*step, 0.5);
+  encoder.update(1.6*step, -0.5);
+  assert.equal(encoder.direction, 1);
+  encoder.update(2.5*step, 0);
+  assert.equal(encoder.direction, -1);
+});

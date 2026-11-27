@@ -123,3 +123,41 @@ test("shelf cube advertises and reports the measured rail ADC word", () => {
   assert.deepEqual(frames.map(bytes => bytes[8]), [1,2]);
   for (const bytes of frames) assert.equal(new DataView(bytes.buffer).getUint16(38,true),444);
 });
+
+test("single-channel tread reports the direction and timestamp of its last optical edge", async () => {
+  const profile = readJson("public/robot/vector2/model.json");
+  const sim = new VectorSim(await mujoco(), { xml:readText("public/robot/vector2/vector-free.xml"),
+    values:profile.values, derived:profile.derived });
+  try {
+    const body = new WireBody(sim);
+    const scale = 0.96 * 29 * Math.PI / (4 * 172.3);
+    let coordinate = 0;
+    sim._treadTravelMm = () => [coordinate * scale, -coordinate * scale];
+    const advance = sim.tickWireBody.bind(sim);
+    let nextCoordinate = 0;
+    sim.tickWireBody = power => { advance(power); coordinate = nextCoordinate; };
+    const frame = (next, duty) => {
+      nextCoordinate = next;
+      return new DataView(body.frame([duty, duty, 0, 0]).buffer);
+    };
+    frame(0, 0);
+    frame(1, 0.5); // edge at the midpoint of this frame
+    let packet = frame(3, 0.5); // last edge at three quarters of the frame
+    const interval = Math.round(1.25 * sim.dt * 48000000) * 256;
+    for (const base of [24,36]) {
+      assert.equal(packet.getInt32(base,true), 3);
+      assert.equal(packet.getInt32(base+4,true), 2);
+      assert.equal(packet.getUint32(base+8,true), interval);
+    }
+    packet = frame(3.1, -0.5);
+    assert.equal(packet.getInt32(28,true), 2); // same edge record across a power reversal
+    packet = frame(4.1, -0.5); // shaft is still coasting forward
+    assert.equal(packet.getInt32(24,true), 2);
+    assert.equal(packet.getInt32(28,true), -1);
+    const held = packet.getUint32(32,true);
+    for (let i=0; i<25; i++) assert.equal(frame(4.1, 0).getInt32(28,true), -1);
+    packet = frame(4.1, 0);
+    assert.equal(packet.getInt32(28,true), 0);
+    assert.equal(packet.getUint32(32,true), held);
+  } finally { sim.dispose(); }
+});

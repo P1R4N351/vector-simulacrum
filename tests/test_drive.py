@@ -44,6 +44,15 @@ class Encoder(unittest.TestCase):
         self.assertAlmostEqual(_run_encoder(encoder, -60.0, 100)[-1], 60.0, places=6)
         self.assertGreater(encoder.counts, 0)
 
+    def test_direction_is_held_with_the_last_edge(self) -> None:
+        encoder = TreadEncoder(self.v)
+        step = self.v["tread_mm_per_encoder_count"]
+        encoder.update(step * 1.5, 0.5)
+        encoder.update(step * 1.6, -0.5)
+        self.assertEqual(encoder.direction, 1)
+        encoder.update(step * 2.5, 0.0)
+        self.assertEqual(encoder.direction, -1)
+
     def test_no_new_count_for_five_ticks_reads_zero(self) -> None:
         encoder = TreadEncoder(self.v)
         _run_encoder(encoder, 100.0, 40)

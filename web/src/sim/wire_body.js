@@ -10,12 +10,51 @@ export function motorCommand(bytes) {
   return ENCODER_SCALE.map((_, i) => Math.max(-1, v.getInt16(24 + 2*i, true) / 32767));
 }
 
+// Syscon counts optical edges without direction. The motor bridge supplies the sign.
+class WireWheelEncoder {
+  constructor() {
+    this.previous = null;
+    this.position = 0;
+    this.direction = -1;
+    this.delta = 0;
+    this.period = 0;
+    this.idleFrames = 0;
+    this.lastEdgeClock = 0;
+  }
+
+  sample(coordinate, duty, startSeconds, dt) {
+    if (duty !== 0) this.direction = Math.sign(duty);
+    if (this.previous === null) {
+      this.position = Math.floor(coordinate + 0.5);
+      this.lastEdgeClock = Math.round(startSeconds * 48000000);
+    } else {
+      const step = coordinate - this.previous;
+      const index = Math.floor(coordinate + 0.5);
+      const edges = Math.abs(index - Math.floor(this.previous + 0.5));
+      if (edges) {
+        const boundary = index - 0.5 * Math.sign(step);
+        const fraction = (boundary - this.previous) / step;
+        const clock = Math.round((startSeconds + dt * fraction) * 48000000);
+        this.period = ((clock - this.lastEdgeClock) * 256) >>> 0;
+        this.lastEdgeClock = clock;
+        this.delta = this.direction * edges;
+        this.position += this.delta;
+        this.idleFrames = 0;
+      } else if (++this.idleFrames > 25) {
+        this.delta = 0;
+      }
+    }
+    this.previous = coordinate;
+  }
+}
+
 export class WireBody {
   constructor(sim) {
     this.sim = sim;
     sim.bodyRangeClock = true;
     this.seq = 0;
     this.prev = null;
+    this.wheels = [new WireWheelEncoder(), new WireWheelEncoder()];
     this.cubeTick = sim.cubeSensor?.ticks ?? 0;
     this.cubeTaps = sim.cubeSensor?.packet?.taps ?? 0;
     this.lastAdvertisementSeq = null;
@@ -27,6 +66,10 @@ export class WireBody {
 
   frame(power) {
     const s = this.sim;
+    const startSeconds = s.data.time;
+    if (this.prev === null) {
+      s._treadTravelMm().forEach((mm,i) => this.wheels[i].sample(mm / ENCODER_SCALE[i], 0, startSeconds, 0));
+    }
     s.tickWireBody(power);
     const bytes = new Uint8Array(812), v = new DataView(bytes.buffer);
     for (const [offset, value] of [[0,MAGIC], [4,6], [8,this.seq], [16,this.seq]]) v.setUint32(offset,value,true);
@@ -34,6 +77,14 @@ export class WireBody {
     const positions = [...s._treadTravelMm(), s.liftAngleRad(), s.headAngleRad()];
     const counts = positions.map((value,i) => Math.sign(value/ENCODER_SCALE[i]) * Math.round(Math.abs(value/ENCODER_SCALE[i])));
     for (let i=0; i<4; i++) {
+      if (i < 2) {
+        const encoder = this.wheels[i];
+        encoder.sample(positions[i] / ENCODER_SCALE[i], power[i], startSeconds, s.dt);
+        v.setInt32(24+12*i, encoder.position, true);
+        v.setInt32(28+12*i, encoder.delta, true);
+        v.setUint32(32+12*i, encoder.period, true);
+        continue;
+      }
       if (this.prev) {
         this.elapsed[i] += Math.round(s.dt * 48000000 * 256);
         if (counts[i] !== this.prev[i]) {
