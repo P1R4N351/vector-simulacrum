@@ -32,8 +32,8 @@ def project_fork(v,tr,t,cam,heading,lens,verts):
     return project(xyz,cam)*.5
 
 
-def dock_camera(focal):
-    fit=least_squares(lambda p:(project(WORLD[:4],np.r_[p,focal])-DOCK).ravel(),calibration()[:6])
+def dock_camera(focal,corners=DOCK):
+    fit=least_squares(lambda p:(project(WORLD[:4],np.r_[p,focal])-corners).ravel(),calibration()[:6])
     return np.r_[fit.x,focal]
 
 
@@ -49,10 +49,10 @@ def rim_error(focal,indices):
     return np.sqrt(np.mean(fit.fun**2))
 
 
-def overlay(fixture,video,focal,tag):
+def overlay(fixture,video,focal,tag,corners=DOCK):
     tr=replay.Trial("W8")
     v=replay.params.values(replay.params.load(model="vector_2"),{})
-    cam=dock_camera(focal)
+    cam=dock_camera(focal,corners)
     a,b=intersect(FORK,93,cam)
     ref_yaw=np.arctan2(b[0]-a[0],a[1]-b[1])
     lens86=intersect(np.array([[790.,683.]]),65.5,cam)[0]
