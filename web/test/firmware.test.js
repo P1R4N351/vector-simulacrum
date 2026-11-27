@@ -129,3 +129,40 @@ test("Spine motor snapshots carry native quadrature counts, signed deltas and ti
     }
   } finally { sim.dispose(); }
 });
+
+test("Spine and bridge expose the same held raw optical sample before SDK clamping", async () => {
+  const { WireBody } = await import("../src/sim/wire_body.js");
+  const { values, derived } = readJson("public/robot/model.json");
+  const sim = new VectorSim(await mujoco(), { values, derived, xml: readText("public/robot/vector-free.xml") });
+  try {
+    sim.attachFirmware({ sysconBytes: makeSyntheticSysconFlash() });
+    let acquisitions = 0;
+    sim._proxSensor.acquire = () => (++acquisitions === 1 ? {raw: 12, quality: 9.94} : {raw: 521, quality: .002});
+    sim._rangeSample = null;
+    // First verify ordinary browser ticks before starting the WireOS bridge.
+    sim.tick(sim._stateTicks);
+    const first = new DataView(sim.lastSpineFrame.buffer);
+    assert.equal(first.getUint16(86),12);
+    assert.equal(sim.state.prox_distance_mm,30);
+    assert.ok(Math.abs(2 * first.getUint16(88) / first.getUint16(92) - 9.94) < .0001);
+    const body = new WireBody(sim);
+    const seen = new Set();
+    for (let i = 0; i < 48; i++) {
+      const wire = body.frame([0,0,0,0]);
+      if (sim.tickCount % sim._stateTicks !== 0) continue;
+      const payload = sim.lastSpineFrame;
+      assert.ok(SysconFirmware.verifyBodyFrame(payload));
+      assert.deepEqual([...payload.slice(84,96)], [...wire.slice(92,104)]);
+      const view = new DataView(payload.buffer,payload.byteOffset,payload.byteLength);
+      const sample = sim.rawRangeSample();
+      assert.equal(view.getUint16(86), sample.raw);
+      assert.equal(view.getUint16(94,true), sample.count);
+      const quality = (view.getUint16(88)/128)/(view.getUint16(92)/256);
+      assert.ok(Math.abs(quality-sample.quality)<.0001);
+      assert.equal(sim.state.prox_distance_mm, Math.min(400,Math.max(30,sample.raw)));
+      seen.add(sample.raw);
+    }
+    // The bright sample may span only the initial SDK publication.
+    assert.ok(seen.has(521));
+  } finally {sim.dispose();}
+});
