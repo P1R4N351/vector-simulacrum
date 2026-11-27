@@ -252,7 +252,7 @@ class _Run:
                            1000 * d.xpos[cube_id, 0], 1000 * d.xpos[cube_id, 2], 1000 * d.xpos[self.chassis, 0]])
 
 
-def run(m, v, tr, start, onset, lift_spec, seed, *, tap_times=None):
+def run(m, v, tr, start, onset, lift_spec, seed, *, tap_times=None, on_step=None, stop_s=None):
     """Replay from release time `start`, wheelstand command at `onset`; returns (trace, packets, taps, overlap)."""
     r = _Run(m, v, tr, start, onset, lift_spec, seed)
     r.settle(seed)
@@ -260,10 +260,14 @@ def run(m, v, tr, start, onset, lift_spec, seed, *, tap_times=None):
     assert ticks >= 1, "control period shorter than the physics step"
     for i, t in enumerate(np.arange(start, END_S + tr.shift, r.dt)):
         if i % ticks == 0:
+            if stop_s is not None and t >= stop_s:
+                r.drive_ended = True
             r.control(t)
         elif r.motor is not None:
             r.motor_torque()
         mj.mj_step(m, r.d)
+        if on_step is not None:
+            on_step(r, t + r.dt)
         if DUMP and any(abs(t - (tr.late + q)) < r.dt / 2 for q in DUMP):
             r.dump(t)
         if (i + 1) % 4:
