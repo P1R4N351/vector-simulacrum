@@ -11,7 +11,7 @@ from tap_timing import events
 import mount_replay as m
 
 
-def build(v, derived, src):
+def build(v, derived, src, spinning=False, welded_supports=False):
     scene = ET.Element("mujoco")
     ET.SubElement(scene, "compiler", angle="radian")
     scene.append(src.find("option"))
@@ -28,7 +28,36 @@ def build(v, derived, src):
         derived["chassis_inertia"],
     )
     for side in ("l", "r"):
-        body.append(src.find(f".//geom[@name='tip_front_{side}']"))
+        geom = src.find(f".//geom[@name='tip_front_{side}']")
+        if spinning or welded_supports:
+            # Axle runs along chassis +Y. Keep identical cylinder endpoints in the chassis frame.
+            center = (
+                np.array([float(n) for n in geom.get("fromto").split()])
+                .reshape(2, 3)
+                .mean(axis=0)
+            )
+            carrier = ET.SubElement(body, "body", name=f"rotor_{side}")
+            wheel = src.find(f".//joint[@name='wheel_f{side}_joint']")
+            if spinning:
+                ET.SubElement(
+                    carrier,
+                    "joint",
+                    name=f"spin_{side}",
+                    type="hinge",
+                    pos=" ".join(map(str, center)),
+                    axis="0 1 0",
+                    armature=wheel.get("armature"),
+                )
+            ET.SubElement(
+                carrier,
+                "inertial",
+                pos=" ".join(map(str, center)),
+                mass="0.002",
+                diaginertia="1e-7 2e-7 1e-7",
+            )
+            carrier.append(geom)
+        else:
+            body.append(geom)
     body.append(src.find(".//body[@name='lift_arm']"))
     world.append(src.find(".//body[@name='cube']"))
     ET.SubElement(scene, "equality").append(src.find(".//joint[@name='lift_level']"))
@@ -52,9 +81,13 @@ def replay(
     path_override=None,
     trials=TRIALS,
     packet_observer=None,
+    wheel_inputs=None,
+    welded_supports=False,
 ):
     v, d, s = m._load_model_config()
-    model = build(v, d, s)
+    model = build(
+        v, d, s, spinning=wheel_inputs is not None, welded_supports=welded_supports
+    )
     if unloaded:
         # Keep gravity and linkage dynamics but disable all cube contacts.
         cube_geoms = model.geom_bodyid == model.body("cube").id
@@ -114,7 +147,21 @@ def replay(
                 target = np.clip(
                     angle + lead_s * velocity, *model.actuator_ctrlrange[0]
                 )
+            if wheel_inputs is not None:
+                wheel_rows = wheel_inputs[wheel_inputs["trial"] == name]
+                assert np.array_equal(wheel_rows["t_s"], robot["t_s"])
+                rates = []
+                for side, field in (("l", "left_mmps"), ("r", "right_mmps")):
+                    radius_mm = 1000 * model.geom(f"tip_front_{side}").size[0]
+                    rates.append(
+                        np.interp(t, wheel_rows["t_s"], wheel_rows[field]) / radius_mm
+                    )
             for i, cmd in enumerate(target):
+                if wheel_inputs is not None:
+                    for side, rate in zip(("l", "r"), rates):
+                        joint = data.joint(f"spin_{side}")
+                        joint.qpos[0] = 0  # rotationally symmetric surface
+                        joint.qvel[0] = rate[i]
                 m._apply_drive(
                     model, data, "freejoint", tg, buf, i, min(i + 1, len(t) - 1), dt
                 )
