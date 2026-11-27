@@ -322,3 +322,18 @@ test("nomad_capture_goal, nomad_explore, and nomad_navigate run cleanly in Progr
     sim.dispose();
   }
 });
+
+test("a page program can time one head move and return at default speed", async () => {
+  const sim = await makeSim();
+  try {
+    const run = await runInPage(sim, "await robot.set_head_angle(30, null, 1.4); await robot.set_head_angle(0);");
+    assert.equal(run.status, "finished", JSON.stringify(run.log));
+    const [timed, normal] = actionsOf(run.replies);
+    assert.equal(timed.result, "completed");
+    assert.equal(normal.result, "completed");
+    assert.ok(timed.ticks * sim.dt > 1.2);
+    assert.ok(normal.ticks * sim.dt < 1.0);
+  } finally {
+    sim.dispose();
+  }
+});

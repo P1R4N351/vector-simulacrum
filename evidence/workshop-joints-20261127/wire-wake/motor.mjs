@@ -25,7 +25,6 @@ for (const path of paths) {
       for (let i=0; i*sim.dt<=8.01; i++) {
         const t = i*sim.dt;
         if (!issued && tr.cue !== null && t >= tr.cue) {
-          sim._headAccel = values.head_accel_default_radps2;
           if (!sim.setHeadAngle(22)) throw Error("SDK raise refused");
           issued = waiting = true;
         }
@@ -33,16 +32,8 @@ for (const path of paths) {
         while (next < frames.length && t >= frames[next].triggerTime_ms/1000) {
           const f = frames[next++];
           if (mode === "no-clip" || !(tr.start.flags & 1024) || waiting || sim.actionRunning) continue;
-          if (!sim.commandHeadAngle(f.angle_deg)) throw Error("Animation refused");
-          if (mode === "timed") {
-            const span = Math.abs(sim._headTarget-sim.headCommandRad);
-            const duration = f.durationTime_ms/1000;
-            if (span > 0) {
-              const peak = span/(.9*duration);
-              sim._headSpeed = Math.min(values.head_speed_max_radps,peak);
-              sim._headAccel = Math.min(10000,peak/(.1*duration));
-            }
-          }
+          const duration = mode === "timed" ? f.durationTime_ms/1000 : 0;
+          if (!sim.commandHeadAngle(f.angle_deg,duration)) throw Error("Animation refused");
         }
         const state = sim.state;
         if (!sim.chargerContact) throw Error("Lost platform");

@@ -800,14 +800,27 @@ class VectorSim:
             self._tick_once()
         self._in_action = True
 
-    def command_head_angle(self, angle_deg: float) -> bool:
+    def _start_head(self, angle_deg: float, speed_radps: Optional[float], duration_s: float) -> None:
+        assert math.isfinite(duration_s) and duration_s >= 0.0, "bad head duration"
+        v = self.v
+        target = math.radians(_clamp(angle_deg, v["head_angle_min_deg"], v["head_angle_max_deg"]))
+        self._head_speed = abs(speed_radps) if speed_radps else v["head_speed_default_radps"]
+        self._head_accel = v["head_accel_default_radps2"]
+        self._servo_rate[0] = 0.0
+        span = abs(target - self._head_cmd)
+        if duration_s > 0 and span > 0:
+            # WireOS allocates a tenth of the requested duration to each velocity ramp.
+            peak = span / (0.9 * duration_s)
+            self._head_speed = min(v["head_speed_max_radps"], peak)
+            self._head_accel = min(10000.0, peak / (0.1 * duration_s))
+        self._set_head_target(target)
+
+    def command_head_angle(self, angle_deg: float, duration_s: float = 0.0) -> bool:
         """Set the head target and return at once (set_head_angle waits for the head)."""
         assert math.isfinite(angle_deg), "bad head angle"
         if not self.has_control:
             return False
-        v = self.v
-        self._head_speed, self._servo_rate[0] = v["head_speed_default_radps"], 0.0
-        self._set_head_target(math.radians(_clamp(angle_deg, v["head_angle_min_deg"], v["head_angle_max_deg"])))
+        self._start_head(angle_deg, None, duration_s)
         return True
 
     def _start_lift(self, height_mm: float, speed_radps: Optional[float], duration_s: float) -> None:
@@ -930,17 +943,15 @@ class VectorSim:
         return ActionResult(result, math.hypot(x - start[0], y - start[1]),
                             math.degrees(self._yaw_total - yaw0), self.tick - tick0)
 
-    def set_head_angle(self, angle_deg: float, speed_radps: Optional[float] = None) -> ActionResult:
+    def set_head_angle(self, angle_deg: float, speed_radps: Optional[float] = None, duration_s: float = 0.0) -> ActionResult:
         """Tilt the head; the angle is clamped to the robot's range."""
         assert math.isfinite(angle_deg), "bad head angle"
         if not self.has_control:
             return ActionResult(RESULT_NO_CONTROL, 0.0, 0.0, 0)
         v = self.v
-        self._head_speed = abs(speed_radps) if speed_radps else v["head_speed_default_radps"]
-        self._servo_rate[0] = 0.0
-        target = math.radians(_clamp(angle_deg, v["head_angle_min_deg"], v["head_angle_max_deg"]))
+        self._start_head(angle_deg, speed_radps, duration_s)
+        target = self._head_target
         span = abs(target - self.head_angle_rad())
-        self._set_head_target(target)
         tol = math.radians(v["head_angle_tol_deg"])
         assert tol > 0.0, "head tolerance must be positive"
 

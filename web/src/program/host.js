@@ -46,7 +46,10 @@ const CALLS = {
     number("drive_straight", "distance_mm", d), number("drive_straight", "speed_mmps", s, { positive: true }))) },
   turn_in_place: { args: 2, start: (h, [a, s]) => h._action(() => h.sim.turnInPlace(
     number("turn_in_place", "angle_deg", a), number("turn_in_place", "speed_dps", s, { positive: true, optional: true }))) },
-  set_head_angle: { args: 1, start: (h, [a]) => h._action(() => h.sim.setHeadAngle(number("set_head_angle", "angle_deg", a))) },
+  set_head_angle: { args: 3, start: (h, [a, speed, duration]) => h._action(() => h.sim.setHeadAngle(
+    number("set_head_angle", "angle_deg", a),
+    number("set_head_angle", "speed_radps", speed, { positive: true, optional: true }),
+    number("set_head_angle", "duration_s", duration, { optional: true }) ?? 0)) },
   // As the SDK: 0.0 is the bottom of the lift's travel and 1.0 the top, linear in height.
   set_lift_height: { args: 1, start: (h, [x]) => h._action(() => h.sim.setLiftHeight(h.liftMmOf(number("set_lift_height", "height", x)))) },
   set_wheel_motors: {
