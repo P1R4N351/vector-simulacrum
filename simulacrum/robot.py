@@ -427,10 +427,16 @@ class VectorSim:
         rest), so applying them after it is the same; the noise is the robot's output noise as recorded."""
         v, gauss, out = self.v, self._noise.gauss, self._imu_filter.output
         mg = 0.001 * v["gravity_mmps2"]
-        a_max = v["accel_range_g"] * v["gravity_mmps2"]
+        # Stock HAL converts the signed chip word using MAX_16BIT_POSITIVE.
+        accel_step = v["accel_range_g"] * 9810.0 / 32767
         g_max = math.radians(v["gyro_range_dps"])
-        accel = tuple(_clamp(float(out[i]) / mjcf.MM * v["accel_scale"][i] + mg * v["accel_bias_mg"][i]
-                             + gauss(0.0, mg * v["accel_noise_rms_mg"]), -a_max, a_max) for i in range(3))
+        accel_axes = []
+        for i in range(3):
+            value = (float(out[i]) / mjcf.MM * v["accel_scale"][i] + mg * v["accel_bias_mg"][i]
+                             + gauss(0.0, mg * v["accel_noise_rms_mg"]))
+            count = _clamp(math.floor(value / accel_step + 0.5), -32768, 32767)
+            accel_axes.append(count * accel_step)
+        accel = tuple(accel_axes)
         # Stock corrects the Z chip sensitivity by 0.989; true simulated rates
         # are already in corrected units. Only the reported count spacing changes.
         gyro_axes = []
