@@ -16,11 +16,28 @@ for (const line of lines) {
 }
 const mj = await mujoco();
 const model = readJson("public/robot/vector2/model.json");
-const scene = readText("public/robot/vector2/vector-free-dock.xml");
+let scene = readText("public/robot/vector2/vector-free-dock.xml");
+const relaxation = process.env.VECTOR_SPIN_RELAX_MS;
+if (relaxation !== undefined) {
+  const ms = Number(relaxation);
+  if (![2,4,6,8,12,16].includes(ms)) throw Error("Unexpected contact relaxation");
+  let changed = 0;
+  scene = scene.replace(/<geom name="(?:wheel_[fr][lr]_geom|tip_(?:front|rear)_[lr])"[^>]*\/>/g, geom => {
+    if (!geom.includes('solref="0.004 1"')) throw Error("Unexpected default contact");
+    changed++;
+    return geom.replace('solref="0.004 1"', `solref="${ms/1000} 1"`);
+  });
+  if (changed !== 8) throw Error("Tread contact coverage changed");
+}
+const stepMs = Number(process.env.VECTOR_SPIN_STEP_MS ?? 1);
+if (![0.25,0.5,1].includes(stepMs)) throw Error("Unexpected integration step");
+if (stepMs !== 1) {
+  scene = scene.replace('timestep="0.001"', `timestep="${stepMs/1000}"`);
+}
 const solverRows = ["spin,ms,raw_gx,raw_gy,raw_gz,head_rad"];
 const axesTest = process.argv.includes("--axes");
 const travelTest = process.argv.includes("--travel");
-const variants = axesTest ? ["canonical", "shaft_count_position"] : travelTest ? ["canonical", "shaft_reported", "shaft_counts", "shaft_count_position"] :
+const variants = relaxation !== undefined ? ["canonical"] : axesTest ? ["canonical", "shaft_count_position"] : travelTest ? ["canonical", "shaft_reported", "shaft_counts", "shaft_count_position"] :
   ["canonical", "driven_rear_envelope", "canonical_no_queue", "driven_rear_envelope_no_queue"];
 // Factory encoder conversion shared with replay_native_stops.py.
 const countMm = 0.96 * 29 * 0.25 * Math.PI / 172.3;
@@ -32,12 +49,12 @@ for (const [name, samples] of turns) {
   for (const variant of variants) {
     const shaft = variant.startsWith("shaft_");
     const sim = new VectorSim(mj, {xml: shaft ? shaftScene : rearEnvelope(scene, variant.replace("_no_queue", "")), values: model.values,
-      derived: model.derived, startXyMm: [0, 140], headingDeg: 0,
+      derived: {...model.derived, substeps:model.derived.substeps/stepMs}, startXyMm: [0, 140], headingDeg: 0,
       headDeg: samples[0].head_rad * 180 / Math.PI, liftMm: (travelTest || axesTest) ? 30.64501190185547 : 32.7, noiseSeed: 1});
     try {
       sim.controlLevel = "override";
       if (variant.endsWith("_no_queue")) sim._wheelDelay = 0;
-      if (axesTest && variant === "canonical") {
+      if (axesTest && relaxation === undefined && variant === "canonical") {
         let n = 0;
         const update = sim._imuFilter.update.bind(sim._imuFilter);
         sim._imuFilter.update = raw => {
@@ -82,4 +99,4 @@ for (const [name, samples] of turns) {
   }
 }
 
-if (axesTest) writeFileSync(new URL("native-solver-trace.csv",import.meta.url), solverRows.join("\n"));
+if (axesTest && relaxation === undefined) writeFileSync(new URL("native-solver-trace.csv",import.meta.url), solverRows.join("\n"));
