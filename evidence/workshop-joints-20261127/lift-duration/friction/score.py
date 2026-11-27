@@ -11,9 +11,9 @@ def read(path):
     with path.open() as f:
         return list(csv.DictReader(f))
 
-def evaluate(session, torque, prefix):
+def evaluate(session, torque, prefix, output=None):
     src=here.parent/session
-    out=src if torque=="0" else here/f"{prefix}-{torque}"
+    out=output if output is not None else (src if torque=="0" else here/f"{prefix}-{torque}")
     events=read(src/"recording.csv")
     real=[r for r in events if r["event"]=="state"]
     replay=read(out/"replay.csv")
