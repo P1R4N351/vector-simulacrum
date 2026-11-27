@@ -30,3 +30,5 @@ Scores use the native sample times, from the first packet through +400 ms relati
 [Tread compliance and integration-step sensitivity](relaxation.md)
 
 [Shaft-position periodicity and wheel-circumference controls](shaft-phase.md)
+
+[Hardware edge timer and braking speed reconstruction](edge-clock.md)
