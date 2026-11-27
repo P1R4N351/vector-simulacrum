@@ -140,3 +140,5 @@ The accelerometer site is assumed to be at the cube center. Repeated the identic
 [Final packet directions and optical settling interval](final-direction.md)
 
 [Free edge-release thresholds and timing](edge-release.md)
+
+[Terminal camera landmarks and pivot uncertainty](terminal-landmarks.md)
