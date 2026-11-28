@@ -334,7 +334,7 @@ export class RescueController {
     }
     const spd = ctx.subPhase === "approach" ? 40 : (ctx.subPhase === "lower" ? 0 : -40);
     const drv = treadDrive(v, data.qvel[this._dofWheelFl], spd);
-    const lift = ctx.subPhase === "approach" ? ctx.liftHi : ctx.liftLo;
+    const lift = ctx.subPhase === "approach" ? ctx.liftHi : (ctx.subPhase === "lower" ? 0 : ctx.liftLo);
     this.sim._rescueCtrl = { left: drv, right: drv, lift, patientLift: ctx.liftLo };
     ctx.stageTicks += 1;
     return false;

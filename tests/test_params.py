@@ -27,7 +27,7 @@ class Vector2(unittest.TestCase):
             inherited_measurement = one[name]["provenance"] in ("measured", "fitted")
             self.assertEqual("inherited" in two[name], inherited_measurement, name)
             self.assertNotIn("inherited", one[name], name)
-        self.assertEqual(params.summary(self.two)["inherited"], 26)
+        self.assertEqual(params.summary(self.two)["inherited"], 27)
         self.assertEqual(self.two["robot"], "Digital Dream Labs Vector 2.0")
 
     def test_unit3_camera_uses_its_reported_intrinsics_at_stream_resolution(self) -> None:
@@ -81,7 +81,7 @@ class TableIsSound(unittest.TestCase):
 
     def test_counts_add_up_and_measured_and_fitted_cite_the_recording(self) -> None:
         counts = params.summary(self.doc)
-        self.assertEqual((counts["measured"], counts["fitted"], counts["assumed"], counts["chosen"]), (10, 19, 39, 9))
+        self.assertEqual((counts["measured"], counts["fitted"], counts["assumed"], counts["chosen"]), (10, 21, 38, 9))
         self.assertEqual(sum(counts[name] for name in params.PROVENANCE), counts["total"])
         self.assertGreater(counts["missing"], 0)
         for name, entry in self.doc["parameters"].items():
@@ -91,6 +91,7 @@ class TableIsSound(unittest.TestCase):
                 self.assertTrue("Fitted by fit_recording.py" in entry["source"]
                                 or "simulacrum/imu_fit.py" in entry["source"]
                                 or "simulacrum/motor_heat_fit.py" in entry["source"]
+                                or "simulacrum/prox.py" in entry["source"]
                                 or "simulacrum/prox_fit.py" in entry["source"]
                                 or "simulacrum/spin_fit.py" in entry["source"], name)
                 self.assertIn("low", entry, name)

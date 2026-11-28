@@ -10,7 +10,7 @@ import math
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import _common
 from simulacrum import params, wheelstand
@@ -21,13 +21,14 @@ DT = 0.06
 SCALE = 1.039  # the accelerometer read 1.039 g at rest; a common scale must cancel
 
 
-def reading(pitch_deg: float, roll_deg: float, head_rad: float) -> List[float]:
+def reading(pitch_deg: float, roll_deg: float, head_rad: float, scale_x: Optional[float] = None) -> List[float]:
     """What the head's accelerometer reads at rest for a body tilt, with the table's offsets and pitch."""
     th, ps = math.radians(pitch_deg), math.radians(roll_deg)
     ux, uy, uz = math.sin(th) * math.cos(ps), -math.sin(ps), math.cos(th) * math.cos(ps)
     a = head_rad + math.radians(V["imu_pitch_offset_deg"])
     g, mg = SCALE * V["gravity_mmps2"], 0.001 * V["gravity_mmps2"]
-    raw = (g * (ux * math.cos(a) + uz * math.sin(a)), g * uy, g * (-ux * math.sin(a) + uz * math.cos(a)))
+    kx = V["accel_scale"][0] if scale_x is None else scale_x
+    raw = (kx * g * (ux * math.cos(a) + uz * math.sin(a)), g * uy, g * (-ux * math.sin(a) + uz * math.cos(a)))
     return [raw[i] + mg * V["accel_bias_mg"][i] for i in range(3)]
 
 
@@ -133,7 +134,7 @@ class Tilt(unittest.TestCase):
         scaled = dict(V, accel_scale=[1.05, 1.0, 1.0])
         mg = 0.001 * V["gravity_mmps2"]
         for pitch, head in ((64.9, 0.0), (30.0, 0.35)):
-            raw = reading(pitch, 0.0, head)
+            raw = reading(pitch, 0.0, head, scale_x=1.0)
             row = {"accel": [(raw[0] - mg * V["accel_bias_mg"][0]) * 1.05 + mg * V["accel_bias_mg"][0], raw[1], raw[2]],
                    "head": head}
             self.assertAlmostEqual(wheelstand.tilt_deg(row, scaled)[0], pitch, delta=1e-6)

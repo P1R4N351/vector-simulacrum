@@ -36,13 +36,23 @@ export class ProxSensor {
   constructor(v, noiseSeed) {
     assert(v.tof_report_min_mm < v.tof_report_max_mm && v.tof_report_max_mm <= v.tof_range_max_mm, "report limits out of order");
     assert(v.tof_lift_occluding_min_mm < v.tof_lift_occluding_max_mm, "lift window is empty");
+    const beam = v.tof_lift_beam_window_mm ?? [v.tof_lift_occluding_min_mm, v.tof_lift_occluding_min_mm, v.tof_lift_occluding_max_mm, v.tof_lift_occluding_max_mm];
+    assert(beam.length === 4 && beam[0] <= beam[1] && beam[1] <= beam[2] && beam[2] <= beam[3], "lift beam window out of order");
     assert(v.tof_quality_at_100mm > 0 && v.tof_quality_distance_exponent < 0, "bad signal law");
     assert(v.tof_quality_floor < v.tof_quality_min, "the weak-signal floor must be below the threshold");
     this.v = v;
+    this._beam = beam.map(Number);
     this.rays = rayDirections(v);
     this._gauss = makeGauss(noiseSeed);
     this._clearNeeded = Math.max(1, Math.ceil(v.tof_lift_clear_ms / v.state_period_ms));
     this._clearCount = this._clearNeeded;
+  }
+
+  _liftBeamFraction(liftHeightMm) {
+    const [c0, f0, f1, c1] = this._beam;
+    if (liftHeightMm <= c0 || liftHeightMm >= c1) return 0;
+    if (liftHeightMm >= f0 && liftHeightMm <= f1) return 1;
+    return liftHeightMm < f0 ? (liftHeightMm - c0) / (f0 - c0) : (c1 - liftHeightMm) / (c1 - f1);
   }
 
   // In the beam between two heights; still counted in view until it has been out for a while.
@@ -80,8 +90,19 @@ export class ProxSensor {
   acquire(hits, liftHeightMm) {
     const v = this.v;
     assert(Number.isFinite(liftHeightMm), "lift height must be finite");
-    const inBeam = liftHeightMm >= v.tof_lift_occluding_min_mm && liftHeightMm <= v.tof_lift_occluding_max_mm;
-    let [quality, raw] = inBeam ? [v.tof_lift_quality, v.tof_lift_distance_mm] : this._signal(hits);
+    const frac = this._liftBeamFraction(liftHeightMm);
+    let quality, raw;
+    if (frac >= 1) {
+      [quality, raw] = [v.tof_lift_quality, v.tof_lift_distance_mm];
+    } else if (frac <= 0) {
+      [quality, raw] = this._signal(hits);
+    } else {
+      const [qScene, dScene] = this._signal(hits);
+      const qFork = frac * v.tof_lift_quality;
+      const qBg = (1 - frac) * qScene;
+      quality = qFork + qBg;
+      raw = quality > 0 ? (qFork * v.tof_lift_distance_mm + qBg * dScene) / quality : 0;
+    }
     if (quality <= v.tof_quality_min) {
       quality = Math.max(quality, v.tof_quality_floor);
       raw = this._gauss(v.tof_weak_distance_mm, v.tof_weak_distance_sd_mm);

@@ -64,13 +64,28 @@ class ProxSensor:
     def __init__(self, v: Dict[str, Any], noise_seed: int) -> None:
         assert v["tof_report_min_mm"] < v["tof_report_max_mm"] <= v["tof_range_max_mm"], "report limits out of order"
         assert v["tof_lift_occluding_min_mm"] < v["tof_lift_occluding_max_mm"], "lift window is empty"
+        beam = v.get("tof_lift_beam_window_mm", (v["tof_lift_occluding_min_mm"], v["tof_lift_occluding_min_mm"],
+                                                v["tof_lift_occluding_max_mm"], v["tof_lift_occluding_max_mm"]))
+        assert len(beam) == 4 and beam[0] <= beam[1] <= beam[2] <= beam[3], "lift beam window out of order"
         assert v["tof_quality_at_100mm"] > 0.0 and v["tof_quality_distance_exponent"] < 0.0, "bad signal law"
         assert v["tof_quality_floor"] < v["tof_quality_min"], "the weak-signal floor must be below the threshold"
         self.v = v
+        self._beam = tuple(float(x) for x in beam)
         self.rays = ray_directions(v)
         self._noise = random.Random(noise_seed)
         self._clear_needed = max(1, int(math.ceil(v["tof_lift_clear_ms"] / v["state_period_ms"])))
         self._clear_count = self._clear_needed
+
+    def _lift_beam_fraction(self, lift_height_mm: float) -> float:
+        """Fraction of the optical ToF beam intercepted by the fork crossbar."""
+        c0, f0, f1, c1 = self._beam
+        if lift_height_mm <= c0 or lift_height_mm >= c1:
+            return 0.0
+        if f0 <= lift_height_mm <= f1:
+            return 1.0
+        if lift_height_mm < f0:
+            return (lift_height_mm - c0) / (f0 - c0)
+        return (c1 - lift_height_mm) / (c1 - f1)
 
     def _lift_in_view(self, lift_height_mm: float) -> bool:
         """In the beam between two heights; still counted in view until it has been out for a while."""
@@ -104,11 +119,16 @@ class ProxSensor:
         """Sample signal quality and raw range on the body clock."""
         v = self.v
         assert math.isfinite(lift_height_mm), "lift height must be finite"
-        in_beam = v["tof_lift_occluding_min_mm"] <= lift_height_mm <= v["tof_lift_occluding_max_mm"]
-        if in_beam:
+        frac = self._lift_beam_fraction(lift_height_mm)
+        if frac >= 1.0:
             quality, raw = v["tof_lift_quality"], v["tof_lift_distance_mm"]
-        else:
+        elif frac <= 0.0:
             quality, raw = self._signal(hits)
+        else:
+            q_scene, d_scene = self._signal(hits)
+            q_fork, q_bg = frac * v["tof_lift_quality"], (1.0 - frac) * q_scene
+            quality = q_fork + q_bg
+            raw = (q_fork * v["tof_lift_distance_mm"] + q_bg * d_scene) / quality if quality > 0.0 else 0.0
         if quality <= v["tof_quality_min"]:
             quality = max(quality, v["tof_quality_floor"])
             raw = self._noise.gauss(v["tof_weak_distance_mm"], v["tof_weak_distance_sd_mm"])

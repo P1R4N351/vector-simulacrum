@@ -46,21 +46,21 @@
  ],
  "derived": {
   "chassis_com_mm": [
-   -30.353027405651037,
+   -30.35514578758023,
    0.0,
-   15.5125
+   15.513462820940314
   ],
-  "chassis_height_mm": 26.0,
+  "chassis_height_mm": 24.7,
   "chassis_inertia": [
-   1.7128400000000007e-05,
-   4.397e-05,
-   4.7578400000000005e-05
+   1.6463810233333335e-05,
+   4.329646303333333e-05,
+   4.756254053333333e-05
   ],
   "lift_angle_max": 0.7925150244593042,
   "lift_angle_min": -0.1982661014310845,
   "masses_g": {
    "arm": 6.0,
-   "chassis": 120.0,
+   "chassis": 119.96,
    "fork": 6.0,
    "head": 30.0,
    "wheel": 2.0
@@ -81,7 +81,7 @@
  "provenance_counts": {
   "assumed": 36,
   "chosen": 9,
-  "fitted": 23,
+  "fitted": 24,
   "manual": 14,
   "measured": 11,
   "sdk": 105
@@ -122,19 +122,19 @@
   ]
  ],
  "source": {
-  "table_sha256": "664dd0fb037a20d11d9a7daf5878087e5b943ae282daf80b0a46c6c67bce922d",
-  "trial_xml_sha256": "fb640604a604b286784cebd58cfaea06f1010425dee61cb352e01850a114e03e",
-  "vector-contact42-dock_sha256": "92343063e77137721240aa1687afee13aa80113c530fd167cfafb12efcfbfc3e",
-  "vector-contact42-free-dock_sha256": "632ffa10e2eed6a2a66747c21948eb847ad5d9e048a0f092bf727d80692bb942",
-  "vector-contact42-free-shelf_sha256": "6a0710434fe50af638ecb184a7ec2fc449469710d2362689afa32daa41c6d087",
-  "vector-contact42-free_sha256": "40a641a3c800fb9da46044037108293fd00ede26fe5f2d761c2e4f78e1096d2a",
-  "vector-dock_sha256": "2f84b974972e07e5a76dcbb53cbe93f42ba7f976912a036d66bfd1513e28a397",
-  "vector-free-dock_sha256": "74eebcb9eabca07668798743b796e2a166a1342aad5c43cb6cc2f9a2f99499ff",
-  "vector-free-shelf_sha256": "b139a544bc5e1b39cb5f4a6562038e7cfd1251d5e894d035d36520569b7b568f",
-  "vector-free_sha256": "967e7cdef547eba71977f9aac3d597d610619578160e0a322896377edf6d7d2d",
-  "vector-rescue-free_sha256": "6b9ff1959987b9f95340d488712e480fa2572ce13ed7760d332df4dab2a8b7e9",
-  "vector-rescue_sha256": "b227a4ddc3194bf5e09d5a96a24d73b8aa0112d0ca2b9e6f9abad286cc0f0eb5",
-  "xml_sha256": "32f9bfaf36d0df0aaf66a3305a549c4b2912725a351023cb396115e7921d3cee"
+  "table_sha256": "9ffc4d360a15a8085441443df4faacd39cf27c0658ce570e8b06345ae4e3206a",
+  "trial_xml_sha256": "d068e835fe189bf8b7c68405622b9e87e8bac57b7d16cd1e890e9e7272e5b3db",
+  "vector-contact42-dock_sha256": "6e2568d59d4c7fb0448d74055293a75770baa1a36f1a331fed9032ccefef1aff",
+  "vector-contact42-free-dock_sha256": "6f299469c700b4861084cc3e1cd18b7be6f488f55404a8cb79b9073a71fdef96",
+  "vector-contact42-free-shelf_sha256": "80e4bc63ddbbd135cd17c84a9f7dabc45dcef149b198a7995f5ddbd9621bf32a",
+  "vector-contact42-free_sha256": "754ebff98a03f1fbb4263c9e91e4e34561760103edaa67eb51a8d0e1b7f6e3e6",
+  "vector-dock_sha256": "e4709228ad37ceb1384083475011fb0192f3dfd22af30839d09edf8fa0f4a81f",
+  "vector-free-dock_sha256": "5b3bea9cbce2e2fd9f96045a1065513ab23d2bd8398f6679dee3f7003a6d5bfa",
+  "vector-free-shelf_sha256": "abb3bcff6c7aa42e351917456b3b8cd7038deef95b0bb0f2a7abd203560af154",
+  "vector-free_sha256": "f93ddd5adf0bcd0afd762955a47a6a897617628300aa04be1d856931ec8d2ad1",
+  "vector-rescue-free_sha256": "3a6a72602235d8a1a9858bd4725dcb5a7225407892a3c13e85af07c79cd3649d",
+  "vector-rescue_sha256": "205f0eab14f22abf9b0225cd786735ca276b5840978a8227704a4a8238a94388",
+  "xml_sha256": "4bfad94e1f6b6366d40012538df079bc1b623413268a21ea3ca7472dc4934a74"
  },
  "values": {
   "accel_bias_mg": [
@@ -164,7 +164,7 @@
   ],
   "chassis_center_x_mm": -17.5,
   "chassis_friction": 0.3,
-  "chassis_ground_clearance_mm": 1.2,
+  "chassis_ground_clearance_mm": 2.5,
   "chassis_length_mm": 61.0,
   "chassis_top_z_mm": 27.2,
   "chassis_width_mm": 32.2,
@@ -444,9 +444,15 @@
   "table_thickness_mm": 20.0,
   "table_width_mm": 600.0,
   "tip_support_clearance_mm": 0.3,
-  "tip_supports_driven": 0,
+  "tip_supports_driven": 1,
   "tof_found_pitch_limit_deg": 5.0,
   "tof_fov_deg": 25.0,
+  "tof_lift_beam_window_mm": [
+   37.5,
+   39.8,
+   46.0,
+   51.0
+  ],
   "tof_lift_clear_ms": 90.0,
   "tof_lift_distance_mm": 15.0,
   "tof_lift_occluding_max_mm": 56.0,
@@ -472,7 +478,7 @@
   "tof_weak_distance_sd_mm": 22.2,
   "total_mass_g": 170.0,
   "tread_center_spacing_mm": 47.9,
-  "tread_contact_inset_mm": 3.41,
+  "tread_contact_inset_mm": 3.5,
   "tread_friction": 0.9,
   "tread_friction_power_fraction": 0.1573,
   "tread_heat_loss_rate_per_s": [

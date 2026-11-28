@@ -8,30 +8,42 @@
     <geom name="table" type="box" pos="0 0 -0.01" size="0.3 0.3 0.01" contype="0" conaffinity="7" rgba="0.8 0.7 0.55 1" />
     <body name="chassis" pos="0 0 0">
       <freejoint name="root" />
-      <inertial pos="-0.0303530274 0 0.0155125" mass="0.12" diaginertia="1.71284e-05 4.397e-05 4.75784e-05" />
-      <geom name="chassis_geom" type="box" pos="-0.0175 0 0.0142" size="0.0305 0.0161 0.013" rgba="0.35 0.35 0.4 1" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
-      <geom name="tip_front_l" type="cylinder" fromto="0 0.0182 0.0145 0 0.0297 0.0145" size="0.0142" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
-      <geom name="tip_front_r" type="cylinder" fromto="0 -0.0297 0.0145 0 -0.0182 0.0145" size="0.0142" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
-      <geom name="tip_rear_l" type="cylinder" fromto="-0.048 0.0182 0.01075 -0.048 0.0297 0.01075" size="0.01045" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
-      <geom name="tip_rear_r" type="cylinder" fromto="-0.048 -0.0297 0.01075 -0.048 -0.0182 0.01075" size="0.01045" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      <inertial pos="-0.0303551458 0 0.0155134628" mass="0.11996" diaginertia="1.64638102e-05 4.3296463e-05 4.75625405e-05" />
+      <geom name="chassis_geom" type="box" pos="-0.0175 0 0.01485" size="0.0305 0.0161 0.01235" rgba="0.35 0.35 0.4 1" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+      <body name="tip_front_l_body" pos="0 0.02395 0.0145">
+        <joint name="tip_front_l_joint" type="hinge" axis="0 1 0" armature="1e-09" />
+        <geom name="tip_front_l" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0142" mass="1e-05" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="tip_front_r_body" pos="0 -0.02395 0.0145">
+        <joint name="tip_front_r_joint" type="hinge" axis="0 1 0" armature="1e-09" />
+        <geom name="tip_front_r" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0142" mass="1e-05" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="tip_rear_l_body" pos="-0.048 0.02395 0.01075">
+        <joint name="tip_rear_l_joint" type="hinge" axis="0 1 0" armature="1e-09" />
+        <geom name="tip_rear_l" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01045" mass="1e-05" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="tip_rear_r_body" pos="-0.048 -0.02395 0.01075">
+        <joint name="tip_rear_r_joint" type="hinge" axis="0 1 0" armature="1e-09" />
+        <geom name="tip_rear_r" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01045" mass="1e-05" rgba="0.15 0.15 0.15 0.3" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
       <site name="cliff_front_left" pos="0.002 0.014 0.008" zaxis="0 0 -1" size="0.001" />
       <site name="cliff_front_right" pos="0.002 -0.014 0.008" zaxis="0 0 -1" size="0.001" />
       <site name="cliff_back_left" pos="-0.05 0.014 0.008" zaxis="0 0 -1" size="0.001" />
       <site name="cliff_back_right" pos="-0.05 -0.014 0.008" zaxis="0 0 -1" size="0.001" />
       <site name="tof" pos="0.01 0 0.016" zaxis="0.993571856 0 0.113203214" size="0.001" />
-      <body name="wheel_fl" pos="-0.00341 0.02395 0.0145">
+      <body name="wheel_fl" pos="-0.0035 0.02395 0.0145">
         <joint name="wheel_fl_joint" type="hinge" axis="0 1 0" armature="0.000238" solreffriction="0.005 1" frictionloss="0.024578125" />
         <geom name="wheel_fl_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0145" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
       </body>
-      <body name="wheel_fr" pos="-0.00341 -0.02395 0.0145">
+      <body name="wheel_fr" pos="-0.0035 -0.02395 0.0145">
         <joint name="wheel_fr_joint" type="hinge" axis="0 1 0" armature="0.000238" solreffriction="0.005 1" frictionloss="0.024578125" />
         <geom name="wheel_fr_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0145" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
       </body>
-      <body name="wheel_rl" pos="-0.04459 0.02395 0.01075">
+      <body name="wheel_rl" pos="-0.0445 0.02395 0.01075">
         <joint name="wheel_rl_joint" type="hinge" axis="0 1 0" armature="0.000238" />
         <geom name="wheel_rl_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01075" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
       </body>
-      <body name="wheel_rr" pos="-0.04459 -0.02395 0.01075">
+      <body name="wheel_rr" pos="-0.0445 -0.02395 0.01075">
         <joint name="wheel_rr_joint" type="hinge" axis="0 1 0" armature="0.000238" />
         <geom name="wheel_rr_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01075" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
       </body>
@@ -39,7 +51,7 @@
         <joint name="head_joint" type="hinge" axis="0 -1 0" range="-0.383972435 0.785398163" armature="5e-06" />
         <geom name="head_geom" type="box" pos="0.0015 0 0.001" size="0.01985 0.0232 0.0194" mass="0.03" rgba="0.25 0.25 0.3 1" group="1" contype="1" conaffinity="6" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
         <camera name="head_cam" pos="0.01884 0 -0.00796" xyaxes="0 -1 0 0.0697564737 0 0.99756405" fovy="50" resolution="640 360" />
-        <site name="imu" pos="0.0058 0 -0.0135" quat="0.999983414 0 0.00575955469 0" size="0.001" />
+        <site name="imu" pos="0.0058 0 -0.0135" quat="0.999986745 0 0.00514869855 0" size="0.001" />
       </body>
       <body name="lift_arm" pos="-0.041 0 0.045">
         <joint name="lift_joint" type="hinge" axis="0 -1 0" range="-0.198266101 0.792515024" armature="5e-06" />
@@ -186,30 +198,42 @@
     </body>
     <body name="patient_chassis" pos="0 0 0">
       <freejoint name="patient_root" />
-      <inertial pos="-0.0303530274 0 0.0155125" mass="0.12" diaginertia="1.71284e-05 4.397e-05 4.75784e-05" />
-      <geom name="patient_chassis_geom" type="box" pos="-0.0175 0 0.0142" size="0.0305 0.0161 0.013" rgba="0.35 0.35 0.4 1" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
-      <geom name="patient_tip_front_l" type="cylinder" fromto="0 0.0182 0.0145 0 0.0297 0.0145" size="0.0142" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
-      <geom name="patient_tip_front_r" type="cylinder" fromto="0 -0.0297 0.0145 0 -0.0182 0.0145" size="0.0142" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
-      <geom name="patient_tip_rear_l" type="cylinder" fromto="-0.048 0.0182 0.01075 -0.048 0.0297 0.01075" size="0.01045" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
-      <geom name="patient_tip_rear_r" type="cylinder" fromto="-0.048 -0.0297 0.01075 -0.048 -0.0182 0.01075" size="0.01045" mass="0" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      <inertial pos="-0.0303551458 0 0.0155134628" mass="0.11996" diaginertia="1.64638102e-05 4.3296463e-05 4.75625405e-05" />
+      <geom name="patient_chassis_geom" type="box" pos="-0.0175 0 0.01485" size="0.0305 0.0161 0.01235" rgba="0.35 0.35 0.4 1" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
+      <body name="patient_tip_front_l_body" pos="0 0.02395 0.0145">
+        <joint name="patient_tip_front_l_joint" type="hinge" axis="0 1 0" armature="1e-09" />
+        <geom name="patient_tip_front_l" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0142" mass="1e-05" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="patient_tip_front_r_body" pos="0 -0.02395 0.0145">
+        <joint name="patient_tip_front_r_joint" type="hinge" axis="0 1 0" armature="1e-09" />
+        <geom name="patient_tip_front_r" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0142" mass="1e-05" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="patient_tip_rear_l_body" pos="-0.048 0.02395 0.01075">
+        <joint name="patient_tip_rear_l_joint" type="hinge" axis="0 1 0" armature="1e-09" />
+        <geom name="patient_tip_rear_l" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01045" mass="1e-05" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
+      <body name="patient_tip_rear_r_body" pos="-0.048 -0.02395 0.01075">
+        <joint name="patient_tip_rear_r_joint" type="hinge" axis="0 1 0" armature="1e-09" />
+        <geom name="patient_tip_rear_r" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01045" mass="1e-05" rgba="0.15 0.15 0.15 0.3" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
+      </body>
       <site name="patient_cliff_front_left" pos="0.002 0.014 0.008" zaxis="0 0 -1" size="0.001" />
       <site name="patient_cliff_front_right" pos="0.002 -0.014 0.008" zaxis="0 0 -1" size="0.001" />
       <site name="patient_cliff_back_left" pos="-0.05 0.014 0.008" zaxis="0 0 -1" size="0.001" />
       <site name="patient_cliff_back_right" pos="-0.05 -0.014 0.008" zaxis="0 0 -1" size="0.001" />
       <site name="patient_tof" pos="0.01 0 0.016" zaxis="0.993571856 0 0.113203214" size="0.001" />
-      <body name="patient_wheel_fl" pos="-0.00341 0.02395 0.0145">
+      <body name="patient_wheel_fl" pos="-0.0035 0.02395 0.0145">
         <joint name="patient_wheel_fl_joint" type="hinge" axis="0 1 0" armature="0.000238" solreffriction="0.005 1" frictionloss="0.024578125" />
         <geom name="patient_wheel_fl_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0145" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
       </body>
-      <body name="patient_wheel_fr" pos="-0.00341 -0.02395 0.0145">
+      <body name="patient_wheel_fr" pos="-0.0035 -0.02395 0.0145">
         <joint name="patient_wheel_fr_joint" type="hinge" axis="0 1 0" armature="0.000238" solreffriction="0.005 1" frictionloss="0.024578125" />
         <geom name="patient_wheel_fr_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.0145" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
       </body>
-      <body name="patient_wheel_rl" pos="-0.04459 0.02395 0.01075">
+      <body name="patient_wheel_rl" pos="-0.0445 0.02395 0.01075">
         <joint name="patient_wheel_rl_joint" type="hinge" axis="0 1 0" armature="0.000238" />
         <geom name="patient_wheel_rl_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01075" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
       </body>
-      <body name="patient_wheel_rr" pos="-0.04459 -0.02395 0.01075">
+      <body name="patient_wheel_rr" pos="-0.0445 -0.02395 0.01075">
         <joint name="patient_wheel_rr_joint" type="hinge" axis="0 1 0" armature="0.000238" />
         <geom name="patient_wheel_rr_geom" type="cylinder" fromto="0 -0.00575 0 0 0.00575 0" size="0.01075" mass="0.002" rgba="0.15 0.15 0.15 1" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.9 0.005 0.0001" solref="0.004 1" />
       </body>
@@ -217,7 +241,7 @@
         <joint name="patient_head_joint" type="hinge" axis="0 -1 0" range="-0.383972435 0.785398163" armature="5e-06" />
         <geom name="patient_head_geom" type="box" pos="0.0015 0 0.001" size="0.01985 0.0232 0.0194" mass="0.03" rgba="0.25 0.25 0.3 1" group="1" contype="2" conaffinity="5" priority="1" condim="3" friction="0.3 0.005 0.0001" solref="0.004 1" />
         <camera name="patient_head_cam" pos="0.01884 0 -0.00796" xyaxes="0 -1 0 0.0697564737 0 0.99756405" fovy="50" resolution="640 360" />
-        <site name="patient_imu" pos="0.0058 0 -0.0135" quat="0.999983414 0 0.00575955469 0" size="0.001" />
+        <site name="patient_imu" pos="0.0058 0 -0.0135" quat="0.999986745 0 0.00514869855 0" size="0.001" />
       </body>
       <body name="patient_lift_arm" pos="-0.041 0 0.045">
         <joint name="patient_lift_joint" type="hinge" axis="0 -1 0" range="-0.198266101 0.792515024" armature="5e-06" />
@@ -259,9 +283,17 @@
     <joint name="left_tread" joint1="wheel_rl_joint" joint2="wheel_fl_joint" polycoef="0 1.34883721 0 0 0" solref="0.002 1" />
     <joint name="right_tread" joint1="wheel_rr_joint" joint2="wheel_fr_joint" polycoef="0 1.34883721 0 0 0" solref="0.002 1" />
     <joint name="lift_level" joint1="wrist_joint" joint2="lift_joint" polycoef="0 -1 0 0 0" solref="0.002 1" />
+    <joint name="tip_front_l_tread" joint1="tip_front_l_joint" joint2="wheel_fl_joint" polycoef="0 1.02112676 0 0 0" solref="0.002 1" />
+    <joint name="tip_front_r_tread" joint1="tip_front_r_joint" joint2="wheel_fr_joint" polycoef="0 1.02112676 0 0 0" solref="0.002 1" />
+    <joint name="tip_rear_l_tread" joint1="tip_rear_l_joint" joint2="wheel_fl_joint" polycoef="0 1.38755981 0 0 0" solref="0.002 1" />
+    <joint name="tip_rear_r_tread" joint1="tip_rear_r_joint" joint2="wheel_fr_joint" polycoef="0 1.38755981 0 0 0" solref="0.002 1" />
     <joint name="patient_left_tread" joint1="patient_wheel_rl_joint" joint2="patient_wheel_fl_joint" polycoef="0 1.34883721 0 0 0" solref="0.002 1" />
     <joint name="patient_right_tread" joint1="patient_wheel_rr_joint" joint2="patient_wheel_fr_joint" polycoef="0 1.34883721 0 0 0" solref="0.002 1" />
     <joint name="patient_lift_level" joint1="patient_wrist_joint" joint2="patient_lift_joint" polycoef="0 -1 0 0 0" solref="0.002 1" />
+    <joint name="patient_tip_front_l_tread" joint1="patient_tip_front_l_joint" joint2="patient_wheel_fl_joint" polycoef="0 1.02112676 0 0 0" solref="0.002 1" />
+    <joint name="patient_tip_front_r_tread" joint1="patient_tip_front_r_joint" joint2="patient_wheel_fr_joint" polycoef="0 1.02112676 0 0 0" solref="0.002 1" />
+    <joint name="patient_tip_rear_l_tread" joint1="patient_tip_rear_l_joint" joint2="patient_wheel_fl_joint" polycoef="0 1.38755981 0 0 0" solref="0.002 1" />
+    <joint name="patient_tip_rear_r_tread" joint1="patient_tip_rear_r_joint" joint2="patient_wheel_fr_joint" polycoef="0 1.38755981 0 0 0" solref="0.002 1" />
     <weld name="carry_weld" body1="lift_fork" body2="cube" relpose="0.0335 0 -0.0125 1 0 0 0" active="false" />
   </equality>
   <actuator>

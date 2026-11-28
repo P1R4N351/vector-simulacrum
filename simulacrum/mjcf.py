@@ -73,7 +73,8 @@ def _part_masses(v: Dict[str, Any]) -> Dict[str, float]:
     """Masses in grams. The chassis is what is left of the total."""
     arm = v["lift_mass_g"] * v["lift_arm_mass_fraction"]
     fork = v["lift_mass_g"] - arm
-    chassis = v["total_mass_g"] - v["head_mass_g"] - v["lift_mass_g"] - 4.0 * v["wheel_mass_g"]
+    tip = 0.04 if _tip_supports_driven(v) else 0.0
+    chassis = v["total_mass_g"] - v["head_mass_g"] - v["lift_mass_g"] - 4.0 * v["wheel_mass_g"] - tip
     assert chassis > 0.0, "part masses exceed the total mass"
     assert arm > 0.0 and fork > 0.0, "lift mass fraction must be inside 0..1"
     return {"chassis": chassis, "head": v["head_mass_g"], "arm": arm, "fork": fork, "wheel": v["wheel_mass_g"]}
@@ -111,8 +112,12 @@ def _moving_part_points(v: Dict[str, Any], lower_link_offset: Any = None) -> Lis
         (2.0 * m["wheel"], wheel_x_mm(v)[0], v["wheel_front_radius_mm"]),
         (2.0 * m["wheel"], wheel_x_mm(v)[1], v["wheel_rear_radius_mm"]),
     ]
+    if _tip_supports_driven(v):
+        points.append((0.02, 0.0, v["wheel_front_radius_mm"]))
+        points.append((0.02, -v["wheel_base_mm"], v["wheel_rear_radius_mm"]))
     assert all(p[0] > 0.0 for p in points), "non-positive part mass"
-    assert len(points) == (5 if lower_link_offset is None else 6), "part list changed"
+    expected_pts = (5 if lower_link_offset is None else 6) + (2 if _tip_supports_driven(v) else 0)
+    assert len(points) == expected_pts, "part list changed"
     return points
 
 

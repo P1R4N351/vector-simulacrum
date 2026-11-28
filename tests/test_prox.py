@@ -85,6 +85,15 @@ class Reporting(unittest.TestCase):
         self.assertEqual([r.found_object for r in after], [False] * (needed - 1) + [True, True])
         self.assertEqual(after[0].distance_mm, 100.0, "the reading itself is the wall's as soon as the lift is out")
 
+    def test_optical_occlusion_clears_band_edges_and_mixes_partial_returns(self) -> None:
+        for height in (35.5, 54.5):
+            edge = prox.ProxSensor(V, 0).read(wall(100.0), height, 0.0)
+            self.assertTrue(edge.is_lift_in_fov and not edge.found_object)
+            self.assertEqual(edge.distance_mm, 100.0)
+        far = prox.ProxSensor(V, 0).read(wall(200.0), 50.95, 0.0)
+        self.assertTrue(V["tof_report_min_mm"] < far.distance_mm < 200.0)
+        self.assertTrue(far.signal_quality > V["tof_quality_min"] and far.is_lift_in_fov and not far.found_object)
+
     def test_nothing_is_found_while_the_robot_is_pitched(self) -> None:
         limit = math.radians(V["tof_found_pitch_limit_deg"])
         for pitch, expected in ((0.0, True), (limit, True), (-limit, True), (limit + 0.01, False), (-limit - 0.01, False)):

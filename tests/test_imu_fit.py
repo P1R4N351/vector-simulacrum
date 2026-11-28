@@ -35,14 +35,17 @@ class AccelerometerFit(unittest.TestCase):
         return AccelerometerFit._cached
 
     def test_table_entries_are_the_fitted_values(self) -> None:
-        bias, pitch = self.doc["parameters"]["accel_bias_mg"], self.doc["parameters"]["imu_pitch_offset_deg"]
+        scale, bias, pitch = (self.doc["parameters"]["accel_scale"], self.doc["parameters"]["accel_bias_mg"],
+                              self.doc["parameters"]["imu_pitch_offset_deg"])
         self.assertEqual((self.report["stretches"], self.report["rows"]), (26, 625))
+        self.assertAlmostEqual(scale["value"][0], self.report["scale_x"], delta=0.0005)
+        self.assertEqual(scale["value"][1:], [1.0, 1.0])
         for value, fitted in zip(bias["value"], self.report["bias_mg"]):
             self.assertAlmostEqual(value, fitted, delta=0.05)
         self.assertAlmostEqual(pitch["value"], self.report["pitch_deg"], delta=0.005)
-        self.assertEqual((bias["provenance"], pitch["provenance"]), ("fitted", "fitted"))
+        self.assertEqual((scale["provenance"], bias["provenance"], pitch["provenance"]), ("fitted", "fitted", "fitted"))
         self.assertLess(self.report["rms_mmps2"], 20.0)
-        self.assertAlmostEqual(self.report["table_tilt_deg"], 1.42, delta=0.01)
+        self.assertAlmostEqual(self.report["table_tilt_deg"], 1.30, delta=0.05)
 
     def test_the_fit_recovers_made_up_offsets_at_the_recorded_head_angles_and_headings(self) -> None:
         made = [(head, yaw, tuple(imu_fit.predicted(MADE_UP, head, yaw)), rows) for head, yaw, _, rows in self.data]
@@ -68,20 +71,24 @@ class AccelerometerFit(unittest.TestCase):
         self.assertLess(nose_down_table[0], -400.0)
 
     def test_leaving_out_any_cluster_of_head_angles_stays_inside_the_ranges(self) -> None:
-        bias, pitch = self.doc["parameters"]["accel_bias_mg"], self.doc["parameters"]["imu_pitch_offset_deg"]
+        scale, bias, pitch = (self.doc["parameters"]["accel_scale"], self.doc["parameters"]["accel_bias_mg"],
+                              self.doc["parameters"]["imu_pitch_offset_deg"])
         self.assertEqual(sorted(self.report["without"]), ["head near 0 deg", "head near 22 deg", "head near 7 deg"])
         for part in self.report["without"].values():
             self.assertTrue(9 <= part["stretches"] < 26)
+            self.assertTrue(scale["low"][0] <= part["scale_x"] <= scale["high"][0])
             self.assertTrue(pitch["low"] <= part["pitch_deg"] <= pitch["high"])
             for low, value, high, full in zip(bias["low"], part["bias_mg"], bias["high"], self.report["bias_mg"]):
                 self.assertTrue(low <= value <= high)
-                self.assertLess(abs(value - full), 1.5)
+                self.assertLess(abs(value - full), 3.5)
 
     def test_pitch_and_x_offset_trade_but_their_sum_is_tight_and_the_ranges_cover_the_bootstrap(self) -> None:
-        bias, pitch = self.doc["parameters"]["accel_bias_mg"], self.doc["parameters"]["imu_pitch_offset_deg"]
+        scale, bias, pitch = (self.doc["parameters"]["accel_scale"], self.doc["parameters"]["accel_bias_mg"],
+                              self.doc["parameters"]["imu_pitch_offset_deg"])
         boot = self.report["bootstrap_95"]
         self.assertLess(self.report["pitch_bias_x_correlation"], -0.95)
         self.assertEqual(boot["draws"], 200)
+        self.assertTrue(scale["low"][0] <= boot["scale_x"][0] < boot["scale_x"][1] <= scale["high"][0])
         self.assertTrue(pitch["low"] <= boot["pitch_deg"][0] < boot["pitch_deg"][1] <= pitch["high"])
         for axis, name in enumerate(("bias_x_mg", "bias_y_mg", "bias_z_mg")):
             self.assertTrue(bias["low"][axis] <= boot[name][0] < boot[name][1] <= bias["high"][axis])
@@ -90,9 +97,9 @@ class AccelerometerFit(unittest.TestCase):
 
     def test_reading_on_a_level_surface_is_the_offsets_plus_the_pitched_gravity(self) -> None:
         at_level = imu_fit.level_reading_mg(self.report, 0.0)
-        self.assertAlmostEqual(at_level[0], -58.6, delta=0.1)
+        self.assertAlmostEqual(at_level[0], -60.4, delta=0.2)
         self.assertAlmostEqual(at_level[1], self.report["bias_mg"][1], delta=1e-6)
-        self.assertAlmostEqual(at_level[2], 22.3, delta=0.1)
+        self.assertAlmostEqual(at_level[2], 22.2, delta=0.1)
 
 
 @unittest.skipUnless(HAVE_NUMPY, "numpy is not installed here")

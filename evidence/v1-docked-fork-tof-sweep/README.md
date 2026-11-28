@@ -8,8 +8,8 @@ Both sleeping robots refresh IMU samples near `240 ms` and update the forward To
 
 | Recording | Packets | Phys fresh IMU (%) | Phys IMU dt (ms) | Phys accel X SD (mg) | Phys ToF updates | Phys ToF dt (ms) | Sim fresh IMU (%) | Sim X SD (mg) | Sim ToF updates |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `unit 1` (1.0, 20 s asleep) | 335 | 23.88 | 241.79 | 1.529 | 20 | 1020.2 | 23.88 | 1.998 | 20 |
-| `unit 3` (2.0, 60 s calm) | 1004 | 23.71 | 243.25 | 1.383 | 59 | 1018.8 | 24.00 | 1.241 | 59 |
+| `unit 1` (1.0, 20 s asleep) | 335 | 23.88 | 241.79 | 1.529 | 20 | 1020.2 | 23.88 | 1.768 | 20 |
+| `unit 3` (2.0, 60 s calm) | 1004 | 23.71 | 243.25 | 1.383 | 59 | 1018.8 | 24.00 | 1.243 | 59 |
 
 On the stationary shelf (`unit 3`), forward ToF remained in the weak-signal regime (`found = 0`, median distance `93.0 mm`, SD `10.88 mm`, median quality `0.00275`).
 
@@ -18,7 +18,7 @@ On the stationary shelf (`unit 3`), forward ToF remained in the weak-signal regi
 Four ascending/descending stepped sweeps on `unit 1` (`head = 0°`, `1.0 s` holds) yielded `110` stationary SDK packets immediately following fresh ToF updates (`max(lift) - min(lift) < 0.4 mm` over `200 ms`).
 
 - **Firmware flag boundary (`is_lift_in_fov`)**: `0` at `<= 32.00 mm`, `1` across `35.41–55.07 mm`, and `0` at `>= 56.44 mm`, consistent with `tof_lift_occluding_min_mm = 34.0` and `tof_lift_occluding_max_mm = 56.0`.
-- **Actual optical beam interception on stock fork**: Inside `[34, 56] mm`, the physical beam cleared the fork at both edges (`35.41–36.44 mm`: `179.0–179.5 mm`, `q = 0.066`; `54.73–55.07 mm`: `178.0–179.0 mm`, `q = 0.067`). Grazing began at `37.47 mm` (`167.5 mm`, `q = 0.071`), locked onto the `30.0 mm` clamp across `40.92–49.92 mm` with two quality lobes (`q_med = 19.73` at `40.92 mm`, `1.59` at `43.00 mm`, `17.52` at `44.73 mm`, decaying to `0.85` at `49.92 mm`), and exited at `50.61 mm` (`38.0 mm`, `q = 0.678`). Canonical `vector_1` assigns constant `(30.0 mm, q = 11.70)` across the full `34–56 mm` flag band.
+- **Optical beam interception vs. canonical `ProxSensor`**: Inside `[34, 56] mm`, the physical beam cleared the fork at both edges (`35.41–36.44 mm`: `179.0–179.5 mm`, `q = 0.066`; `54.73–55.07 mm`: `178.0–179.0 mm`, `q = 0.067`), began grazing at `37.47 mm` (`167.5 mm`, `q = 0.071`), locked onto `30.0 mm` across `40.92–49.92 mm`, and exited at `50.61 mm` (`38.0 mm`, `q = 0.678`). With `tof_lift_beam_window_mm = [37.5, 39.8, 46.0, 51.0]`, canonical `vector_1` clears the edges cleanly (`185.0 mm` at `35.41–37.47` and `54.73–55.07 mm`), locks at `30.0 mm` across `40.92–49.92 mm` with decaying quality (`11.70 -> 2.55 -> 0.94`), and drops held-out docked curve distance MAE from `43.6 mm` to `1.29 mm`.
 
 ## Full-stroke `0/25/50/75/100%` hysteresis (`duration = 0.7 s`)
 
