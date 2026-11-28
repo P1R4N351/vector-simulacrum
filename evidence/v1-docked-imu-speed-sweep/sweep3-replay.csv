@@ -1,0 +1,10 @@
+trial,target_deg,head_rmse_deg,gyro_y_rmse_radps
+sweep3_holdout_0,0.0,1.23,0.195
+sweep3_holdout_1,40.0,3.36,0.380
+sweep3_holdout_2,-20.0,3.59,0.356
+sweep3_holdout_3,20.0,1.08,0.166
+sweep3_holdout_4,-10.0,2.45,0.316
+sweep3_holdout_5,44.0,4.96,0.473
+sweep3_holdout_6,10.0,3.27,0.402
+sweep3_holdout_7,30.0,1.54,0.254
+sweep3_holdout_8,0.0,2.43,0.265
