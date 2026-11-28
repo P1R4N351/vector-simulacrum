@@ -1,0 +1,7 @@
+phase,cmd,cross_ms,wr_steady_mmps,gz_steady_dps
+rev_100_p1,speed=+100,177,+90.3,+32.2
+rev_100_p2,speed=-100,155,-73.0,-98.7
+rev_100_p3,speed=+100,182,+77.8,+103.5
+rev_150_p1,speed=+150,174,+144.3,+172.0
+rev_150_p2,speed=-150,119,-125.8,-167.5
+rev_150_p3,speed=+150,209,+127.0,+172.7
