@@ -70,10 +70,14 @@ class Faults(unittest.TestCase):
     def test_missing_tesseract_is_a_fault_not_clean(self):
         saved = os.environ.get("PATH", "")
         os.environ["PATH"] = ""
+        if HAVE_OCR:
+            image_scan.ocr_library()._ENGINE.clear()   # the engine check is cached per process
         try:
             code, out = run_main(["--patterns", "unused", "x.png"])
         finally:
             os.environ["PATH"] = saved
+            if HAVE_OCR:
+                image_scan.ocr_library()._ENGINE.clear()
         self.assertEqual(code, image_scan.EXIT_FAULT)
         self.assertIn("not a clean result", out)
 
@@ -104,6 +108,34 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual(code, image_scan.EXIT_FINDINGS)
         self.assertIn("hit.png: tok:", out)
         self.assertNotIn("HX7Z", out)
+
+    def test_a_rotated_label_is_found(self):
+        from PIL import ImageDraw, ImageFont
+        image = image_scan.render("range HX7Z (mm)", Image, ImageDraw, ImageFont)
+        image.rotate(90, expand=True, fillcolor=(255, 255, 255)).save(os.path.join(self.root, "axis.png"))
+        code, out = run_main(["--patterns", self.patterns, "--root", self.root, "axis.png"])
+        self.assertEqual(code, image_scan.EXIT_FINDINGS, out)
+        self.assertIn("axis.png: tok:", out)
+
+    def test_a_one_character_misread_is_found(self):
+        from PIL import ImageDraw, ImageFont
+        image_scan.render("series HX72 canary", Image, ImageDraw, ImageFont).save(os.path.join(self.root, "m.png"))
+        code, out = run_main(["--patterns", self.patterns, "--root", self.root, "m.png"])
+        self.assertEqual(code, image_scan.EXIT_FINDINGS, out)
+
+    def test_a_vendored_library_off_its_pin_is_a_fault(self):
+        import subprocess
+        here = os.path.dirname(os.path.abspath(__file__))
+        copy = os.path.join(self.root, "copy")
+        os.makedirs(copy)
+        for name in ("image_scan.py", "household_ocr.py", "household_ocr.sha256"):
+            shutil.copy(os.path.join(here, name), copy)
+        with open(os.path.join(copy, "household_ocr.py"), "a") as fh:
+            fh.write("# drifted\n")
+        proc = subprocess.run([sys.executable, os.path.join(copy, "image_scan.py"), "--patterns", self.patterns,
+                               "--self-test"], capture_output=True, text=True, timeout=300, check=False)
+        self.assertEqual(proc.returncode, image_scan.EXIT_FAULT, proc.stdout)
+        self.assertIn("pinned", proc.stdout)
 
     def test_undecodable_image_is_a_fault(self):
         with open(os.path.join(self.root, "bad.png"), "wb") as fh:

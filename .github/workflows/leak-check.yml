@@ -137,13 +137,28 @@ jobs:
   # same secret pattern list, and reports path + pattern id (never the matched text).
   images:
     runs-on: ubuntu-latest
+    # Debian 13 ships tesseract 5.5.0 and the eng.traineddata the vendored OCR library pins; the Ubuntu
+    # runner's tesseract is older and would be refused as unpinned (a fault, never a pass).
+    container: debian:trixie
     steps:
+      - name: Install git, tesseract and Pillow
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends ca-certificates git python3 python3-pil \
+            tesseract-ocr tesseract-ocr-eng > /dev/null
+          tesseract --version | head -1
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - name: Image scan self-test (runs on every push, so the instrument proves it can fail)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          python3 -m unittest discover -s .github/leak-check -p 'test_image_scan.py' -v
+          python3 .github/leak-check/image_scan.py --patterns /dev/null --self-test
       - name: List images added or modified
         id: changed
         env:
@@ -168,23 +183,6 @@ jobs:
           echo "base $base; $count image(s) added or modified."
           echo "list=$list" >> "$GITHUB_OUTPUT"
           echo "count=$count" >> "$GITHUB_OUTPUT"
-      - name: Install tesseract and Pillow
-        if: steps.changed.outputs.count != '0'
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends tesseract-ocr tesseract-ocr-eng
-          tesseract --version | head -1
-          # ImageFont.load_default(size=...) used by the self-test needs Pillow >= 10.1.
-          python3 -m pip install --quiet 'pillow>=10.1,<14'
-      - name: Image scan self-test (the scan must be able to find a planted canary)
-        if: steps.changed.outputs.count != '0'
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m unittest discover -s .github/leak-check -v
-          python3 .github/leak-check/image_scan.py --patterns /dev/null --self-test
       - name: Decode patterns and OCR the changed images
         if: steps.changed.outputs.count != '0'
         env:
