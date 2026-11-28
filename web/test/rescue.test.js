@@ -9,7 +9,6 @@ import { mujoco, readJson, readText, sha256 } from "./helpers.js";
 
 const v1Model = readJson("public/robot/model.json");
 const v2Model = readJson("public/robot/vector2/model.json");
-const BODY_PARTS = ["chassis", "wheel_fl", "wheel_fr", "wheel_rl", "wheel_rr", "head", "lift_arm", "lift_fork"];
 const activeSims = [];
 
 afterEach(() => {
@@ -34,16 +33,26 @@ async function makeSim(robotDir, sceneFile, opts = {}) {
 
 function runRescueAction(sim, mode = "auto") {
   assert.equal(sim.rescuePatient(mode), true, `rescuePatient(${mode}) was refused`);
-  for (let tick = 0; tick < 12000 && sim.actionRunning; tick++) sim.stepAction();
+  let peakLeverLiftMm = 0;
+  for (let tick = 0; tick < 12000 && sim.actionRunning; tick++) {
+    sim.stepAction();
+    if (sim.rescueSnapshot().stage === "stage_c_lever") {
+      peakLeverLiftMm = Math.max(peakLeverLiftMm, sim.liftHeightMm());
+    }
+  }
   assert.equal(sim.actionRunning, false, "rescue macro timed out within tick bound");
-  return sim.lastAction;
+  return { ...sim.lastAction, peak_lever_lift_mm: peakLeverLiftMm };
 }
 
 function withExcludedRobotContacts(xml) {
+  const names = [...xml.matchAll(/<body\b[^>]*\bname="([^"]+)"/g)].map((m) => m[1]);
+  const pBodies = names.filter((name) => name.startsWith("patient_"));
+  const rBodies = names.filter((name) => !name.startsWith("patient_") && name !== "cube" && name !== "dock");
+  assert.ok(rBodies.length > 0 && pBodies.length > 0, "expected rescuer and patient bodies");
   const pairs = [];
-  for (const rBody of BODY_PARTS) {
-    for (const pBody of BODY_PARTS) {
-      pairs.push(`    <exclude body1="${rBody}" body2="patient_${pBody}"/>`);
+  for (const rBody of rBodies) {
+    for (const pBody of pBodies) {
+      pairs.push(`    <exclude body1="${rBody}" body2="${pBody}"/>`);
     }
   }
   const block = `  <contact>\n${pairs.join("\n")}\n  </contact>\n</mujoco>`;
@@ -105,6 +114,7 @@ test("direct rescue rights sideways patient on both sides", async () => {
     assert.equal(out.side, side);
     assert.ok(out.start_tilt_deg > 85, `expected sideways start (${out.start_tilt_deg})`);
     assert.ok(out.final_tilt_deg < 5, `expected upright finish on ${side} (${out.final_tilt_deg})`);
+    assert.ok(out.peak_lever_lift_mm > 80, `expected Stage C lever lift > 80 mm on ${side} (${out.peak_lever_lift_mm})`);
     assert.equal(out.rescuer_clear, true);
     assert.ok(out.direct_contact_ticks > 0, `expected direct contact on ${side}`);
   }
@@ -120,6 +130,7 @@ test("cube-assisted rescue rights v1 (both sides) and v2 through all stages", as
     assert.deepEqual(out.stages, ["stage_a", "stage_b", "stage_c_nav", "stage_c_settle", "stage_c_lever"]);
     assert.ok(out.start_tilt_deg > 85, `expected sideways start (${out.start_tilt_deg})`);
     assert.ok(out.final_tilt_deg < 5, `expected upright finish on ${side} (${out.final_tilt_deg})`);
+    assert.ok(out.peak_lever_lift_mm > 80, `expected Stage C lever lift > 80 mm on ${side} (${out.peak_lever_lift_mm})`);
     assert.equal(out.rescuer_clear, true);
     assert.ok(out.direct_contact_ticks > 0, `expected Stage C contact on ${side}`);
     assert.equal(v1.rescueSnapshot().patientUpright, true);
@@ -129,6 +140,7 @@ test("cube-assisted rescue rights v1 (both sides) and v2 through all stages", as
   assert.equal(out2.result, "completed");
   assert.equal(out2.mode, "cube");
   assert.ok(out2.final_tilt_deg < 5, `expected v2 upright finish (${out2.final_tilt_deg})`);
+  assert.ok(out2.peak_lever_lift_mm > 80, `expected Stage C lever lift > 80 mm on v2 (${out2.peak_lever_lift_mm})`);
   assert.equal(out2.rescuer_clear, true);
   assert.ok(out2.direct_contact_ticks > 0, "expected Stage C contact on v2");
 });

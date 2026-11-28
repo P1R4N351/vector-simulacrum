@@ -136,19 +136,20 @@ def fit(data: Sequence[Stretch], free_scale: bool = False) -> Dict[str, Any]:
             "rms_mmps2": math.sqrt(float(r @ r) / (3 * rows)), "stretches": len(data), "rows": rows}
 
 
-def bootstrap(data: Sequence[Stretch], draws: int = 200, seed: int = 1) -> Dict[str, Any]:
+def bootstrap(data: Sequence[Stretch], draws: int = 200, seed: int = 1, free_scale: bool = True) -> Dict[str, Any]:
     """Refit on still stretches drawn with replacement: the middle 95 percent of each fitted number."""
     assert 20 <= draws <= 2000, "draw count out of range"
     rng = random.Random(seed)
     to_mg = 1000.0 / GRAVITY_MMPS2
     rows: List[List[float]] = []
     for _ in range(draws):
-        v = fit([data[rng.randrange(len(data))] for _ in data])["values"]
-        level_x = v["bias_x_mmps2"] * to_mg + 1000.0 * math.sin(v["pitch_rad"])
+        v = fit([data[rng.randrange(len(data))] for _ in data], free_scale=free_scale)["values"]
+        kx = v.get(SCALE_NAME, 1.0)
+        level_x = v["bias_x_mmps2"] * to_mg + 1000.0 * kx * math.sin(v["pitch_rad"])
         rows.append([math.degrees(v["pitch_rad"]), v["bias_x_mmps2"] * to_mg, v["bias_y_mmps2"] * to_mg,
-                     v["bias_z_mmps2"] * to_mg, level_x])
+                     v["bias_z_mmps2"] * to_mg, level_x, kx])
     table = np.array(rows)
-    names = ("pitch_deg", "bias_x_mg", "bias_y_mg", "bias_z_mg", "level_x_mg")
+    names = ("pitch_deg", "bias_x_mg", "bias_y_mg", "bias_z_mg", "level_x_mg", SCALE_NAME)
     out: Dict[str, Any] = {name: [float(q) for q in np.percentile(table[:, i], [2.5, 97.5])] for i, name in enumerate(names)}
     out["draws"] = draws
     assert len(out) == len(names) + 1, "a column is missing"
@@ -156,21 +157,22 @@ def bootstrap(data: Sequence[Stretch], draws: int = 200, seed: int = 1) -> Dict[
 
 
 def describe() -> Dict[str, Any]:
-    """The fit over every still stretch, and again with each cluster of head angle left out."""
+    """The fit over every still stretch with x scale freed, and again with each cluster of head angle left out."""
     states, _ = recording.load()
     data = stretches(states)
     to_mg = 1000.0 / GRAVITY_MMPS2
-    out = fit(data)
+    out = fit(data, free_scale=True)
     v = out["values"]
+    out["scale_x"] = v[SCALE_NAME]
     out["bias_mg"] = [v["bias_x_mmps2"] * to_mg, v["bias_y_mmps2"] * to_mg, v["bias_z_mmps2"] * to_mg]
     out["pitch_deg"] = math.degrees(v["pitch_rad"])
     out["table_tilt_deg"] = math.degrees(math.hypot(v["tilt_x_rad"], v["tilt_y_rad"]))
-    out["bootstrap_95"] = bootstrap(data)
+    out["bootstrap_95"] = bootstrap(data, free_scale=True)
     out["without"] = {}
     for label, low, high in (("head near 22 deg", 0.3, 1.0), ("head near 7 deg", 0.09, 0.2), ("head near 0 deg", -0.1, 0.05)):
         rest = [s for s in data if not low <= s[0] <= high]
-        part = fit(rest)["values"]
-        out["without"][label] = {"stretches": len(rest), "pitch_deg": math.degrees(part["pitch_rad"]),
+        part = fit(rest, free_scale=True)["values"]
+        out["without"][label] = {"stretches": len(rest), "scale_x": part[SCALE_NAME], "pitch_deg": math.degrees(part["pitch_rad"]),
                                  "bias_mg": [part[name] * to_mg for name in NAMES[3:]]}
     assert len(out["without"]) == 3 and len(out["bias_mg"]) == 3, "a part of the report is missing"
     return out
@@ -236,6 +238,8 @@ def level_reading_mg(result: Dict[str, Any], head_rad: float) -> List[float]:
     """What the fitted robot reads beyond a level, unpitched accelerometer at one head angle, in mg."""
     v = result["values"]
     level = [0.0, 0.0, v["pitch_rad"], v["bias_x_mmps2"], v["bias_y_mmps2"], v["bias_z_mmps2"]]
+    if SCALE_NAME in v:
+        level.append(v[SCALE_NAME])
     ideal = [0.0] * len(NAMES)
     diff = predicted(level, head_rad, 0.0) - predicted(ideal, head_rad, 0.0)
     assert diff.shape == (3,), "three axes"

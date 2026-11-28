@@ -1,0 +1,15 @@
+domain,metric,split,accuracy_pct,physical,canonical_sim,source
+1_straight_drives,"Mid-pulse speed (40-160 mm/s, n=8)",held-out,96.29,mean_err=3.71% cmd,REC1 full-trace=87.23%,v1-zed-drive-spins/drive-pulses.csv
+2_open_loop_spins,"Normalized yaw gain (60-280 mm/s, n=12)",held-out,97.05,med=23.02 rad/m,med=23.41 rad/m,v1-highspeed-spins-reversals/steady-spins.csv
+2_open_loop_spins,"Speed ceiling (240/280 mm/s, 3.95 V)",held-out,99.04,235.5-238.7 mm/s,235.0-235.5 mm/s,v1-highspeed-spins-reversals/steady-spins.csv
+3_unit3_camera_spins,"Held-out unit 3 turn-rate RMS (150 mm/s, n=4)",held-out,99.67,ratio=1.000,"ratios=[1.0053, 0.998, 1.003, 1.0019]",body-shape/refit/fit_spins.json
+4_head_lift_strokes,REC1 held-out servo RMSE/span + Visit B settles,held-out,96.82,lift 50.95-52.33 mm / head +6.75..+8.97 deg,offdock acc=99.14% / 98.91%,simulacrum.replay + v1-offdock-tof-and-joints
+5_imu_and_calm,REC1 + Visit 1 2-heading + unit 3 Spot A IMU RMS,train/held-out,99.87,"REC1=1.69 mg, V1=1.30 mg, U3_A=6.49 mg",accel_scale_x=1.0118 (g=9806.65),simulacrum.imu_fit + v1-zed-tof-imu-dock
+5_imu_and_calm,Calm-mode IMU (240 ms) & ToF (1024 ms) cadence,held-out,99.85,"23.88%/23.71% IMU, 20/59 ToF","23.88%/24.00% IMU, 20/59 ToF",v1-docked-fork-tof-sweep/calm-summary.csv
+6_tof_occlusion,"Off-dock tof_near_asc (n=27, fov=100%)",train,96.81,wall=72.5 mm,MAE=2.31 mm,v1-offdock-tof-and-joints/tof-near-far.csv
+6_tof_occlusion,"Off-dock tof_far_asc (n=13, fov=100%)",train,97.80,wall=200.5 mm,MAE=4.41 mm,v1-offdock-tof-and-joints/tof-near-far.csv
+6_tof_occlusion,"Off-dock tof_near_desc (n=13, fov=100%)",held-out,97.85,wall=72.5 mm,MAE=1.56 mm,v1-offdock-tof-and-joints/tof-near-far.csv
+6_tof_occlusion,Docked fine sweep (n=38) & pitch cutoff (n=6),held-out,97.57,"MAE=4.37 mm, found=100%",tof_lift_beam_window_mm MAE=4.37 mm,v1-docked-fork-tof-sweep + v1-zed-tof-imu-dock
+7_dock_idle,70.7 s idle contact hold & creep (<2.5 mm),check,97.82,0 disconnects (on charger),"drops=0, creep=2.07 mm",simulacrum.autonomy
+8_dock_ramp_return,Ramp climb (-35 mm/s) + 3-pose autonomous dock,held-out,100.00,"climb_35 mounted=1, native dock=1","climb_35=1, auto_dock=3/3",v1-ramp-climb-sweep + autonomy
+9_wheelstand_cube,Cube BMA253 shelf gravity + wheelstand equilibria,held-out,99.95,0.97036 g,"0.97083 g; rear=64.9d, side=53.5d",unit3-wheelstand/rest-transfer-repeat.csv + wheelstand

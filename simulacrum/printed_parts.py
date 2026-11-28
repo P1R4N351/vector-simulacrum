@@ -708,7 +708,7 @@ def _apply_tip_supports(root: ET.Element, v: Dict[str, Any], radii: Dict[str, Tu
     """The body-fixed tipping cylinders (mjcf._tip_supports_xml) keep their clearance below the new wheels."""
     chassis = _body(root, "chassis")
     gap = v["tip_support_clearance_mm"]
-    for geom in chassis.findall("geom"):
+    for geom in chassis.iter("geom"):
         name = geom.get("name", "")
         if not name.startswith("tip_"):
             continue

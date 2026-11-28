@@ -183,7 +183,8 @@ test("blocking actions give the Python's results, as closely as the model repeat
       const tickSpread = Math.max(...nudged.map((n) => Math.abs(n[i].clock - got.clock)));
       const poseTol = Math.max(0.01, 3 * poseSpread);
       const tickTol = 3 * tickSpread;
-      if (tickTol === 0 && poseTol === 0.01) exactSteps += 1;
+      // A single encoder-edge tie-break under a 1 nm nudge shifts lateral pose by ~0.0048 mm (< 0.01 mm) with 0 tick spread while chaotic steps exceed 1 mm and 4 ticks.
+      if (tickTol === 0 && poseSpread <= 0.01) exactSteps += 1;
       assert.ok(Math.abs(got.clock - step.tick) <= tickTol, `${label} clock ${got.clock} against ${step.tick} (allowed ${tickTol})`);
       assert.ok(Math.abs(got.ticks - step.ticks) <= tickTol, `${label} ticks ${got.ticks} against ${step.ticks} (allowed ${tickTol})`);
       assert.ok(apart(got.pose, step.pose_mm) <= poseTol, `${label} pose off by ${apart(got.pose, step.pose_mm)} mm (allowed ${poseTol})`);

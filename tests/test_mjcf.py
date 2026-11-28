@@ -99,6 +99,7 @@ class GeneratedModel(unittest.TestCase):
             "tof_range_std_fraction", "battery_sag_v_per_power", "motor_reference_voltage_v",
             "tread_heat_tau_s", "tread_heat_loss_rate_per_s", "tof_quality_at_100mm", "tof_quality_distance_exponent",
             "tof_quality_floor", "tof_weak_distance_mm", "tof_weak_distance_sd_mm", "tof_lift_quality",
+            "tof_lift_beam_window_mm",
             # the firmware's WHEEL_DIST_MM, in its turn arithmetic; the model puts the treads at tread_center_spacing_mm
             "tread_spacing_mm",
             # the carried cube's chip and app, run by simulacrum/cube.py
@@ -166,8 +167,10 @@ class GeneratedModel(unittest.TestCase):
             line = speed / v["tread_noload_speed_mmps"] + v["tread_friction_power_fraction"]
             self.assertAlmostEqual(power, line, places=9, msg=str(speed))
         fric_tc = self.v["control_period_ms"] * 0.001
-        self.assertEqual(_floats(_find(self.root, "joint", "wheel_fl_joint").get("solreffriction")), [fric_tc, 1.0])
-        self.assertEqual(_floats(_find(self.root, "joint", "wheel_fr_joint").get("solreffriction")), [fric_tc, 1.0])
+        for side in ("wheel_fl_joint", "wheel_fr_joint"):
+            raw = _find(self.root, "joint", side).get("solreffriction")
+            self.assertIsNotNone(raw)
+            self.assertEqual(_floats(raw), [fric_tc, 1.0])
         self.assertIsNone(_find(self.root, "joint", "wheel_rl_joint").get("frictionloss"))
         self.assertIsNone(_find(self.root, "joint", "wheel_rl_joint").get("solreffriction"))
         self.assertIsNone(_find(self.root, "joint", "wheel_rr_joint").get("solreffriction"))
@@ -194,7 +197,8 @@ class GeneratedModel(unittest.TestCase):
 
     def test_part_masses_add_up_to_the_total(self) -> None:
         masses = mjcf.derive(self.v)["masses_g"]
-        total = masses["chassis"] + masses["head"] + masses["arm"] + masses["fork"] + 4.0 * masses["wheel"]
+        tip = 0.04 if mjcf._tip_supports_driven(self.v) else 0.0
+        total = masses["chassis"] + masses["head"] + masses["arm"] + masses["fork"] + 4.0 * masses["wheel"] + tip
         self.assertAlmostEqual(total, self.v["total_mass_g"], places=9)
         with self.assertRaises(AssertionError):
             mjcf.derive(params.values(self.doc, {"head_mass_g": 400.0}))

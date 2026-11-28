@@ -58,7 +58,7 @@ class ModelLoads(unittest.TestCase):
         sim = VectorSim()
         self.assertEqual(sim.model.nu, 4)
         self.assertEqual(sim.model.nsensor, 6)
-        self.assertEqual(sim.model.nq, 7 + 4 + 3)
+        self.assertEqual(sim.model.nq, 7 + 4 + 3 + (4 if mjcf._tip_supports_driven(sim.v) else 0))
         self.assertEqual(sim.model.ncam, 1)
 
     def test_fork_side_plates_contact_a_probe_and_the_opening_passes_it(self) -> None:
@@ -484,7 +484,8 @@ class RangeSensors(unittest.TestCase):
         for head in (-20.0, 0.0, 22.4, 44.0):
             state = _quiet_sim(head_deg=head).advance(0.5)
             angle = state.head_angle_rad + math.radians(v["imu_pitch_offset_deg"])
-            want = (g * math.sin(angle) + mg * v["accel_bias_mg"][0], mg * v["accel_bias_mg"][1],
+            want = (v["accel_scale"][0] * g * math.sin(angle) + mg * v["accel_bias_mg"][0],
+                    mg * v["accel_bias_mg"][1],
                     g * math.cos(angle) + mg * v["accel_bias_mg"][2])
             for got, expected in zip(state.accel_mmps2, want):
                 self.assertAlmostEqual(got, expected, delta=3.0 * mg)
